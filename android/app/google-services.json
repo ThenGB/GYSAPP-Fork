@@ -1,0 +1,115 @@
+{
+  "project_info": {
+    "project_number": "4071878363",
+    "firebase_url": "https://hatiku-4c1de.firebaseio.com",
+    "project_id": "hatiku-4c1de",
+    "storage_bucket": "hatiku-4c1de.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4071878363:android:fa4b33575c68ed0ea266fe",
+        "android_client_info": {
+          "package_name": "com.itm.hatiku.hatiku"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.itm.hatiku.hatiku",
+            "certificate_hash": "28583efe21c33c6920e3a7455987c19af9288ecb"
+          }
+        },
+        {
+          "client_id": "4071878363-9coni8tg958f037vrgf5475vneho46lh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.itm.hatiku.hatiku",
+            "certificate_hash": "ef796c1179e5557158a87fc45dd152da52f1aa4e"
+          }
+        },
+        {
+          "client_id": "4071878363-c9qut0o82k60ljse5kohqunrv406qgte.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.itm.hatiku.hatiku",
+            "certificate_hash": "710769dd88c406dad04304465200ca51dee9a0fd"
+          }
+        },
+        {
+          "client_id": "4071878363-r0uh9cp05q9bvkr1dv2sr7tjbro744vo.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.itm.hatiku.hatiku",
+            "certificate_hash": "4f419859ed7b877315a793e3d4c22da2e6c6eb3c"
+          }
+        },
+        {
+          "client_id": "4071878363-k4fv7b10es82gfnl58evliqq2hju5081.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwg1W_u1DANHXPuOf3wAwXOWfirhfuhZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "4071878363-k4fv7b10es82gfnl58evliqq2hju5081.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.itmandiri.church"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:4071878363:android:646914becdb68242a266fe",
+        "android_client_info": {
+          "package_name": "com.itm.hatiku.hatikuv2"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "4071878363-k4fv7b10es82gfnl58evliqq2hju5081.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwg1W_u1DANHXPuOf3wAwXOWfirhfuhZs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "4071878363-k4fv7b10es82gfnl58evliqq2hju5081.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.itmandiri.church"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
