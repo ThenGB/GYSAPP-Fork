@@ -1,8 +1,10 @@
 import 'package:chaleno/chaleno.dart';
 import 'package:church/data/repository/bible_repository_impl.dart';
 import 'package:church/data/repository/scrapper_repository_impl.dart';
+import 'package:church/data/repository/song_repository_impl.dart';
 import 'package:church/domain/repository/bible_repository/bible_repository.dart';
 import 'package:church/domain/repository/scrapper_repository.dart';
+import 'package:church/domain/repository/song_repository.dart';
 import 'package:church/presentations/bible/cubit/bible_cubit.dart';
 import 'package:church/presentations/dashboard/cubit/dashboard_cubit.dart';
 import 'package:church/presentations/home/bloc/home_cubit.dart';
@@ -11,6 +13,7 @@ import 'package:church/presentations/literature/cubit/kesaksian/literature_kesak
 import 'package:church/presentations/literature/cubit/panduan/literature_panduan_cubit.dart';
 import 'package:church/presentations/literature/cubit/renungan/literature_renungan_cubit.dart';
 import 'package:church/presentations/literature/cubit/warta/literature_warta_cubit.dart';
+import 'package:church/presentations/song/cubit/song_cubit.dart';
 import 'package:get_it/get_it.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -31,6 +34,7 @@ _blocs() {
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
+  di.registerFactory(() => SongCubit(di()));
 }
 
 _utils() async {
@@ -44,6 +48,7 @@ _utils() async {
 _repositories() {
   di.registerFactory<ScrapperRepository>(() => ScrapperRepositoryImpl(di()));
   di.registerFactory<BibleRepository>(() => BibleRepositoryImpl());
+  di.registerFactory<SongRepository>(() => SongRepositoryImpl());
 }
 
 class AppDirectory {
@@ -54,5 +59,6 @@ class AppDirectory {
   AppDirectory(this.document, this.cache, this.support);
 
   String get bibleFolder => '$cache/bible';
-  String get songFolder => '$cache/song';
+  String get songMusicFolder => '$cache/song';
+  String get songDbPath => '$cache/song/song.db';
 }

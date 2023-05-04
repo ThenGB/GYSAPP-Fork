@@ -1,9 +1,33 @@
 class Assets {
   Assets._();
   
+  /// Assets for assetsDataASMI
+  /// assets/data/ASM-I.pdf
+  static const String assetsDataASMI = "assets/data/ASM-I.pdf";
+
+  /// Assets for assetsDataASMM
+  /// assets/data/ASM-M.pdf
+  static const String assetsDataASMM = "assets/data/ASM-M.pdf";
+
+  /// Assets for assetsDataASMP
+  /// assets/data/ASM-P.pdf
+  static const String assetsDataASMP = "assets/data/ASM-P.pdf";
+
   /// Assets for assetsDataFaith
   /// assets/data/faith.json
   static const String assetsDataFaith = "assets/data/faith.json";
+
+  /// Assets for assetsDataKR
+  /// assets/data/KR.pdf
+  static const String assetsDataKR = "assets/data/KR.pdf";
+
+  /// Assets for assetsDataMDR
+  /// assets/data/MDR.pdf
+  static const String assetsDataMDR = "assets/data/MDR.pdf";
+
+  /// Assets for assetsDataSong
+  /// assets/data/song.db
+  static const String assetsDataSong = "assets/data/song.db";
 
   /// Assets for assetsIconsBell
   /// assets/icons/bell.png

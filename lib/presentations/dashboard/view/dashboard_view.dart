@@ -4,6 +4,7 @@ import 'package:church/presentations/bible/cubit/bible_cubit.dart';
 import 'package:church/presentations/dashboard/cubit/dashboard_cubit.dart';
 import 'package:church/presentations/dashboard/cubit/dashboard_state.dart';
 import 'package:church/presentations/home/bloc/home_cubit.dart';
+import 'package:church/presentations/song/cubit/song_cubit.dart';
 import 'package:church/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -54,6 +55,9 @@ class DashboardView extends StatelessWidget {
           create: (context) => di(),
         ),
         BlocProvider<BibleCubit>(
+          create: (context) => di(),
+        ),
+        BlocProvider<SongCubit>(
           create: (context) => di(),
         ),
       ],

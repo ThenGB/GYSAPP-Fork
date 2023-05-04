@@ -1,4 +1,8 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/material.dart';
+
+import '../domain/entity/song/song_entity.dart';
+import '../presentations/presentations.dart';
 
 part 'router.gr.dart';
 
@@ -10,50 +14,50 @@ var router = AppRouter();
 class AppRouter extends _$AppRouter {
   @override
   List<AutoRoute> get routes => [
-        CupertinoRoute(path: '/', name: InitialRoute),
-        CupertinoRoute(path: '/auth', name: LoginRoute),
+        CupertinoRoute(path: '/', page: InitialRoute.page),
+        CupertinoRoute(path: '/auth', page: LoginRoute.page),
         MaterialRoute(path: '/web', page: WebpageRoute.page),
         CupertinoRoute(
           path: '/literature',
-          name: LiteratureRoute,
+          page: LiteratureRoute.page,
         ),
         CupertinoRoute(
           path: '/literature/kesaksian',
-          name: LiteratureKesaksianRoute,
+          page: LiteratureKesaksianRoute.page,
         ),
         CupertinoRoute(
           path: '/literature/warta',
-          name: LiteratureWartaRoute,
+          page: LiteratureWartaRoute.page,
         ),
         CupertinoRoute(
           path: '/literature/renungan',
-          name: LiteratureRenunganRoute,
+          page: LiteratureRenunganRoute.page,
         ),
         CupertinoRoute(
           path: '/literature/panduankitab',
-          name: LiteraturePanduanKitabRoute,
+          page: LiteraturePanduanKitabRoute.page,
         ),
-        // CupertinoRoute(
-        //   name: SonglistRoute,
-        // ),
+        CupertinoRoute(
+          page: SongListRoute.page,
+        ),
         CupertinoRoute(
           path: '/dashboard',
-          name: DashboardRoute,
+          page: DashboardRoute.page,
           children: [
             CupertinoRoute(
-              name: HomeRoute,
+              page: HomeRoute.page,
             ),
             CupertinoRoute(
-              name: BibleRoute,
+              page: BibleRoute.page,
             ),
             CupertinoRoute(
-              name: SongRoute,
+              page: SongRoute.page,
             ),
             CupertinoRoute(
-              name: FaithRoute,
+              page: FaithRoute.page,
             ),
             CupertinoRoute(
-              name: SettingsRoute,
+              page: SettingsRoute.page,
             ),
           ],
         ),
