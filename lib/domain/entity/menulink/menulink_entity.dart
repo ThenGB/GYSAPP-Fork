@@ -1,8 +1,9 @@
 import 'dart:io';
 
-import 'package:church/data/utilities/variables/assets.dart';
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../data/utilities/variables/assets.dart';
 
 part 'menulink_entity.freezed.dart';
 part 'menulink_entity.g.dart';

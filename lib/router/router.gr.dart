@@ -21,6 +21,31 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const BibleView(),
       );
     },
+    BibleNoteRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleNoteRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleNoteView(
+          key: args.key,
+          initialData: args.initialData,
+          cubit: args.cubit,
+          mode: args.mode,
+          onSave: args.onSave,
+        ),
+      );
+    },
+    BibleListRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleListView(
+          key: args.key,
+          books: args.books,
+          getBibles: args.getBibles,
+          onSelected: args.onSelected,
+        ),
+      );
+    },
     SettingsRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -70,9 +95,14 @@ abstract class _$AppRouter extends RootStackRouter {
       );
     },
     LoginRoute.name: (routeData) {
+      final args = routeData.argsAs<LoginRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const LoginView(),
+        child: WrappedRoute(
+            child: LoginView(
+          key: args.key,
+          onLoggedIn: args.onLoggedIn,
+        )),
       );
     },
     WebpageRoute.name: (routeData) {
@@ -120,6 +150,16 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const FaithView(),
       );
     },
+    BibleNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleNoteListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleNoteListView(
+          key: args.key,
+          cubit: args.cubit,
+        ),
+      );
+    },
   };
 }
 
@@ -135,6 +175,113 @@ class BibleRoute extends PageRouteInfo<void> {
   static const String name = 'BibleRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [BibleNoteView]
+class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
+  BibleNoteRoute({
+    Key? key,
+    required BibleNote initialData,
+    required BibleCubit cubit,
+    required BibleNoteMode mode,
+    required dynamic Function(BibleNote) onSave,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleNoteRoute.name,
+          args: BibleNoteRouteArgs(
+            key: key,
+            initialData: initialData,
+            cubit: cubit,
+            mode: mode,
+            onSave: onSave,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleNoteRoute';
+
+  static const PageInfo<BibleNoteRouteArgs> page =
+      PageInfo<BibleNoteRouteArgs>(name);
+}
+
+class BibleNoteRouteArgs {
+  const BibleNoteRouteArgs({
+    this.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
+
+  final Key? key;
+
+  final BibleNote initialData;
+
+  final BibleCubit cubit;
+
+  final BibleNoteMode mode;
+
+  final dynamic Function(BibleNote) onSave;
+
+  @override
+  String toString() {
+    return 'BibleNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
+  }
+}
+
+/// generated route for
+/// [BibleListView]
+class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
+  BibleListRoute({
+    Key? key,
+    required List<BibleBook> books,
+    required Future<List<Verse>> Function(
+      int?,
+      int?,
+    ) getBibles,
+    required dynamic Function(Verse) onSelected,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleListRoute.name,
+          args: BibleListRouteArgs(
+            key: key,
+            books: books,
+            getBibles: getBibles,
+            onSelected: onSelected,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleListRoute';
+
+  static const PageInfo<BibleListRouteArgs> page =
+      PageInfo<BibleListRouteArgs>(name);
+}
+
+class BibleListRouteArgs {
+  const BibleListRouteArgs({
+    this.key,
+    required this.books,
+    required this.getBibles,
+    required this.onSelected,
+  });
+
+  final Key? key;
+
+  final List<BibleBook> books;
+
+  final Future<List<Verse>> Function(
+    int?,
+    int?,
+  ) getBibles;
+
+  final dynamic Function(Verse) onSelected;
+
+  @override
+  String toString() {
+    return 'BibleListRouteArgs{key: $key, books: $books, getBibles: $getBibles, onSelected: $onSelected}';
+  }
 }
 
 /// generated route for
@@ -251,16 +398,39 @@ class InitialRoute extends PageRouteInfo<void> {
 
 /// generated route for
 /// [LoginView]
-class LoginRoute extends PageRouteInfo<void> {
-  const LoginRoute({List<PageRouteInfo>? children})
-      : super(
+class LoginRoute extends PageRouteInfo<LoginRouteArgs> {
+  LoginRoute({
+    Key? key,
+    required dynamic Function(String) onLoggedIn,
+    List<PageRouteInfo>? children,
+  }) : super(
           LoginRoute.name,
+          args: LoginRouteArgs(
+            key: key,
+            onLoggedIn: onLoggedIn,
+          ),
           initialChildren: children,
         );
 
   static const String name = 'LoginRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static const PageInfo<LoginRouteArgs> page = PageInfo<LoginRouteArgs>(name);
+}
+
+class LoginRouteArgs {
+  const LoginRouteArgs({
+    this.key,
+    required this.onLoggedIn,
+  });
+
+  final Key? key;
+
+  final dynamic Function(String) onLoggedIn;
+
+  @override
+  String toString() {
+    return 'LoginRouteArgs{key: $key, onLoggedIn: $onLoggedIn}';
+  }
 }
 
 /// generated route for
@@ -414,4 +584,42 @@ class FaithRoute extends PageRouteInfo<void> {
   static const String name = 'FaithRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [BibleNoteListView]
+class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
+  BibleNoteListRoute({
+    Key? key,
+    required BibleCubit cubit,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleNoteListRoute.name,
+          args: BibleNoteListRouteArgs(
+            key: key,
+            cubit: cubit,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleNoteListRoute';
+
+  static const PageInfo<BibleNoteListRouteArgs> page =
+      PageInfo<BibleNoteListRouteArgs>(name);
+}
+
+class BibleNoteListRouteArgs {
+  const BibleNoteListRouteArgs({
+    this.key,
+    required this.cubit,
+  });
+
+  final Key? key;
+
+  final BibleCubit cubit;
+
+  @override
+  String toString() {
+    return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit}';
+  }
 }

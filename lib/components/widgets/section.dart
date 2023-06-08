@@ -1,5 +1,6 @@
-import 'package:church/data/utilities/extensions/context_ext.dart';
 import 'package:flutter/material.dart';
+
+import '../../data/utilities/extensions/context_ext.dart';
 
 class Section extends StatelessWidget {
   final Widget Function(double gap) child;

@@ -1,7 +1,8 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:church/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+
+import '../../../router/router.dart';
 
 @RoutePage()
 class WebpageView extends StatefulWidget {

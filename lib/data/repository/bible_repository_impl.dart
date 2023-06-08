@@ -1,23 +1,23 @@
 import 'dart:developer';
 
-import 'package:church/domain/entity/bible/bible.dart';
-import 'package:church/domain/entity/bible_book/bible_book.dart';
-import 'package:church/domain/entity/pericope_paralel/pericope_paralel.dart';
-import 'package:church/domain/repository/bible_repository/bible_repository.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../domain/entity/bible_book/bible_book.dart';
 import '../../domain/entity/pericope/pericope.dart';
+import '../../domain/entity/pericope_paralel/pericope_paralel.dart';
+import '../../domain/entity/verse/verse.dart';
+import '../../domain/repository/bible_repository.dart';
 
 class BibleRepositoryImpl implements BibleRepository {
   @override
-  Future<List<Bible>> getBible(Database db,
+  Future<List<Verse>> getBible(Database db,
       {required int bookId, required int chapterId}) async {
     String query = 'SELECT * FROM bible';
-    List<Bible> bibles = [];
+    List<Verse> bibles = [];
     try {
       query += ' WHERE b = $bookId AND c = $chapterId ORDER BY id asc';
       var result = await db.rawQuery(query);
-      bibles = result.map((e) => Bible.fromJson(e)).toList();
+      bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
     }

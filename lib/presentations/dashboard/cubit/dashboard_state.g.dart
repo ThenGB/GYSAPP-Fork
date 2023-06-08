@@ -24,6 +24,10 @@ _$_DashboardState _$$_DashboardStateFromJson(Map<String, dynamic> json) =>
           ? const ConfigLiterature()
           : ConfigLiterature.fromJson(
               json['configLiterature'] as Map<String, dynamic>),
+      idToken: json['idToken'] as String?,
+      account: json['account'] == null
+          ? null
+          : Account.fromJson(json['account'] as Map<String, dynamic>),
     );
 
 Map<String, dynamic> _$$_DashboardStateToJson(_$_DashboardState instance) =>
@@ -39,4 +43,6 @@ Map<String, dynamic> _$$_DashboardStateToJson(_$_DashboardState instance) =>
       'lastSync': instance.lastSync?.toIso8601String(),
       'message': instance.message,
       'configLiterature': instance.configLiterature,
+      'idToken': instance.idToken,
+      'account': instance.account,
     };

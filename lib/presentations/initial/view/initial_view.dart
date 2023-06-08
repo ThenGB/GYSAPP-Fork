@@ -1,9 +1,10 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:church/presentations/initial/bloc/initial_cubit.dart';
-import 'package:church/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
+
+import '../../../router/router.dart';
+import '../bloc/initial_cubit.dart';
 
 @RoutePage()
 class InitialView extends StatelessWidget {
@@ -11,6 +12,7 @@ class InitialView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    context.read<InitialCubit>().initState();
     return BlocBuilder<InitialCubit, InitialState>(
       builder: (context, state) => BlocListener<InitialCubit, InitialState>(
         listener: (context, state) {

@@ -1,13 +1,12 @@
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:church/domain/entity/config_literature/config_literature_entity.dart';
-import 'package:church/domain/repository/scrapper_repository.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
+import '../../../../data/utilities/firebase_utils.dart';
+import '../../../../domain/entity/config_literature/config_literature_entity.dart';
+import '../../../../domain/repository/scrapper_repository.dart';
 import 'literature_renungan_state.dart';
 
 export 'literature_renungan_state.dart';
@@ -17,9 +16,7 @@ class LiteratureRenunganCubit extends HydratedCubit<LiteratureRenunganState> {
 
   LiteratureRenunganCubit(this.repository)
       : super(const LiteratureRenunganState()) {
-    var jsonString =
-        FirebaseRemoteConfig.instance.getString('config_literature');
-    var json = jsonDecode(jsonString.isEmpty ? '{}' : jsonString);
+    var json = FirebaseUtils.jsonConfig('config_literature');
     selector = ConfigLiterature.fromJson(json).pelitaKecil;
     getData();
   }

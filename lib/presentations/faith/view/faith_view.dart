@@ -1,12 +1,13 @@
 import 'dart:convert';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:church/data/utilities/extensions/context_ext.dart';
-import 'package:church/data/utilities/variables/assets.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
+import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/variables/assets.dart';
 
 @RoutePage()
 class FaithView extends StatefulWidget {
@@ -52,6 +53,7 @@ class _FaithViewState extends State<FaithView> {
 
   pageListener() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      currentPage = pageController.page?.toInt() ?? 0;
       if (mounted) {
         setState(() {});
       }
@@ -63,6 +65,11 @@ class _FaithViewState extends State<FaithView> {
     pageController.dispose();
     super.dispose();
   }
+
+  int currentPage = 0;
+  double _currentScale = 1;
+  double _baseScale = 1;
+  double get scale => _currentScale.clamp(.5, 4);
 
   @override
   Widget build(BuildContext context) {
@@ -104,55 +111,66 @@ class _FaithViewState extends State<FaithView> {
           ),
         ],
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        color: context.colorScheme.background,
-        child: Row(
-          children: [
-            IconButton(
-              onPressed: () {
-                pageController.previousPage(
-                    duration: kThemeAnimationDuration, curve: Curves.easeOut);
-              },
-              icon: const CircleAvatar(child: Icon(Icons.chevron_left_rounded)),
-            ),
-            const Spacer(),
-            Text(
-                '${(pageController.page?.toInt() ?? 0) + 1} / ${currentData.length}'),
-            const Spacer(),
-            IconButton(
-              onPressed: () {
-                pageController.nextPage(
-                    duration: kThemeAnimationDuration, curve: Curves.easeOut);
-              },
-              icon:
-                  const CircleAvatar(child: Icon(Icons.chevron_right_rounded)),
-            ),
-          ],
-        ),
-      ),
+      // bottomNavigationBar: Container(
+      //   padding: const EdgeInsets.all(16),
+      //   color: context.colorScheme.background,
+      //   child: Row(
+      //     children: [
+      //       IconButton(
+      //         onPressed: () {
+      //           pageController.previousPage(
+      //               duration: kThemeAnimationDuration, curve: Curves.easeOut);
+      //         },
+      //         icon: const CircleAvatar(child: Icon(Icons.chevron_left_rounded)),
+      //       ),
+      //       const Spacer(),
+      //       Text('${currentPage + 1} / ${currentData.length}'),
+      //       const Spacer(),
+      //       IconButton(
+      //         onPressed: () {
+      //           pageController.nextPage(
+      //               duration: kThemeAnimationDuration, curve: Curves.easeOut);
+      //         },
+      //         icon:
+      //             const CircleAvatar(child: Icon(Icons.chevron_right_rounded)),
+      //       ),
+      //     ],
+      //   ),
+      // ),
+
       body: !isInitialized
           ? const Center(
               child: CircularProgressIndicator(),
             )
-          : Container(
-              color: context.colorScheme.background,
-              child: PageView.builder(
-                itemCount: currentData.length,
-                controller: pageController,
-                itemBuilder: (context, index) {
-                  var item = currentData[index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      "${item['number']}. ${item['text']}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 16,
+          : GestureDetector(
+              onScaleStart: (ScaleStartDetails details) {
+                _baseScale = _currentScale;
+              },
+              onScaleUpdate: (ScaleUpdateDetails details) {
+                setState(() {
+                  _currentScale = _baseScale * details.scale;
+                });
+              },
+              child: Container(
+                color: context.colorScheme.background,
+                child: ListView.builder(
+                  itemCount: currentData.length,
+                  // controller: pageController,
+                  itemBuilder: (context, index) {
+                    var item = currentData[index];
+                    return Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "${item['number']}. ${item['text']}",
+                        textScaleFactor: scale,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
     );

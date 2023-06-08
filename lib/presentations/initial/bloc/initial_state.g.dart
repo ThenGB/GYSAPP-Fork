@@ -13,6 +13,7 @@ _$_InitialState _$$_InitialStateFromJson(Map<String, dynamic> json) =>
       isFailed: json['isFailed'] as bool? ?? false,
       message: json['message'] as String? ?? '',
       isFreshInstall: json['isFreshInstall'] as bool? ?? true,
+      themeMode: json['themeMode'] as String? ?? 'light',
     );
 
 Map<String, dynamic> _$$_InitialStateToJson(_$_InitialState instance) =>
@@ -22,4 +23,5 @@ Map<String, dynamic> _$$_InitialStateToJson(_$_InitialState instance) =>
       'isFailed': instance.isFailed,
       'message': instance.message,
       'isFreshInstall': instance.isFreshInstall,
+      'themeMode': instance.themeMode,
     };

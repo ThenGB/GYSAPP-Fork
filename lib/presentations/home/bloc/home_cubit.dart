@@ -1,13 +1,11 @@
-import 'dart:convert';
-
-import 'package:church/domain/entity/menulink/menulink_entity.dart';
-import 'package:church/domain/repository/scrapper_repository.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../../../data/utilities/firebase_utils.dart';
 import '../../../domain/entity/banner/banner.dart';
+import '../../../domain/entity/menulink/menulink_entity.dart';
+import '../../../domain/repository/scrapper_repository.dart';
 import 'home_state.dart';
 
 export 'home_state.dart';
@@ -30,60 +28,12 @@ class HomeCubit extends HydratedCubit<HomeState> {
           .toList();
       rxBanner.add(banners);
     });
-    // emit(
-    //   state.copyWith(
-    //     menuLinks: [
-    //       const Menulink(
-    //         label: 'Rhema',
-    //         icon: Assets.assetsIconsRhema,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Literatur',
-    //         icon: Assets.assetsIconsLiteratur,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Podcast',
-    //         icon: Assets.assetsIconsPodcast,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Khotbah',
-    //         icon: Assets.assetsIconsKhotbah,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Facebook',
-    //         icon: Assets.assetsIconsFacebook,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Instagram',
-    //         icon: Assets.assetsIconsInstagram,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Youtube',
-    //         icon: Assets.assetsIconsYoutube,
-    //         url: '#',
-    //       ),
-    //       const Menulink(
-    //         label: 'Spotify',
-    //         icon: Assets.assetsIconsSpotify,
-    //         url: '#',
-    //       ),
-    //     ],
-    //   ),
-    // );
   }
 
   getMenu() {
-    var appMenuJsonString = FirebaseRemoteConfig.instance.getString('app_menu');
-    var appMenuJson = jsonDecode(appMenuJsonString);
-    final List<Menulink> menuLinks = appMenuJson
-        .map<Menulink>((e) => Menulink.fromJson(e as Map<String, dynamic>))
-        .toList();
+    var appMenuJson = FirebaseUtils.listMapConfig('app_menu');
+    final List<Menulink> menuLinks =
+        appMenuJson.map<Menulink>((e) => Menulink.fromJson(e)).toList();
 
     emit(state.copyWith(menuLinks: menuLinks));
   }

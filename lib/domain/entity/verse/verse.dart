@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-part 'bible.freezed.dart';
-part 'bible.g.dart';
+part 'verse.freezed.dart';
+part 'verse.g.dart';
 
 @freezed
-class Bible with _$Bible {
-  const Bible._();
-  const factory Bible({
-    @JsonKey(name: 'id') required int id,
-    @JsonKey(name: 'b') required int bookId,
-    @JsonKey(name: 'c') required int chapterId,
-    @JsonKey(name: 'v') required int verseId,
-    @JsonKey(name: 't') String? verse,
-    @JsonKey(name: 'r') int? revisionId,
-    @JsonKey(name: 'c1') String? c1,
-    @JsonKey(name: 'v1') String? v1,
+class Verse with _$Verse {
+  const Verse._();
+  const factory Verse({
+    @JsonKey(name: 'id')
+        required int id,
+    @JsonKey(name: 'b')
+        required int bookId,
+    @JsonKey(name: 'c')
+        required int chapterId,
+    @JsonKey(name: 'v')
+        required int verseId,
+    @JsonKey(name: 't')
+        String? verse,
+    @JsonKey(name: 'r')
+        int? revisionId,
+    @JsonKey(name: 'c1')
+        String? c1,
+    @JsonKey(name: 'v1')
+        String? v1,
     @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
         Color? color,
-  }) = _Bible;
+  }) = _Verse;
 
-  factory Bible.fromJson(Map<String, dynamic> json) => _$BibleFromJson(json);
+  factory Verse.fromJson(Map<String, dynamic> json) => _$VerseFromJson(json);
 
-  bool isSame(Bible other) {
+  bool isSame(Verse other) {
     return bookId == other.bookId &&
         chapterId == other.chapterId &&
         verseId == other.verseId &&

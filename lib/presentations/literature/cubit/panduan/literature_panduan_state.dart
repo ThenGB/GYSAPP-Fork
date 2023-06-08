@@ -1,7 +1,6 @@
-import 'package:church/domain/entity/panduan/panduan_entity.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
-import '../../../../domain/entity/kesaksian/kesaksian_entity.dart';
+import '../../../../domain/entity/panduan/panduan_entity.dart';
 
 part 'literature_panduan_state.freezed.dart';
 part 'literature_panduan_state.g.dart';

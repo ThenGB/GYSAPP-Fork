@@ -1,16 +1,17 @@
 import 'package:auto_route/auto_route.dart';
-import 'package:church/data/utilities/extensions/context_ext.dart';
-import 'package:church/presentations/bible/cubit/bible_cubit.dart';
-import 'package:church/presentations/dashboard/cubit/dashboard_cubit.dart';
-import 'package:church/presentations/dashboard/cubit/dashboard_state.dart';
-import 'package:church/presentations/home/bloc/home_cubit.dart';
-import 'package:church/presentations/song/cubit/song_cubit.dart';
-import 'package:church/router/router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
+import '../../../router/router.dart';
+import '../../bible/cubit/bible_cubit.dart';
+import '../../home/bloc/home_cubit.dart';
+import '../../settings/cubit/settings_cubit.dart';
+import '../../song/cubit/song_cubit.dart';
+import '../cubit/dashboard_cubit.dart';
+import '../cubit/dashboard_state.dart';
 
 @RoutePage()
 class DashboardView extends StatelessWidget {
@@ -60,6 +61,9 @@ class DashboardView extends StatelessWidget {
         BlocProvider<SongCubit>(
           create: (context) => di(),
         ),
+        BlocProvider<SettingsCubit>(
+          create: (context) => di(),
+        ),
       ],
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
@@ -99,60 +103,83 @@ class DashboardView extends StatelessWidget {
                 );
               },
               bottomNavigationBuilder: (context, tabsRouter) =>
-                  BottomNavigationBar(
-                elevation: 8,
-                backgroundColor: context.colorScheme.background,
-                currentIndex: tabsRouter.activeIndex,
-                selectedItemColor: context.primaryTextTheme.bodyMedium!.color,
-                showUnselectedLabels: true,
-                type: BottomNavigationBarType.fixed,
-                selectedLabelStyle: TextStyle(
-                  color: context.textTheme.bodyMedium!.color,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-                unselectedLabelStyle: TextStyle(
-                  fontSize: 12,
-                  color: context.textTheme.bodyMedium!.color,
-                ),
-                onTap: (value) {
-                  tabsRouter.setActiveIndex(value);
-                },
-                items: pages
-                    .map(
-                      (e) => BottomNavigationBarItem(
-                        icon: Container(
-                          margin: const EdgeInsets.only(bottom: 4)
-                              .add(const EdgeInsets.symmetric(horizontal: 4)),
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(100),
-                            color: pages.indexOf(e) == tabsRouter.activeIndex
-                                ? context.theme.disabledColor.withOpacity(.1)
-                                : null,
-                          ),
+                  BlocBuilder<BibleCubit, BibleState>(
+                builder: (context, state) => AnimatedSize(
+                  duration: kThemeAnimationDuration,
+                  child: OrientationBuilder(
+                    builder: (context, orientation) {
+                      var isLandscape = context.mediaQuery.orientation ==
+                          Orientation.landscape;
+                      if (isLandscape || state.selectedVerse.isNotEmpty) {
+                        return SizedBox(
                           width: double.infinity,
-                          child: ColorFiltered(
-                            colorFilter: ColorFilter.mode(
-                              tabsRouter.activeIndex == pages.indexOf(e)
-                                  ? context.primaryTextTheme.bodyMedium!.color!
-                                  : context.textTheme.bodyMedium!.color!
-                                      .withOpacity(0.5),
-                              pages.indexOf(e) == 0
-                                  ? BlendMode.dstIn
-                                  : BlendMode.srcIn,
-                            ),
-                            child: Image.asset(
-                              e['icon'] as String,
-                              width: 32,
-                              height: 32,
-                            ),
-                          ),
+                        );
+                      }
+
+                      return BottomNavigationBar(
+                        elevation: 8,
+                        backgroundColor: context.colorScheme.background,
+                        currentIndex: tabsRouter.activeIndex,
+                        selectedItemColor:
+                            context.primaryTextTheme.bodyMedium!.color,
+                        showUnselectedLabels: true,
+                        type: BottomNavigationBarType.fixed,
+                        selectedLabelStyle: TextStyle(
+                          color: context.textTheme.bodyMedium!.color,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
-                        label: (e['label'] as String),
-                      ),
-                    )
-                    .toList(),
+                        unselectedLabelStyle: TextStyle(
+                          fontSize: 12,
+                          color: context.textTheme.bodyMedium!.color,
+                        ),
+                        onTap: (value) {
+                          tabsRouter.setActiveIndex(value);
+                        },
+                        items: pages
+                            .map(
+                              (e) => BottomNavigationBarItem(
+                                icon: Container(
+                                  margin: const EdgeInsets.only(bottom: 4).add(
+                                      const EdgeInsets.symmetric(
+                                          horizontal: 4)),
+                                  padding:
+                                      const EdgeInsets.symmetric(vertical: 4),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(100),
+                                    color: pages.indexOf(e) ==
+                                            tabsRouter.activeIndex
+                                        ? context.theme.disabledColor
+                                            .withOpacity(.1)
+                                        : null,
+                                  ),
+                                  width: double.infinity,
+                                  child: ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                      tabsRouter.activeIndex == pages.indexOf(e)
+                                          ? context.primaryTextTheme.bodyMedium!
+                                              .color!
+                                          : context.textTheme.bodyMedium!.color!
+                                              .withOpacity(0.5),
+                                      pages.indexOf(e) == 0
+                                          ? BlendMode.dstIn
+                                          : BlendMode.srcIn,
+                                    ),
+                                    child: Image.asset(
+                                      e['icon'] as String,
+                                      width: 32,
+                                      height: 32,
+                                    ),
+                                  ),
+                                ),
+                                label: (e['label'] as String),
+                              ),
+                            )
+                            .toList(),
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
           );

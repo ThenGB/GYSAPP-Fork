@@ -1,16 +1,16 @@
 import 'dart:developer';
 
 import 'package:chaleno/chaleno.dart';
-import 'package:church/data/utilities/variables/failure.dart';
-import 'package:church/domain/entity/panduan/panduan_entity.dart';
-import 'package:church/domain/entity/renungan/renungan_entity.dart';
-import 'package:church/domain/entity/sauh/sauh_entity.dart';
-import 'package:church/domain/entity/truevoice/truevoice_entity.dart';
-import 'package:church/domain/entity/warta/warta_entity.dart';
-import 'package:church/domain/repository/scrapper_repository.dart';
 import 'package:dartz/dartz.dart';
 
 import '../../domain/entity/kesaksian/kesaksian_entity.dart';
+import '../../domain/entity/panduan/panduan_entity.dart';
+import '../../domain/entity/renungan/renungan_entity.dart';
+import '../../domain/entity/sauh/sauh_entity.dart';
+import '../../domain/entity/truevoice/truevoice_entity.dart';
+import '../../domain/entity/warta/warta_entity.dart';
+import '../../domain/repository/scrapper_repository.dart';
+import '../utilities/variables/failure.dart';
 
 class ScrapperRepositoryImpl implements ScrapperRepository {
   final Chaleno chaleno;

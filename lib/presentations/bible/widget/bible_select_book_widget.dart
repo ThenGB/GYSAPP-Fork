@@ -1,6 +1,7 @@
-import 'package:church/presentations/bible/cubit/bible_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../cubit/bible_cubit.dart';
 
 class BibleSelectBook extends StatelessWidget {
   const BibleSelectBook({super.key});

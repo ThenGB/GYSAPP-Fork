@@ -1,27 +1,40 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:church/data/utilities/variables/assets.dart';
-import 'package:church/di/injection.dart';
-import 'package:church/domain/entity/song/song_entity.dart';
-import 'package:church/domain/repository/song_repository.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:collection/collection.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../data/utilities/variables/assets.dart';
+import '../../../di/injection.dart';
+import '../../../domain/entity/song/song_entity.dart';
+import '../../../domain/repository/song_repository.dart';
 import 'song_state.dart';
 
 export 'song_state.dart';
 
 class SongCubit extends HydratedCubit<SongState> {
   final SongRepository songRepository;
+
   SongCubit(this.songRepository) : super(const SongState()) {
     initDb().then((value) {
-      getData();
+      getData().then(
+        (value) => fetchAvailableSong(
+          state.currentSong?.songs[state.pageIndex] ??
+              state.songBook.firstOrNull?.songs[0],
+        ),
+      );
     });
   }
+
+  AudioPlayer audioPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
 
   Database? songDb;
 
@@ -54,23 +67,115 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(textScaleFactor: state.textScaleFactor + factor));
   }
 
+  Future<String?> isMidiAvailable(Song song) async {
+    if (song.code != 'KR') return null;
+    try {
+      var asset = 'assets/data/sounds/${song.number}.MID';
+      await rootBundle.load(asset);
+      return asset;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  pause() {
+    audioPlayer.pause();
+  }
+
+  play() {
+    audioPlayer.play(audioPlayer.source!);
+  }
+
+  Reference get storage => FirebaseStorage.instance.ref();
+
+  Future<String?> fetchAvailableSong(Song? song) async {
+    if (song == null) return null;
+    emit(state.copyWith(isAudioLoading: true));
+    String? midi = await isMidiAvailable(song);
+    String? mp3 = await isMp3Available(song);
+    List<String> data = [];
+    if (midi != null) data.add(midi);
+    if (mp3 != null) data.add(mp3);
+    final result = data.firstWhereOrNull((element) =>
+            element.toLowerCase().contains(state.defaultAudioFormat)) ??
+        data.firstOrNull;
+    if (result != null) {
+      late Source url;
+      var source = result;
+      if (result.startsWith('assets')) {
+        url = AssetSource(source.replaceAll('assets/', ''));
+
+        audioPlayer.setSource(url).then((value) async {
+          emit(state.copyWith(isAudioLoading: false));
+          await Future.delayed(const Duration(seconds: 1));
+          audioPlayer
+              .play(audioPlayer.source!)
+              .then((value) => audioPlayer.stop());
+        });
+      } else {
+        DefaultCacheManager().getSingleFile(source).then((value) {
+          url = DeviceFileSource(value.path);
+          audioPlayer.setSource(url).then((value) async {
+            emit(state.copyWith(isAudioLoading: false));
+            await Future.delayed(const Duration(seconds: 1));
+
+            audioPlayer
+                .play(audioPlayer.source!)
+                .then((value) => audioPlayer.stop());
+          });
+        });
+      }
+    }
+    return result;
+  }
+
+  changeAudioFormat(String format) {
+    emit(state.copyWith(defaultAudioFormat: format));
+    fetchAvailableSong(state.currentSong!.songs[state.pageIndex]);
+  }
+
+  Future<String?> isMp3Available(Song song) async {
+    if (song.code != 'KR') return null;
+    try {
+      final result = await storage
+          .child('/Kidungpujian/song/${song.number}.mp3')
+          .getDownloadURL();
+      return result;
+    } catch (e) {
+      return null;
+    }
+  }
+
   toggleSizer() {
     emit(state.copyWith(showSizer: !state.showSizer));
   }
 
   changeScale(double scale) {
+    
     emit(state.copyWith(textScaleFactor: scale));
   }
 
-  changePage(int index, int verseIndex) {
+  changePage(int index, int verseIndex) async {
+    await audioPlayer.seek(Duration.zero);
+    audioPlayer.stop();
+    debounce(() => fetchAvailableSong(state.currentSong!.songs[index]));
     emit(state.copyWith(pageIndex: index, verseIndex: verseIndex));
+  }
+
+  Timer? debouncer;
+
+  debounce(Function() callback) {
+    if (debouncer?.isActive == true) {
+      debouncer?.cancel();
+    }
+    debouncer = Timer(const Duration(seconds: 1), callback);
   }
 
   changeMode() {
     emit(state.copyWith(isImageMode: !state.isImageMode));
   }
 
-  getData() async {
+  Future getData() async {
     final response = await songRepository.getData(songDb!);
     response.fold(
       (failure) {
@@ -129,6 +234,13 @@ class SongCubit extends HydratedCubit<SongState> {
 
   @override
   Map<String, dynamic>? toJson(SongState state) {
-    return state.toJson();
+    return state.copyWith(isAudioLoading: false, isLoading: false).toJson();
+  }
+
+  @override
+  Future<void> close() {
+    audioPlayer.dispose();
+    debouncer?.cancel();
+    return super.close();
   }
 }

@@ -1,12 +1,12 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'bible.dart';
+part of 'verse.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Bible _$$_BibleFromJson(Map<String, dynamic> json) => _$_Bible(
+_$_Verse _$$_VerseFromJson(Map<String, dynamic> json) => _$_Verse(
       id: json['id'] as int,
       bookId: json['b'] as int,
       chapterId: json['c'] as int,
@@ -18,7 +18,7 @@ _$_Bible _$$_BibleFromJson(Map<String, dynamic> json) => _$_Bible(
       color: _colorFromJson(json['color']),
     );
 
-Map<String, dynamic> _$$_BibleToJson(_$_Bible instance) => <String, dynamic>{
+Map<String, dynamic> _$$_VerseToJson(_$_Verse instance) => <String, dynamic>{
       'id': instance.id,
       'b': instance.bookId,
       'c': instance.chapterId,

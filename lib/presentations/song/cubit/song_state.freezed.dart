@@ -21,6 +21,7 @@ SongState _$SongStateFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$SongState {
   bool get isLoading => throw _privateConstructorUsedError;
+  bool get isAudioLoading => throw _privateConstructorUsedError;
   List<SongBook> get songBook => throw _privateConstructorUsedError;
   List<SongBook> get favoriteSongBook => throw _privateConstructorUsedError;
   String get bookCode => throw _privateConstructorUsedError;
@@ -29,6 +30,7 @@ mixin _$SongState {
   dynamic get isImageMode => throw _privateConstructorUsedError;
   double get textScaleFactor => throw _privateConstructorUsedError;
   bool get showSizer => throw _privateConstructorUsedError;
+  String get defaultAudioFormat => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -43,6 +45,7 @@ abstract class $SongStateCopyWith<$Res> {
   @useResult
   $Res call(
       {bool isLoading,
+      bool isAudioLoading,
       List<SongBook> songBook,
       List<SongBook> favoriteSongBook,
       String bookCode,
@@ -50,7 +53,8 @@ abstract class $SongStateCopyWith<$Res> {
       int verseIndex,
       dynamic isImageMode,
       double textScaleFactor,
-      bool showSizer});
+      bool showSizer,
+      String defaultAudioFormat});
 }
 
 /// @nodoc
@@ -67,6 +71,7 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
   @override
   $Res call({
     Object? isLoading = null,
+    Object? isAudioLoading = null,
     Object? songBook = null,
     Object? favoriteSongBook = null,
     Object? bookCode = null,
@@ -75,11 +80,16 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? isImageMode = freezed,
     Object? textScaleFactor = null,
     Object? showSizer = null,
+    Object? defaultAudioFormat = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isAudioLoading: null == isAudioLoading
+          ? _value.isAudioLoading
+          : isAudioLoading // ignore: cast_nullable_to_non_nullable
               as bool,
       songBook: null == songBook
           ? _value.songBook
@@ -113,6 +123,10 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.showSizer
           : showSizer // ignore: cast_nullable_to_non_nullable
               as bool,
+      defaultAudioFormat: null == defaultAudioFormat
+          ? _value.defaultAudioFormat
+          : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -126,6 +140,7 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
   @useResult
   $Res call(
       {bool isLoading,
+      bool isAudioLoading,
       List<SongBook> songBook,
       List<SongBook> favoriteSongBook,
       String bookCode,
@@ -133,7 +148,8 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       int verseIndex,
       dynamic isImageMode,
       double textScaleFactor,
-      bool showSizer});
+      bool showSizer,
+      String defaultAudioFormat});
 }
 
 /// @nodoc
@@ -148,6 +164,7 @@ class __$$_SongStateCopyWithImpl<$Res>
   @override
   $Res call({
     Object? isLoading = null,
+    Object? isAudioLoading = null,
     Object? songBook = null,
     Object? favoriteSongBook = null,
     Object? bookCode = null,
@@ -156,11 +173,16 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? isImageMode = freezed,
     Object? textScaleFactor = null,
     Object? showSizer = null,
+    Object? defaultAudioFormat = null,
   }) {
     return _then(_$_SongState(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isAudioLoading: null == isAudioLoading
+          ? _value.isAudioLoading
+          : isAudioLoading // ignore: cast_nullable_to_non_nullable
               as bool,
       songBook: null == songBook
           ? _value._songBook
@@ -191,6 +213,10 @@ class __$$_SongStateCopyWithImpl<$Res>
           ? _value.showSizer
           : showSizer // ignore: cast_nullable_to_non_nullable
               as bool,
+      defaultAudioFormat: null == defaultAudioFormat
+          ? _value.defaultAudioFormat
+          : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -200,6 +226,7 @@ class __$$_SongStateCopyWithImpl<$Res>
 class _$_SongState extends _SongState {
   const _$_SongState(
       {this.isLoading = false,
+      this.isAudioLoading = false,
       final List<SongBook> songBook = const [],
       final List<SongBook> favoriteSongBook = const [],
       this.bookCode = 'KR',
@@ -207,7 +234,8 @@ class _$_SongState extends _SongState {
       this.verseIndex = 0,
       this.isImageMode = false,
       this.textScaleFactor = 1,
-      this.showSizer = false})
+      this.showSizer = false,
+      this.defaultAudioFormat = 'mid'})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         super._();
@@ -218,6 +246,9 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final bool isLoading;
+  @override
+  @JsonKey()
+  final bool isAudioLoading;
   final List<SongBook> _songBook;
   @override
   @JsonKey()
@@ -255,10 +286,13 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final bool showSizer;
+  @override
+  @JsonKey()
+  final String defaultAudioFormat;
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat)';
   }
 
   @override
@@ -268,6 +302,8 @@ class _$_SongState extends _SongState {
             other is _$_SongState &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
+            (identical(other.isAudioLoading, isAudioLoading) ||
+                other.isAudioLoading == isAudioLoading) &&
             const DeepCollectionEquality().equals(other._songBook, _songBook) &&
             const DeepCollectionEquality()
                 .equals(other._favoriteSongBook, _favoriteSongBook) &&
@@ -282,7 +318,9 @@ class _$_SongState extends _SongState {
             (identical(other.textScaleFactor, textScaleFactor) ||
                 other.textScaleFactor == textScaleFactor) &&
             (identical(other.showSizer, showSizer) ||
-                other.showSizer == showSizer));
+                other.showSizer == showSizer) &&
+            (identical(other.defaultAudioFormat, defaultAudioFormat) ||
+                other.defaultAudioFormat == defaultAudioFormat));
   }
 
   @JsonKey(ignore: true)
@@ -290,6 +328,7 @@ class _$_SongState extends _SongState {
   int get hashCode => Object.hash(
       runtimeType,
       isLoading,
+      isAudioLoading,
       const DeepCollectionEquality().hash(_songBook),
       const DeepCollectionEquality().hash(_favoriteSongBook),
       bookCode,
@@ -297,7 +336,8 @@ class _$_SongState extends _SongState {
       verseIndex,
       const DeepCollectionEquality().hash(isImageMode),
       textScaleFactor,
-      showSizer);
+      showSizer,
+      defaultAudioFormat);
 
   @JsonKey(ignore: true)
   @override
@@ -316,6 +356,7 @@ class _$_SongState extends _SongState {
 abstract class _SongState extends SongState {
   const factory _SongState(
       {final bool isLoading,
+      final bool isAudioLoading,
       final List<SongBook> songBook,
       final List<SongBook> favoriteSongBook,
       final String bookCode,
@@ -323,7 +364,8 @@ abstract class _SongState extends SongState {
       final int verseIndex,
       final dynamic isImageMode,
       final double textScaleFactor,
-      final bool showSizer}) = _$_SongState;
+      final bool showSizer,
+      final String defaultAudioFormat}) = _$_SongState;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
@@ -331,6 +373,8 @@ abstract class _SongState extends SongState {
 
   @override
   bool get isLoading;
+  @override
+  bool get isAudioLoading;
   @override
   List<SongBook> get songBook;
   @override
@@ -347,6 +391,8 @@ abstract class _SongState extends SongState {
   double get textScaleFactor;
   @override
   bool get showSizer;
+  @override
+  String get defaultAudioFormat;
   @override
   @JsonKey(ignore: true)
   _$$_SongStateCopyWith<_$_SongState> get copyWith =>

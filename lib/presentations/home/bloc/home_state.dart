@@ -1,8 +1,8 @@
-import 'package:church/domain/entity/menulink/menulink_entity.dart';
-import 'package:church/domain/entity/truevoice/truevoice_entity.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../domain/entity/menulink/menulink_entity.dart';
 import '../../../domain/entity/sauh/sauh_entity.dart';
+import '../../../domain/entity/truevoice/truevoice_entity.dart';
 
 part 'home_state.freezed.dart';
 part 'home_state.g.dart';

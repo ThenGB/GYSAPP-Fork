@@ -1,8 +1,9 @@
-import 'package:church/data/utilities/variables/failure.dart';
-import 'package:church/domain/entity/song/song_entity.dart';
-import 'package:church/domain/repository/song_repository.dart';
 import 'package:dartz/dartz.dart';
 import 'package:sqflite/sqflite.dart';
+
+import '../../domain/entity/song/song_entity.dart';
+import '../../domain/repository/song_repository.dart';
+import '../utilities/variables/failure.dart';
 
 class SongRepositoryImpl implements SongRepository {
   @override
@@ -11,10 +12,10 @@ class SongRepositoryImpl implements SongRepository {
     List<SongBook> data = [];
     late Failure failure;
     try {
-      for (var row
-          in (await db.query('sqlite_master', columns: ['type', 'name']))) {
-        print(row.values);
-      }
+      // for (var row
+      //     in (await db.query('sqlite_master', columns: ['type', 'name']))) {
+      //   print(row.values);
+      // }
       final response = await db.query(
         'lyric',
         orderBy: 'code, number, seq asc',

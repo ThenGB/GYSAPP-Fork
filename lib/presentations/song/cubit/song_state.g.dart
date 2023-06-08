@@ -8,6 +8,7 @@ part of 'song_state.dart';
 
 _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
       isLoading: json['isLoading'] as bool? ?? false,
+      isAudioLoading: json['isAudioLoading'] as bool? ?? false,
       songBook: (json['songBook'] as List<dynamic>?)
               ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -22,11 +23,13 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
       isImageMode: json['isImageMode'] ?? false,
       textScaleFactor: (json['textScaleFactor'] as num?)?.toDouble() ?? 1,
       showSizer: json['showSizer'] as bool? ?? false,
+      defaultAudioFormat: json['defaultAudioFormat'] as String? ?? 'mid',
     );
 
 Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
+      'isAudioLoading': instance.isAudioLoading,
       'songBook': instance.songBook,
       'favoriteSongBook': instance.favoriteSongBook,
       'bookCode': instance.bookCode,
@@ -35,4 +38,5 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'isImageMode': instance.isImageMode,
       'textScaleFactor': instance.textScaleFactor,
       'showSizer': instance.showSizer,
+      'defaultAudioFormat': instance.defaultAudioFormat,
     };

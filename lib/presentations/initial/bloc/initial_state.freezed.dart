@@ -25,6 +25,7 @@ mixin _$InitialState {
   bool get isFailed => throw _privateConstructorUsedError;
   String get message => throw _privateConstructorUsedError;
   bool get isFreshInstall => throw _privateConstructorUsedError;
+  String get themeMode => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -43,7 +44,8 @@ abstract class $InitialStateCopyWith<$Res> {
       bool isLoaded,
       bool isFailed,
       String message,
-      bool isFreshInstall});
+      bool isFreshInstall,
+      String themeMode});
 }
 
 /// @nodoc
@@ -64,6 +66,7 @@ class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
     Object? isFailed = null,
     Object? message = null,
     Object? isFreshInstall = null,
+    Object? themeMode = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -86,6 +89,10 @@ class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
           ? _value.isFreshInstall
           : isFreshInstall // ignore: cast_nullable_to_non_nullable
               as bool,
+      themeMode: null == themeMode
+          ? _value.themeMode
+          : themeMode // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -103,7 +110,8 @@ abstract class _$$_InitialStateCopyWith<$Res>
       bool isLoaded,
       bool isFailed,
       String message,
-      bool isFreshInstall});
+      bool isFreshInstall,
+      String themeMode});
 }
 
 /// @nodoc
@@ -122,6 +130,7 @@ class __$$_InitialStateCopyWithImpl<$Res>
     Object? isFailed = null,
     Object? message = null,
     Object? isFreshInstall = null,
+    Object? themeMode = null,
   }) {
     return _then(_$_InitialState(
       isLoading: null == isLoading
@@ -144,6 +153,10 @@ class __$$_InitialStateCopyWithImpl<$Res>
           ? _value.isFreshInstall
           : isFreshInstall // ignore: cast_nullable_to_non_nullable
               as bool,
+      themeMode: null == themeMode
+          ? _value.themeMode
+          : themeMode // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -156,7 +169,8 @@ class _$_InitialState extends _InitialState {
       this.isLoaded = false,
       this.isFailed = false,
       this.message = '',
-      this.isFreshInstall = true})
+      this.isFreshInstall = true,
+      this.themeMode = 'light'})
       : super._();
 
   factory _$_InitialState.fromJson(Map<String, dynamic> json) =>
@@ -177,10 +191,13 @@ class _$_InitialState extends _InitialState {
   @override
   @JsonKey()
   final bool isFreshInstall;
+  @override
+  @JsonKey()
+  final String themeMode;
 
   @override
   String toString() {
-    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall)';
+    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode)';
   }
 
   @override
@@ -196,13 +213,15 @@ class _$_InitialState extends _InitialState {
                 other.isFailed == isFailed) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.isFreshInstall, isFreshInstall) ||
-                other.isFreshInstall == isFreshInstall));
+                other.isFreshInstall == isFreshInstall) &&
+            (identical(other.themeMode, themeMode) ||
+                other.themeMode == themeMode));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, isLoading, isLoaded, isFailed, message, isFreshInstall);
+  int get hashCode => Object.hash(runtimeType, isLoading, isLoaded, isFailed,
+      message, isFreshInstall, themeMode);
 
   @JsonKey(ignore: true)
   @override
@@ -224,7 +243,8 @@ abstract class _InitialState extends InitialState {
       final bool isLoaded,
       final bool isFailed,
       final String message,
-      final bool isFreshInstall}) = _$_InitialState;
+      final bool isFreshInstall,
+      final String themeMode}) = _$_InitialState;
   const _InitialState._() : super._();
 
   factory _InitialState.fromJson(Map<String, dynamic> json) =
@@ -240,6 +260,8 @@ abstract class _InitialState extends InitialState {
   String get message;
   @override
   bool get isFreshInstall;
+  @override
+  String get themeMode;
   @override
   @JsonKey(ignore: true)
   _$$_InitialStateCopyWith<_$_InitialState> get copyWith =>

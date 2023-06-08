@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBwg1W_u1DANHXPuOf3wAwXOWfirhfuhZs',
-    appId: '1:4071878363:android:646914becdb68242a266fe',
+    appId: '1:4071878363:android:4bb1eeb024369e36a266fe',
     messagingSenderId: '4071878363',
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
@@ -65,14 +65,14 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDcIOWyv9V4H5ToFywYLSxKX1filnOkOhI',
-    appId: '1:4071878363:ios:c51e14d5f1a1b62ba266fe',
+    appId: '1:4071878363:ios:be2091037dcbfbf2a266fe',
     messagingSenderId: '4071878363',
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
     androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com',
-    iosBundleId: 'com.itmandiri.church',
+    iosClientId: '4071878363-19b7fans4of36rp94k1t0hha5209ebbd.apps.googleusercontent.com',
+    iosBundleId: 'id.or.gys.e',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

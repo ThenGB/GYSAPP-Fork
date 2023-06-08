@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:intl/intl.dart';
 
 class StringUtil {
@@ -10,7 +12,7 @@ class StringUtil {
     try {
       intValue = toDouble(strValue).truncate();
     } catch (e) {
-      print("Exception method toInt : $e");
+      log('Exception method toInt : $e');
     }
     return intValue;
   }
@@ -23,39 +25,39 @@ class StringUtil {
         doubleValue = double.parse(strValue);
       }
     } catch (e) {
-      print("Exception method toDouble : $e");
+      log('Exception method toDouble : $e');
     }
     return doubleValue;
   }
 
   static String? replacePipeLine(String? str) {
-    return !isStringNullOrEmpty(str) ? str?.replaceAll("|", " ") : "";
+    return !isStringNullOrEmpty(str) ? str?.replaceAll('|', ' ') : '';
   }
 
   static String castToString(dynamic o) {
-    return o == null ? "" : o.toString();
+    return o == null ? '' : o.toString();
   }
 
   static String removeDgtGroup(String str) {
-    return str.replaceAll(",", "");
+    return str.replaceAll(',', '');
   }
 
   static String formatDigitGroupDbl(double? val) {
-    String mOut = "";
+    String mOut = '';
     if (val != null) {
       if (val == val.truncateToDouble()) {
         //. tidak punya koma
         if (val.floor() == 0) {
-          mOut = "0";
+          mOut = '0';
         } else {
-          mOut = NumberFormat("#,###").format(val);
+          mOut = NumberFormat('#,###').format(val);
         }
       } else {
         //. jika punya koma maka kasih 2 digit
         if (val.floor() == 0) {
-          mOut = NumberFormat("0.00").format(val);
+          mOut = NumberFormat('0.00').format(val);
         } else {
-          mOut = NumberFormat("#,###.00").format(val);
+          mOut = NumberFormat('#,###.00').format(val);
         }
       }
     }
@@ -63,9 +65,9 @@ class StringUtil {
   }
 
   static String formatDigitGroupInt(int? val) {
-    String mOut = "";
+    String mOut = '';
     if (val != null) {
-      mOut = NumberFormat("#,###").format(val);
+      mOut = NumberFormat('#,###').format(val);
     }
     return mOut;
   }
@@ -75,25 +77,25 @@ class StringUtil {
   }
 
   static String roundLongNumberDbl(double? val) {
-    String mOut = "";
-    String vSign = "";
+    String mOut = '';
+    String vSign = '';
     if (val != null) {
       if (val < 0) {
-        vSign = "-";
+        vSign = '-';
       }
       val = val.abs();
       double vResult = 0;
-      String vSuffix = "";
-      String vNumber = "";
+      String vSuffix = '';
+      String vNumber = '';
       if (val >= 1000000000000) {
         vResult = (val / 1000000000000).toDouble();
-        vSuffix = " T";
+        vSuffix = ' T';
       } else if (val >= 1000000000) {
         vResult = (val / 1000000000).toDouble();
-        vSuffix = " B";
+        vSuffix = ' B';
       } else if (val >= 1000000) {
         vResult = (val / 1000000).toDouble();
-        vSuffix = " M";
+        vSuffix = ' M';
       }
       if (vResult == 0) {
         vNumber = formatDigitGroupDbl(val);
@@ -116,10 +118,10 @@ class StringUtil {
       if (format != null) {
         stringdate = DateFormat(format).format(date);
       } else {
-        stringdate = DateFormat("YYYY-MM-DD").format(date);
+        stringdate = DateFormat('YYYY-MM-DD').format(date);
       }
     }
-    return stringdate ?? "";
+    return stringdate ?? '';
   }
 
   static DateTime? formatToDateTime(dynamic date, [String? format]) {

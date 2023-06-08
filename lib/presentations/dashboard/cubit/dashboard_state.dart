@@ -1,5 +1,7 @@
-import 'package:church/domain/entity/config_literature/config_literature_entity.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../domain/entity/account/account_entity.dart';
+import '../../../domain/entity/config_literature/config_literature_entity.dart';
 
 part 'dashboard_state.freezed.dart';
 part 'dashboard_state.g.dart';
@@ -19,6 +21,8 @@ class DashboardState with _$DashboardState {
     DateTime? lastSync,
     String? message,
     @Default(ConfigLiterature()) ConfigLiterature configLiterature,
+    String? idToken,
+    Account? account,
   }) = _DashboardState;
 
   factory DashboardState.fromJson(Map<String, dynamic> json) =>

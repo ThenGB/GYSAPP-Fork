@@ -3,22 +3,25 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:church/components/widgets/section.dart';
-import 'package:church/data/utilities/extensions/context_ext.dart';
-import 'package:church/data/utilities/variables/assets.dart';
-import 'package:church/domain/entity/menulink/menulink_entity.dart';
-import 'package:church/domain/entity/sauh/sauh_entity.dart';
-import 'package:church/presentations/home/bloc/home_cubit.dart';
-import 'package:church/router/router.dart';
 import 'package:device_apps/device_apps.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../../components/widgets/section.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/variables/assets.dart';
 import '../../../domain/entity/banner/banner.dart';
+import '../../../domain/entity/menulink/menulink_entity.dart';
+import '../../../domain/entity/sauh/sauh_entity.dart';
 import '../../../domain/entity/truevoice/truevoice_entity.dart';
+import '../../../router/router.dart';
+import '../../dashboard/cubit/dashboard_cubit.dart';
+import '../../dashboard/cubit/dashboard_state.dart';
+import '../bloc/home_cubit.dart';
 
 @RoutePage()
 class HomeView extends StatelessWidget {
@@ -116,7 +119,7 @@ class LinkLainnya extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section(
-      label: 'Link lainnya',
+      label: 'Link lainnya'.tr(),
       child: (gap) => Container(
         padding: EdgeInsets.symmetric(horizontal: gap),
         child: LayoutBuilder(
@@ -267,11 +270,13 @@ class LinkLainnya extends StatelessWidget {
                             children: [
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
-                                child: Image(
-                                  width: 40,
-                                  height: 40,
-                                  image: e.value.iconImageProvider,
-                                  colorBlendMode: BlendMode.srcIn,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: Image(
+                                    width: 40,
+                                    height: 40,
+                                    image: e.value.iconImageProvider,
+                                  ),
                                 ),
                               ),
                               Text(e.value.label),
@@ -466,78 +471,113 @@ class _HomeHeaderState extends State<HomeHeader> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: context.colorScheme.background,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          CircleAvatar(
-            radius: 20,
-            child: Center(
-              child: Image.asset(Assets.assetsImagesAppicon, width: 32),
-            ),
-          ),
-          const SizedBox(
-            width: 8,
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Haleluya, $greetings',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 16,
-                  ),
-                ),
-                Text.rich(
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.bodySmall?.copyWith(
-                    fontSize: 12,
-                  ),
-                  registerButton(),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 8,
-          ),
-          Material(
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            child: InkWell(
-              onTap: () {},
-              child: CircleAvatar(
-                backgroundColor: Colors.transparent,
-                child: Image.asset(Assets.assetsIconsBell, width: 15),
+    return BlocBuilder<DashboardCubit, DashboardState>(
+      builder: (context, state) => Container(
+        color: context.colorScheme.background,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            CircleAvatar(
+              radius: 20,
+              child: Center(
+                child: state.account == null
+                    ? Image.asset(Assets.assetsImagesAppicon, width: 32)
+                    : ClipOval(
+                        child: CachedNetworkImage(
+                            imageUrl: state.account?.profilePicture ?? ''),
+                      ),
               ),
             ),
-          )
-        ],
+            const SizedBox(
+              width: 8,
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (context.watch<DashboardCubit>().state.idToken == null)
+                        ? 'Haleluya, $greetings'
+                        : '$greetings, ${context.watch<DashboardCubit>().state.account?.name ?? ''}!',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (context.watch<DashboardCubit>().state.idToken == null)
+                    Text.rich(
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          fontSize: 12,
+                        ),
+                        buildRichTextWithClickableWord(
+                          'register_button_text'.tr(),
+                          'register_word'.tr(),
+                          context.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                          ),
+                          () {
+                            router.push(LoginRoute(
+                              onLoggedIn: (token) {
+                                router.pop();
+                                context
+                                    .read<DashboardCubit>()
+                                    .loginSuccessCallback(token);
+                                Fluttertoast.cancel();
+                                Fluttertoast.showToast(msg: 'BERHASIL LOGIN!');
+                              },
+                            ));
+                          },
+                        )),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 8,
+            ),
+            Material(
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: () {},
+                child: CircleAvatar(
+                  backgroundColor: Colors.transparent,
+                  child: Image.asset(Assets.assetsIconsBell, width: 15),
+                ),
+              ),
+            )
+          ],
+        ),
       ),
     );
   }
 
-  TextSpan registerButton() {
-    return TextSpan(
+  TextSpan buildRichTextWithClickableWord(String fullText, String clickableWord,
+      TextStyle? style, Function() onTap) {
+    final span = TextSpan(
       children: [
-        const TextSpan(text: 'Yuk '),
         TextSpan(
-          text: 'daftar',
-          style: context.primaryTextTheme.bodySmall?.copyWith(
-            fontSize: 12,
-          ),
-          recognizer: TapGestureRecognizer()
-            ..onTap = () {
-              router.push(const LoginRoute());
-            },
+          text: fullText.substring(0, fullText.indexOf(clickableWord)),
         ),
-        const TextSpan(text: ' untuk menikmati lebih banyak fitur'),
+        TextSpan(
+          text: clickableWord,
+          style: style?.copyWith(
+            fontWeight: FontWeight.bold,
+            color: context.colorScheme.primary,
+          ),
+          recognizer: TapGestureRecognizer()..onTap = onTap,
+        ),
+        TextSpan(
+          text: fullText.substring(
+              fullText.indexOf(clickableWord) + clickableWord.length),
+        ),
       ],
     );
+
+    return span;
   }
+
+
 }

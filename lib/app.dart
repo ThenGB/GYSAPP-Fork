@@ -3,12 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:church/components/themes/default_theme.dart';
-import 'package:church/data/utilities/extensions/context_ext.dart';
-import 'package:church/di/injection.dart';
-import 'package:church/firebase_options.dart';
-import 'package:church/presentations/initial/bloc/initial_cubit.dart';
-import 'package:church/router/router.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
@@ -18,14 +12,25 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path_provider/path_provider.dart';
 
+import 'components/themes/dark_theme.dart';
+import 'components/themes/default_theme.dart';
+import 'data/utilities/extensions/context_ext.dart';
+import 'di/injection.dart';
+import 'domain/entity/appconfig/appconfig.dart';
+import 'firebase_options.dart';
+import 'presentations/initial/bloc/initial_cubit.dart';
+import 'router/router.dart';
+
 Future initApplication() async {
+  var appConfig =
+      AppConfig(appName: 'E-GYS', baseUrlApi: 'https://e.gys.or.id/api/v1');
   WidgetsFlutterBinding.ensureInitialized();
 
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationSupportDirectory(),
   );
   await EasyLocalization.ensureInitialized();
-  await setupInjection();
+  await setupInjection(appConfig);
   await _setupNotification();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseRemoteConfig.instance.ensureInitialized();
@@ -92,22 +97,25 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Gereja Yesus Sejati',
-      localizationsDelegates: context.localizationDelegates,
-      supportedLocales: context.supportedLocales,
-      locale: context.locale,
-      routerConfig: router.config(),
-      theme: defaultTheme(),
-      builder: (context, child) => MultiBlocProvider(
-        providers: [
-          BlocProvider<InitialCubit>(
-            create: (context) => di(),
-          ),
-        ],
-        child: MediaQuery(
-            data: context.mediaQuery.copyWith(textScaleFactor: 1),
-            child: child!),
+    return BlocProvider<InitialCubit>(
+      create: (context) => di(),
+      child: BlocBuilder<InitialCubit, InitialState>(
+        builder: (context, state) {
+          return MaterialApp.router(
+            title: 'Gereja Yesus Sejati',
+            localizationsDelegates: context.localizationDelegates,
+            supportedLocales: context.supportedLocales,
+            locale: context.locale,
+            routerConfig: router.config(),
+            theme: defaultTheme(),
+            darkTheme: darkTheme(),
+            themeMode: state.themeMode.toThemeMode,
+            builder: (context, child) => MediaQuery(
+              data: context.mediaQuery.copyWith(textScaleFactor: 1),
+              child: child!,
+            ),
+          );
+        },
       ),
     );
   }

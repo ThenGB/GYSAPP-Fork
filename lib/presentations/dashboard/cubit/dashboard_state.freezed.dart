@@ -31,6 +31,8 @@ mixin _$DashboardState {
   DateTime? get lastSync => throw _privateConstructorUsedError;
   String? get message => throw _privateConstructorUsedError;
   ConfigLiterature get configLiterature => throw _privateConstructorUsedError;
+  String? get idToken => throw _privateConstructorUsedError;
+  Account? get account => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -55,9 +57,12 @@ abstract class $DashboardStateCopyWith<$Res> {
       bool isSyncing,
       DateTime? lastSync,
       String? message,
-      ConfigLiterature configLiterature});
+      ConfigLiterature configLiterature,
+      String? idToken,
+      Account? account});
 
   $ConfigLiteratureCopyWith<$Res> get configLiterature;
+  $AccountCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -84,6 +89,8 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
     Object? lastSync = freezed,
     Object? message = freezed,
     Object? configLiterature = null,
+    Object? idToken = freezed,
+    Object? account = freezed,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -130,6 +137,14 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
           ? _value.configLiterature
           : configLiterature // ignore: cast_nullable_to_non_nullable
               as ConfigLiterature,
+      idToken: freezed == idToken
+          ? _value.idToken
+          : idToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as Account?,
     ) as $Val);
   }
 
@@ -138,6 +153,18 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
   $ConfigLiteratureCopyWith<$Res> get configLiterature {
     return $ConfigLiteratureCopyWith<$Res>(_value.configLiterature, (value) {
       return _then(_value.copyWith(configLiterature: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $AccountCopyWith<$Res>? get account {
+    if (_value.account == null) {
+      return null;
+    }
+
+    return $AccountCopyWith<$Res>(_value.account!, (value) {
+      return _then(_value.copyWith(account: value) as $Val);
     });
   }
 }
@@ -161,10 +188,14 @@ abstract class _$$_DashboardStateCopyWith<$Res>
       bool isSyncing,
       DateTime? lastSync,
       String? message,
-      ConfigLiterature configLiterature});
+      ConfigLiterature configLiterature,
+      String? idToken,
+      Account? account});
 
   @override
   $ConfigLiteratureCopyWith<$Res> get configLiterature;
+  @override
+  $AccountCopyWith<$Res>? get account;
 }
 
 /// @nodoc
@@ -189,6 +220,8 @@ class __$$_DashboardStateCopyWithImpl<$Res>
     Object? lastSync = freezed,
     Object? message = freezed,
     Object? configLiterature = null,
+    Object? idToken = freezed,
+    Object? account = freezed,
   }) {
     return _then(_$_DashboardState(
       isLoading: null == isLoading
@@ -235,6 +268,14 @@ class __$$_DashboardStateCopyWithImpl<$Res>
           ? _value.configLiterature
           : configLiterature // ignore: cast_nullable_to_non_nullable
               as ConfigLiterature,
+      idToken: freezed == idToken
+          ? _value.idToken
+          : idToken // ignore: cast_nullable_to_non_nullable
+              as String?,
+      account: freezed == account
+          ? _value.account
+          : account // ignore: cast_nullable_to_non_nullable
+              as Account?,
     ));
   }
 }
@@ -253,7 +294,9 @@ class _$_DashboardState extends _DashboardState {
       this.isSyncing = false,
       this.lastSync,
       this.message,
-      this.configLiterature = const ConfigLiterature()})
+      this.configLiterature = const ConfigLiterature(),
+      this.idToken,
+      this.account})
       : super._();
 
   factory _$_DashboardState.fromJson(Map<String, dynamic> json) =>
@@ -285,10 +328,14 @@ class _$_DashboardState extends _DashboardState {
   @override
   @JsonKey()
   final ConfigLiterature configLiterature;
+  @override
+  final String? idToken;
+  @override
+  final Account? account;
 
   @override
   String toString() {
-    return 'DashboardState(isLoading: $isLoading, ftpHost: $ftpHost, ftpPort: $ftpPort, ftpUsername: $ftpUsername, ftpPassword: $ftpPassword, biblePath: $biblePath, isError: $isError, isSyncing: $isSyncing, lastSync: $lastSync, message: $message, configLiterature: $configLiterature)';
+    return 'DashboardState(isLoading: $isLoading, ftpHost: $ftpHost, ftpPort: $ftpPort, ftpUsername: $ftpUsername, ftpPassword: $ftpPassword, biblePath: $biblePath, isError: $isError, isSyncing: $isSyncing, lastSync: $lastSync, message: $message, configLiterature: $configLiterature, idToken: $idToken, account: $account)';
   }
 
   @override
@@ -313,7 +360,9 @@ class _$_DashboardState extends _DashboardState {
                 other.lastSync == lastSync) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.configLiterature, configLiterature) ||
-                other.configLiterature == configLiterature));
+                other.configLiterature == configLiterature) &&
+            (identical(other.idToken, idToken) || other.idToken == idToken) &&
+            (identical(other.account, account) || other.account == account));
   }
 
   @JsonKey(ignore: true)
@@ -330,7 +379,9 @@ class _$_DashboardState extends _DashboardState {
       isSyncing,
       lastSync,
       message,
-      configLiterature);
+      configLiterature,
+      idToken,
+      account);
 
   @JsonKey(ignore: true)
   @override
@@ -358,7 +409,9 @@ abstract class _DashboardState extends DashboardState {
       final bool isSyncing,
       final DateTime? lastSync,
       final String? message,
-      final ConfigLiterature configLiterature}) = _$_DashboardState;
+      final ConfigLiterature configLiterature,
+      final String? idToken,
+      final Account? account}) = _$_DashboardState;
   const _DashboardState._() : super._();
 
   factory _DashboardState.fromJson(Map<String, dynamic> json) =
@@ -386,6 +439,10 @@ abstract class _DashboardState extends DashboardState {
   String? get message;
   @override
   ConfigLiterature get configLiterature;
+  @override
+  String? get idToken;
+  @override
+  Account? get account;
   @override
   @JsonKey(ignore: true)
   _$$_DashboardStateCopyWith<_$_DashboardState> get copyWith =>

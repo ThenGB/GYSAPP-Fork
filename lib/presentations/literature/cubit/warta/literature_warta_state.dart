@@ -1,5 +1,6 @@
-import 'package:church/domain/entity/warta/warta_entity.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+
+import '../../../../domain/entity/warta/warta_entity.dart';
 
 part 'literature_warta_state.freezed.dart';
 part 'literature_warta_state.g.dart';

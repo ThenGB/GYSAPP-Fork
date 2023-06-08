@@ -1,12 +1,14 @@
 import 'dart:io';
 import 'dart:ui';
 
-import 'package:church/di/injection.dart';
-import 'package:church/domain/entity/song/song_entity.dart';
 import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pdf_render/pdf_render.dart';
+
+import '../../../di/injection.dart';
+import '../../../domain/entity/song/song_entity.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -16,6 +18,7 @@ class SongState with _$SongState {
   const SongState._();
   const factory SongState({
     @Default(false) bool isLoading,
+    @Default(false) bool isAudioLoading,
     @Default([]) List<SongBook> songBook,
     @Default([]) List<SongBook> favoriteSongBook,
     @Default('KR') String bookCode,
@@ -24,6 +27,7 @@ class SongState with _$SongState {
     @Default(false) isImageMode,
     @Default(1) double textScaleFactor,
     @Default(false) bool showSizer,
+    @Default('mid') String defaultAudioFormat,
   }) = _SongState;
 
   SongBook? get currentSong {
@@ -31,7 +35,7 @@ class SongState with _$SongState {
   }
 
   Future<List<Uint8List>> getImageLyricPath(
-      int pageStart, int pageLength) async {
+      BuildContext context, int pageStart, int pageLength) async {
     final result = <Uint8List>[];
     var data = await rootBundle.load('assets/data/$bookCode.pdf');
     var file = File('${di<AppDirectory>().cache}/$bookCode.pdf');
