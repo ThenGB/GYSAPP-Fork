@@ -13,11 +13,12 @@ import '../../../di/injection.dart';
 import '../../../domain/entity/bcvbc/bcvbc.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
 import '../../../domain/entity/bible_note/bible_note.dart';
+import '../../../domain/entity/bible_ref/bible_ref.dart';
 import '../../../domain/entity/pericope/pericope.dart';
 import '../../../domain/entity/pericope_paralel/pericope_paralel.dart';
 import '../../../domain/entity/verse/verse.dart';
 import '../../../domain/repository/bible_repository.dart';
-import 'bible_state.dart';
+import '../bible.dart';
 
 export 'bible_state.dart';
 
@@ -31,6 +32,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
   BibleRepository bibleRepository = di();
 
   Database? bibleDb;
+  Database? splitBibleDb;
   initBible() async {
     if (state.currentBibleCode == null) return;
     await openDatabase(join(
@@ -40,6 +42,35 @@ class BibleCubit extends HydratedCubit<BibleState> {
       // getBooks();
       getContent(state.currentBible);
     });
+  }
+
+  late List<GlobalKey<VerseWidgetState>> verseKeys = List.generate(
+      state.verses.length,
+      (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
+  late List<GlobalKey<VerseWidgetState>> verseKeys2 = List.generate(
+      state.verses.length, (index) => GlobalKey<VerseWidgetState>());
+
+  modifyBookmark(Verse item) {
+    List<Verse> bookmarks = (List.from(state.bookmarks));
+    if (bookmarks.contains(item)) {
+      bookmarks.remove(item);
+    } else {
+      bookmarks.add(item);
+    }
+    if (bookmarks.length > 20) {
+      bookmarks = bookmarks.sublist(1);
+    }
+    emit(state.copyWith(bookmarks: bookmarks));
+  }
+
+  replaceBookmarks(List<Verse> items) {
+    emit(state.copyWith(bookmarks: items));
+  }
+
+  Future<List<Verse>> searchBibleByString(String searchText) async {
+    if (searchText.isEmpty) return [];
+    final response = await bibleRepository.search(bibleDb!, searchText);
+    return response;
   }
 
   incrementTodayReading() async {
@@ -77,25 +108,36 @@ class BibleCubit extends HydratedCubit<BibleState> {
     var folder = Directory(di<AppDirectory>().bibleFolder);
     var files = folder.listSync();
     var bibles = files.map((e) => basename(e.path)).toList();
-    emit(state.copyWith(bibleCodes: bibles));
+    bibles.removeWhere((element) => element.split('.').last != 'db');
+    emit(state.copyWith(bibleCodes: bibles.toSet().toList()));
   }
 
   Future<List<Verse>> getVersesByBook(int bookId, int chapterId) async {
-    final response = await bibleRepository.getBible(bibleDb!,
+    final response = await bibleRepository.getVerses(bibleDb!,
         bookId: bookId, chapterId: chapterId);
     return response;
   }
 
-  selectBibleCode(int index) async {
+  selectBibleCode(int index, [bool secondary = false]) async {
     var bibleCode = state.bibleCodes[index].split('.').first;
 
     /// close current bible
-    bibleDb = await openDatabase(
-      join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-    );
-    emit(
-      state.copyWith(currentBibleCode: bibleCode),
-    );
+    if (secondary) {
+      splitBibleDb = await openDatabase(
+        join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
+      );
+      emit(
+        state.copyWith(splitBibleCode: bibleCode),
+      );
+    } else {
+      bibleDb = await openDatabase(
+        join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
+      );
+      emit(
+        state.copyWith(currentBibleCode: bibleCode),
+      );
+    }
+
     // getBooks();
     getContent(state.currentBible);
   }
@@ -112,14 +154,14 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<String> getBibleTitle(List<Verse?> verses,
-      {bool withVerse = false}) async {
+      {bool withVerse = false, bool splitMode = false}) async {
     List<int> parsedVerses = [];
     for (var element in verses) {
       if (element != null) parsedVerses.add(element.id);
     }
     String? title = await convertIDsToNameAlkitab(
       parsedVerses,
-      bibleDb: bibleDb!,
+      bibleDb: splitMode ? splitBibleDb! : bibleDb!,
       isLong: true,
       withVerse: withVerse,
     );
@@ -127,10 +169,16 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return title ?? 'Unknown';
   }
 
+  Future<List<Verse>> getVersesByIdRange(int? start, int? end) async {
+    final response = await bibleRepository.getVersesByIdRange(bibleDb!,
+        fromId: start ?? 1, toId: end);
+    return response;
+  }
+
   saveToHistory(Verse verse) {
     Map<DateTime, Verse> map = Map.from(state.histories);
     if (map.length >= 20) {
-      map = Map.fromIterable(List.from(map.entries).sublist(0, 20));
+      map = Map.fromIterable(List.from(map.entries).sublist(1, 21));
     }
     map[DateTime.now()] = verse;
     emit(state.copyWith(histories: map));
@@ -139,15 +187,19 @@ class BibleCubit extends HydratedCubit<BibleState> {
   Future getContent(Verse? bible) async {
     emit(state.copyWith(selectedVerse: []));
     if (bible == null) {
-      emit(state.copyWith(
+      emit(
+        state.copyWith(
+          prevBible: state.currentBible,
           currentBible: const Verse(
-        id: 1001001,
-        bookId: 1,
-        chapterId: 1,
-        verseId: 1,
-      )));
+            id: 1001001,
+            bookId: 1,
+            chapterId: 1,
+            verseId: 1,
+          ),
+        ),
+      );
     } else {
-      emit(state.copyWith(currentBible: bible));
+      emit(state.copyWith(prevBible: state.currentBible, currentBible: bible));
     }
     int bibleId = state.currentBible!.id;
     // int verseId = state.currentBible!.verseId;
@@ -161,13 +213,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
     //   isLong: true,
     //   withVerse: false,
     // );
-    String? title = await convertIDsToNameAlkitab(
-      [bibleId],
-      bibleDb: bibleDb!,
-      isLong: true,
-      withVerse: false,
-    );
-    List<Verse> bibleContent = await bibleRepository.getBible(
+
+    List<Verse> bibleContent = await bibleRepository.getVerses(
       bibleDb!,
       bookId: bookId,
       chapterId: chapterId,
@@ -176,7 +223,6 @@ class BibleCubit extends HydratedCubit<BibleState> {
       bibleDb!,
       // bookId: bookId,
     );
-    var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
     List<Pericope> pericopes = await bibleRepository.getPericope(
       bibleDb!,
       bookId: bookId,
@@ -187,14 +233,55 @@ class BibleCubit extends HydratedCubit<BibleState> {
       bibleDb!,
       bc: bcvbc.bc!,
     );
+
+    List<BibleRef> references =
+        await bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!);
+
+    List<Verse> splitBibleContent = [];
+    List<BibleBook> splitBookContent = [];
+    List<Pericope> splitPericopes = [];
+    List<PericopeParalel> splitPericopeParalels = [];
+    if (splitBibleDb != null) {
+      splitBibleContent = await bibleRepository.getVerses(
+        splitBibleDb!,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+      splitBookContent = await bibleRepository.getBooks(
+        splitBibleDb!,
+        // bookId: bookId,
+      );
+      splitPericopes = await bibleRepository.getPericope(
+        splitBibleDb!,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+      splitPericopeParalels = await bibleRepository.getPericopeParalel(
+        splitBibleDb!,
+        bc: bcvbc.bc!,
+      );
+    }
+    var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
+    var book2 =
+        splitBookContent.firstWhereOrNull((element) => element.id == bookId);
+
+    verseKeys = List.generate(bibleContent.length,
+        (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
+    verseKeys2 = List.generate(
+        bibleContent.length, (index) => GlobalKey<VerseWidgetState>());
+
     emit(
       state.copyWith(
         books: bookContent,
-        verses: bibleContent,
         currentBook: book,
+        splitBook: book2,
+        verses: bibleContent,
+        references: references,
+        splitVerses: splitBibleContent,
         pericopes: pericopes,
+        splitPericopes: splitPericopes,
         pericopesParalels: pericopeParalels,
-        bookTitle: title,
+        splitPericopesParalels: splitPericopeParalels,
         lastOpenBible: DateTime.now(),
       ),
     );
@@ -228,21 +315,19 @@ class BibleCubit extends HydratedCubit<BibleState> {
     List<Verse> temp = List.from(state.hightlightedVerse);
     for (var b in bible) {
       var exists = temp.any((element) => element.isSame(b));
+
       if (exists) {
         var index = temp.indexOf(
             temp.firstWhereOrNull((element) => element.isSame(b)) ?? b);
-        if (b.color == Colors.transparent || b.color == null) {
+        if (temp[index].color == b.color) {
           temp.removeAt(index);
-        } else {
-          temp.removeAt(index);
-          temp.add(b);
         }
       } else {
         temp.add(b);
       }
     }
     temp = temp.toSet().toList();
-    emit(state.copyWith(hightlightedVerse: temp, selectedVerse: []));
+    emit(state.copyWith(hightlightedVerse: temp));
   }
 
   selectBible(Verse bible) {
@@ -254,6 +339,10 @@ class BibleCubit extends HydratedCubit<BibleState> {
     }
     temp = temp.toSet().toList();
     emit(state.copyWith(selectedVerse: temp));
+  }
+
+  removeSelection() {
+    emit(state.copyWith(selectedVerse: []));
   }
 
   Future nextChapter([int? step, bool fromTodayReading = false]) async {
@@ -323,6 +412,17 @@ class BibleCubit extends HydratedCubit<BibleState> {
   saveNote(BibleNote data) {
     var notes = List<BibleNote>.from(state.notes);
     notes.add(data);
+
+    emit(state.copyWith(notes: notes));
+  }
+
+  changeSortNote(String sortBy) {
+    emit(state.copyWith(sortNotesBy: sortBy));
+  }
+
+  deleteNote(BibleNote data) {
+    var notes = List<BibleNote>.from(state.notes);
+    notes.remove(data);
 
     emit(state.copyWith(notes: notes));
   }
@@ -468,8 +568,6 @@ Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
   if (tempVerseNumbers.isNotEmpty) {
     verseNumbers.add(List.from(tempVerseNumbers));
   }
-
-  log(verseNumbers.toString(), name: 'verse numbers');
   if (withVerse) {
     String parsedVerse = verseNumbers
         .map((e) => '${e.first}${e.last == e.first ? '' : '-${e.last}'}')

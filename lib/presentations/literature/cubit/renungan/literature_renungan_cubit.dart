@@ -16,9 +16,10 @@ class LiteratureRenunganCubit extends HydratedCubit<LiteratureRenunganState> {
 
   LiteratureRenunganCubit(this.repository)
       : super(const LiteratureRenunganState()) {
-    var json = FirebaseUtils.jsonConfig('config_literature');
-    selector = ConfigLiterature.fromJson(json).pelitaKecil;
-    getData();
+    FirebaseUtils.jsonConfig('config_literature').then((json) {
+      selector = ConfigLiterature.fromJson(json).pelitaKecil;
+      getData();
+    });
   }
 
   late String selector;

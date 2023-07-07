@@ -206,7 +206,7 @@ class SettingsView extends StatelessWidget {
                                       .read<BibleCubit>()
                                       .getBibleTitle([state.todayReading]),
                                   builder: (context, snapshot) =>
-                                      Text(snapshot.data ?? '')),
+                                      Text(snapshot.data ?? 'None'.tr())),
                             ),
                           },
                           {

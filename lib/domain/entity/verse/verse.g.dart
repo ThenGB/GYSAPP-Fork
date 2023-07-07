@@ -13,7 +13,7 @@ _$_Verse _$$_VerseFromJson(Map<String, dynamic> json) => _$_Verse(
       verseId: json['v'] as int,
       verse: json['t'] as String?,
       revisionId: json['r'] as int?,
-      c1: json['c1'] as String?,
+      c1: dynamicToString(json['c1']),
       v1: json['v1'] as String?,
       color: _colorFromJson(json['color']),
     );
@@ -25,7 +25,7 @@ Map<String, dynamic> _$$_VerseToJson(_$_Verse instance) => <String, dynamic>{
       'v': instance.verseId,
       't': instance.verse,
       'r': instance.revisionId,
-      'c1': instance.c1,
+      'c1': stringToDynamic(instance.c1),
       'v1': instance.v1,
       'color': _colorToJson(instance.color),
     };

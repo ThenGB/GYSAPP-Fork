@@ -21,3 +21,39 @@ extension IntExt on int {
     throw Exception('Invalid weekday number: $this');
   }
 }
+
+extension ListInt on List<int> {
+  String joinToString() {
+    if (isEmpty) {
+      return '';
+    }
+
+    final sortedList = List<int>.from(this)..sort();
+    final result = StringBuffer();
+
+    int start = sortedList.first;
+    int end = sortedList.first;
+
+    for (int i = 1; i < sortedList.length; i++) {
+      if (sortedList[i] == end + 1) {
+        end = sortedList[i];
+      } else {
+        if (start == end) {
+          result.write('$start, ');
+        } else {
+          result.write('$start-$end, ');
+        }
+        start = sortedList[i];
+        end = sortedList[i];
+      }
+    }
+
+    if (start == end) {
+      result.write('$start');
+    } else {
+      result.write('$start-$end');
+    }
+
+    return result.toString();
+  }
+}

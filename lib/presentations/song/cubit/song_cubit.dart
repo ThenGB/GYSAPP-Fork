@@ -15,6 +15,8 @@ import 'package:sqflite/sqflite.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
+import '../../../domain/entity/song_history/song_history.dart';
+import '../../../domain/entity/song_note/song_note.dart';
 import '../../../domain/repository/song_repository.dart';
 import 'song_state.dart';
 
@@ -32,6 +34,32 @@ class SongCubit extends HydratedCubit<SongState> {
         ),
       );
     });
+  }
+
+  changeSortNote(String sortBy) {
+    emit(state.copyWith(sortNotesBy: sortBy));
+  }
+
+  saveNote(SongNote data) {
+    var notes = List<SongNote>.from(state.notes);
+    notes.add(data);
+
+    emit(state.copyWith(notes: notes));
+  }
+
+  deleteNote(SongNote data) async {
+    var notes = List<SongNote>.from(state.notes);
+    notes.remove(data);
+
+    emit(state.copyWith(notes: notes));
+  }
+
+  removeSelection() async {
+    emit(state.copyWith(selectedSong: null));
+  }
+
+  selectSong(Song song) {
+    emit(state.copyWith(selectedSong: song));
   }
 
   AudioPlayer audioPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
@@ -151,7 +179,6 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   changeScale(double scale) {
-    
     emit(state.copyWith(textScaleFactor: scale));
   }
 
@@ -227,6 +254,21 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(bookCode: bookCode));
   }
 
+  deleteHistory(SongHistory history) {
+    emit(state.copyWith(
+        histories: List<SongHistory>.from(state.histories)..remove(history)));
+  }
+
+  addToHistory(SongHistory item) {
+    List<SongHistory> data = List.from(state.histories);
+
+    if (data.length >= 20) {
+      data = List<SongHistory>.from(data).sublist(0, 20);
+    }
+    data.add(item);
+    emit(state.copyWith(histories: data));
+  }
+
   @override
   SongState? fromJson(Map<String, dynamic> json) {
     return SongState.fromJson(json);
@@ -234,7 +276,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
   @override
   Map<String, dynamic>? toJson(SongState state) {
-    return state.copyWith(isAudioLoading: false, isLoading: false).toJson();
+    return state
+        .copyWith(isAudioLoading: false, isLoading: false, selectedSong: null)
+        .toJson();
   }
 
   @override

@@ -19,6 +19,7 @@ import '../domain/repository/song_repository.dart';
 import '../presentations/auth/cubit/auth_cubit.dart';
 import '../presentations/bible/cubit/bible_cubit.dart';
 import '../presentations/dashboard/cubit/dashboard_cubit.dart';
+import '../presentations/faith/cubit/faith_cubit.dart';
 import '../presentations/home/bloc/home_cubit.dart';
 import '../presentations/initial/bloc/initial_cubit.dart';
 import '../presentations/literature/cubit/kesaksian/literature_kesaksian_cubit.dart';
@@ -47,6 +48,7 @@ _blocs() {
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
   di.registerFactory(() => SongCubit(di()));
+  di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AuthCubit(di()));
 }

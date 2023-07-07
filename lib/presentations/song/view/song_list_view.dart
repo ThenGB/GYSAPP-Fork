@@ -90,6 +90,7 @@ class _SongListViewState extends State<SongListView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.colorScheme.background,
       appBar: AppBar(
         leadingWidth: 56,
         titleSpacing: 0,

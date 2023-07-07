@@ -34,7 +34,7 @@ class AuthCubit extends HydratedCubit<AuthState> {
     emit(state.copyWith(progress: value));
   }
 
-  onGoogleLogin(InAppWebViewController controller) async {
+  onGoogleLogin(InAppWebViewController controller, String cmd) async {
     FlutterAppAuth appAuth = const FlutterAppAuth();
     final response = await appAuth.authorizeAndExchangeCode(
       AuthorizationTokenRequest(clientID(), redirectUrl(),
@@ -51,6 +51,7 @@ class AuthCubit extends HydratedCubit<AuthState> {
     emit(state.copyWith(idToken: response?.idToken));
     if (response?.idToken?.isNotEmpty == true) {
       var data = jsonEncode({
+        '__action': cmd,
         'credential': response!.idToken,
       });
       controller.evaluateJavascript(source: 'onCallbackGIS($data)');

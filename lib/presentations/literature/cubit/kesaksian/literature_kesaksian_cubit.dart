@@ -14,9 +14,10 @@ export 'literature_kesaksian_state.dart';
 class LiteratureKesaksianCubit extends HydratedCubit<LiteratureKesaksianState> {
   LiteratureKesaksianCubit(this.repository)
       : super(const LiteratureKesaksianState()) {
-    var json = FirebaseUtils.jsonConfig('config_literature');
-    selector = ConfigLiterature.fromJson(json).kesaksian;
-    getData();
+    FirebaseUtils.jsonConfig('config_literature').then((json) {
+      selector = ConfigLiterature.fromJson(json).kesaksian;
+      getData();
+    });
   }
   late String selector;
   final ScrapperRepository repository;

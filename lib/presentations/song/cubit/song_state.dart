@@ -9,6 +9,8 @@ import 'package:pdf_render/pdf_render.dart';
 
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
+import '../../../domain/entity/song_history/song_history.dart';
+import '../../../domain/entity/song_note/song_note.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -28,6 +30,11 @@ class SongState with _$SongState {
     @Default(1) double textScaleFactor,
     @Default(false) bool showSizer,
     @Default('mid') String defaultAudioFormat,
+    Song? selectedSong,
+    @Default([]) List<SongNote> notes,
+    @Default('Newest') String sortNotesBy,
+    @Default([]) List<SongHistory> histories,
+    @Default(false) bool playOnlyFavorite,
   }) = _SongState;
 
   SongBook? get currentSong {
@@ -59,6 +66,49 @@ class SongState with _$SongState {
       result.add(libImage);
     }
     return result;
+  }
+
+  Future<List<SongNote>> filteredNote(String filter) async {
+    Map<String, SongNote> mapped = {};
+    Map<String, SongNote> filtered = {};
+
+    /// generate the title of the note first
+    for (var note in notes) {
+      var title = note.song.title ?? '';
+      mapped[title] = note;
+    }
+
+    /// return all immediately if the filter is empty to show all
+    if (filter.isEmpty) {
+      return mapped.entries.sorted(sortNotes).map((e) => e.value).toList();
+    }
+
+    /// filter function
+    for (var item in mapped.entries) {
+      if (item.value.text?.toLowerCase().contains(filter) == true ||
+          item.key.toLowerCase().contains(filter)) {
+        filtered[item.key] = item.value;
+      }
+    }
+
+    return filtered.entries.sorted(sortNotes).map((e) => e.value).toList();
+  }
+
+  int sortNotes(MapEntry<String, SongNote> a, MapEntry<String, SongNote> b) {
+    return () {
+      switch (sortNotesBy) {
+        case 'Newest':
+          return b.value.createdDate.compareTo(a.value.createdDate);
+        case 'Oldest':
+          return a.value.createdDate.compareTo(b.value.createdDate);
+        case 'A-Z':
+          return a.key.compareTo(b.key);
+        case 'Z-A':
+          return b.key.compareTo(a.key);
+        default:
+          return 0;
+      }
+    }();
   }
 
   factory SongState.fromJson(Map<String, dynamic> json) =>

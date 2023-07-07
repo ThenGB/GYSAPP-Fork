@@ -7,7 +7,7 @@ extension HumanDate on DateTime {
     DateTime yesterday = today.subtract(Duration(days: 1));
 
     DateFormat timeFormat = DateFormat.Hm();
-    DateFormat dateTimeFormat = DateFormat('yyyy-MM-dd Hm');
+    DateFormat dateTimeFormat = DateFormat('yyyy-MM-dd H:m');
 
     if (isSameDay(today)) {
       // Return HH:mm for today's date

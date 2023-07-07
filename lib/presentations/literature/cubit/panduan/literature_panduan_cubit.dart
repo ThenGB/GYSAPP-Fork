@@ -16,9 +16,10 @@ class LiteraturePanduanCubit extends HydratedCubit<LiteraturePanduanState> {
 
   LiteraturePanduanCubit(this.repository)
       : super(const LiteraturePanduanState()) {
-    var json = FirebaseUtils.jsonConfig('config_literature');
-    selector = ConfigLiterature.fromJson(json).panduanAlkitab;
-    getData();
+    FirebaseUtils.jsonConfig('config_literature').then((json) {
+      selector = ConfigLiterature.fromJson(json).panduanAlkitab;
+      getData();
+    });
   }
 
   late String selector;

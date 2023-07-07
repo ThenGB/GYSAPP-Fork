@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../app.dart';
+import '../../../data/utilities/firebase_utils.dart';
 import '../../../data/utilities/variables/failure.dart';
 import 'initial_state.dart';
 
@@ -22,8 +23,9 @@ class InitialCubit extends HydratedCubit<InitialState> {
           minimumFetchInterval: const Duration(seconds: 10),
         ),
       );
-      log((await FirebaseRemoteConfig.instance.fetchAndActivate()).toString(),
-          name: '[Firebase remote config]');
+      var value = await FirebaseRemoteConfig.instance.fetchAndActivate();
+      FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
+      log((value).toString(), name: '[Firebase remote config]');
     } catch (e) {
       log(Failure.fromError(e).message, name: 'getRemoteConfig', error: e);
     }

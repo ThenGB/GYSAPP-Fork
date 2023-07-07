@@ -1,16 +1,27 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:developer';
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:simple_animations/simple_animations.dart';
 
+import '../../../components/widgets/drag_handler.dart';
+import '../../../data/utilities/enums.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/extensions/datetime_ext.dart';
+import '../../../data/utilities/firebase_utils.dart';
 import '../../../data/utilities/variables/assets.dart';
+import '../../../domain/entity/song/song_entity.dart';
+import '../../../domain/entity/song_history/song_history.dart';
+import '../../../domain/entity/song_note/song_note.dart';
 import '../../../router/router.dart';
 import '../cubit/song_cubit.dart';
 
@@ -27,7 +38,7 @@ class _SongViewState extends State<SongView> {
     ..addListener(pageListener);
 
   PageController? verseController;
-  double _baseScale = 1;
+  late double _baseScale = context.read<SongCubit>().state.textScaleFactor;
   late double _currentScale = context.read<SongCubit>().state.textScaleFactor;
 
   int currentPageIndex = 0;
@@ -37,7 +48,6 @@ class _SongViewState extends State<SongView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       currentPageIndex = pageController.page?.toInt() ?? 0;
       currentVerseIndex = 0;
-
       context.read<SongCubit>().changePage(currentPageIndex, currentVerseIndex);
       setState(() {});
     });
@@ -53,16 +63,47 @@ class _SongViewState extends State<SongView> {
 
   bool onScaling = false;
 
+  GlobalKey selectedSongMenuKey = GlobalKey();
+
+  Future<double> get selectedVerseMenuHeight async => await Future.delayed(
+        Duration(milliseconds: 500),
+        () {
+          return selectedSongMenuKey.currentContext?.size?.height ?? 0;
+        },
+      );
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
       builder: (context, state) => Scaffold(
+          bottomSheet: Container(
+            key: selectedSongMenuKey,
+            child: AnimatedSize(
+              curve: Curves.easeOut,
+              alignment: Alignment.bottomCenter,
+              duration: kThemeAnimationDuration,
+              child: state.selectedSong == null
+                  ? SizedBox()
+                  : PlayAnimationBuilder(
+                      curve: Curves.easeOut,
+                      delay: kThemeAnimationDuration,
+                      duration: kThemeAnimationDuration,
+                      tween: Tween<double>(begin: 0, end: 1),
+                      builder: (context, value, child) => Opacity(
+                        opacity: value,
+                        child: SelectedSongMenu(
+                          item: state.selectedSong!,
+                        ),
+                      ),
+                    ),
+            ),
+          ),
           backgroundColor: context.colorScheme.background,
           bottomNavigationBar: AnimatedSize(
             duration: kThemeAnimationDuration,
             alignment: Alignment.bottomCenter,
             curve: Curves.easeOut,
-            child: state.isAudioLoading
+            child: state.isAudioLoading || state.selectedSong != null
                 ? const SizedBox(
                     width: double.infinity,
                   )
@@ -71,6 +112,8 @@ class _SongViewState extends State<SongView> {
                     child: ListTile(
                       tileColor: context.colorScheme.background,
                       leading: StreamBuilder<PlayerState>(
+                        initialData:
+                            context.read<SongCubit>().audioPlayer.state,
                         stream: context
                             .read<SongCubit>()
                             .audioPlayer
@@ -229,7 +272,9 @@ class _SongViewState extends State<SongView> {
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
-                  border: Border.all(color: context.theme.disabledColor),
+                  border: Border.all(
+                    color: context.theme.disabledColor,
+                  ),
                   shape: BoxShape.circle,
                   color: context.theme.canvasColor,
                 ),
@@ -257,7 +302,7 @@ class _SongViewState extends State<SongView> {
                                 .read<SongCubit>()
                                 .isSongFavorite(
                                     state.currentSong?.songs[currentPageIndex])
-                            ? Colors.amber.shade100
+                            ? context.colorScheme.primaryContainer
                             : Colors.transparent,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.horizontal(
@@ -277,10 +322,16 @@ class _SongViewState extends State<SongView> {
                               var index = state.currentSong?.songs.indexWhere(
                                   (element) => element.number == song.number);
                               if (index == null) return;
+                              context.read<SongCubit>().addToHistory(
+                                    SongHistory(
+                                      index: index,
+                                      bookCode: song.code!,
+                                      createdAt: DateTime.now(),
+                                    ),
+                                  );
                               pageController.animateToPage(index,
                                   duration: kThemeAnimationDuration,
                                   curve: Curves.easeOut);
-
                               router.pop();
                             });
                           },
@@ -305,6 +356,13 @@ class _SongViewState extends State<SongView> {
                                 duration: kThemeAnimationDuration,
                                 curve: Curves.easeOut);
                             router.pop();
+                            context.read<SongCubit>().addToHistory(
+                                  SongHistory(
+                                    index: index,
+                                    bookCode: state.bookCode,
+                                    createdAt: DateTime.now(),
+                                  ),
+                                );
                           }));
                     },
                     child: Text(
@@ -314,7 +372,7 @@ class _SongViewState extends State<SongView> {
                       style: TextStyle(
                         color: context.read<SongCubit>().isSongFavorite(
                                 state.currentSong?.songs[currentPageIndex])
-                            ? Colors.orange
+                            ? context.colorScheme.onPrimaryContainer
                             : null,
                       ),
                     ),
@@ -338,6 +396,142 @@ class _SongViewState extends State<SongView> {
               ),
             ),
             actions: [
+              /// history button
+              AnimatedCrossFade(
+                alignment: Alignment.center,
+                duration: kThemeAnimationDuration,
+                crossFadeState: CrossFadeState.showSecond,
+                firstChild: const SizedBox(
+                  width: 0,
+                  height: 48,
+                ),
+                secondChild: IconButton(
+                  visualDensity: VisualDensity.compact,
+                  icon: ColorFiltered(
+                    colorFilter: ColorFilter.mode(
+                      context.colorScheme.primary,
+                      BlendMode.srcIn,
+                    ),
+                    child: Image.asset(
+                      Assets.assetsIconsHistory,
+                      width: 24,
+                      height: 24,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  onPressed: () async {
+                    await showDialog(
+                      context: context,
+                      builder: (c) {
+                        return BlocProvider<SongCubit>.value(
+                          value: context.read(),
+                          child: BlocBuilder<SongCubit, SongState>(
+                            builder: (context, state) => Dialog(
+                              clipBehavior: Clip.antiAlias,
+                              child: Scrollbar(
+                                child: SingleChildScrollView(
+                                  child: state.histories.isEmpty
+                                      ? ListTile(
+                                          title: Text(
+                                            'Empty'.tr(),
+                                          ),
+                                        )
+                                      : Column(
+                                          children: state.histories
+                                              .toList()
+                                              .reversed
+                                              .map((e) => ListTile(
+                                                    trailing: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(e.createdAt
+                                                            .toHumanDate()),
+                                                        IconButton(
+                                                            onPressed:
+                                                                () async {
+                                                              if (await context
+                                                                  .showConfirmation(
+                                                                      'Are you sure want to delete this?'
+                                                                          .tr())) {
+                                                                context
+                                                                    .read<
+                                                                        SongCubit>()
+                                                                    .deleteHistory(
+                                                                        e);
+                                                              }
+                                                            },
+                                                            icon: Icon(
+                                                                Icons.delete)),
+                                                      ],
+                                                    ),
+                                                    onTap: () async {
+                                                      context
+                                                          .read<SongCubit>()
+                                                          .changeBookcode(
+                                                              e.bookCode);
+                                                      var song = context
+                                                          .read<SongCubit>()
+                                                          .state
+                                                          .currentSong
+                                                          ?.songs[e.index];
+                                                      Future.delayed(
+                                                              const Duration(
+                                                                  milliseconds:
+                                                                      100))
+                                                          .then((value) {
+                                                        /// change the page number
+                                                        var index = state
+                                                            .currentSong?.songs
+                                                            .indexWhere((element) =>
+                                                                element
+                                                                    .number ==
+                                                                song?.number);
+                                                        if (index == null) {
+                                                          return;
+                                                        }
+                                                        context
+                                                            .read<SongCubit>()
+                                                            .addToHistory(
+                                                              SongHistory(
+                                                                index: index,
+                                                                bookCode:
+                                                                    song?.code ??
+                                                                        '',
+                                                                createdAt:
+                                                                    DateTime
+                                                                        .now(),
+                                                              ),
+                                                            );
+                                                        pageController
+                                                            .animateToPage(
+                                                                index,
+                                                                duration:
+                                                                    kThemeAnimationDuration,
+                                                                curve: Curves
+                                                                    .easeOut);
+                                                        router.pop();
+                                                      });
+                                                    },
+                                                    title: Text(state
+                                                            .currentSong
+                                                            ?.songs[e.index]
+                                                            .title ??
+                                                        ''),
+                                                  ))
+                                              .toList(),
+                                        ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+
               IconButton(
                 onPressed: () {
                   currentVerseIndex = 0;
@@ -385,13 +579,15 @@ class _SongViewState extends State<SongView> {
                     var text =
                         '$number - $title\n\n${currentVerseIndex + 1}. $verse';
                     Share.share(text, subject: '$number - $title');
+                  } else if (value == 'notes') {
+                    router.push(SongNotesListRoute(cubit: context.read()));
                   }
                 },
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
                 itemBuilder: (context) => [
-                  ['Copy'.tr(), 'copy'],
+                  // ['Copy'.tr(), 'copy'],
                   [
                     (context.read<SongCubit>().isSongFavorite(
                                 state.currentSong?.songs[currentPageIndex])
@@ -400,11 +596,12 @@ class _SongViewState extends State<SongView> {
                         .tr(),
                     'fav'
                   ],
-                  [
-                    (state.showSizer ? 'Hide Sizer' : 'Show Sizer').tr(),
-                    'size'
-                  ],
-                  ['Share'.tr(), 'share']
+                  // [
+                  //   (state.showSizer ? 'Hide Sizer' : 'Show Sizer').tr(),
+                  //   'size'
+                  // ],
+                  // ['Share'.tr(), 'share'],
+                  ['See all notes'.tr(), 'notes'],
                 ]
                     .map(
                       (e) => PopupMenuItem(
@@ -420,9 +617,6 @@ class _SongViewState extends State<SongView> {
                     color: context.theme.disabledColor,
                   ),
                 ),
-              ),
-              const SizedBox(
-                width: 16,
               ),
             ],
           ),
@@ -490,12 +684,17 @@ class _SongViewState extends State<SongView> {
                         child: Column(
                           children: [
                             if (!state.isImageMode)
-                              Text(
-                                song.title ?? '',
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
+                              GestureDetector(
+                                onTap: () async {
+                                  context.read<SongCubit>().selectSong(song);
+                                },
+                                child: Text(
+                                  song.title ?? '',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                             const Divider(),
@@ -809,5 +1008,143 @@ class _BookPaperState extends State<BookPaper>
       return widget.builder(context, index);
     }
     return Container();
+  }
+}
+
+class SelectedSongMenu extends StatelessWidget {
+  final Song item;
+  const SelectedSongMenu({
+    super.key,
+    required this.item,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      clipBehavior: Clip.antiAlias,
+      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      decoration: BoxDecoration(
+        boxShadow: [
+          BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+        ],
+        color: context.colorScheme.background,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          DragHandler(),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  item.title ?? '',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: Icon(Icons.close),
+                visualDensity: VisualDensity.compact,
+                onPressed: context.read<SongCubit>().removeSelection,
+              ),
+            ],
+          ),
+          SizedBox(
+            height: 12,
+          ),
+          Row(
+            children: [
+              TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: context.colorScheme.primaryContainer,
+                    foregroundColor: context.colorScheme.onPrimaryContainer,
+                  ),
+                  onPressed: () {
+                    var existing = context
+                        .read<SongCubit>()
+                        .state
+                        .notes
+                        .firstWhereOrNull((element) =>
+                            element.song.title ==
+                            context
+                                .read<SongCubit>()
+                                .state
+                                .selectedSong
+                                ?.title);
+                    router.push(SongNoteRoute(
+                      initialData: existing ??
+                          SongNote.empty(
+                              context.read<SongCubit>().state.selectedSong!),
+                      cubit: context.read<SongCubit>(),
+                      mode: NoteMode.write,
+                      onSave: (data) {
+                        context.read<SongCubit>().saveNote(data);
+                        router.pop();
+                        router.push(SongNotesListRoute(cubit: context.read()));
+                      },
+                    ));
+                  },
+                  child: Text('Note'.tr())),
+              SizedBox(
+                width: 8,
+              ),
+              TextButton(
+                style: TextButton.styleFrom(
+                  backgroundColor: context.colorScheme.primaryContainer,
+                  foregroundColor: context.colorScheme.onPrimaryContainer,
+                ),
+                onPressed: () async {
+                  String text = '';
+                  var title = '${item.title ?? ''}\n';
+                  var json =
+                      await FirebaseUtils.jsonConfig('footer_copied_text');
+                  var footer = json[context.locale.languageCode];
+                  text = title;
+                  for (var i = 0; i < item.verses.length; i++) {
+                    var verse = item.verses[i];
+                    var number = i + 1;
+                    text += '\n$number. $verse\n';
+                  }
+                  text += '\n\n$footer';
+                  Share.share(text);
+                },
+                child: Text(
+                  'Share'.tr(),
+                ),
+              ),
+              SizedBox(
+                width: 8,
+              ),
+              TextButton(
+                  style: TextButton.styleFrom(
+                    backgroundColor: context.colorScheme.primaryContainer,
+                    foregroundColor: context.colorScheme.onPrimaryContainer,
+                  ),
+                  onPressed: () async {
+                    String text = '';
+                    var title = '${item.title ?? ''}\n';
+                    var json =
+                        await FirebaseUtils.jsonConfig('footer_copied_text');
+                    var footer = json[context.locale.languageCode];
+                    text = title;
+                    for (var i = 0; i < item.verses.length; i++) {
+                      var verse = item.verses[i];
+                      var number = i + 1;
+                      text += '\n$number. $verse\n';
+                    }
+                    text += '\n\n$footer';
+                    await Clipboard.setData(ClipboardData(text: text));
+                    Fluttertoast.cancel();
+                    Fluttertoast.showToast(msg: 'Copied!'.tr());
+                  },
+                  child: Text('Copy'.tr())),
+            ],
+          ),
+          SizedBox(height: 8),
+        ],
+      ),
+    );
   }
 }

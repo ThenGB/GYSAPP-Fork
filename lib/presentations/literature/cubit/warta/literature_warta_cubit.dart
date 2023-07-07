@@ -15,9 +15,10 @@ class LiteratureWartaCubit extends HydratedCubit<LiteratureWartaState> {
   final ScrapperRepository repository;
 
   LiteratureWartaCubit(this.repository) : super(const LiteratureWartaState()) {
-    var json = FirebaseUtils.jsonConfig('config_literature');
-    selector = ConfigLiterature.fromJson(json).kesaksian;
-    getData();
+    FirebaseUtils.jsonConfig('config_literature').then((json) {
+      selector = ConfigLiterature.fromJson(json).kesaksian;
+      getData();
+    });
   }
   late String selector;
   @override

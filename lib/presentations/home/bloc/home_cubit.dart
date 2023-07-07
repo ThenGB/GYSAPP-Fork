@@ -30,8 +30,8 @@ class HomeCubit extends HydratedCubit<HomeState> {
     });
   }
 
-  getMenu() {
-    var appMenuJson = FirebaseUtils.listMapConfig('app_menu');
+  getMenu() async {
+    var appMenuJson = await FirebaseUtils.listMapConfig('app_menu');
     final List<Menulink> menuLinks =
         appMenuJson.map<Menulink>((e) => Menulink.fromJson(e)).toList();
 

@@ -20,7 +20,7 @@ class Verse with _$Verse {
         String? verse,
     @JsonKey(name: 'r')
         int? revisionId,
-    @JsonKey(name: 'c1')
+    @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
         String? c1,
     @JsonKey(name: 'v1')
         String? v1,
@@ -52,4 +52,12 @@ Color? _colorFromJson(dynamic json) {
   final hexColor = json.startsWith('#') ? json.substring(1) : json;
   final colorInt = int.parse(hexColor, radix: 16);
   return Color(0xFF000000 + colorInt);
+}
+
+dynamicToString(dynamic value) {
+  return value?.toString();
+}
+
+stringToDynamic(String? value) {
+  return value;
 }

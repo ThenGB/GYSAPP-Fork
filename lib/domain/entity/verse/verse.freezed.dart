@@ -32,7 +32,7 @@ mixin _$Verse {
   String? get verse => throw _privateConstructorUsedError;
   @JsonKey(name: 'r')
   int? get revisionId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'c1')
+  @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get c1 => throw _privateConstructorUsedError;
   @JsonKey(name: 'v1')
   String? get v1 => throw _privateConstructorUsedError;
@@ -62,7 +62,7 @@ abstract class $VerseCopyWith<$Res> {
           String? verse,
       @JsonKey(name: 'r')
           int? revisionId,
-      @JsonKey(name: 'c1')
+      @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? c1,
       @JsonKey(name: 'v1')
           String? v1,
@@ -153,7 +153,7 @@ abstract class _$$_VerseCopyWith<$Res> implements $VerseCopyWith<$Res> {
           String? verse,
       @JsonKey(name: 'r')
           int? revisionId,
-      @JsonKey(name: 'c1')
+      @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? c1,
       @JsonKey(name: 'v1')
           String? v1,
@@ -237,7 +237,7 @@ class _$_Verse extends _Verse {
           this.verse,
       @JsonKey(name: 'r')
           this.revisionId,
-      @JsonKey(name: 'c1')
+      @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           this.c1,
       @JsonKey(name: 'v1')
           this.v1,
@@ -267,7 +267,7 @@ class _$_Verse extends _Verse {
   @JsonKey(name: 'r')
   final int? revisionId;
   @override
-  @JsonKey(name: 'c1')
+  @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   final String? c1;
   @override
   @JsonKey(name: 'v1')
@@ -332,7 +332,7 @@ abstract class _Verse extends Verse {
           final String? verse,
       @JsonKey(name: 'r')
           final int? revisionId,
-      @JsonKey(name: 'c1')
+      @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           final String? c1,
       @JsonKey(name: 'v1')
           final String? v1,
@@ -361,7 +361,7 @@ abstract class _Verse extends Verse {
   @JsonKey(name: 'r')
   int? get revisionId;
   @override
-  @JsonKey(name: 'c1')
+  @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get c1;
   @override
   @JsonKey(name: 'v1')

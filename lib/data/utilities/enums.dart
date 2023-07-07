@@ -1,1 +1,1 @@
-enum BibleNoteMode { write, viewOnly }
+enum NoteMode { write, viewOnly }

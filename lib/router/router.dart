@@ -4,10 +4,18 @@ import 'package:flutter/material.dart';
 import '../data/utilities/enums.dart';
 import '../domain/entity/bible_book/bible_book.dart';
 import '../domain/entity/bible_note/bible_note.dart';
+import '../domain/entity/faith_note/faith_note.dart';
 import '../domain/entity/song/song_entity.dart';
+import '../domain/entity/song_note/song_note.dart';
 import '../domain/entity/verse/verse.dart';
 import '../presentations/bible/view/bible_note_list_view.dart';
+import '../presentations/faith/cubit/faith_cubit.dart';
+import '../presentations/faith/view/faith_note_list_view.dart';
+import '../presentations/faith/view/faith_note_view.dart';
 import '../presentations/presentations.dart';
+import '../presentations/song/cubit/song_cubit.dart';
+import '../presentations/song/view/song_note_view.dart';
+import '../presentations/song/view/song_notes_list_view.dart';
 
 part 'router.gr.dart';
 
@@ -52,7 +60,22 @@ class AppRouter extends _$AppRouter {
           page: BibleNoteRoute.page,
         ),
         CupertinoRoute(
+          page: SongNoteRoute.page,
+        ),
+        CupertinoRoute(
+          page: FaithNoteRoute.page,
+        ),
+        CupertinoRoute(
           page: BibleNoteListRoute.page,
+        ),
+        CupertinoRoute(
+          page: FaithNoteListRoute.page,
+        ),
+        CupertinoRoute(
+          page: SongNotesListRoute.page,
+        ),
+        CupertinoRoute(
+          page: BibleSearchRoute.page,
         ),
         CupertinoRoute(
           path: '/dashboard',

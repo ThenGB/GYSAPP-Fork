@@ -15,7 +15,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
 
   toggleSabatNotification([bool? value]) async {
     var data = value ?? !state.isSabatNotificationActive;
-    var json = FirebaseUtils.jsonConfig('notifikasi_sabat');
+    var json = await FirebaseUtils.jsonConfig('notifikasi_sabat');
     if (data) {
       await AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -50,7 +50,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
 
     List<int> unactiveDays =
         weekdays.toSet().difference(days.keys.toSet()).toList();
-    var json = FirebaseUtils.jsonConfig('notifikasi_bible');
+    var json = await FirebaseUtils.jsonConfig('notifikasi_bible');
     var lang = router.navigatorKey.currentContext?.locale.languageCode ?? '';
     for (int weekDay in days.keys) {
       await AwesomeNotifications().createNotification(

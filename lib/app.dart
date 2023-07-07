@@ -7,7 +7,9 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path_provider/path_provider.dart';
@@ -15,6 +17,7 @@ import 'package:path_provider/path_provider.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/utilities/extensions/context_ext.dart';
+import 'data/utilities/variables/assets.dart';
 import 'di/injection.dart';
 import 'domain/entity/appconfig/appconfig.dart';
 import 'firebase_options.dart';
@@ -24,8 +27,8 @@ import 'router/router.dart';
 Future initApplication() async {
   var appConfig =
       AppConfig(appName: 'E-GYS', baseUrlApi: 'https://e.gys.or.id/api/v1');
-  WidgetsFlutterBinding.ensureInitialized();
-
+  var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationSupportDirectory(),
   );
@@ -34,6 +37,16 @@ Future initApplication() async {
   await _setupNotification();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await FirebaseRemoteConfig.instance.ensureInitialized();
+  AppDirectory localDir = di();
+  var file = File('${localDir.bibleFolder}/b_tb.db');
+  if (!file.existsSync()) {
+    ByteData fileData = await rootBundle.load(Assets.assetsDataBTb);
+    final buffer = fileData.buffer;
+    file.createSync(recursive: true);
+    await file.writeAsBytes(
+        buffer.asUint8List(fileData.offsetInBytes, fileData.lengthInBytes));
+  }
+  FlutterNativeSplash.remove();
 }
 
 Future _setupNotification() async {

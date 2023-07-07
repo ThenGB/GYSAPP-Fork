@@ -9,13 +9,14 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 import '../../../data/utilities/enums.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/bible_note/bible_note.dart';
+import '../../../router/router.dart';
 import '../../presentations.dart';
 
 @RoutePage()
 class BibleNoteView extends StatefulWidget {
   final BibleNote initialData;
   final BibleCubit cubit;
-  final BibleNoteMode mode;
+  final NoteMode mode;
   final Function(BibleNote data) onSave;
 
   const BibleNoteView(
@@ -48,7 +49,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
 
   late FocusNode focusNode = FocusNode();
   late ScrollController scrollController = ScrollController();
-  late BibleNoteMode mode = widget.mode;
+  late NoteMode mode = widget.mode;
 
   @override
   void dispose() {
@@ -70,10 +71,10 @@ class _BibleNoteViewState extends State<BibleNoteView> {
               builder: (context, snapshot) => Text(snapshot.data ?? ''),
             ),
             actions: [
-              if (mode == BibleNoteMode.write) ...[
+              if (mode == NoteMode.write) ...[
                 IconButton(
                   onPressed: () {
-                    mode = BibleNoteMode.viewOnly;
+                    mode = NoteMode.viewOnly;
                     setState(() {});
                   },
                   icon: Icon(Icons.visibility_outlined),
@@ -88,7 +89,18 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                   icon: Icon(Icons.save),
                   label: Text('Save'),
                 )
-              ] else
+              ] else ...[
+                IconButton(
+                  onPressed: () async {
+                    var isConfirmed = await context
+                        .showConfirmation('Are you sure want to delete?'.tr());
+                    if (isConfirmed) {
+                      router.pop();
+                      widget.cubit.deleteNote(widget.initialData);
+                    }
+                  },
+                  icon: Icon(Icons.delete),
+                ),
                 TextButton.icon(
                   style: TextButton.styleFrom(
                     visualDensity: VisualDensity.compact,
@@ -97,21 +109,22 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                   ),
                   onPressed: () {
                     setState(() {
-                      mode = BibleNoteMode.write;
+                      mode = NoteMode.write;
                     });
                     // router.pop();
                     // router.push(
                     //   BibleNoteRoute(
                     //     initialData: widget.initialData,
                     //     cubit: widget.cubit,
-                    //     mode: BibleNoteMode.write,
+                    //     mode: NoteMode.write,
                     //     onSave: widget.onSave,
                     //   ),
                     // );
                   },
                   icon: Icon(Icons.edit),
                   label: Text('Edit'),
-                ),
+                )
+              ],
               SizedBox(
                 width: 16,
               ),
@@ -121,7 +134,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
             padding: EdgeInsets.all(16),
             child: quill.QuillEditor(
               locale: context.locale,
-              showCursor: mode == BibleNoteMode.write,
+              showCursor: mode == NoteMode.write,
               padding: EdgeInsets.zero,
               expands: true,
               focusNode: focusNode,
@@ -129,10 +142,10 @@ class _BibleNoteViewState extends State<BibleNoteView> {
               scrollable: true,
               autoFocus: true,
               controller: controller,
-              readOnly: mode == BibleNoteMode.viewOnly,
+              readOnly: mode == NoteMode.viewOnly,
             ),
           ),
-          bottomNavigationBar: mode == BibleNoteMode.viewOnly
+          bottomNavigationBar: mode == NoteMode.viewOnly
               ? null
               : Container(
                   margin: context.mediaQuery.viewInsets,

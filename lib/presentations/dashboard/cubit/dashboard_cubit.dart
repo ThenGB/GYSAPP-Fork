@@ -60,6 +60,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       var contents = await connection.listDirectoryContent();
       for (var content in contents) {
         var file = File('${localDir.bibleFolder}/${content.name}');
+        // _File (File: '/data/user/0/com.itmandiri.egys/cache/bible/b_tb.db')
         var difference = content.modifyTime
                 ?.difference(
                     state.lastSync ?? content.modifyTime ?? DateTime.now())
@@ -95,8 +96,8 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     return files;
   }
 
-  setPaths() {
-    var biblepath = FirebaseUtils.stringConfig('biblepath');
+  setPaths() async {
+    var biblepath = await FirebaseUtils.stringConfig('biblepath');
     emit(
       state.copyWith(
         biblePath: biblepath.isEmpty ? '/Project/Hatiku/v2/alkitab' : biblepath,
@@ -105,7 +106,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future setFtpConnect() async {
-    var json = FirebaseUtils.jsonConfig('ftp_server');
+    var json = await FirebaseUtils.jsonConfig('ftp_server');
     emit(state.copyWith(
       ftpHost: json['host'],
       ftpPort: json['port'],
@@ -121,9 +122,9 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     );
   }
 
-  setConfigLiterature() {
+  setConfigLiterature() async {
     try {
-      var json = FirebaseUtils.jsonConfig('config_literature');
+      var json = await FirebaseUtils.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));
     } catch (e) {
       log(e.toString());

@@ -31,6 +31,11 @@ mixin _$SongState {
   double get textScaleFactor => throw _privateConstructorUsedError;
   bool get showSizer => throw _privateConstructorUsedError;
   String get defaultAudioFormat => throw _privateConstructorUsedError;
+  Song? get selectedSong => throw _privateConstructorUsedError;
+  List<SongNote> get notes => throw _privateConstructorUsedError;
+  String get sortNotesBy => throw _privateConstructorUsedError;
+  List<SongHistory> get histories => throw _privateConstructorUsedError;
+  bool get playOnlyFavorite => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -54,7 +59,14 @@ abstract class $SongStateCopyWith<$Res> {
       dynamic isImageMode,
       double textScaleFactor,
       bool showSizer,
-      String defaultAudioFormat});
+      String defaultAudioFormat,
+      Song? selectedSong,
+      List<SongNote> notes,
+      String sortNotesBy,
+      List<SongHistory> histories,
+      bool playOnlyFavorite});
+
+  $SongCopyWith<$Res>? get selectedSong;
 }
 
 /// @nodoc
@@ -81,6 +93,11 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? textScaleFactor = null,
     Object? showSizer = null,
     Object? defaultAudioFormat = null,
+    Object? selectedSong = freezed,
+    Object? notes = null,
+    Object? sortNotesBy = null,
+    Object? histories = null,
+    Object? playOnlyFavorite = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -127,7 +144,39 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.defaultAudioFormat
           : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
               as String,
+      selectedSong: freezed == selectedSong
+          ? _value.selectedSong
+          : selectedSong // ignore: cast_nullable_to_non_nullable
+              as Song?,
+      notes: null == notes
+          ? _value.notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as List<SongNote>,
+      sortNotesBy: null == sortNotesBy
+          ? _value.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
+      histories: null == histories
+          ? _value.histories
+          : histories // ignore: cast_nullable_to_non_nullable
+              as List<SongHistory>,
+      playOnlyFavorite: null == playOnlyFavorite
+          ? _value.playOnlyFavorite
+          : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $SongCopyWith<$Res>? get selectedSong {
+    if (_value.selectedSong == null) {
+      return null;
+    }
+
+    return $SongCopyWith<$Res>(_value.selectedSong!, (value) {
+      return _then(_value.copyWith(selectedSong: value) as $Val);
+    });
   }
 }
 
@@ -149,7 +198,15 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       dynamic isImageMode,
       double textScaleFactor,
       bool showSizer,
-      String defaultAudioFormat});
+      String defaultAudioFormat,
+      Song? selectedSong,
+      List<SongNote> notes,
+      String sortNotesBy,
+      List<SongHistory> histories,
+      bool playOnlyFavorite});
+
+  @override
+  $SongCopyWith<$Res>? get selectedSong;
 }
 
 /// @nodoc
@@ -174,6 +231,11 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? textScaleFactor = null,
     Object? showSizer = null,
     Object? defaultAudioFormat = null,
+    Object? selectedSong = freezed,
+    Object? notes = null,
+    Object? sortNotesBy = null,
+    Object? histories = null,
+    Object? playOnlyFavorite = null,
   }) {
     return _then(_$_SongState(
       isLoading: null == isLoading
@@ -217,6 +279,26 @@ class __$$_SongStateCopyWithImpl<$Res>
           ? _value.defaultAudioFormat
           : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
               as String,
+      selectedSong: freezed == selectedSong
+          ? _value.selectedSong
+          : selectedSong // ignore: cast_nullable_to_non_nullable
+              as Song?,
+      notes: null == notes
+          ? _value._notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as List<SongNote>,
+      sortNotesBy: null == sortNotesBy
+          ? _value.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
+      histories: null == histories
+          ? _value._histories
+          : histories // ignore: cast_nullable_to_non_nullable
+              as List<SongHistory>,
+      playOnlyFavorite: null == playOnlyFavorite
+          ? _value.playOnlyFavorite
+          : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -235,9 +317,16 @@ class _$_SongState extends _SongState {
       this.isImageMode = false,
       this.textScaleFactor = 1,
       this.showSizer = false,
-      this.defaultAudioFormat = 'mid'})
+      this.defaultAudioFormat = 'mid',
+      this.selectedSong,
+      final List<SongNote> notes = const [],
+      this.sortNotesBy = 'Newest',
+      final List<SongHistory> histories = const [],
+      this.playOnlyFavorite = false})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
+        _notes = notes,
+        _histories = histories,
         super._();
 
   factory _$_SongState.fromJson(Map<String, dynamic> json) =>
@@ -289,10 +378,36 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final String defaultAudioFormat;
+  @override
+  final Song? selectedSong;
+  final List<SongNote> _notes;
+  @override
+  @JsonKey()
+  List<SongNote> get notes {
+    if (_notes is EqualUnmodifiableListView) return _notes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_notes);
+  }
+
+  @override
+  @JsonKey()
+  final String sortNotesBy;
+  final List<SongHistory> _histories;
+  @override
+  @JsonKey()
+  List<SongHistory> get histories {
+    if (_histories is EqualUnmodifiableListView) return _histories;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_histories);
+  }
+
+  @override
+  @JsonKey()
+  final bool playOnlyFavorite;
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite)';
   }
 
   @override
@@ -320,7 +435,16 @@ class _$_SongState extends _SongState {
             (identical(other.showSizer, showSizer) ||
                 other.showSizer == showSizer) &&
             (identical(other.defaultAudioFormat, defaultAudioFormat) ||
-                other.defaultAudioFormat == defaultAudioFormat));
+                other.defaultAudioFormat == defaultAudioFormat) &&
+            (identical(other.selectedSong, selectedSong) ||
+                other.selectedSong == selectedSong) &&
+            const DeepCollectionEquality().equals(other._notes, _notes) &&
+            (identical(other.sortNotesBy, sortNotesBy) ||
+                other.sortNotesBy == sortNotesBy) &&
+            const DeepCollectionEquality()
+                .equals(other._histories, _histories) &&
+            (identical(other.playOnlyFavorite, playOnlyFavorite) ||
+                other.playOnlyFavorite == playOnlyFavorite));
   }
 
   @JsonKey(ignore: true)
@@ -337,7 +461,12 @@ class _$_SongState extends _SongState {
       const DeepCollectionEquality().hash(isImageMode),
       textScaleFactor,
       showSizer,
-      defaultAudioFormat);
+      defaultAudioFormat,
+      selectedSong,
+      const DeepCollectionEquality().hash(_notes),
+      sortNotesBy,
+      const DeepCollectionEquality().hash(_histories),
+      playOnlyFavorite);
 
   @JsonKey(ignore: true)
   @override
@@ -365,7 +494,12 @@ abstract class _SongState extends SongState {
       final dynamic isImageMode,
       final double textScaleFactor,
       final bool showSizer,
-      final String defaultAudioFormat}) = _$_SongState;
+      final String defaultAudioFormat,
+      final Song? selectedSong,
+      final List<SongNote> notes,
+      final String sortNotesBy,
+      final List<SongHistory> histories,
+      final bool playOnlyFavorite}) = _$_SongState;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
@@ -393,6 +527,16 @@ abstract class _SongState extends SongState {
   bool get showSizer;
   @override
   String get defaultAudioFormat;
+  @override
+  Song? get selectedSong;
+  @override
+  List<SongNote> get notes;
+  @override
+  String get sortNotesBy;
+  @override
+  List<SongHistory> get histories;
+  @override
+  bool get playOnlyFavorite;
   @override
   @JsonKey(ignore: true)
   _$$_SongStateCopyWith<_$_SongState> get copyWith =>

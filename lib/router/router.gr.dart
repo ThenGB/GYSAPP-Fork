@@ -15,10 +15,31 @@ abstract class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
+    BibleSearchRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleSearchRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleSearchView(
+          key: args.key,
+          cubit: args.cubit,
+          onTap: args.onTap,
+        ),
+      );
+    },
     BibleRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const BibleView(),
+      );
+    },
+    BibleNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleNoteListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleNoteListView(
+          key: args.key,
+          cubit: args.cubit,
+        ),
       );
     },
     BibleNoteRoute.name: (routeData) {
@@ -150,17 +171,96 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const FaithView(),
       );
     },
-    BibleNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleNoteListRouteArgs>();
+    FaithNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<FaithNoteListRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: BibleNoteListView(
+        child: FaithNoteListView(
           key: args.key,
           cubit: args.cubit,
         ),
       );
     },
+    SongNotesListRoute.name: (routeData) {
+      final args = routeData.argsAs<SongNotesListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: SongNotesListView(
+          key: args.key,
+          cubit: args.cubit,
+        ),
+      );
+    },
+    SongNoteRoute.name: (routeData) {
+      final args = routeData.argsAs<SongNoteRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: SongNoteView(
+          key: args.key,
+          initialData: args.initialData,
+          cubit: args.cubit,
+          mode: args.mode,
+          onSave: args.onSave,
+        ),
+      );
+    },
+    FaithNoteRoute.name: (routeData) {
+      final args = routeData.argsAs<FaithNoteRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: FaithNoteView(
+          key: args.key,
+          initialData: args.initialData,
+          cubit: args.cubit,
+          mode: args.mode,
+          onSave: args.onSave,
+        ),
+      );
+    },
   };
+}
+
+/// generated route for
+/// [BibleSearchView]
+class BibleSearchRoute extends PageRouteInfo<BibleSearchRouteArgs> {
+  BibleSearchRoute({
+    Key? key,
+    required BibleCubit cubit,
+    required dynamic Function(Verse) onTap,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleSearchRoute.name,
+          args: BibleSearchRouteArgs(
+            key: key,
+            cubit: cubit,
+            onTap: onTap,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleSearchRoute';
+
+  static const PageInfo<BibleSearchRouteArgs> page =
+      PageInfo<BibleSearchRouteArgs>(name);
+}
+
+class BibleSearchRouteArgs {
+  const BibleSearchRouteArgs({
+    this.key,
+    required this.cubit,
+    required this.onTap,
+  });
+
+  final Key? key;
+
+  final BibleCubit cubit;
+
+  final dynamic Function(Verse) onTap;
+
+  @override
+  String toString() {
+    return 'BibleSearchRouteArgs{key: $key, cubit: $cubit, onTap: $onTap}';
+  }
 }
 
 /// generated route for
@@ -178,13 +278,51 @@ class BibleRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [BibleNoteListView]
+class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
+  BibleNoteListRoute({
+    Key? key,
+    required BibleCubit cubit,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleNoteListRoute.name,
+          args: BibleNoteListRouteArgs(
+            key: key,
+            cubit: cubit,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleNoteListRoute';
+
+  static const PageInfo<BibleNoteListRouteArgs> page =
+      PageInfo<BibleNoteListRouteArgs>(name);
+}
+
+class BibleNoteListRouteArgs {
+  const BibleNoteListRouteArgs({
+    this.key,
+    required this.cubit,
+  });
+
+  final Key? key;
+
+  final BibleCubit cubit;
+
+  @override
+  String toString() {
+    return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit}';
+  }
+}
+
+/// generated route for
 /// [BibleNoteView]
 class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
   BibleNoteRoute({
     Key? key,
     required BibleNote initialData,
     required BibleCubit cubit,
-    required BibleNoteMode mode,
+    required NoteMode mode,
     required dynamic Function(BibleNote) onSave,
     List<PageRouteInfo>? children,
   }) : super(
@@ -220,7 +358,7 @@ class BibleNoteRouteArgs {
 
   final BibleCubit cubit;
 
-  final BibleNoteMode mode;
+  final NoteMode mode;
 
   final dynamic Function(BibleNote) onSave;
 
@@ -587,39 +725,183 @@ class FaithRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [BibleNoteListView]
-class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
-  BibleNoteListRoute({
+/// [FaithNoteListView]
+class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
+  FaithNoteListRoute({
     Key? key,
-    required BibleCubit cubit,
+    required FaithCubit cubit,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleNoteListRoute.name,
-          args: BibleNoteListRouteArgs(
+          FaithNoteListRoute.name,
+          args: FaithNoteListRouteArgs(
             key: key,
             cubit: cubit,
           ),
           initialChildren: children,
         );
 
-  static const String name = 'BibleNoteListRoute';
+  static const String name = 'FaithNoteListRoute';
 
-  static const PageInfo<BibleNoteListRouteArgs> page =
-      PageInfo<BibleNoteListRouteArgs>(name);
+  static const PageInfo<FaithNoteListRouteArgs> page =
+      PageInfo<FaithNoteListRouteArgs>(name);
 }
 
-class BibleNoteListRouteArgs {
-  const BibleNoteListRouteArgs({
+class FaithNoteListRouteArgs {
+  const FaithNoteListRouteArgs({
     this.key,
     required this.cubit,
   });
 
   final Key? key;
 
-  final BibleCubit cubit;
+  final FaithCubit cubit;
 
   @override
   String toString() {
-    return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit}';
+    return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
+  }
+}
+
+/// generated route for
+/// [SongNotesListView]
+class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
+  SongNotesListRoute({
+    Key? key,
+    required SongCubit cubit,
+    List<PageRouteInfo>? children,
+  }) : super(
+          SongNotesListRoute.name,
+          args: SongNotesListRouteArgs(
+            key: key,
+            cubit: cubit,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'SongNotesListRoute';
+
+  static const PageInfo<SongNotesListRouteArgs> page =
+      PageInfo<SongNotesListRouteArgs>(name);
+}
+
+class SongNotesListRouteArgs {
+  const SongNotesListRouteArgs({
+    this.key,
+    required this.cubit,
+  });
+
+  final Key? key;
+
+  final SongCubit cubit;
+
+  @override
+  String toString() {
+    return 'SongNotesListRouteArgs{key: $key, cubit: $cubit}';
+  }
+}
+
+/// generated route for
+/// [SongNoteView]
+class SongNoteRoute extends PageRouteInfo<SongNoteRouteArgs> {
+  SongNoteRoute({
+    Key? key,
+    required SongNote initialData,
+    required SongCubit cubit,
+    required NoteMode mode,
+    required dynamic Function(SongNote) onSave,
+    List<PageRouteInfo>? children,
+  }) : super(
+          SongNoteRoute.name,
+          args: SongNoteRouteArgs(
+            key: key,
+            initialData: initialData,
+            cubit: cubit,
+            mode: mode,
+            onSave: onSave,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'SongNoteRoute';
+
+  static const PageInfo<SongNoteRouteArgs> page =
+      PageInfo<SongNoteRouteArgs>(name);
+}
+
+class SongNoteRouteArgs {
+  const SongNoteRouteArgs({
+    this.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
+
+  final Key? key;
+
+  final SongNote initialData;
+
+  final SongCubit cubit;
+
+  final NoteMode mode;
+
+  final dynamic Function(SongNote) onSave;
+
+  @override
+  String toString() {
+    return 'SongNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
+  }
+}
+
+/// generated route for
+/// [FaithNoteView]
+class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
+  FaithNoteRoute({
+    Key? key,
+    required FaithNote initialData,
+    required FaithCubit cubit,
+    required NoteMode mode,
+    required dynamic Function(FaithNote) onSave,
+    List<PageRouteInfo>? children,
+  }) : super(
+          FaithNoteRoute.name,
+          args: FaithNoteRouteArgs(
+            key: key,
+            initialData: initialData,
+            cubit: cubit,
+            mode: mode,
+            onSave: onSave,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'FaithNoteRoute';
+
+  static const PageInfo<FaithNoteRouteArgs> page =
+      PageInfo<FaithNoteRouteArgs>(name);
+}
+
+class FaithNoteRouteArgs {
+  const FaithNoteRouteArgs({
+    this.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
+
+  final Key? key;
+
+  final FaithNote initialData;
+
+  final FaithCubit cubit;
+
+  final NoteMode mode;
+
+  final dynamic Function(FaithNote) onSave;
+
+  @override
+  String toString() {
+    return 'FaithNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
 }

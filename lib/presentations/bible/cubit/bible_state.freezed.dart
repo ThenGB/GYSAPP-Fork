@@ -21,17 +21,25 @@ BibleState _$BibleStateFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$BibleState {
   String? get currentBibleCode => throw _privateConstructorUsedError;
+  String? get splitBibleCode => throw _privateConstructorUsedError;
   List<String> get bibleCodes => throw _privateConstructorUsedError;
   Verse? get currentBible => throw _privateConstructorUsedError;
+  Verse? get prevBible => throw _privateConstructorUsedError;
   List<BibleBook> get books => throw _privateConstructorUsedError;
   List<Verse> get verses => throw _privateConstructorUsedError;
+  List<Verse> get bookmarks => throw _privateConstructorUsedError;
+  List<BibleRef> get references => throw _privateConstructorUsedError;
+  List<Verse> get splitVerses => throw _privateConstructorUsedError;
   Map<DateTime, Verse> get histories => throw _privateConstructorUsedError;
   List<Pericope> get pericopes => throw _privateConstructorUsedError;
+  List<Pericope> get splitPericopes => throw _privateConstructorUsedError;
   List<BibleNote> get notes => throw _privateConstructorUsedError;
   List<PericopeParalel> get pericopesParalels =>
       throw _privateConstructorUsedError;
+  List<PericopeParalel> get splitPericopesParalels =>
+      throw _privateConstructorUsedError;
   BibleBook? get currentBook => throw _privateConstructorUsedError;
-  String? get bookTitle => throw _privateConstructorUsedError;
+  BibleBook? get splitBook => throw _privateConstructorUsedError;
   List<Verse> get selectedVerse => throw _privateConstructorUsedError;
   List<Verse> get hightlightedVerse => throw _privateConstructorUsedError;
   Verse? get todayReading => throw _privateConstructorUsedError;
@@ -39,6 +47,7 @@ mixin _$BibleState {
   String get defaultFont => throw _privateConstructorUsedError;
   double get defaultTextScale => throw _privateConstructorUsedError;
   double get defaultTextHeight => throw _privateConstructorUsedError;
+  String get sortNotesBy => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -54,26 +63,36 @@ abstract class $BibleStateCopyWith<$Res> {
   @useResult
   $Res call(
       {String? currentBibleCode,
+      String? splitBibleCode,
       List<String> bibleCodes,
       Verse? currentBible,
+      Verse? prevBible,
       List<BibleBook> books,
       List<Verse> verses,
+      List<Verse> bookmarks,
+      List<BibleRef> references,
+      List<Verse> splitVerses,
       Map<DateTime, Verse> histories,
       List<Pericope> pericopes,
+      List<Pericope> splitPericopes,
       List<BibleNote> notes,
       List<PericopeParalel> pericopesParalels,
+      List<PericopeParalel> splitPericopesParalels,
       BibleBook? currentBook,
-      String? bookTitle,
+      BibleBook? splitBook,
       List<Verse> selectedVerse,
       List<Verse> hightlightedVerse,
       Verse? todayReading,
       DateTime? lastOpenBible,
       String defaultFont,
       double defaultTextScale,
-      double defaultTextHeight});
+      double defaultTextHeight,
+      String sortNotesBy});
 
   $VerseCopyWith<$Res>? get currentBible;
+  $VerseCopyWith<$Res>? get prevBible;
   $BibleBookCopyWith<$Res>? get currentBook;
+  $BibleBookCopyWith<$Res>? get splitBook;
   $VerseCopyWith<$Res>? get todayReading;
 }
 
@@ -91,16 +110,23 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   $Res call({
     Object? currentBibleCode = freezed,
+    Object? splitBibleCode = freezed,
     Object? bibleCodes = null,
     Object? currentBible = freezed,
+    Object? prevBible = freezed,
     Object? books = null,
     Object? verses = null,
+    Object? bookmarks = null,
+    Object? references = null,
+    Object? splitVerses = null,
     Object? histories = null,
     Object? pericopes = null,
+    Object? splitPericopes = null,
     Object? notes = null,
     Object? pericopesParalels = null,
+    Object? splitPericopesParalels = null,
     Object? currentBook = freezed,
-    Object? bookTitle = freezed,
+    Object? splitBook = freezed,
     Object? selectedVerse = null,
     Object? hightlightedVerse = null,
     Object? todayReading = freezed,
@@ -108,11 +134,16 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
+    Object? sortNotesBy = null,
   }) {
     return _then(_value.copyWith(
       currentBibleCode: freezed == currentBibleCode
           ? _value.currentBibleCode
           : currentBibleCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      splitBibleCode: freezed == splitBibleCode
+          ? _value.splitBibleCode
+          : splitBibleCode // ignore: cast_nullable_to_non_nullable
               as String?,
       bibleCodes: null == bibleCodes
           ? _value.bibleCodes
@@ -122,6 +153,10 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
           ? _value.currentBible
           : currentBible // ignore: cast_nullable_to_non_nullable
               as Verse?,
+      prevBible: freezed == prevBible
+          ? _value.prevBible
+          : prevBible // ignore: cast_nullable_to_non_nullable
+              as Verse?,
       books: null == books
           ? _value.books
           : books // ignore: cast_nullable_to_non_nullable
@@ -129,6 +164,18 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
       verses: null == verses
           ? _value.verses
           : verses // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      bookmarks: null == bookmarks
+          ? _value.bookmarks
+          : bookmarks // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      references: null == references
+          ? _value.references
+          : references // ignore: cast_nullable_to_non_nullable
+              as List<BibleRef>,
+      splitVerses: null == splitVerses
+          ? _value.splitVerses
+          : splitVerses // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       histories: null == histories
           ? _value.histories
@@ -138,6 +185,10 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
           ? _value.pericopes
           : pericopes // ignore: cast_nullable_to_non_nullable
               as List<Pericope>,
+      splitPericopes: null == splitPericopes
+          ? _value.splitPericopes
+          : splitPericopes // ignore: cast_nullable_to_non_nullable
+              as List<Pericope>,
       notes: null == notes
           ? _value.notes
           : notes // ignore: cast_nullable_to_non_nullable
@@ -146,14 +197,18 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
           ? _value.pericopesParalels
           : pericopesParalels // ignore: cast_nullable_to_non_nullable
               as List<PericopeParalel>,
+      splitPericopesParalels: null == splitPericopesParalels
+          ? _value.splitPericopesParalels
+          : splitPericopesParalels // ignore: cast_nullable_to_non_nullable
+              as List<PericopeParalel>,
       currentBook: freezed == currentBook
           ? _value.currentBook
           : currentBook // ignore: cast_nullable_to_non_nullable
               as BibleBook?,
-      bookTitle: freezed == bookTitle
-          ? _value.bookTitle
-          : bookTitle // ignore: cast_nullable_to_non_nullable
-              as String?,
+      splitBook: freezed == splitBook
+          ? _value.splitBook
+          : splitBook // ignore: cast_nullable_to_non_nullable
+              as BibleBook?,
       selectedVerse: null == selectedVerse
           ? _value.selectedVerse
           : selectedVerse // ignore: cast_nullable_to_non_nullable
@@ -182,6 +237,10 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
           ? _value.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      sortNotesBy: null == sortNotesBy
+          ? _value.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -199,6 +258,18 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
 
   @override
   @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get prevBible {
+    if (_value.prevBible == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_value.prevBible!, (value) {
+      return _then(_value.copyWith(prevBible: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
   $BibleBookCopyWith<$Res>? get currentBook {
     if (_value.currentBook == null) {
       return null;
@@ -206,6 +277,18 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
 
     return $BibleBookCopyWith<$Res>(_value.currentBook!, (value) {
       return _then(_value.copyWith(currentBook: value) as $Val);
+    });
+  }
+
+  @override
+  @pragma('vm:prefer-inline')
+  $BibleBookCopyWith<$Res>? get splitBook {
+    if (_value.splitBook == null) {
+      return null;
+    }
+
+    return $BibleBookCopyWith<$Res>(_value.splitBook!, (value) {
+      return _then(_value.copyWith(splitBook: value) as $Val);
     });
   }
 
@@ -232,28 +315,40 @@ abstract class _$$_BibleStateCopyWith<$Res>
   @useResult
   $Res call(
       {String? currentBibleCode,
+      String? splitBibleCode,
       List<String> bibleCodes,
       Verse? currentBible,
+      Verse? prevBible,
       List<BibleBook> books,
       List<Verse> verses,
+      List<Verse> bookmarks,
+      List<BibleRef> references,
+      List<Verse> splitVerses,
       Map<DateTime, Verse> histories,
       List<Pericope> pericopes,
+      List<Pericope> splitPericopes,
       List<BibleNote> notes,
       List<PericopeParalel> pericopesParalels,
+      List<PericopeParalel> splitPericopesParalels,
       BibleBook? currentBook,
-      String? bookTitle,
+      BibleBook? splitBook,
       List<Verse> selectedVerse,
       List<Verse> hightlightedVerse,
       Verse? todayReading,
       DateTime? lastOpenBible,
       String defaultFont,
       double defaultTextScale,
-      double defaultTextHeight});
+      double defaultTextHeight,
+      String sortNotesBy});
 
   @override
   $VerseCopyWith<$Res>? get currentBible;
   @override
+  $VerseCopyWith<$Res>? get prevBible;
+  @override
   $BibleBookCopyWith<$Res>? get currentBook;
+  @override
+  $BibleBookCopyWith<$Res>? get splitBook;
   @override
   $VerseCopyWith<$Res>? get todayReading;
 }
@@ -270,16 +365,23 @@ class __$$_BibleStateCopyWithImpl<$Res>
   @override
   $Res call({
     Object? currentBibleCode = freezed,
+    Object? splitBibleCode = freezed,
     Object? bibleCodes = null,
     Object? currentBible = freezed,
+    Object? prevBible = freezed,
     Object? books = null,
     Object? verses = null,
+    Object? bookmarks = null,
+    Object? references = null,
+    Object? splitVerses = null,
     Object? histories = null,
     Object? pericopes = null,
+    Object? splitPericopes = null,
     Object? notes = null,
     Object? pericopesParalels = null,
+    Object? splitPericopesParalels = null,
     Object? currentBook = freezed,
-    Object? bookTitle = freezed,
+    Object? splitBook = freezed,
     Object? selectedVerse = null,
     Object? hightlightedVerse = null,
     Object? todayReading = freezed,
@@ -287,11 +389,16 @@ class __$$_BibleStateCopyWithImpl<$Res>
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
+    Object? sortNotesBy = null,
   }) {
     return _then(_$_BibleState(
       currentBibleCode: freezed == currentBibleCode
           ? _value.currentBibleCode
           : currentBibleCode // ignore: cast_nullable_to_non_nullable
+              as String?,
+      splitBibleCode: freezed == splitBibleCode
+          ? _value.splitBibleCode
+          : splitBibleCode // ignore: cast_nullable_to_non_nullable
               as String?,
       bibleCodes: null == bibleCodes
           ? _value._bibleCodes
@@ -301,6 +408,10 @@ class __$$_BibleStateCopyWithImpl<$Res>
           ? _value.currentBible
           : currentBible // ignore: cast_nullable_to_non_nullable
               as Verse?,
+      prevBible: freezed == prevBible
+          ? _value.prevBible
+          : prevBible // ignore: cast_nullable_to_non_nullable
+              as Verse?,
       books: null == books
           ? _value._books
           : books // ignore: cast_nullable_to_non_nullable
@@ -308,6 +419,18 @@ class __$$_BibleStateCopyWithImpl<$Res>
       verses: null == verses
           ? _value._verses
           : verses // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      bookmarks: null == bookmarks
+          ? _value._bookmarks
+          : bookmarks // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      references: null == references
+          ? _value._references
+          : references // ignore: cast_nullable_to_non_nullable
+              as List<BibleRef>,
+      splitVerses: null == splitVerses
+          ? _value._splitVerses
+          : splitVerses // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       histories: null == histories
           ? _value._histories
@@ -317,6 +440,10 @@ class __$$_BibleStateCopyWithImpl<$Res>
           ? _value._pericopes
           : pericopes // ignore: cast_nullable_to_non_nullable
               as List<Pericope>,
+      splitPericopes: null == splitPericopes
+          ? _value._splitPericopes
+          : splitPericopes // ignore: cast_nullable_to_non_nullable
+              as List<Pericope>,
       notes: null == notes
           ? _value._notes
           : notes // ignore: cast_nullable_to_non_nullable
@@ -325,14 +452,18 @@ class __$$_BibleStateCopyWithImpl<$Res>
           ? _value._pericopesParalels
           : pericopesParalels // ignore: cast_nullable_to_non_nullable
               as List<PericopeParalel>,
+      splitPericopesParalels: null == splitPericopesParalels
+          ? _value._splitPericopesParalels
+          : splitPericopesParalels // ignore: cast_nullable_to_non_nullable
+              as List<PericopeParalel>,
       currentBook: freezed == currentBook
           ? _value.currentBook
           : currentBook // ignore: cast_nullable_to_non_nullable
               as BibleBook?,
-      bookTitle: freezed == bookTitle
-          ? _value.bookTitle
-          : bookTitle // ignore: cast_nullable_to_non_nullable
-              as String?,
+      splitBook: freezed == splitBook
+          ? _value.splitBook
+          : splitBook // ignore: cast_nullable_to_non_nullable
+              as BibleBook?,
       selectedVerse: null == selectedVerse
           ? _value._selectedVerse
           : selectedVerse // ignore: cast_nullable_to_non_nullable
@@ -361,6 +492,10 @@ class __$$_BibleStateCopyWithImpl<$Res>
           ? _value.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      sortNotesBy: null == sortNotesBy
+          ? _value.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -370,30 +505,43 @@ class __$$_BibleStateCopyWithImpl<$Res>
 class _$_BibleState extends _BibleState {
   const _$_BibleState(
       {this.currentBibleCode = 'b_tb',
+      this.splitBibleCode = 'b_tb',
       final List<String> bibleCodes = const [],
       this.currentBible,
+      this.prevBible,
       final List<BibleBook> books = const [],
       final List<Verse> verses = const [],
+      final List<Verse> bookmarks = const [],
+      final List<BibleRef> references = const [],
+      final List<Verse> splitVerses = const [],
       final Map<DateTime, Verse> histories = const {},
       final List<Pericope> pericopes = const [],
+      final List<Pericope> splitPericopes = const [],
       final List<BibleNote> notes = const [],
       final List<PericopeParalel> pericopesParalels = const [],
+      final List<PericopeParalel> splitPericopesParalels = const [],
       this.currentBook,
-      this.bookTitle,
+      this.splitBook,
       final List<Verse> selectedVerse = const [],
       final List<Verse> hightlightedVerse = const [],
       this.todayReading,
       this.lastOpenBible,
       this.defaultFont = 'Roboto',
       this.defaultTextScale = 1,
-      this.defaultTextHeight = 1.5})
+      this.defaultTextHeight = 1.5,
+      this.sortNotesBy = 'Newest'})
       : _bibleCodes = bibleCodes,
         _books = books,
         _verses = verses,
+        _bookmarks = bookmarks,
+        _references = references,
+        _splitVerses = splitVerses,
         _histories = histories,
         _pericopes = pericopes,
+        _splitPericopes = splitPericopes,
         _notes = notes,
         _pericopesParalels = pericopesParalels,
+        _splitPericopesParalels = splitPericopesParalels,
         _selectedVerse = selectedVerse,
         _hightlightedVerse = hightlightedVerse,
         super._();
@@ -404,6 +552,9 @@ class _$_BibleState extends _BibleState {
   @override
   @JsonKey()
   final String? currentBibleCode;
+  @override
+  @JsonKey()
+  final String? splitBibleCode;
   final List<String> _bibleCodes;
   @override
   @JsonKey()
@@ -415,6 +566,8 @@ class _$_BibleState extends _BibleState {
 
   @override
   final Verse? currentBible;
+  @override
+  final Verse? prevBible;
   final List<BibleBook> _books;
   @override
   @JsonKey()
@@ -433,6 +586,33 @@ class _$_BibleState extends _BibleState {
     return EqualUnmodifiableListView(_verses);
   }
 
+  final List<Verse> _bookmarks;
+  @override
+  @JsonKey()
+  List<Verse> get bookmarks {
+    if (_bookmarks is EqualUnmodifiableListView) return _bookmarks;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_bookmarks);
+  }
+
+  final List<BibleRef> _references;
+  @override
+  @JsonKey()
+  List<BibleRef> get references {
+    if (_references is EqualUnmodifiableListView) return _references;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_references);
+  }
+
+  final List<Verse> _splitVerses;
+  @override
+  @JsonKey()
+  List<Verse> get splitVerses {
+    if (_splitVerses is EqualUnmodifiableListView) return _splitVerses;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_splitVerses);
+  }
+
   final Map<DateTime, Verse> _histories;
   @override
   @JsonKey()
@@ -449,6 +629,15 @@ class _$_BibleState extends _BibleState {
     if (_pericopes is EqualUnmodifiableListView) return _pericopes;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_pericopes);
+  }
+
+  final List<Pericope> _splitPericopes;
+  @override
+  @JsonKey()
+  List<Pericope> get splitPericopes {
+    if (_splitPericopes is EqualUnmodifiableListView) return _splitPericopes;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_splitPericopes);
   }
 
   final List<BibleNote> _notes;
@@ -470,10 +659,20 @@ class _$_BibleState extends _BibleState {
     return EqualUnmodifiableListView(_pericopesParalels);
   }
 
+  final List<PericopeParalel> _splitPericopesParalels;
+  @override
+  @JsonKey()
+  List<PericopeParalel> get splitPericopesParalels {
+    if (_splitPericopesParalels is EqualUnmodifiableListView)
+      return _splitPericopesParalels;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_splitPericopesParalels);
+  }
+
   @override
   final BibleBook? currentBook;
   @override
-  final String? bookTitle;
+  final BibleBook? splitBook;
   final List<Verse> _selectedVerse;
   @override
   @JsonKey()
@@ -506,10 +705,13 @@ class _$_BibleState extends _BibleState {
   @override
   @JsonKey()
   final double defaultTextHeight;
+  @override
+  @JsonKey()
+  final String sortNotesBy;
 
   @override
   String toString() {
-    return 'BibleState(currentBibleCode: $currentBibleCode, bibleCodes: $bibleCodes, currentBible: $currentBible, books: $books, verses: $verses, histories: $histories, pericopes: $pericopes, notes: $notes, pericopesParalels: $pericopesParalels, currentBook: $currentBook, bookTitle: $bookTitle, selectedVerse: $selectedVerse, hightlightedVerse: $hightlightedVerse, todayReading: $todayReading, lastOpenBible: $lastOpenBible, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
+    return 'BibleState(currentBibleCode: $currentBibleCode, splitBibleCode: $splitBibleCode, bibleCodes: $bibleCodes, currentBible: $currentBible, prevBible: $prevBible, books: $books, verses: $verses, bookmarks: $bookmarks, references: $references, splitVerses: $splitVerses, histories: $histories, pericopes: $pericopes, splitPericopes: $splitPericopes, notes: $notes, pericopesParalels: $pericopesParalels, splitPericopesParalels: $splitPericopesParalels, currentBook: $currentBook, splitBook: $splitBook, selectedVerse: $selectedVerse, hightlightedVerse: $hightlightedVerse, todayReading: $todayReading, lastOpenBible: $lastOpenBible, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, sortNotesBy: $sortNotesBy)';
   }
 
   @override
@@ -519,23 +721,37 @@ class _$_BibleState extends _BibleState {
             other is _$_BibleState &&
             (identical(other.currentBibleCode, currentBibleCode) ||
                 other.currentBibleCode == currentBibleCode) &&
+            (identical(other.splitBibleCode, splitBibleCode) ||
+                other.splitBibleCode == splitBibleCode) &&
             const DeepCollectionEquality()
                 .equals(other._bibleCodes, _bibleCodes) &&
             (identical(other.currentBible, currentBible) ||
                 other.currentBible == currentBible) &&
+            (identical(other.prevBible, prevBible) ||
+                other.prevBible == prevBible) &&
             const DeepCollectionEquality().equals(other._books, _books) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
+            const DeepCollectionEquality()
+                .equals(other._bookmarks, _bookmarks) &&
+            const DeepCollectionEquality()
+                .equals(other._references, _references) &&
+            const DeepCollectionEquality()
+                .equals(other._splitVerses, _splitVerses) &&
             const DeepCollectionEquality()
                 .equals(other._histories, _histories) &&
             const DeepCollectionEquality()
                 .equals(other._pericopes, _pericopes) &&
+            const DeepCollectionEquality()
+                .equals(other._splitPericopes, _splitPericopes) &&
             const DeepCollectionEquality().equals(other._notes, _notes) &&
             const DeepCollectionEquality()
                 .equals(other._pericopesParalels, _pericopesParalels) &&
+            const DeepCollectionEquality().equals(
+                other._splitPericopesParalels, _splitPericopesParalels) &&
             (identical(other.currentBook, currentBook) ||
                 other.currentBook == currentBook) &&
-            (identical(other.bookTitle, bookTitle) ||
-                other.bookTitle == bookTitle) &&
+            (identical(other.splitBook, splitBook) ||
+                other.splitBook == splitBook) &&
             const DeepCollectionEquality()
                 .equals(other._selectedVerse, _selectedVerse) &&
             const DeepCollectionEquality()
@@ -549,31 +765,42 @@ class _$_BibleState extends _BibleState {
             (identical(other.defaultTextScale, defaultTextScale) ||
                 other.defaultTextScale == defaultTextScale) &&
             (identical(other.defaultTextHeight, defaultTextHeight) ||
-                other.defaultTextHeight == defaultTextHeight));
+                other.defaultTextHeight == defaultTextHeight) &&
+            (identical(other.sortNotesBy, sortNotesBy) ||
+                other.sortNotesBy == sortNotesBy));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      currentBibleCode,
-      const DeepCollectionEquality().hash(_bibleCodes),
-      currentBible,
-      const DeepCollectionEquality().hash(_books),
-      const DeepCollectionEquality().hash(_verses),
-      const DeepCollectionEquality().hash(_histories),
-      const DeepCollectionEquality().hash(_pericopes),
-      const DeepCollectionEquality().hash(_notes),
-      const DeepCollectionEquality().hash(_pericopesParalels),
-      currentBook,
-      bookTitle,
-      const DeepCollectionEquality().hash(_selectedVerse),
-      const DeepCollectionEquality().hash(_hightlightedVerse),
-      todayReading,
-      lastOpenBible,
-      defaultFont,
-      defaultTextScale,
-      defaultTextHeight);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        currentBibleCode,
+        splitBibleCode,
+        const DeepCollectionEquality().hash(_bibleCodes),
+        currentBible,
+        prevBible,
+        const DeepCollectionEquality().hash(_books),
+        const DeepCollectionEquality().hash(_verses),
+        const DeepCollectionEquality().hash(_bookmarks),
+        const DeepCollectionEquality().hash(_references),
+        const DeepCollectionEquality().hash(_splitVerses),
+        const DeepCollectionEquality().hash(_histories),
+        const DeepCollectionEquality().hash(_pericopes),
+        const DeepCollectionEquality().hash(_splitPericopes),
+        const DeepCollectionEquality().hash(_notes),
+        const DeepCollectionEquality().hash(_pericopesParalels),
+        const DeepCollectionEquality().hash(_splitPericopesParalels),
+        currentBook,
+        splitBook,
+        const DeepCollectionEquality().hash(_selectedVerse),
+        const DeepCollectionEquality().hash(_hightlightedVerse),
+        todayReading,
+        lastOpenBible,
+        defaultFont,
+        defaultTextScale,
+        defaultTextHeight,
+        sortNotesBy
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -592,23 +819,31 @@ class _$_BibleState extends _BibleState {
 abstract class _BibleState extends BibleState {
   const factory _BibleState(
       {final String? currentBibleCode,
+      final String? splitBibleCode,
       final List<String> bibleCodes,
       final Verse? currentBible,
+      final Verse? prevBible,
       final List<BibleBook> books,
       final List<Verse> verses,
+      final List<Verse> bookmarks,
+      final List<BibleRef> references,
+      final List<Verse> splitVerses,
       final Map<DateTime, Verse> histories,
       final List<Pericope> pericopes,
+      final List<Pericope> splitPericopes,
       final List<BibleNote> notes,
       final List<PericopeParalel> pericopesParalels,
+      final List<PericopeParalel> splitPericopesParalels,
       final BibleBook? currentBook,
-      final String? bookTitle,
+      final BibleBook? splitBook,
       final List<Verse> selectedVerse,
       final List<Verse> hightlightedVerse,
       final Verse? todayReading,
       final DateTime? lastOpenBible,
       final String defaultFont,
       final double defaultTextScale,
-      final double defaultTextHeight}) = _$_BibleState;
+      final double defaultTextHeight,
+      final String sortNotesBy}) = _$_BibleState;
   const _BibleState._() : super._();
 
   factory _BibleState.fromJson(Map<String, dynamic> json) =
@@ -617,25 +852,39 @@ abstract class _BibleState extends BibleState {
   @override
   String? get currentBibleCode;
   @override
+  String? get splitBibleCode;
+  @override
   List<String> get bibleCodes;
   @override
   Verse? get currentBible;
+  @override
+  Verse? get prevBible;
   @override
   List<BibleBook> get books;
   @override
   List<Verse> get verses;
   @override
+  List<Verse> get bookmarks;
+  @override
+  List<BibleRef> get references;
+  @override
+  List<Verse> get splitVerses;
+  @override
   Map<DateTime, Verse> get histories;
   @override
   List<Pericope> get pericopes;
+  @override
+  List<Pericope> get splitPericopes;
   @override
   List<BibleNote> get notes;
   @override
   List<PericopeParalel> get pericopesParalels;
   @override
+  List<PericopeParalel> get splitPericopesParalels;
+  @override
   BibleBook? get currentBook;
   @override
-  String? get bookTitle;
+  BibleBook? get splitBook;
   @override
   List<Verse> get selectedVerse;
   @override
@@ -650,6 +899,8 @@ abstract class _BibleState extends BibleState {
   double get defaultTextScale;
   @override
   double get defaultTextHeight;
+  @override
+  String get sortNotesBy;
   @override
   @JsonKey(ignore: true)
   _$$_BibleStateCopyWith<_$_BibleState> get copyWith =>

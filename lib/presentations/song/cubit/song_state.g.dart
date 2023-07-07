@@ -24,6 +24,19 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
       textScaleFactor: (json['textScaleFactor'] as num?)?.toDouble() ?? 1,
       showSizer: json['showSizer'] as bool? ?? false,
       defaultAudioFormat: json['defaultAudioFormat'] as String? ?? 'mid',
+      selectedSong: json['selectedSong'] == null
+          ? null
+          : Song.fromJson(json['selectedSong'] as Map<String, dynamic>),
+      notes: (json['notes'] as List<dynamic>?)
+              ?.map((e) => SongNote.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
+      histories: (json['histories'] as List<dynamic>?)
+              ?.map((e) => SongHistory.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      playOnlyFavorite: json['playOnlyFavorite'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
@@ -39,4 +52,9 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'textScaleFactor': instance.textScaleFactor,
       'showSizer': instance.showSizer,
       'defaultAudioFormat': instance.defaultAudioFormat,
+      'selectedSong': instance.selectedSong,
+      'notes': instance.notes,
+      'sortNotesBy': instance.sortNotesBy,
+      'histories': instance.histories,
+      'playOnlyFavorite': instance.playOnlyFavorite,
     };
