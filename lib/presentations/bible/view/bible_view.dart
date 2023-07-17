@@ -91,7 +91,7 @@ class _BibleViewState extends State<BibleView> {
   }
 
   scrollToVerse(int verseIndex, bool playAnimation) async {
-    Future.delayed(Duration(seconds: 1), () async {
+    Future.delayed(Duration(milliseconds: 700), () async {
       var verseKeys = context.read<BibleCubit>().verseKeys;
       log(verseIndex.toString(), name: 'Scroll to');
       RenderBox? verseBox = verseKeys[verseIndex]
@@ -156,6 +156,8 @@ class _BibleViewState extends State<BibleView> {
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
 
+  bool lookupTitle = false;
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<BibleCubit, BibleState>(
@@ -190,120 +192,153 @@ class _BibleViewState extends State<BibleView> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           title: Container(
+            clipBehavior: Clip.antiAlias,
             constraints: BoxConstraints(
               maxWidth: context.mediaQuery.size.width / 1.8,
             ),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(100),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Expanded(
-                  flex: 2,
-                  child: OutlinedButton(
-                    style: OutlinedButton.styleFrom(
+                borderRadius: BorderRadius.circular(100),
+                border: Border.all(
+                  strokeAlign: BorderSide.strokeAlignInside,
+                  color: context.theme.disabledColor,
+                  width: 1,
+                )),
+            child: IntrinsicHeight(
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: OutlinedButton(
+                      style: OutlinedButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         side: BorderSide(
                           strokeAlign: BorderSide.strokeAlignCenter,
                           width: 1,
-                          color: context.theme.disabledColor,
+                          color: Colors.transparent,
                         ),
                         backgroundColor: Colors.transparent,
-                        shape: const RoundedRectangleBorder(
+                        shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.horizontal(
                             left: Radius.circular(100),
+                            right: lookupTitle
+                                ? Radius.circular(100)
+                                : Radius.zero,
                           ),
-                        )),
-                    onPressed: () {
-                      router.push(BibleListRoute(
-                        books: state.books,
-                        getBibles: (bookId, chapterId) async {
-                          if (bookId == null || chapterId == null) {
-                            return [];
-                          }
-                          return await context
-                              .read<BibleCubit>()
-                              .getVersesByBook(bookId, chapterId);
-                        },
-                        onSelected: (verse) async {
-                          await context.read<BibleCubit>().getContent(verse);
-                          router.pop();
-                          await context.read<BibleCubit>().saveToHistory(verse);
-
-                          scrollToVerse(verse.verseId - 1, true);
-                        },
-                      ));
-                    },
-                    child: FutureBuilder(
-                      future: context
-                          .read<BibleCubit>()
-                          .getBibleTitle([state.currentBible]),
-                      builder: (context, snapshot) => Column(
-                        children: [
-                          Text(
-                            snapshot.data ?? '',
-                            textAlign: TextAlign.center,
-                            maxLines: 1,
-                            softWrap: false,
-                            overflow: TextOverflow.fade,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: PopupMenuButton<int>(
-                    padding: EdgeInsets.zero,
-                    onSelected: (value) {
-                      context.read<BibleCubit>().selectBibleCode(value);
-                    },
-                    itemBuilder: (context) =>
-                        state.bibleCodes.asMap().entries.map((e) {
-                      var code = e.value.split('.').first;
-                      var index = e.key;
-                      return PopupMenuItem(
-                        value: index,
-                        child: Text(
-                          state.getBibleCodeName(code),
+                      onLongPress: () {
+                        setState(() {
+                          lookupTitle = true;
+                        });
+                        Timer(
+                          Duration(seconds: 2),
+                          () {
+                            if (mounted) {
+                              setState(() {
+                                lookupTitle = false;
+                              });
+                            }
+                          },
+                        );
+                      },
+                      onPressed: () {
+                        router.push(BibleListRoute(
+                          books: state.books,
+                          getBibles: (bookId, chapterId) async {
+                            if (bookId == null || chapterId == null) {
+                              return [];
+                            }
+                            return await context
+                                .read<BibleCubit>()
+                                .getVersesByBook(bookId, chapterId);
+                          },
+                          onSelected: (verse) async {
+                            await context.read<BibleCubit>().getContent(verse);
+                            router.pop();
+                            await context
+                                .read<BibleCubit>()
+                                .saveToHistory(verse);
+
+                            scrollToVerse(verse.verseId - 1, true);
+                          },
+                        ));
+                      },
+                      child: FutureBuilder(
+                        future: context
+                            .read<BibleCubit>()
+                            .getBibleTitle([state.currentBible]),
+                        builder: (context, snapshot) => Text(
+                          snapshot.data ?? '',
+                          textAlign: TextAlign.left,
                           maxLines: 1,
                           softWrap: false,
                           overflow: TextOverflow.fade,
-                          style: TextStyle(),
-                        ),
-                      );
-                    }).toList(),
-                    child: IgnorePointer(
-                      ignoring: true,
-                      child: OutlinedButton(
-                        style: OutlinedButton.styleFrom(
-                            padding: EdgeInsets.zero,
-                            side: BorderSide(
-                              strokeAlign: BorderSide.strokeAlignCenter,
-                              width: 1,
-                              color: context.theme.disabledColor,
-                            ),
-                            shape: const RoundedRectangleBorder(
-                              borderRadius: BorderRadius.horizontal(
-                                right: Radius.circular(100),
-                              ),
-                            )),
-                        onPressed: () {},
-                        child: Text(
-                          state.currentBibleCode
-                                  ?.split('_')
-                                  .last
-                                  .toUpperCase() ??
-                              '',
-                          style: TextStyle(
-                            color: null,
-                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
+                  if (!lookupTitle) VerticalDivider(width: 1),
+                  Expanded(
+                    flex: lookupTitle ? 0 : 1,
+                    child: lookupTitle
+                        ? SizedBox.shrink()
+                        : PopupMenuButton<int>(
+                            clipBehavior: Clip.antiAlias,
+                            padding: EdgeInsets.zero,
+                            onSelected: (value) {
+                              context.read<BibleCubit>().selectBibleCode(value);
+                            },
+                            itemBuilder: (context) =>
+                                state.bibleCodes.asMap().entries.map((e) {
+                              var code = e.value.split('.').first;
+                              var index = e.key;
+                              return PopupMenuItem(
+                                value: index,
+                                child: Text(
+                                  getBibleCodeName(code),
+                                  maxLines: 1,
+                                  softWrap: false,
+                                  overflow: TextOverflow.fade,
+                                  style: TextStyle(),
+                                ),
+                              );
+                            }).toList(),
+                            child: IgnorePointer(
+                              ignoring: true,
+                              child: OutlinedButton(
+                                style: OutlinedButton.styleFrom(
+                                    tapTargetSize:
+                                        MaterialTapTargetSize.shrinkWrap,
+                                    padding: EdgeInsets.zero,
+                                    side: BorderSide(
+                                      strokeAlign: BorderSide.strokeAlignCenter,
+                                      width: 1,
+                                      color: Colors.transparent,
+                                    ),
+                                    shape: const RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.horizontal(
+                                        right: Radius.circular(100),
+                                      ),
+                                    )),
+                                onPressed: () {},
+                                child: Text(
+                                  state.currentBibleCode
+                                          ?.split('_')
+                                          .last
+                                          .toUpperCase() ??
+                                      '',
+                                  style: TextStyle(
+                                    color: null,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -537,8 +572,11 @@ class _BibleViewState extends State<BibleView> {
                                                           });
                                                         },
                                                         title: Text(
-                                                            snapshot.data ??
-                                                                ''),
+                                                          snapshot.data ?? '',
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
                                                       ),
                                                     ))
                                                 .toList(),
@@ -705,13 +743,7 @@ class _BibleViewState extends State<BibleView> {
                                 .read<BibleCubit>()
                                 .previousChapter()
                                 .then((value) {
-                              var index = context
-                                      .read<BibleCubit>()
-                                      .state
-                                      .verses
-                                      .length -
-                                  1;
-                              scrollToVerse(index, false);
+                              scrollToVerse(0, false);
                             });
                           },
                           child: Icon(Icons.keyboard_arrow_left),
@@ -811,7 +843,7 @@ class _BibleViewState extends State<BibleView> {
                                           return PopupMenuItem(
                                             value: index,
                                             child: Text(
-                                              state.getBibleCodeName(code),
+                                              getBibleCodeName(code),
                                               maxLines: 1,
                                               softWrap: false,
                                               overflow: TextOverflow.fade,
@@ -858,6 +890,9 @@ class _BibleViewState extends State<BibleView> {
                           isFirstScrolling = true;
                         },
                         child: BibleViewer(
+                            scrollFunction: (index) {
+                              scrollToVerse(index, true);
+                            },
                             scrollController: scrollController,
                             verseKeys: context.read<BibleCubit>().verseKeys,
                             cubit: context.read(),
@@ -870,6 +905,9 @@ class _BibleViewState extends State<BibleView> {
                             isFirstScrolling = false;
                           },
                           child: BibleViewer(
+                              scrollFunction: (index) {
+                                scrollToVerse(index, true);
+                              },
                               isSplit: true,
                               scrollController: scrollController2,
                               verseKeys: context.read<BibleCubit>().verseKeys2,
@@ -899,6 +937,7 @@ class BibleViewer extends StatelessWidget {
     required this.selectedVerseMenuHeight,
     required this.cubit,
     required this.isSplit,
+    required this.scrollFunction,
   });
 
   final ScrollController scrollController;
@@ -906,6 +945,7 @@ class BibleViewer extends StatelessWidget {
   final Future<double> selectedVerseMenuHeight;
   final BibleCubit cubit;
   final bool isSplit;
+  final Function(int index) scrollFunction;
 
   @override
   Widget build(BuildContext context) {
@@ -928,6 +968,7 @@ class BibleViewer extends StatelessWidget {
 
                   return VerseWidget(
                     verse: e.value,
+                    scrollFunction: scrollFunction,
                     onTapNote: (note) {
                       router.push(BibleNoteRoute(
                         initialData: note,
@@ -1177,7 +1218,8 @@ class SelectedVerseMenu extends StatelessWidget {
                 ),
               ],
             ),
-          )
+          ),
+          SizedBox(height: 8 + 16),
         ],
       ),
     );
@@ -1197,6 +1239,7 @@ class VerseWidget extends StatefulWidget {
     required this.onTapNote,
     required this.references,
     required this.hasBookmark,
+    required this.scrollFunction,
   });
 
   final int index;
@@ -1208,6 +1251,7 @@ class VerseWidget extends StatefulWidget {
   final List<BibleRef> references;
   final List<Verse> hightlightedVerse;
   final Function(BibleNote note) onTapNote;
+  final Function(int index) scrollFunction;
   final Verse verse;
   bool get hasNote => note != null;
 
@@ -1253,7 +1297,7 @@ class VerseWidgetState extends State<VerseWidget>
                 width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Text.rich(
-                  textAlign: TextAlign.justify,
+                  textAlign: TextAlign.center,
                   style: context
                       .read<BibleCubit>()
                       .state
@@ -1294,6 +1338,8 @@ class VerseWidgetState extends State<VerseWidget>
                                             verseId: int.tryParse(bcv.v!) ?? 1,
                                           ),
                                         );
+                                    widget.scrollFunction(
+                                        (int.tryParse(bcv.v!) ?? 1) - 1);
                                   },
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
@@ -1440,25 +1486,33 @@ class VerseWidgetState extends State<VerseWidget>
                               context: context,
                               builder: (ctx) {
                                 return BibleRefDialog(
-                                  cubit: context.read(),
-                                  selectedVerse: widget.verse,
-                                  references: widget.references,
-                                );
+                                    cubit: context.read(),
+                                    selectedVerse: widget.verse,
+                                    references: widget.references,
+                                    scrollFunction: (index) {
+                                      widget.scrollFunction(index);
+                                    });
                               },
                             );
                           },
                           child: Container(
                             padding: EdgeInsets.symmetric(horizontal: 8),
                             decoration: BoxDecoration(
-                              color: context.colorScheme.primary,
+                              // color: context.colorScheme.primary,
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'REF*',
+                              '*',
+                              textScaleFactor: context
+                                  .read<BibleCubit>()
+                                  .state
+                                  .defaultTextScale,
+
+                              /// REF*
                               style: TextStyle(
-                                fontSize: 10,
-                                color: context.colorScheme.onPrimary,
-                              ),
+                                  fontSize: 12, fontWeight: FontWeight.bold
+                                  // color: context.colorScheme.onPrimary,
+                                  ),
                             ),
                           ),
                         ),
@@ -1480,11 +1534,13 @@ class BibleRefDialog extends StatefulWidget {
     required this.references,
     required this.cubit,
     required this.selectedVerse,
+    required this.scrollFunction,
   });
 
   final List<BibleRef> references;
   final Verse selectedVerse;
   final BibleCubit cubit;
+  final Function(int index) scrollFunction;
 
   @override
   State<BibleRefDialog> createState() => _BibleRefDialogState();
@@ -1516,6 +1572,8 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
     return BlocProvider.value(
       value: widget.cubit,
       child: SimpleDialog(
+        backgroundColor: context.colorScheme.background,
+        surfaceTintColor: Colors.transparent,
         alignment: Alignment.topCenter,
         contentPadding: EdgeInsets.all(16),
         children: [
@@ -1534,53 +1592,94 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
             ),
           ),
           SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: widget.references
-                .map((e) => FutureBuilder(
-                      future: convertIDtoNameAlkitab(
-                          e.sv, e.ev != 0 ? e.ev : null,
-                          bibleDb: widget.cubit.bibleDb!),
-                      builder: (context, snapshot) {
-                        return ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: currentRef == e
-                                ? context.colorScheme.primary
-                                : context.colorScheme.primaryContainer,
-                            foregroundColor: currentRef == e
-                                ? context.colorScheme.onPrimary
-                                : context.colorScheme.onPrimaryContainer,
-                            visualDensity: VisualDensity.compact,
-                            padding: EdgeInsets.symmetric(horizontal: 8),
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                          ),
-                          onPressed: () {
-                            currentRef = e;
-                            setState(() {});
-                            getCurrentVerse();
-                          },
-                          child: Text(snapshot.data ?? ''),
-                        );
-                      },
-                    ))
-                .toList(),
+          IntrinsicHeight(
+            child: Stack(
+              fit: StackFit.passthrough,
+              children: [
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: widget.references
+                        .map((e) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: FutureBuilder(
+                                future: convertIDtoNameAlkitab(
+                                    e.sv, e.ev != 0 ? e.ev : null,
+                                    bibleDb: widget.cubit.bibleDb!),
+                                builder: (context, snapshot) {
+                                  return ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: currentRef == e
+                                          ? context.colorScheme.primary
+                                          : context
+                                              .colorScheme.primaryContainer,
+                                      foregroundColor: currentRef == e
+                                          ? context.colorScheme.onPrimary
+                                          : context
+                                              .colorScheme.onPrimaryContainer,
+                                      visualDensity: VisualDensity.compact,
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 8),
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                    onPressed: () {
+                                      Scrollable.ensureVisible(context,
+                                          duration: kThemeAnimationDuration,
+                                          curve: Curves.easeOut,
+                                          alignment: .2);
+                                      currentRef = e;
+                                      setState(() {});
+                                      getCurrentVerse();
+                                    },
+                                    child: Text(snapshot.data ?? ''),
+                                  );
+                                },
+                              ),
+                            ))
+                        .toList(),
+                  ),
+                ),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: 20),
+                    width: 20,
+                    decoration: BoxDecoration(
+                        gradient: LinearGradient(colors: [
+                      context.colorScheme.background.withOpacity(0),
+                      context.colorScheme.background,
+                    ])),
+                  ),
+                ),
+              ],
+            ),
           ),
           SizedBox(height: 16),
-          ...currentVerses
-              .map(
-                (e) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: InkWell(
-                      onTap: () {
-                        router.pop();
-                        widget.cubit.getContent(e);
-                      },
-                      child: Text(
-                          '${e.chapterId}:${e.verseId}  ${e.verse ?? ''}')),
-                ),
-              )
-              .toList(),
+          Container(
+            constraints: BoxConstraints(maxHeight: context.height / 2),
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  ...currentVerses
+                      .map(
+                        (e) => Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: InkWell(
+                              onTap: () {
+                                router.pop();
+                                widget.cubit.getContent(e);
+                                widget.scrollFunction(e.verseId - 1);
+                              },
+                              child: Text(
+                                  '${e.chapterId}:${e.verseId}  ${(e.verse ?? '')}')),
+                        ),
+                      )
+                      .toList(),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );

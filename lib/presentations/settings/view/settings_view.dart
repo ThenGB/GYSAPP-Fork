@@ -29,106 +29,105 @@ class SettingsView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       builder: (context, state) => Scaffold(
-        body: SafeArea(
-          child: Column(
-            children: [
-              BlocBuilder<DashboardCubit, DashboardState>(
-                builder: (context, state) => Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 8,
-                  ),
-                  decoration: BoxDecoration(
-                    color: context.colorScheme.background,
-                  ),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: Colors.transparent,
-                        child: (state.idToken == null
-                            ? Image.asset(Assets.assetsImagesAppicon)
-                            : ClipOval(
-                                child: CachedNetworkImage(
-                                    imageUrl:
-                                        state.account?.profilePicture ?? ''),
-                              )),
-                      ),
-                      SizedBox(
-                        width: 12,
-                      ),
-                      Expanded(
-                        child: state.idToken == null
-                            ? Text(
-                                'register_button_text'.tr(),
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
-                                ),
-                              )
-                            : Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    state.account?.name ?? 'Unknown'.tr(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w600,
-                                      fontSize: 14,
-                                    ),
-                                  ),
-                                  Text(
-                                    state.account?.email ?? 'Unknown'.tr(),
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
+        body: Column(
+          children: [
+            BlocBuilder<DashboardCubit, DashboardState>(
+              builder: (context, state) => Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ).add(EdgeInsets.only(top: context.mediaQuery.padding.top)),
+                decoration: BoxDecoration(
+                  color: context.colorScheme.background,
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      backgroundColor: Colors.transparent,
+                      child: (state.idToken == null
+                          ? Image.asset(Assets.assetsImagesAppicon)
+                          : ClipOval(
+                              child: CachedNetworkImage(
+                                  imageUrl:
+                                      state.account?.profilePicture ?? ''),
+                            )),
+                    ),
+                    SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: state.idToken == null
+                          ? Text(
+                              'register_button_text'.tr(),
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
                               ),
-                      ),
-                      ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: state.idToken == null
-                                ? context.colorScheme.primaryContainer
-                                : context.colorScheme.errorContainer,
-                            foregroundColor: state.idToken == null
-                                ? context.colorScheme.onPrimaryContainer
-                                : context.colorScheme.onErrorContainer,
-                          ),
-                          onPressed: () {
-                            if (context.read<DashboardCubit>().state.idToken ==
-                                null) {
-                              router.push(LoginRoute(
-                                onLoggedIn: (token) {
-                                  router.pop();
-                                  context
-                                      .read<DashboardCubit>()
-                                      .loginSuccessCallback(token);
-                                  Fluttertoast.cancel();
-                                  Fluttertoast.showToast(
-                                      msg: 'BERHASIL LOGIN!');
-                                },
-                              ));
-                            } else {
-                              context
-                                  .showConfirmation(
-                                      'Are you sure want to logout?'.tr())
-                                  .then((yes) {
-                                if (yes) {
-                                  context
-                                      .read<DashboardCubit>()
-                                      .loginSuccessCallback(null);
-                                }
-                              });
-                            }
-                          },
-                          child:
-                              Text(state.idToken == null ? 'Login' : 'Logout')),
-                    ],
-                  ),
+                            )
+                          : Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  state.account?.name ?? 'Unknown'.tr(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                Text(
+                                  state.account?.email ?? 'Unknown'.tr(),
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                    ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: state.idToken == null
+                              ? context.colorScheme.primaryContainer
+                              : context.colorScheme.errorContainer,
+                          foregroundColor: state.idToken == null
+                              ? context.colorScheme.onPrimaryContainer
+                              : context.colorScheme.onErrorContainer,
+                        ),
+                        onPressed: () {
+                          if (context.read<DashboardCubit>().state.idToken ==
+                              null) {
+                            router.push(LoginRoute(
+                              onLoggedIn: (token) {
+                                router.pop();
+                                context
+                                    .read<DashboardCubit>()
+                                    .loginSuccessCallback(token);
+                                Fluttertoast.cancel();
+                                Fluttertoast.showToast(msg: 'BERHASIL LOGIN!');
+                              },
+                            ));
+                          } else {
+                            context
+                                .showConfirmation(
+                                    'Are you sure want to logout?'.tr())
+                                .then((yes) {
+                              if (yes) {
+                                context
+                                    .read<DashboardCubit>()
+                                    .loginSuccessCallback(null);
+                              }
+                            });
+                          }
+                        },
+                        child:
+                            Text(state.idToken == null ? 'Login' : 'Logout')),
+                  ],
                 ),
               ),
-              Expanded(
-                  child: ListView(
+            ),
+            Expanded(
+                child: SingleChildScrollView(
+              child: Column(
                 children: [
                   BlocBuilder<BibleCubit, BibleState>(
                     builder: (context, state) => Section(
@@ -224,8 +223,9 @@ class SettingsView extends StatelessWidget {
                                 var weekdays =
                                     List.generate(7, (index) => index + 1);
                                 await showModalBottomSheet(
+                                  backgroundColor: Colors.transparent,
+                                  elevation: 0,
                                   isScrollControlled: true,
-                                  useSafeArea: true,
                                   context: context,
                                   builder: (context) {
                                     return BibleReminderDialog(
@@ -384,9 +384,9 @@ class SettingsView extends StatelessWidget {
                     ),
                   )
                 ],
-              ))
-            ],
-          ),
+              ),
+            ))
+          ],
         ),
       ),
     );
@@ -441,35 +441,34 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: DraggableScrollableSheet(
-        expand: false,
-        // controller: controller,
-        snap: true,
-        initialChildSize: childHeight.clamp(0.1, .9),
-        minChildSize: (childHeight - .2).clamp(0.0000000001, .9),
-        maxChildSize: childHeight.clamp(0.1, .9),
-        builder: (context, scrollController) {
-          return Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: context.colorScheme.background,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(32),
-              ),
+    return DraggableScrollableSheet(
+      expand: false,
+      // controller: controller,
+      snap: true,
+      initialChildSize: childHeight.clamp(0.1, .9),
+      minChildSize: (childHeight - .2).clamp(0.0000000001, .9),
+      maxChildSize: childHeight.clamp(0.1, .9),
+      builder: (context, scrollController) {
+        return Container(
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: context.colorScheme.background,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(32),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DragHandler(key: handlerKey),
-                Expanded(
-                  child: SingleChildScrollView(
-                    controller: scrollController,
-                    child: Section(
-                      key: widgetKey,
-                      label: 'Select Language'.tr(),
-                      child: (gap) => Column(
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DragHandler(key: handlerKey),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Section(
+                    key: widgetKey,
+                    label: 'Select Language'.tr(),
+                    child: (gap) => SafeArea(
+                      child: Column(
                         children: context.supportedLocales
                             .map((e) => Column(
                                   children: [
@@ -491,11 +490,11 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                     ),
                   ),
                 ),
-              ],
-            ),
-          );
-        },
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -517,71 +516,156 @@ class BibleReminderDialog extends StatefulWidget {
 class _BibleReminderDialogState extends State<BibleReminderDialog> {
   late Map<int, DateTime> data =
       Map<int, DateTime>.from(widget.settingCubit.state.bibleReminders);
+  double childHeight = 0.00001;
+  final GlobalKey widgetKey = GlobalKey();
+  final GlobalKey handlerKey = GlobalKey();
+
+  @override
+  void initState() {
+    measureWidgetSize(
+      context: context,
+      widgetKeys: [widgetKey, handlerKey],
+      setState: (h) {
+        childHeight = h;
+        setState(() {});
+      },
+    );
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SettingsCubit, SettingsState>(
       bloc: widget.settingCubit,
-      builder: (context, state) => Scaffold(
-        appBar: AppBar(
-          title: Text('Bible Reminder'),
-        ),
-        body: Container(
+      builder: (context, state) => DraggableScrollableSheet(
+        initialChildSize: childHeight.clamp(0.00001, 1),
+        maxChildSize: childHeight.clamp(0.00001, 1),
+        minChildSize: (childHeight - .1).clamp(0.00001, 1),
+        expand: false,
+        snap: true,
+        snapSizes: [childHeight],
+        builder: (context, scrollController) => Material(
           color: context.colorScheme.background,
-          child: ListView.builder(
-            itemCount: widget.weekdays.length,
-            itemBuilder: (context, index) {
-              var item = widget.weekdays[index];
-              return ListTile(
-                onTap: () async {
-                  if (data[item] != null) {
-                    if (await context.showConfirmation(
-                        'This will destroy the schedule. Tap Yes to destroy'
-                            .tr())) {
-                      data.remove(item);
-                      setState(() {});
-                      return;
-                    }
-                  }
-                  // ignore: use_build_context_synchronously
-                  var time = await showTimePicker(
-                    context: context,
-                    initialTime: TimeOfDay.fromDateTime(
-                      data[item] ?? DateTime.now(),
-                    ),
-                  );
-                  if (time != null) {
-                    /// kenapa 2023,05,01?
-                    /// karena pada tanggal itu hari senin adalah tanggal 1
-                    /// biar memudahkan aja, soalnya weekday di flutter itu senin = 1
-                    data[item] = DateTime(2023, 5, 1).copyWith(
-                      day: item,
-                      hour: time.hour,
-                      minute: time.minute,
-                      second: 00,
-                    );
-                    setState(() {});
-                  }
-                },
-                title: Text(widget.weekdays[index].toWeekdayName.tr()),
-                trailing: Text(
-                  widget.settingCubit.getTimeByWeekday(item, data),
-                ),
-              );
-            },
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20),
           ),
-        ),
-        bottomNavigationBar: Container(
-          color: context.colorScheme.background,
-          padding: const EdgeInsets.all(16),
-          child: ElevatedButton(
-            onPressed: () {
-              widget.settingCubit
-                  .setBibleReminderDailyNotification(data)
-                  .then((value) => Navigator.pop(context));
-            },
-            child: Text(
-              'Set'.tr(),
-            ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Column(children: [
+              DragHandler(
+                key: handlerKey,
+              ),
+              Section(
+                key: widgetKey,
+                label: 'Bible Reminder'.tr(),
+                child: (gap) => SafeArea(
+                  child: Column(
+                    children: [
+                      ...List.generate(widget.weekdays.length, (index) {
+                        var item = widget.weekdays[index];
+                        return ListTile(
+                          onTap: () async {
+                            if (data[item] != null) {
+                              if (await context.showConfirmation(
+                                  'This will destroy the schedule. Tap Yes to destroy'
+                                      .tr())) {
+                                data.remove(item);
+                                setState(() {});
+                                return;
+                              }
+                            }
+                            // ignore: use_build_context_synchronously
+                            var time = await showTimePicker(
+                              context: context,
+                              initialTime: TimeOfDay.fromDateTime(
+                                data[item] ?? DateTime.now(),
+                              ),
+                            );
+                            if (time != null) {
+                              /// kenapa 2023,05,01?
+                              /// karena pada tanggal itu hari senin adalah tanggal 1
+                              /// biar memudahkan aja, soalnya weekday di flutter itu senin = 1
+                              data[item] = DateTime(2023, 5, 1).copyWith(
+                                day: item,
+                                hour: time.hour,
+                                minute: time.minute,
+                                second: 00,
+                              );
+                              setState(() {});
+                            }
+                          },
+                          title: Text(
+                            widget.weekdays[index].toWeekdayName.tr(),
+                            style: TextStyle(
+                              fontWeight: data[item] != null
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                            ),
+                          ),
+                          trailing: Container(
+                            padding: data[item] == null
+                                ? null
+                                : EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: data[item] != null
+                                  ? context.colorScheme.primary
+                                  : null,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (data[item] != null)
+                                  Icon(Icons.notifications,
+                                      size: 14, color: Colors.white),
+                                SizedBox(
+                                  width: 8,
+                                ),
+                                Text(
+                                  widget.settingCubit.getTimeByWeekday(
+                                    item,
+                                    data,
+                                  ),
+                                  style: TextStyle(
+                                    color: data[item] != null
+                                        ? Colors.white
+                                        : context.theme.disabledColor,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                      Container(
+                        width: double.infinity,
+                        color: context.colorScheme.background,
+                        padding: const EdgeInsets.all(16),
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: context.colorScheme.primary,
+                              foregroundColor: context.colorScheme.onPrimary,
+                              minimumSize: Size.fromHeight(56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              )),
+                          onPressed: () {
+                            widget.settingCubit
+                                .setBibleReminderDailyNotification(data)
+                                .then((value) => Navigator.pop(context));
+                          },
+                          child: Text(
+                            'Set Reminder'.tr(),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ]),
           ),
         ),
       ),

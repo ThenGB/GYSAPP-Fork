@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
@@ -25,6 +26,8 @@ export 'song_state.dart';
 class SongCubit extends HydratedCubit<SongState> {
   final SongRepository songRepository;
 
+  bool get isSelectingSong => state.selectedSong != null;
+
   SongCubit(this.songRepository) : super(const SongState()) {
     initDb().then((value) {
       getData().then(
@@ -34,6 +37,17 @@ class SongCubit extends HydratedCubit<SongState> {
         ),
       );
     });
+  }
+
+  onSearchTermsChanged(String text) {
+    emit(state.copyWith(searchTerms: text));
+  }
+
+  toggleShuffle() async {
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(
+        msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}');
+    emit(state.copyWith(shuffleMode: !state.shuffleMode));
   }
 
   changeSortNote(String sortBy) {
@@ -178,6 +192,10 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(showSizer: !state.showSizer));
   }
 
+  toggleAudio() {
+    emit(state.copyWith(showAudio: !state.showAudio));
+  }
+
   changeScale(double scale) {
     emit(state.copyWith(textScaleFactor: scale));
   }
@@ -250,8 +268,18 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  changeBookcode(String bookCode) {
-    emit(state.copyWith(bookCode: bookCode));
+  changeBookcode(String bookCode, [bool isFavorite = false]) {
+    List<Song> songs = [];
+    for (var book in state.favoriteSongBook) {
+      songs.addAll(book.songs);
+    }
+    emit(
+      state.copyWith(
+        bookCode: bookCode,
+        playOnlyFavorite: isFavorite,
+        shuffleIndex: getRandomUniqueIndex(songs.length),
+      ),
+    );
   }
 
   deleteHistory(SongHistory history) {
@@ -287,4 +315,20 @@ class SongCubit extends HydratedCubit<SongState> {
     debouncer?.cancel();
     return super.close();
   }
+}
+
+List<int> getRandomUniqueIndex(int length) {
+  math.Random random = math.Random();
+  List<int> indices = List.generate(length, (index) => index);
+
+  for (int i = length - 1; i > 0; i--) {
+    int randomIndex = random.nextInt(i + 1);
+
+    // Swap the elements at randomIndex and i
+    int temp = indices[randomIndex];
+    indices[randomIndex] = indices[i];
+    indices[i] = temp;
+  }
+
+  return indices;
 }

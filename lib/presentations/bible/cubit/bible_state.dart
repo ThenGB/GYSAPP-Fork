@@ -157,23 +157,23 @@ class BibleState with _$BibleState {
         return 'Unknown'.tr();
     }
   }
+}
 
-  String getBibleCodeName(String? code) {
-    code = code?.split('_').last.toUpperCase() ?? '';
-    if (code.contains('.')) {
-      code = code.split('.').first;
-    }
-    switch (code) {
-      case 'TB':
-        return 'Terjemahan Baru';
-      case 'CUV':
-        return 'Chinese Union Version';
-      case 'KJV':
-        return 'King James Version';
+String getBibleCodeName(String? code) {
+  code = code?.split('_').last.toUpperCase() ?? '';
+  if (code.contains('.')) {
+    code = code.split('.').first;
+  }
+  switch (code) {
+    case 'TB':
+      return 'Terjemahan Baru';
+    case 'CUV':
+      return 'Chinese Union Version';
+    case 'KJV':
+      return 'King James Version';
 
-      default:
-        return 'Unknown'.tr();
-    }
+    default:
+      return 'Unknown'.tr();
   }
 }
 

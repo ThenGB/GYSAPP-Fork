@@ -486,7 +486,7 @@ class SelectedFaithMenu extends StatelessWidget {
                   child: Text('Copy'.tr())),
             ],
           ),
-          SizedBox(height: 8),
+          SizedBox(height: 8 + 16),
         ],
       ),
     );

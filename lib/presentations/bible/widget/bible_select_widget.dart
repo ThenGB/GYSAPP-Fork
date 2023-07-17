@@ -5,6 +5,7 @@ import '../../../components/widgets/drag_handler.dart';
 import '../../../components/widgets/section.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../settings/view/settings_view.dart';
+import '../cubit/bible_cubit.dart';
 
 class BibleSelectWidget extends StatefulWidget {
   const BibleSelectWidget(
@@ -37,35 +38,34 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      child: DraggableScrollableSheet(
-        controller: controller,
-        initialChildSize: childHeight.clamp(0.00001, 1),
-        maxChildSize: childHeight.clamp(0.00001, 1),
-        minChildSize: (childHeight - .1).clamp(0.00001, 1),
-        expand: false,
-        snap: true,
-        snapSizes: [childHeight],
-        builder: (context, scrollController) {
-          return Material(
-            color: context.colorScheme.background,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(20),
-            ),
-            child: SingleChildScrollView(
-              controller: scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  DragHandler(
-                    key: handlerKey,
-                  ),
-                  Section(
-                      key: bodyKey,
-                      label: 'Select Verse Version'.tr(),
-                      child: (gap) => SingleChildScrollView(
+    return DraggableScrollableSheet(
+      controller: controller,
+      initialChildSize: childHeight.clamp(0.00001, 1),
+      maxChildSize: childHeight.clamp(0.00001, 1),
+      minChildSize: (childHeight - .1).clamp(0.00001, 1),
+      expand: false,
+      snap: true,
+      snapSizes: [childHeight],
+      builder: (context, scrollController) {
+        return Material(
+          color: context.colorScheme.background,
+          borderRadius: const BorderRadius.vertical(
+            top: Radius.circular(20),
+          ),
+          child: SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                DragHandler(
+                  key: handlerKey,
+                ),
+                Section(
+                    key: bodyKey,
+                    label: 'Select Bible Version'.tr(),
+                    child: (gap) => SingleChildScrollView(
+                          child: SafeArea(
                             child: Column(
                               children: [
                                 ...List.generate(
@@ -75,22 +75,19 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
                                       widget.onTap(index);
                                     },
                                     title: Text(
-                                      widget.bibleCodes[index]
-                                          .split('_')
-                                          .last
-                                          .toUpperCase(),
+                                      '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${getBibleCodeName(widget.bibleCodes[index].split('_').last.toUpperCase())}',
                                     ),
                                   ),
                                 ),
                               ],
                             ),
-                          )),
-                ],
-              ),
+                          ),
+                        )),
+              ],
             ),
-          );
-        },
-      ),
+          ),
+        );
+      },
     );
   }
 }

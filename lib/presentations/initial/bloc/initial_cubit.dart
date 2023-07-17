@@ -23,21 +23,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
           minimumFetchInterval: const Duration(seconds: 10),
         ),
       );
-      var value = await FirebaseRemoteConfig.instance.fetchAndActivate();
-      FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
-      log((value).toString(), name: '[Firebase remote config]');
+      var isConnectedToInternet =
+          (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
+      if (isConnectedToInternet) {
+        var value = await FirebaseRemoteConfig.instance.fetchAndActivate();
+        log((value).toString(), name: '[Firebase remote config]');
+      }
     } catch (e) {
       log(Failure.fromError(e).message, name: 'getRemoteConfig', error: e);
     }
+    FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
   }
 
   initState() async {
     log('Initiating application state');
-    getRemoteConfig();
+    await getRemoteConfig();
     var result =
         (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
+
     if (!result && state.isFreshInstall) {
-      await Future.delayed(const Duration(seconds: 2));
       emit(
         state.copyWith(
           isFailed: true,

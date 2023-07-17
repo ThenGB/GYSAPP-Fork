@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -75,7 +74,7 @@ var defaultAddress = AddressCheckOptions(
     type: InternetAddressType.IPv4,
   ),
   port: 853,
-  timeout: const Duration(seconds: 10),
+  timeout: const Duration(seconds: 3),
 );
 
 var internetChecker = InternetConnectionChecker.createInstance(
@@ -95,10 +94,11 @@ class _AppState extends State<App> {
   StreamSubscription<InternetConnectionStatus>? connectivitySubscription;
   @override
   void initState() {
-    connectivitySubscription = internetChecker.onStatusChange
-        .listen((InternetConnectionStatus status) {
-      log('status $status');
-    });
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    // connectivitySubscription = internetChecker.onStatusChange
+    //     .listen((InternetConnectionStatus status) {
+    //   log('status $status');
+    // });
     super.initState();
   }
 
@@ -123,10 +123,13 @@ class _AppState extends State<App> {
             theme: defaultTheme(),
             darkTheme: darkTheme(),
             themeMode: state.themeMode.toThemeMode,
-            builder: (context, child) => MediaQuery(
-              data: context.mediaQuery.copyWith(textScaleFactor: 1),
-              child: child!,
-            ),
+            builder: (context, child) {
+              return MediaQuery(
+                data: context.mediaQuery
+                    .copyWith(textScaleFactor: 1, alwaysUse24HourFormat: true),
+                child: child!,
+              );
+            },
           );
         },
       ),

@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:pdf_render/pdf_render.dart';
 
+import '../../../data/utilities/extensions/list_extension.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
@@ -35,10 +36,30 @@ class SongState with _$SongState {
     @Default('Newest') String sortNotesBy,
     @Default([]) List<SongHistory> histories,
     @Default(false) bool playOnlyFavorite,
+    @Default(false) bool shuffleMode,
+    @Default([]) List<int> shuffleIndex,
+    @Default(false) bool showAudio,
+    @Default('') String searchTerms,
   }) = _SongState;
 
   SongBook? get currentSong {
     return songBook.firstWhereOrNull((element) => element.code == bookCode);
+  }
+
+  List<Song> get songs {
+    // return (currentSong?.songs ?? []);
+
+    if (!playOnlyFavorite) {
+      return (currentSong?.songs ?? []);
+    }
+    List<Song> songs = [];
+    for (var book in favoriteSongBook) {
+      songs.addAll(book.songs);
+    }
+    if (shuffleMode) {
+      songs = songs.rearrangeList(shuffleIndex);
+    }
+    return songs;
   }
 
   Future<List<Uint8List>> getImageLyricPath(

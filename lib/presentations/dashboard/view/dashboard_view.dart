@@ -1,8 +1,10 @@
+import 'dart:io';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
-import 'package:wakelock/wakelock.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
@@ -28,7 +30,7 @@ class DashboardView extends StatefulWidget {
 class _DashboardViewState extends State<DashboardView> {
   @override
   void dispose() {
-    Wakelock.disable();
+    WakelockPlus.disable();
     super.dispose();
   }
 
@@ -88,8 +90,19 @@ class _DashboardViewState extends State<DashboardView> {
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           if (state.isLoading) {
-            return const Center(
-              child: CircularProgressIndicator(),
+            return SafeArea(
+              child: Scaffold(
+                body: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading...'),
+                    ],
+                  ),
+                ),
+              ),
             );
           }
           return MultiBlocListener(
@@ -104,6 +117,16 @@ class _DashboardViewState extends State<DashboardView> {
             child: WillPopScope(
               onWillPop: () async {
                 if (tabRouter?.activeIndex != 0) {
+                  var mustBeNot = [
+                    context.read<BibleCubit>().isSelectingBible,
+                    context.read<SongCubit>().isSelectingSong,
+                    context.read<FaithCubit>().isSelectingFaith,
+                  ];
+                  if (mustBeNot.any((element) => !element)) {
+                    context.read<BibleCubit>().removeSelection();
+                    context.read<SongCubit>().removeSelection();
+                    context.read<FaithCubit>().removeSelection();
+                  }
                   tabRouter?.setActiveIndex(0);
                   return false;
                 }
@@ -163,7 +186,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   width: double.infinity,
                                 );
                               }
-
+                              var size = 80 + context.mediaQuery.padding.bottom;
                               return PlayAnimationBuilder(
                                 duration: kThemeAnimationDuration,
                                 tween: Tween<double>(begin: 0, end: 1),
@@ -171,9 +194,9 @@ class _DashboardViewState extends State<DashboardView> {
                                 curve: Curves.easeOut,
                                 builder: (context, value, child) =>
                                     Transform.translate(
-                                  offset: Offset(0, 80 - 80 * value),
+                                  offset: Offset(0, size - size * value),
                                   child: SizedBox(
-                                    height: 80,
+                                    height: size,
                                     child: BottomNavigationBar(
                                       elevation: 8,
                                       backgroundColor:
@@ -201,12 +224,15 @@ class _DashboardViewState extends State<DashboardView> {
                                           FaithRoute,
                                           SongRoute
                                         ];
-                                        if (list.contains(pages
-                                            .elementAt(value)['page']
-                                            .runtimeType)) {
-                                          Wakelock.enable();
-                                        } else {
-                                          Wakelock.disable();
+                                        if (Platform.isAndroid) {
+                                          // Permission.wakelockWakelockPlus;
+                                          if (list.contains(pages
+                                              .elementAt(value)['page']
+                                              .runtimeType)) {
+                                            WakelockPlus.enable();
+                                          } else {
+                                            WakelockPlus.disable();
+                                          }
                                         }
                                       },
                                       items: pages

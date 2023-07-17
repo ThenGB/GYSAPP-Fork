@@ -46,6 +46,9 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
   }
 
   Future setBibleReminderDailyNotification(Map<int, DateTime> days) async {
+    if (!(await AwesomeNotifications().isNotificationAllowed())) {
+      await AwesomeNotifications().requestPermissionToSendNotifications();
+    }
     List<int> weekdays = List.generate(7, (index) => index + 1);
 
     List<int> unactiveDays =

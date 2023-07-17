@@ -31,78 +31,79 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       builder: (context, state) => Scaffold(
-        body: SafeArea(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const HomeHeader(),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      StreamBuilder(
-                        stream: context.read<HomeCubit>().bannerObservable,
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState ==
-                              ConnectionState.waiting) {
-                            return const SizedBox.shrink();
-                          }
-                          if (snapshot.hasError) {
-                            return const SizedBox.shrink();
-                          }
-                          final banners = snapshot.data as List<ImageBanner>;
-                          if (banners.isEmpty) {
-                            return const SizedBox.shrink();
-                          }
-                          return Section(
-                            child: (gap) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: gap),
-                              child: CarouselSlider.builder(
-                                itemCount: banners.length,
-                                itemBuilder: (context, index, realIndex) {
-                                  var banner = banners[index];
-                                  return Container(
-                                    width: double.infinity,
-                                    color: Colors.transparent,
-                                    child: CachedNetworkImage(
-                                      imageUrl: banner.imageUrl ?? '',
-                                      fit: BoxFit.cover,
-                                      placeholder: (context, url) =>
-                                          const Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
-                                      errorWidget: (context, url, error) =>
-                                          const Icon(Icons.error),
+        body: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+                padding: EdgeInsets.only(top: context.mediaQuery.padding.top),
+                color: context.colorScheme.background,
+                child: const HomeHeader()),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StreamBuilder(
+                      stream: context.read<HomeCubit>().bannerObservable,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const SizedBox.shrink();
+                        }
+                        if (snapshot.hasError) {
+                          return const SizedBox.shrink();
+                        }
+                        final banners = snapshot.data as List<ImageBanner>;
+                        if (banners.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Section(
+                          child: (gap) => Padding(
+                            padding: EdgeInsets.symmetric(horizontal: gap),
+                            child: CarouselSlider.builder(
+                              itemCount: banners.length,
+                              itemBuilder: (context, index, realIndex) {
+                                var banner = banners[index];
+                                return Container(
+                                  width: double.infinity,
+                                  color: Colors.transparent,
+                                  child: CachedNetworkImage(
+                                    imageUrl: banner.imageUrl ?? '',
+                                    fit: BoxFit.cover,
+                                    placeholder: (context, url) => const Center(
+                                      child: CircularProgressIndicator(),
                                     ),
-                                  );
-                                },
-                                options: CarouselOptions(
-                                  height: 110,
-                                  enlargeFactor: 1,
-                                  enlargeStrategy:
-                                      CenterPageEnlargeStrategy.scale,
-                                  viewportFraction: 1,
-                                ),
+                                    errorWidget: (context, url, error) =>
+                                        const Icon(Icons.error),
+                                  ),
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 110,
+                                enlargeFactor: 1,
+                                enlargeStrategy:
+                                    CenterPageEnlargeStrategy.scale,
+                                viewportFraction: 1,
                               ),
                             ),
-                          );
-                        },
-                      ),
-                      if (state.sauhs.isNotEmpty)
-                        SauhBagiJiwa(item: state.sauhs.first),
-                      SuaraSejati(
-                        trueVoices: state.trueVoices,
-                      ),
-                      LinkLainnya(
-                        menuLinks: state.menuLinks,
-                      )
-                    ],
-                  ),
+                          ),
+                        );
+                      },
+                    ),
+                    if (state.sauhs.isNotEmpty)
+                      SauhBagiJiwa(item: state.sauhs.first),
+                    SuaraSejati(
+                      trueVoices: state.trueVoices,
+                    ),
+                    LinkLainnya(
+                      menuLinks: state.menuLinks,
+                    ),
+                    SizedBox(height: 12)
+                  ],
                 ),
-              )
-            ],
-          ),
+              ),
+            )
+          ],
         ),
       ),
     );
@@ -537,17 +538,18 @@ class _HomeHeaderState extends State<HomeHeader> {
             const SizedBox(
               width: 8,
             ),
-            Material(
-              shape: const CircleBorder(),
-              clipBehavior: Clip.antiAlias,
-              child: InkWell(
-                onTap: () {},
-                child: CircleAvatar(
-                  backgroundColor: Colors.transparent,
-                  child: Image.asset(Assets.assetsIconsBell, width: 15),
+            if (1 + 1 == 3)
+              Material(
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  onTap: () {},
+                  child: CircleAvatar(
+                    backgroundColor: Colors.transparent,
+                    child: Image.asset(Assets.assetsIconsBell, width: 15),
+                  ),
                 ),
-              ),
-            )
+              )
           ],
         ),
       ),
@@ -578,6 +580,4 @@ class _HomeHeaderState extends State<HomeHeader> {
 
     return span;
   }
-
-
 }

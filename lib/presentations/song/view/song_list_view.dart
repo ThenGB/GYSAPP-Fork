@@ -21,6 +21,9 @@ class SongListView extends StatefulWidget {
   final bool Function(Song song) isFavorite;
   final Function(Song song) onFavorite;
 
+  final String initialSearchText;
+  final Function(String text) onSearchTermsChanged;
+
   const SongListView(
       {super.key,
       required this.books,
@@ -30,7 +33,9 @@ class SongListView extends StatefulWidget {
       required this.isFavorite,
       required this.onFavorite,
       required this.favoriteBooks,
-      required this.onTapFavorite});
+      required this.onTapFavorite,
+      required this.initialSearchText,
+      required this.onSearchTermsChanged});
 
   @override
   State<SongListView> createState() => _SongListViewState();
@@ -38,8 +43,9 @@ class SongListView extends StatefulWidget {
 
 class _SongListViewState extends State<SongListView>
     with SingleTickerProviderStateMixin {
-  late final TextEditingController searchController = TextEditingController()
-    ..addListener(searchListener);
+  late final TextEditingController searchController =
+      TextEditingController(text: widget.initialSearchText)
+        ..addListener(searchListener);
   late final TabController tabController = TabController(length: 2, vsync: this)
     ..addListener(tabListener);
   @override
@@ -256,30 +262,34 @@ class _SongListViewState extends State<SongListView>
                         getFilteredItems(widget.currentBook().songs)[index];
                     return Column(
                       children: [
-                        ListTile(
-                          onTap: () {
-                            widget.onTapPageNumber(item.number!);
-                          },
-                          leading: Text(item.number ?? ''),
-                          trailing: IconButton(
-                              onPressed: () async {
-                                widget.onFavorite(item);
-                                await Future.delayed(
-                                    const Duration(milliseconds: 100));
-                                setState(() {
-                                  forceRefresh++;
-                                });
-                              },
-                              icon: Icon(
-                                widget.isFavorite(item)
-                                    ? Icons.star_rounded
-                                    : Icons.star_border_rounded,
-                                color: widget.isFavorite(item)
-                                    ? Colors.amber
-                                    : null,
-                              )),
-                          title: Text(
-                            item.title ?? '',
+                        Material(
+                          child: ListTile(
+                            onTap: () {
+                              widget
+                                  .onSearchTermsChanged(searchController.text);
+                              widget.onTapPageNumber(item.number!);
+                            },
+                            leading: Text(item.number ?? ''),
+                            trailing: IconButton(
+                                onPressed: () async {
+                                  widget.onFavorite(item);
+                                  await Future.delayed(
+                                      const Duration(milliseconds: 100));
+                                  setState(() {
+                                    forceRefresh++;
+                                  });
+                                },
+                                icon: Icon(
+                                  widget.isFavorite(item)
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  color: widget.isFavorite(item)
+                                      ? Colors.amber
+                                      : null,
+                                )),
+                            title: Text(
+                              item.title ?? '',
+                            ),
                           ),
                         ),
                         const Divider(height: 1),
@@ -310,6 +320,8 @@ class _SongListViewState extends State<SongListView>
                         children: [
                           ListTile(
                             onTap: () {
+                              widget
+                                  .onSearchTermsChanged(searchController.text);
                               widget.onTapFavorite(item);
                             },
                             leading: Text(item.number ?? ''),

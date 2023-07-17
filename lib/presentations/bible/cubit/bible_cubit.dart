@@ -29,6 +29,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
     incrementTodayReading();
   }
 
+  bool get isSelectingBible => state.selectedVerse.isNotEmpty;
+
   BibleRepository bibleRepository = di();
 
   Database? bibleDb;

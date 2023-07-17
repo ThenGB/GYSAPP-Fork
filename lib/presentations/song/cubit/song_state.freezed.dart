@@ -36,6 +36,10 @@ mixin _$SongState {
   String get sortNotesBy => throw _privateConstructorUsedError;
   List<SongHistory> get histories => throw _privateConstructorUsedError;
   bool get playOnlyFavorite => throw _privateConstructorUsedError;
+  bool get shuffleMode => throw _privateConstructorUsedError;
+  List<int> get shuffleIndex => throw _privateConstructorUsedError;
+  bool get showAudio => throw _privateConstructorUsedError;
+  String get searchTerms => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -64,7 +68,11 @@ abstract class $SongStateCopyWith<$Res> {
       List<SongNote> notes,
       String sortNotesBy,
       List<SongHistory> histories,
-      bool playOnlyFavorite});
+      bool playOnlyFavorite,
+      bool shuffleMode,
+      List<int> shuffleIndex,
+      bool showAudio,
+      String searchTerms});
 
   $SongCopyWith<$Res>? get selectedSong;
 }
@@ -98,6 +106,10 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? sortNotesBy = null,
     Object? histories = null,
     Object? playOnlyFavorite = null,
+    Object? shuffleMode = null,
+    Object? shuffleIndex = null,
+    Object? showAudio = null,
+    Object? searchTerms = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -164,6 +176,22 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.playOnlyFavorite
           : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
               as bool,
+      shuffleMode: null == shuffleMode
+          ? _value.shuffleMode
+          : shuffleMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shuffleIndex: null == shuffleIndex
+          ? _value.shuffleIndex
+          : shuffleIndex // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      showAudio: null == showAudio
+          ? _value.showAudio
+          : showAudio // ignore: cast_nullable_to_non_nullable
+              as bool,
+      searchTerms: null == searchTerms
+          ? _value.searchTerms
+          : searchTerms // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 
@@ -203,7 +231,11 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       List<SongNote> notes,
       String sortNotesBy,
       List<SongHistory> histories,
-      bool playOnlyFavorite});
+      bool playOnlyFavorite,
+      bool shuffleMode,
+      List<int> shuffleIndex,
+      bool showAudio,
+      String searchTerms});
 
   @override
   $SongCopyWith<$Res>? get selectedSong;
@@ -236,6 +268,10 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? sortNotesBy = null,
     Object? histories = null,
     Object? playOnlyFavorite = null,
+    Object? shuffleMode = null,
+    Object? shuffleIndex = null,
+    Object? showAudio = null,
+    Object? searchTerms = null,
   }) {
     return _then(_$_SongState(
       isLoading: null == isLoading
@@ -299,6 +335,22 @@ class __$$_SongStateCopyWithImpl<$Res>
           ? _value.playOnlyFavorite
           : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
               as bool,
+      shuffleMode: null == shuffleMode
+          ? _value.shuffleMode
+          : shuffleMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shuffleIndex: null == shuffleIndex
+          ? _value._shuffleIndex
+          : shuffleIndex // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      showAudio: null == showAudio
+          ? _value.showAudio
+          : showAudio // ignore: cast_nullable_to_non_nullable
+              as bool,
+      searchTerms: null == searchTerms
+          ? _value.searchTerms
+          : searchTerms // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -322,11 +374,16 @@ class _$_SongState extends _SongState {
       final List<SongNote> notes = const [],
       this.sortNotesBy = 'Newest',
       final List<SongHistory> histories = const [],
-      this.playOnlyFavorite = false})
+      this.playOnlyFavorite = false,
+      this.shuffleMode = false,
+      final List<int> shuffleIndex = const [],
+      this.showAudio = false,
+      this.searchTerms = ''})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         _notes = notes,
         _histories = histories,
+        _shuffleIndex = shuffleIndex,
         super._();
 
   factory _$_SongState.fromJson(Map<String, dynamic> json) =>
@@ -404,10 +461,28 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final bool playOnlyFavorite;
+  @override
+  @JsonKey()
+  final bool shuffleMode;
+  final List<int> _shuffleIndex;
+  @override
+  @JsonKey()
+  List<int> get shuffleIndex {
+    if (_shuffleIndex is EqualUnmodifiableListView) return _shuffleIndex;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_shuffleIndex);
+  }
+
+  @override
+  @JsonKey()
+  final bool showAudio;
+  @override
+  @JsonKey()
+  final String searchTerms;
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms)';
   }
 
   @override
@@ -444,29 +519,42 @@ class _$_SongState extends _SongState {
             const DeepCollectionEquality()
                 .equals(other._histories, _histories) &&
             (identical(other.playOnlyFavorite, playOnlyFavorite) ||
-                other.playOnlyFavorite == playOnlyFavorite));
+                other.playOnlyFavorite == playOnlyFavorite) &&
+            (identical(other.shuffleMode, shuffleMode) ||
+                other.shuffleMode == shuffleMode) &&
+            const DeepCollectionEquality()
+                .equals(other._shuffleIndex, _shuffleIndex) &&
+            (identical(other.showAudio, showAudio) ||
+                other.showAudio == showAudio) &&
+            (identical(other.searchTerms, searchTerms) ||
+                other.searchTerms == searchTerms));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(
-      runtimeType,
-      isLoading,
-      isAudioLoading,
-      const DeepCollectionEquality().hash(_songBook),
-      const DeepCollectionEquality().hash(_favoriteSongBook),
-      bookCode,
-      pageIndex,
-      verseIndex,
-      const DeepCollectionEquality().hash(isImageMode),
-      textScaleFactor,
-      showSizer,
-      defaultAudioFormat,
-      selectedSong,
-      const DeepCollectionEquality().hash(_notes),
-      sortNotesBy,
-      const DeepCollectionEquality().hash(_histories),
-      playOnlyFavorite);
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        isLoading,
+        isAudioLoading,
+        const DeepCollectionEquality().hash(_songBook),
+        const DeepCollectionEquality().hash(_favoriteSongBook),
+        bookCode,
+        pageIndex,
+        verseIndex,
+        const DeepCollectionEquality().hash(isImageMode),
+        textScaleFactor,
+        showSizer,
+        defaultAudioFormat,
+        selectedSong,
+        const DeepCollectionEquality().hash(_notes),
+        sortNotesBy,
+        const DeepCollectionEquality().hash(_histories),
+        playOnlyFavorite,
+        shuffleMode,
+        const DeepCollectionEquality().hash(_shuffleIndex),
+        showAudio,
+        searchTerms
+      ]);
 
   @JsonKey(ignore: true)
   @override
@@ -499,7 +587,11 @@ abstract class _SongState extends SongState {
       final List<SongNote> notes,
       final String sortNotesBy,
       final List<SongHistory> histories,
-      final bool playOnlyFavorite}) = _$_SongState;
+      final bool playOnlyFavorite,
+      final bool shuffleMode,
+      final List<int> shuffleIndex,
+      final bool showAudio,
+      final String searchTerms}) = _$_SongState;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
@@ -537,6 +629,14 @@ abstract class _SongState extends SongState {
   List<SongHistory> get histories;
   @override
   bool get playOnlyFavorite;
+  @override
+  bool get shuffleMode;
+  @override
+  List<int> get shuffleIndex;
+  @override
+  bool get showAudio;
+  @override
+  String get searchTerms;
   @override
   @JsonKey(ignore: true)
   _$$_SongStateCopyWith<_$_SongState> get copyWith =>

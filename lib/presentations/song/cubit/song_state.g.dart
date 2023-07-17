@@ -37,6 +37,13 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
               .toList() ??
           const [],
       playOnlyFavorite: json['playOnlyFavorite'] as bool? ?? false,
+      shuffleMode: json['shuffleMode'] as bool? ?? false,
+      shuffleIndex: (json['shuffleIndex'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toList() ??
+          const [],
+      showAudio: json['showAudio'] as bool? ?? false,
+      searchTerms: json['searchTerms'] as String? ?? '',
     );
 
 Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
@@ -57,4 +64,8 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'sortNotesBy': instance.sortNotesBy,
       'histories': instance.histories,
       'playOnlyFavorite': instance.playOnlyFavorite,
+      'shuffleMode': instance.shuffleMode,
+      'shuffleIndex': instance.shuffleIndex,
+      'showAudio': instance.showAudio,
+      'searchTerms': instance.searchTerms,
     };

@@ -82,8 +82,9 @@ dependencies:
   dio: ^5.1.2
   flutter_quill: ^7.2.2
   multi_split_view: ^2.4.0
-  wakelock: ^0.4.0
   flutter_native_splash: ^2.3.1
+  permission_handler: ^10.4.3
+  wakelock_plus: ^1.1.1
 
 dev_dependencies:
   flutter_test:
@@ -99,6 +100,7 @@ dev_dependencies:
   freezed: ^2.3.2
   json_serializable: ^6.6.1
 dependency_overrides:
+
   flutter_pdfview: 1.2.9
   intl: ^0.18.1
 # For information on the generic Dart part of this file, see the

@@ -6,8 +6,9 @@ ThemeData darkTheme() {
   return ThemeData.dark(useMaterial3: true).copyWith(
     appBarTheme: AppBarTheme(
       systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent),
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.transparent,
+      ),
       titleTextStyle: TextStyle(
         fontWeight: FontWeight.w600,
         fontSize: 16,

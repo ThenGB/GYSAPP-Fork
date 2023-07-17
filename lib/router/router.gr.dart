@@ -136,6 +136,16 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    SongNotesListRoute.name: (routeData) {
+      final args = routeData.argsAs<SongNotesListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: SongNotesListView(
+          key: args.key,
+          cubit: args.cubit,
+        ),
+      );
+    },
     SongRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
@@ -156,38 +166,8 @@ abstract class _$AppRouter extends RootStackRouter {
           onFavorite: args.onFavorite,
           favoriteBooks: args.favoriteBooks,
           onTapFavorite: args.onTapFavorite,
-        ),
-      );
-    },
-    DashboardRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const DashboardView(),
-      );
-    },
-    FaithRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const FaithView(),
-      );
-    },
-    FaithNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<FaithNoteListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: FaithNoteListView(
-          key: args.key,
-          cubit: args.cubit,
-        ),
-      );
-    },
-    SongNotesListRoute.name: (routeData) {
-      final args = routeData.argsAs<SongNotesListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: SongNotesListView(
-          key: args.key,
-          cubit: args.cubit,
+          initialSearchText: args.initialSearchText,
+          onSearchTermsChanged: args.onSearchTermsChanged,
         ),
       );
     },
@@ -204,6 +184,22 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
+    DashboardRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const DashboardView(),
+      );
+    },
+    FaithNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<FaithNoteListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: FaithNoteListView(
+          key: args.key,
+          cubit: args.cubit,
+        ),
+      );
+    },
     FaithNoteRoute.name: (routeData) {
       final args = routeData.argsAs<FaithNoteRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -215,6 +211,12 @@ abstract class _$AppRouter extends RootStackRouter {
           mode: args.mode,
           onSave: args.onSave,
         ),
+      );
+    },
+    FaithRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const FaithView(),
       );
     },
   };
@@ -610,159 +612,6 @@ class WebpageRouteArgs {
 }
 
 /// generated route for
-/// [SongView]
-class SongRoute extends PageRouteInfo<void> {
-  const SongRoute({List<PageRouteInfo>? children})
-      : super(
-          SongRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'SongRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [SongListView]
-class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
-  SongListRoute({
-    Key? key,
-    required List<SongBook> Function() books,
-    required SongBook Function() currentBook,
-    required dynamic Function(String) onTapPageNumber,
-    required dynamic Function(String) onChangeBookCode,
-    required bool Function(Song) isFavorite,
-    required dynamic Function(Song) onFavorite,
-    required List<SongBook> Function() favoriteBooks,
-    required dynamic Function(Song) onTapFavorite,
-    List<PageRouteInfo>? children,
-  }) : super(
-          SongListRoute.name,
-          args: SongListRouteArgs(
-            key: key,
-            books: books,
-            currentBook: currentBook,
-            onTapPageNumber: onTapPageNumber,
-            onChangeBookCode: onChangeBookCode,
-            isFavorite: isFavorite,
-            onFavorite: onFavorite,
-            favoriteBooks: favoriteBooks,
-            onTapFavorite: onTapFavorite,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'SongListRoute';
-
-  static const PageInfo<SongListRouteArgs> page =
-      PageInfo<SongListRouteArgs>(name);
-}
-
-class SongListRouteArgs {
-  const SongListRouteArgs({
-    this.key,
-    required this.books,
-    required this.currentBook,
-    required this.onTapPageNumber,
-    required this.onChangeBookCode,
-    required this.isFavorite,
-    required this.onFavorite,
-    required this.favoriteBooks,
-    required this.onTapFavorite,
-  });
-
-  final Key? key;
-
-  final List<SongBook> Function() books;
-
-  final SongBook Function() currentBook;
-
-  final dynamic Function(String) onTapPageNumber;
-
-  final dynamic Function(String) onChangeBookCode;
-
-  final bool Function(Song) isFavorite;
-
-  final dynamic Function(Song) onFavorite;
-
-  final List<SongBook> Function() favoriteBooks;
-
-  final dynamic Function(Song) onTapFavorite;
-
-  @override
-  String toString() {
-    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite}';
-  }
-}
-
-/// generated route for
-/// [DashboardView]
-class DashboardRoute extends PageRouteInfo<void> {
-  const DashboardRoute({List<PageRouteInfo>? children})
-      : super(
-          DashboardRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'DashboardRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [FaithView]
-class FaithRoute extends PageRouteInfo<void> {
-  const FaithRoute({List<PageRouteInfo>? children})
-      : super(
-          FaithRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'FaithRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [FaithNoteListView]
-class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
-  FaithNoteListRoute({
-    Key? key,
-    required FaithCubit cubit,
-    List<PageRouteInfo>? children,
-  }) : super(
-          FaithNoteListRoute.name,
-          args: FaithNoteListRouteArgs(
-            key: key,
-            cubit: cubit,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'FaithNoteListRoute';
-
-  static const PageInfo<FaithNoteListRouteArgs> page =
-      PageInfo<FaithNoteListRouteArgs>(name);
-}
-
-class FaithNoteListRouteArgs {
-  const FaithNoteListRouteArgs({
-    this.key,
-    required this.cubit,
-  });
-
-  final Key? key;
-
-  final FaithCubit cubit;
-
-  @override
-  String toString() {
-    return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
-  }
-}
-
-/// generated route for
 /// [SongNotesListView]
 class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
   SongNotesListRoute({
@@ -797,6 +646,103 @@ class SongNotesListRouteArgs {
   @override
   String toString() {
     return 'SongNotesListRouteArgs{key: $key, cubit: $cubit}';
+  }
+}
+
+/// generated route for
+/// [SongView]
+class SongRoute extends PageRouteInfo<void> {
+  const SongRoute({List<PageRouteInfo>? children})
+      : super(
+          SongRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'SongRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [SongListView]
+class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
+  SongListRoute({
+    Key? key,
+    required List<SongBook> Function() books,
+    required SongBook Function() currentBook,
+    required dynamic Function(String) onTapPageNumber,
+    required dynamic Function(String) onChangeBookCode,
+    required bool Function(Song) isFavorite,
+    required dynamic Function(Song) onFavorite,
+    required List<SongBook> Function() favoriteBooks,
+    required dynamic Function(Song) onTapFavorite,
+    required String initialSearchText,
+    required dynamic Function(String) onSearchTermsChanged,
+    List<PageRouteInfo>? children,
+  }) : super(
+          SongListRoute.name,
+          args: SongListRouteArgs(
+            key: key,
+            books: books,
+            currentBook: currentBook,
+            onTapPageNumber: onTapPageNumber,
+            onChangeBookCode: onChangeBookCode,
+            isFavorite: isFavorite,
+            onFavorite: onFavorite,
+            favoriteBooks: favoriteBooks,
+            onTapFavorite: onTapFavorite,
+            initialSearchText: initialSearchText,
+            onSearchTermsChanged: onSearchTermsChanged,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'SongListRoute';
+
+  static const PageInfo<SongListRouteArgs> page =
+      PageInfo<SongListRouteArgs>(name);
+}
+
+class SongListRouteArgs {
+  const SongListRouteArgs({
+    this.key,
+    required this.books,
+    required this.currentBook,
+    required this.onTapPageNumber,
+    required this.onChangeBookCode,
+    required this.isFavorite,
+    required this.onFavorite,
+    required this.favoriteBooks,
+    required this.onTapFavorite,
+    required this.initialSearchText,
+    required this.onSearchTermsChanged,
+  });
+
+  final Key? key;
+
+  final List<SongBook> Function() books;
+
+  final SongBook Function() currentBook;
+
+  final dynamic Function(String) onTapPageNumber;
+
+  final dynamic Function(String) onChangeBookCode;
+
+  final bool Function(Song) isFavorite;
+
+  final dynamic Function(Song) onFavorite;
+
+  final List<SongBook> Function() favoriteBooks;
+
+  final dynamic Function(Song) onTapFavorite;
+
+  final String initialSearchText;
+
+  final dynamic Function(String) onSearchTermsChanged;
+
+  @override
+  String toString() {
+    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged}';
   }
 }
 
@@ -854,6 +800,58 @@ class SongNoteRouteArgs {
 }
 
 /// generated route for
+/// [DashboardView]
+class DashboardRoute extends PageRouteInfo<void> {
+  const DashboardRoute({List<PageRouteInfo>? children})
+      : super(
+          DashboardRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'DashboardRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [FaithNoteListView]
+class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
+  FaithNoteListRoute({
+    Key? key,
+    required FaithCubit cubit,
+    List<PageRouteInfo>? children,
+  }) : super(
+          FaithNoteListRoute.name,
+          args: FaithNoteListRouteArgs(
+            key: key,
+            cubit: cubit,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'FaithNoteListRoute';
+
+  static const PageInfo<FaithNoteListRouteArgs> page =
+      PageInfo<FaithNoteListRouteArgs>(name);
+}
+
+class FaithNoteListRouteArgs {
+  const FaithNoteListRouteArgs({
+    this.key,
+    required this.cubit,
+  });
+
+  final Key? key;
+
+  final FaithCubit cubit;
+
+  @override
+  String toString() {
+    return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
+  }
+}
+
+/// generated route for
 /// [FaithNoteView]
 class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
   FaithNoteRoute({
@@ -904,4 +902,18 @@ class FaithNoteRouteArgs {
   String toString() {
     return 'FaithNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
+}
+
+/// generated route for
+/// [FaithView]
+class FaithRoute extends PageRouteInfo<void> {
+  const FaithRoute({List<PageRouteInfo>? children})
+      : super(
+          FaithRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'FaithRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
 }

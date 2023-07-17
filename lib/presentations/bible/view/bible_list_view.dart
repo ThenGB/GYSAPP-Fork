@@ -127,9 +127,9 @@ class _BibleListViewState extends State<BibleListView> {
                               (e) => Container(
                                 padding: const EdgeInsets.all(2),
                                 width: isGridViewMode
-                                    ? (constraints.maxWidth / 7)
+                                    ? (constraints.maxWidth / 6)
                                     : constraints.maxWidth,
-                                height: constraints.maxWidth / 7,
+                                height: constraints.maxWidth / 6,
                                 child: Material(
                                   borderRadius: BorderRadius.circular(4),
                                   color: context.colorScheme.secondaryContainer,
@@ -175,9 +175,9 @@ class _BibleListViewState extends State<BibleListView> {
                                   (e) => Container(
                                     padding: const EdgeInsets.all(2),
                                     width: isGridViewMode
-                                        ? (constraints.maxWidth / 7)
+                                        ? (constraints.maxWidth / 6)
                                         : constraints.maxWidth,
-                                    height: constraints.maxWidth / 7,
+                                    height: constraints.maxWidth / 6,
                                     child: Material(
                                       borderRadius: BorderRadius.circular(4),
                                       color: context
@@ -223,9 +223,9 @@ class _BibleListViewState extends State<BibleListView> {
                   duration: kThemeAnimationDuration,
                   padding: const EdgeInsets.all(2),
                   width: isGridViewMode
-                      ? (constraints.maxWidth / 7)
+                      ? (constraints.maxWidth / 6)
                       : constraints.maxWidth,
-                  height: isGridViewMode ? (constraints.maxWidth / 7) : 48,
+                  height: isGridViewMode ? (constraints.maxWidth / 6) : 48,
                   child: Material(
                     borderRadius: BorderRadius.circular(4),
                     color: context.colorScheme.secondaryContainer,

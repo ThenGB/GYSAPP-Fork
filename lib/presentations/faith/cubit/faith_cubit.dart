@@ -6,6 +6,8 @@ import 'faith_state.dart';
 class FaithCubit extends HydratedCubit<FaithState> {
   FaithCubit() : super(FaithState());
 
+  bool get isSelectingFaith => state.selectedFaith.isNotEmpty;
+
   @override
   FaithState? fromJson(Map<String, dynamic> json) {
     return FaithState.fromJson(json);
