@@ -17,6 +17,10 @@ class Assets {
   /// assets/data/b_tb.db
   static const String assetsDataBTb = "assets/data/b_tb.db";
 
+  /// Assets for assetsDataEmailReport
+  /// assets/data/email_report.html
+  static const String assetsDataEmailReport = "assets/data/email_report.html";
+
   /// Assets for assetsDataFaith
   /// assets/data/faith.json
   static const String assetsDataFaith = "assets/data/faith.json";
@@ -2189,6 +2193,10 @@ class Assets {
   /// assets/icons/note.png
   static const String assetsIconsNote = "assets/icons/note.png";
 
+  /// Assets for assetsIconsOpenInApp
+  /// assets/icons/open_in_app.png
+  static const String assetsIconsOpenInApp = "assets/icons/open_in_app.png";
+
   /// Assets for assetsIconsPodcast
   /// assets/icons/podcast.png
   static const String assetsIconsPodcast = "assets/icons/podcast.png";
@@ -2209,6 +2217,10 @@ class Assets {
   /// assets/images/appicon.png
   static const String assetsImagesAppicon = "assets/images/appicon.png";
 
+  /// Assets for assetsImagesBackup
+  /// assets/images/backup.png
+  static const String assetsImagesBackup = "assets/images/backup.png";
+
   /// Assets for assetsImagesBuku
   /// assets/images/buku.webp
   static const String assetsImagesBuku = "assets/images/buku.webp";
@@ -2216,6 +2228,14 @@ class Assets {
   /// Assets for assetsImagesEmpty
   /// assets/images/empty.png
   static const String assetsImagesEmpty = "assets/images/empty.png";
+
+  /// Assets for assetsImagesEnFlag
+  /// assets/images/en_flag.png
+  static const String assetsImagesEnFlag = "assets/images/en_flag.png";
+
+  /// Assets for assetsImagesIdFlag
+  /// assets/images/id_flag.png
+  static const String assetsImagesIdFlag = "assets/images/id_flag.png";
 
   /// Assets for assetsImagesKesaksian
   /// assets/images/kesaksian.webp
@@ -2233,9 +2253,17 @@ class Assets {
   /// assets/images/pujian.webp
   static const String assetsImagesPujian = "assets/images/pujian.webp";
 
+  /// Assets for assetsImagesSplashIcon
+  /// assets/images/splash_icon.png
+  static const String assetsImagesSplashIcon = "assets/images/splash_icon.png";
+
   /// Assets for assetsImagesWartasejati
   /// assets/images/wartasejati.webp
   static const String assetsImagesWartasejati = "assets/images/wartasejati.webp";
+
+  /// Assets for assetsImagesZhFlag
+  /// assets/images/zh_flag.png
+  static const String assetsImagesZhFlag = "assets/images/zh_flag.png";
 
   /// Assets for assetsTranslationsEn
   /// assets/translations/en.json

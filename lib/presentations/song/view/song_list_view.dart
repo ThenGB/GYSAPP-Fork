@@ -6,9 +6,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 
-import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/data.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
+import '../../presentations.dart';
 
 @RoutePage()
 class SongListView extends StatefulWidget {
@@ -85,9 +86,33 @@ class _SongListViewState extends State<SongListView>
           },
         ),
       );
+
+      // Sort based on priority (Title match first, then Lyrics match)
+      // result.sort((a, b) {
+      //   var aNumber = int.tryParse(a.number?.toLowerNoSpace ?? '') ?? 0;
+      //   var bNumber = int.tryParse(b.number?.toLowerNoSpace ?? '') ?? 0;
+
+      //   var aTitle = a.title?.toLowerCase() ?? '';
+      //   var bTitle = b.title?.toLowerCase() ?? '';
+      //   var aLyric = a.verses.join().toLowerCase();
+      //   var bLyric = b.verses.join().toLowerCase();
+
+      //   if (aTitle.contains(value)) {
+      //     return -1; // Put aTitle first
+      //   } else if (bTitle.contains(value)) {
+      //     return 1; // Put bTitle first
+      //   } else {
+      //     if (aNumber != bNumber) {
+      //       return aNumber.compareTo(bNumber);
+      //     } else {
+      //       return aLyric.compareTo(bLyric);
+      //     }
+      //   }
+      // });
     } else {
       result = List.from(data);
     }
+
     return result;
   }
 
@@ -199,7 +224,7 @@ class _SongListViewState extends State<SongListView>
                         contentPadding: const EdgeInsets.symmetric(
                                 horizontal: 4, vertical: 8)
                             .add(
-                          const EdgeInsets.only(right: 100),
+                          const EdgeInsets.only(right: 100 + 48),
                         ),
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(8)),
@@ -210,6 +235,7 @@ class _SongListViewState extends State<SongListView>
                       child: Align(
                         alignment: Alignment.centerRight,
                         child: PopupMenuButton(
+                          offset: Offset(0, 48),
                           onSelected: (value) async {
                             await widget.onChangeBookCode(value);
                             await Future.delayed(
@@ -226,24 +252,41 @@ class _SongListViewState extends State<SongListView>
                                     value: e.code, child: Text(e.code ?? '')))
                                 .toList();
                           },
-                          child: Container(
-                              width: 100,
-                              alignment: Alignment.center,
-                              margin: const EdgeInsets.all(2),
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 16),
-                              decoration: BoxDecoration(
-                                borderRadius: const BorderRadius.horizontal(
-                                    right: Radius.circular(7)),
-                                color: context.colorScheme.secondaryContainer,
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AnimatedBuilder(
+                                animation: searchController,
+                                builder: (context, child) =>
+                                    searchController.text.isEmpty
+                                        ? SizedBox.shrink()
+                                        : CloseButton(
+                                            onPressed: () {
+                                              searchController.clear();
+                                            },
+                                          ),
                               ),
-                              child: Text(
-                                widget.currentBook().code ?? '',
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                ),
-                              )),
+                              Container(
+                                  width: 100,
+                                  alignment: Alignment.center,
+                                  margin: const EdgeInsets.all(2),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16),
+                                  decoration: BoxDecoration(
+                                    borderRadius: const BorderRadius.horizontal(
+                                        right: Radius.circular(7)),
+                                    color:
+                                        context.colorScheme.secondaryContainer,
+                                  ),
+                                  child: Text(
+                                    widget.currentBook().code ?? '',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  )),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -288,7 +331,7 @@ class _SongListViewState extends State<SongListView>
                                       : null,
                                 )),
                             title: Text(
-                              item.title ?? '',
+                              (item.title ?? '').capitalizeEachWord(),
                             ),
                           ),
                         ),
@@ -300,60 +343,71 @@ class _SongListViewState extends State<SongListView>
               ),
             ]),
           ),
-          ListView.builder(
-            itemCount: widget.favoriteBooks().length,
-            itemBuilder: (context, index) {
-              var book = widget.favoriteBooks()[index];
-              if (book.songs.isEmpty) return const SizedBox();
-              return Column(
-                children: [
-                  ListTile(
-                    title: Text(book.code ?? ''),
-                  ),
-                  ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: book.songs.length,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemBuilder: (context, index) {
-                      var item = book.songs[index];
-                      return Column(
-                        children: [
-                          ListTile(
-                            onTap: () {
-                              widget
-                                  .onSearchTermsChanged(searchController.text);
-                              widget.onTapFavorite(item);
-                            },
-                            leading: Text(item.number ?? ''),
-                            trailing: IconButton(
-                                onPressed: () async {
-                                  widget.onFavorite(item);
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 100));
-                                  setState(() {
-                                    forceRefresh++;
-                                  });
-                                },
-                                icon: Icon(
-                                  widget.isFavorite(item)
-                                      ? Icons.star_rounded
-                                      : Icons.star_border_rounded,
-                                  color: widget.isFavorite(item)
-                                      ? Colors.amber
-                                      : null,
-                                )),
-                            title: Text(
-                              item.title ?? '',
+          Visibility(
+            visible: widget.favoriteBooks().fold<int>(
+                    0,
+                    (previousValue, element) =>
+                        previousValue + element.songs.length) >
+                0,
+            replacement: NoDataFound(
+              title: 'No favorite',
+              description: 'Add favorite and see it here'.tr(),
+            ),
+            child: ListView.builder(
+              itemCount: widget.favoriteBooks().length,
+              itemBuilder: (context, index) {
+                var book = widget.favoriteBooks()[index];
+                if (book.songs.isEmpty) return const SizedBox();
+                return Column(
+                  children: [
+                    ListTile(
+                      title: Text(book.code ?? ''),
+                    ),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: book.songs.length,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemBuilder: (context, index) {
+                        var item = book.songs[index];
+                        return Column(
+                          children: [
+                            ListTile(
+                              onTap: () {
+                                widget.onSearchTermsChanged(
+                                    searchController.text);
+                                widget.onTapFavorite(item);
+                              },
+                              leading: Text(item.number ?? ''),
+                              trailing: IconButton(
+                                  onPressed: () async {
+                                    widget.onFavorite(item);
+                                    await Future.delayed(
+                                        const Duration(milliseconds: 100));
+                                    setState(() {
+                                      forceRefresh++;
+                                    });
+                                  },
+                                  icon: Icon(
+                                    widget.isFavorite(item)
+                                        ? Icons.star_rounded
+                                        : Icons.star_border_rounded,
+                                    color: widget.isFavorite(item)
+                                        ? Colors.amber
+                                        : null,
+                                  )),
+                              title: Text(
+                                item.title ?? '',
+                              ),
                             ),
-                          ),
-                          const Divider(height: 1),
-                        ],
-                      );
-                    },
-                  )
-                ],
-              );
-            },
+                            const Divider(height: 1),
+                          ],
+                        );
+                      },
+                    )
+                  ],
+                );
+              },
+            ),
           ),
         ],
       ),

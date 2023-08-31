@@ -23,6 +23,10 @@ mixin _$FaithState {
   List<int> get selectedFaith => throw _privateConstructorUsedError;
   List<FaithNote> get notes => throw _privateConstructorUsedError;
   String get sortNotesBy => throw _privateConstructorUsedError;
+  String get language => throw _privateConstructorUsedError;
+  String get defaultFont => throw _privateConstructorUsedError;
+  double get defaultTextScale => throw _privateConstructorUsedError;
+  double get defaultTextHeight => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -37,7 +41,13 @@ abstract class $FaithStateCopyWith<$Res> {
       _$FaithStateCopyWithImpl<$Res, FaithState>;
   @useResult
   $Res call(
-      {List<int> selectedFaith, List<FaithNote> notes, String sortNotesBy});
+      {List<int> selectedFaith,
+      List<FaithNote> notes,
+      String sortNotesBy,
+      String language,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight});
 }
 
 /// @nodoc
@@ -56,6 +66,10 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
     Object? selectedFaith = null,
     Object? notes = null,
     Object? sortNotesBy = null,
+    Object? language = null,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
   }) {
     return _then(_value.copyWith(
       selectedFaith: null == selectedFaith
@@ -70,6 +84,22 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
           ? _value.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
               as String,
+      language: null == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _value.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -83,7 +113,13 @@ abstract class _$$_FaithStateCopyWith<$Res>
   @override
   @useResult
   $Res call(
-      {List<int> selectedFaith, List<FaithNote> notes, String sortNotesBy});
+      {List<int> selectedFaith,
+      List<FaithNote> notes,
+      String sortNotesBy,
+      String language,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight});
 }
 
 /// @nodoc
@@ -100,6 +136,10 @@ class __$$_FaithStateCopyWithImpl<$Res>
     Object? selectedFaith = null,
     Object? notes = null,
     Object? sortNotesBy = null,
+    Object? language = null,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
   }) {
     return _then(_$_FaithState(
       selectedFaith: null == selectedFaith
@@ -114,6 +154,22 @@ class __$$_FaithStateCopyWithImpl<$Res>
           ? _value.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
               as String,
+      language: null == language
+          ? _value.language
+          : language // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _value.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -124,7 +180,11 @@ class _$_FaithState extends _FaithState {
   const _$_FaithState(
       {final List<int> selectedFaith = const [],
       final List<FaithNote> notes = const [],
-      this.sortNotesBy = 'Newest'})
+      this.sortNotesBy = 'Newest',
+      this.language = 'id',
+      this.defaultFont = 'Roboto',
+      this.defaultTextScale = 1.2,
+      this.defaultTextHeight = 1.5})
       : _selectedFaith = selectedFaith,
         _notes = notes,
         super._();
@@ -153,10 +213,22 @@ class _$_FaithState extends _FaithState {
   @override
   @JsonKey()
   final String sortNotesBy;
+  @override
+  @JsonKey()
+  final String language;
+  @override
+  @JsonKey()
+  final String defaultFont;
+  @override
+  @JsonKey()
+  final double defaultTextScale;
+  @override
+  @JsonKey()
+  final double defaultTextHeight;
 
   @override
   String toString() {
-    return 'FaithState(selectedFaith: $selectedFaith, notes: $notes, sortNotesBy: $sortNotesBy)';
+    return 'FaithState(selectedFaith: $selectedFaith, notes: $notes, sortNotesBy: $sortNotesBy, language: $language, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
   }
 
   @override
@@ -168,7 +240,15 @@ class _$_FaithState extends _FaithState {
                 .equals(other._selectedFaith, _selectedFaith) &&
             const DeepCollectionEquality().equals(other._notes, _notes) &&
             (identical(other.sortNotesBy, sortNotesBy) ||
-                other.sortNotesBy == sortNotesBy));
+                other.sortNotesBy == sortNotesBy) &&
+            (identical(other.language, language) ||
+                other.language == language) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultTextHeight, defaultTextHeight) ||
+                other.defaultTextHeight == defaultTextHeight));
   }
 
   @JsonKey(ignore: true)
@@ -177,7 +257,11 @@ class _$_FaithState extends _FaithState {
       runtimeType,
       const DeepCollectionEquality().hash(_selectedFaith),
       const DeepCollectionEquality().hash(_notes),
-      sortNotesBy);
+      sortNotesBy,
+      language,
+      defaultFont,
+      defaultTextScale,
+      defaultTextHeight);
 
   @JsonKey(ignore: true)
   @override
@@ -197,7 +281,11 @@ abstract class _FaithState extends FaithState {
   const factory _FaithState(
       {final List<int> selectedFaith,
       final List<FaithNote> notes,
-      final String sortNotesBy}) = _$_FaithState;
+      final String sortNotesBy,
+      final String language,
+      final String defaultFont,
+      final double defaultTextScale,
+      final double defaultTextHeight}) = _$_FaithState;
   const _FaithState._() : super._();
 
   factory _FaithState.fromJson(Map<String, dynamic> json) =
@@ -209,6 +297,14 @@ abstract class _FaithState extends FaithState {
   List<FaithNote> get notes;
   @override
   String get sortNotesBy;
+  @override
+  String get language;
+  @override
+  String get defaultFont;
+  @override
+  double get defaultTextScale;
+  @override
+  double get defaultTextHeight;
   @override
   @JsonKey(ignore: true)
   _$$_FaithStateCopyWith<_$_FaithState> get copyWith =>

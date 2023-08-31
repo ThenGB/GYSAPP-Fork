@@ -20,13 +20,13 @@ Verse _$VerseFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$Verse {
-  @JsonKey(name: 'id')
+  @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
   int get id => throw _privateConstructorUsedError;
-  @JsonKey(name: 'b')
+  @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
   int get bookId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'c')
+  @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
   int get chapterId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'v')
+  @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
   int get verseId => throw _privateConstructorUsedError;
   @JsonKey(name: 't')
   String? get verse => throw _privateConstructorUsedError;
@@ -34,7 +34,7 @@ mixin _$Verse {
   int? get revisionId => throw _privateConstructorUsedError;
   @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get c1 => throw _privateConstructorUsedError;
-  @JsonKey(name: 'v1')
+  @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get v1 => throw _privateConstructorUsedError;
   @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
   Color? get color => throw _privateConstructorUsedError;
@@ -50,13 +50,13 @@ abstract class $VerseCopyWith<$Res> {
       _$VerseCopyWithImpl<$Res, Verse>;
   @useResult
   $Res call(
-      {@JsonKey(name: 'id')
+      {@JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
           int id,
-      @JsonKey(name: 'b')
+      @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
           int bookId,
-      @JsonKey(name: 'c')
+      @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
           int chapterId,
-      @JsonKey(name: 'v')
+      @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
           int verseId,
       @JsonKey(name: 't')
           String? verse,
@@ -64,7 +64,7 @@ abstract class $VerseCopyWith<$Res> {
           int? revisionId,
       @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? c1,
-      @JsonKey(name: 'v1')
+      @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? v1,
       @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
           Color? color});
@@ -141,13 +141,13 @@ abstract class _$$_VerseCopyWith<$Res> implements $VerseCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {@JsonKey(name: 'id')
+      {@JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
           int id,
-      @JsonKey(name: 'b')
+      @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
           int bookId,
-      @JsonKey(name: 'c')
+      @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
           int chapterId,
-      @JsonKey(name: 'v')
+      @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
           int verseId,
       @JsonKey(name: 't')
           String? verse,
@@ -155,7 +155,7 @@ abstract class _$$_VerseCopyWith<$Res> implements $VerseCopyWith<$Res> {
           int? revisionId,
       @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? c1,
-      @JsonKey(name: 'v1')
+      @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
           String? v1,
       @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
           Color? color});
@@ -225,13 +225,13 @@ class __$$_VerseCopyWithImpl<$Res> extends _$VerseCopyWithImpl<$Res, _$_Verse>
 @JsonSerializable()
 class _$_Verse extends _Verse {
   const _$_Verse(
-      {@JsonKey(name: 'id')
+      {@JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
           required this.id,
-      @JsonKey(name: 'b')
+      @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
           required this.bookId,
-      @JsonKey(name: 'c')
+      @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
           required this.chapterId,
-      @JsonKey(name: 'v')
+      @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
           required this.verseId,
       @JsonKey(name: 't')
           this.verse,
@@ -239,7 +239,7 @@ class _$_Verse extends _Verse {
           this.revisionId,
       @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           this.c1,
-      @JsonKey(name: 'v1')
+      @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
           this.v1,
       @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
           this.color})
@@ -249,16 +249,16 @@ class _$_Verse extends _Verse {
       _$$_VerseFromJson(json);
 
   @override
-  @JsonKey(name: 'id')
+  @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
   final int id;
   @override
-  @JsonKey(name: 'b')
+  @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
   final int bookId;
   @override
-  @JsonKey(name: 'c')
+  @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
   final int chapterId;
   @override
-  @JsonKey(name: 'v')
+  @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
   final int verseId;
   @override
   @JsonKey(name: 't')
@@ -270,7 +270,7 @@ class _$_Verse extends _Verse {
   @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   final String? c1;
   @override
-  @JsonKey(name: 'v1')
+  @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
   final String? v1;
   @override
   @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
@@ -320,13 +320,13 @@ class _$_Verse extends _Verse {
 
 abstract class _Verse extends Verse {
   const factory _Verse(
-      {@JsonKey(name: 'id')
+      {@JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
           required final int id,
-      @JsonKey(name: 'b')
+      @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
           required final int bookId,
-      @JsonKey(name: 'c')
+      @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
           required final int chapterId,
-      @JsonKey(name: 'v')
+      @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
           required final int verseId,
       @JsonKey(name: 't')
           final String? verse,
@@ -334,7 +334,7 @@ abstract class _Verse extends Verse {
           final int? revisionId,
       @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
           final String? c1,
-      @JsonKey(name: 'v1')
+      @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
           final String? v1,
       @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
           final Color? color}) = _$_Verse;
@@ -343,16 +343,16 @@ abstract class _Verse extends Verse {
   factory _Verse.fromJson(Map<String, dynamic> json) = _$_Verse.fromJson;
 
   @override
-  @JsonKey(name: 'id')
+  @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
   int get id;
   @override
-  @JsonKey(name: 'b')
+  @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
   int get bookId;
   @override
-  @JsonKey(name: 'c')
+  @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
   int get chapterId;
   @override
-  @JsonKey(name: 'v')
+  @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
   int get verseId;
   @override
   @JsonKey(name: 't')
@@ -364,7 +364,7 @@ abstract class _Verse extends Verse {
   @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get c1;
   @override
-  @JsonKey(name: 'v1')
+  @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
   String? get v1;
   @override
   @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)

@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import '../../../components/widgets/drag_handler.dart';
 import '../../../components/widgets/section.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
-import '../../settings/view/settings_view.dart';
+import '../../../data/utilities/functions/measurewidgetsize.dart';
 import '../cubit/bible_cubit.dart';
 
 class BibleSelectWidget extends StatefulWidget {
@@ -26,9 +26,9 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
   @override
   void initState() {
     measureWidgetSize(
-      context: context,
-      widgetKeys: [handlerKey, bodyKey],
-      setState: (height) {
+      context,
+      keys: [handlerKey, bodyKey],
+      callback: (height) {
         childHeight = height;
         setState(() {});
       },
@@ -50,11 +50,11 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
         return Material(
           color: context.colorScheme.background,
           borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
+            top: Radius.circular(12),
           ),
           child: SingleChildScrollView(
             controller: scrollController,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            // padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -62,27 +62,28 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
                   key: handlerKey,
                 ),
                 Section(
-                    key: bodyKey,
-                    label: 'Select Bible Version'.tr(),
-                    child: (gap) => SingleChildScrollView(
-                          child: SafeArea(
-                            child: Column(
-                              children: [
-                                ...List.generate(
-                                  widget.bibleCodes.length,
-                                  (index) => ListTile(
-                                    onTap: () {
-                                      widget.onTap(index);
-                                    },
-                                    title: Text(
-                                      '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${getBibleCodeName(widget.bibleCodes[index].split('_').last.toUpperCase())}',
-                                    ),
-                                  ),
-                                ),
-                              ],
+                  key: bodyKey,
+                  label: 'Select Bible Version'.tr(),
+                  child: (gap) => SingleChildScrollView(
+                    child: Material(
+                      child: Column(
+                        children: [
+                          ...List.generate(
+                            widget.bibleCodes.length,
+                            (index) => ListTile(
+                              onTap: () {
+                                widget.onTap(index);
+                              },
+                              title: Text(
+                                '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${getBibleCodeName(widget.bibleCodes[index].split('_').last.toUpperCase())}',
+                              ),
                             ),
                           ),
-                        )),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),

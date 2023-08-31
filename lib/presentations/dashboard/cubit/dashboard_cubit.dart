@@ -2,14 +2,20 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ftpconnect/ftpconnect.dart';
+// ignore: implementation_imports
+import 'package:ftpconnect/src/ftp_entry.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path/path.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/config_literature/config_literature_entity.dart';
 import '../../../domain/repository/account_repository.dart';
 import 'dashboard_state.dart';
+
+export 'dashboard_state.dart';
 
 class DashboardCubit extends HydratedCubit<DashboardState> {
   final AccountRepository accountRepository;
@@ -19,22 +25,22 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
         emit(state.copyWith(isError: true));
         return;
       }
-      Future.delayed(const Duration(seconds: 1)).then((value) async {
-        await syncBible();
-      });
+      // Future.delayed(const Duration(seconds: 1)).then((value) async {
+      //   await syncBible();
+      // });
     });
   }
 
-  loginSuccessCallback(String? token) {
+  Future loginSuccessCallback(String? token) async {
     emit(state.copyWith(idToken: token));
     if (token != null) {
-      getProfile(token);
+      await getProfile(token);
     } else {
       emit(state.copyWith(account: null));
     }
   }
 
-  getProfile(String token) async {
+  Future getProfile(String token) async {
     final response = await accountRepository.getProfile(token);
     response.fold(
       (failure) {
@@ -63,7 +69,10 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
         // _File (File: '/data/user/0/com.itmandiri.egys/cache/bible/b_tb.db')
         var difference = content.modifyTime
                 ?.difference(
-                    state.lastSync ?? content.modifyTime ?? DateTime.now())
+                  state.lastSync[content.name] ??
+                      content.modifyTime ??
+                      DateTime.now(),
+                )
                 .inDays ??
             0;
         if (difference.isNegative && file.existsSync()) {
@@ -71,7 +80,9 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
           continue;
         }
         if (!file.existsSync()) {
-          file.createSync(recursive: true);
+          // continue;
+          file.createSync(
+              recursive: true); // diubah, karena tidak download otomatis lagi
         }
         var downloaded = await connection.downloadFile(
           content.name,
@@ -88,12 +99,65 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
         files.add(file.path);
       }
       await connection.disconnect();
-      emit(state.copyWith(lastSync: DateTime.now()));
     } catch (e) {
       log(e.toString());
     }
     emit(state.copyWith(isSyncing: false));
     return files;
+  }
+
+  bool isListing = false;
+  List<FTPEntry> lastContent = [];
+
+  Future<List<FTPEntry>> listNetworkBibles(bool reload) async {
+    try {
+      if (isListing || reload) {
+        return lastContent;
+      }
+      isListing = true;
+      await ftp!.connect();
+      await Future.delayed(const Duration(seconds: 1));
+      await ftp!.changeDirectory(state.biblePath);
+      await Future.delayed(const Duration(seconds: 1));
+      var contents = await ftp!.listDirectoryContent();
+      await Future.delayed(const Duration(seconds: 1));
+      await ftp!.disconnect();
+      await Future.delayed(const Duration(seconds: 1));
+      lastContent = List.from(contents);
+      return contents;
+    } catch (e) {
+      ftp!.disconnect();
+      if (e is FTPConnectException) {
+        Fluttertoast.cancel();
+        Fluttertoast.showToast(msg: e.message);
+      }
+      return Future.error("Can't connect to the network");
+    } finally {
+      isListing = false;
+    }
+  }
+
+  Future<bool> downloadBible(
+      String sRemoteName,
+      File fFile,
+      Function(double progressInPercent, int totalReceived, int fileSize)
+          onProgress) async {
+    try {
+      await ftp!.connect();
+      await ftp!.changeDirectory(state.biblePath);
+      var downloaded =
+          await ftp!.downloadFile(sRemoteName, fFile, onProgress: onProgress);
+      await ftp!.disconnect();
+      if (downloaded) {
+        Map<String, DateTime> lastSync = Map.from(state.lastSync);
+        lastSync[basename(sRemoteName)] = DateTime.now();
+        emit(state.copyWith(lastSync: lastSync));
+      }
+      return downloaded;
+    } catch (e) {
+      await ftp!.disconnect();
+      return false;
+    }
   }
 
   setPaths() async {

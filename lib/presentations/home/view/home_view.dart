@@ -11,17 +11,16 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../components/widgets/section.dart';
+import '../../../components/components.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/functions/measurewidgetsize.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../domain/entity/banner/banner.dart';
 import '../../../domain/entity/menulink/menulink_entity.dart';
 import '../../../domain/entity/sauh/sauh_entity.dart';
 import '../../../domain/entity/truevoice/truevoice_entity.dart';
 import '../../../router/router.dart';
-import '../../dashboard/cubit/dashboard_cubit.dart';
-import '../../dashboard/cubit/dashboard_state.dart';
-import '../bloc/home_cubit.dart';
+import '../../presentations.dart';
 
 @RoutePage()
 class HomeView extends StatelessWidget {
@@ -58,33 +57,33 @@ class HomeView extends StatelessWidget {
                           return const SizedBox.shrink();
                         }
                         return Section(
-                          child: (gap) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: gap),
-                            child: CarouselSlider.builder(
-                              itemCount: banners.length,
-                              itemBuilder: (context, index, realIndex) {
-                                var banner = banners[index];
-                                return Container(
-                                  width: double.infinity,
+                          child: (gap) => CarouselSlider.builder(
+                            itemCount: banners.length,
+                            itemBuilder: (context, index, realIndex) {
+                              var banner = banners[index];
+                              return Container(
+                                width: double.infinity,
+                                clipBehavior: Clip.hardEdge,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(4),
                                   color: Colors.transparent,
-                                  child: CachedNetworkImage(
-                                    imageUrl: banner.imageUrl ?? '',
-                                    fit: BoxFit.cover,
-                                    placeholder: (context, url) => const Center(
-                                      child: CircularProgressIndicator(),
-                                    ),
-                                    errorWidget: (context, url, error) =>
-                                        const Icon(Icons.error),
+                                ),
+                                child: CachedNetworkImage(
+                                  imageUrl: banner.imageUrl ?? '',
+                                  fit: BoxFit.cover,
+                                  placeholder: (context, url) => const Center(
+                                    child: CircularProgressIndicator(),
                                   ),
-                                );
-                              },
-                              options: CarouselOptions(
-                                height: 110,
-                                enlargeFactor: 1,
-                                enlargeStrategy:
-                                    CenterPageEnlargeStrategy.scale,
-                                viewportFraction: 1,
-                              ),
+                                  errorWidget: (context, url, error) =>
+                                      const Icon(Icons.error),
+                                ),
+                              );
+                            },
+                            options: CarouselOptions(
+                              height: 110,
+                              enlargeFactor: 1,
+                              enlargeStrategy: CenterPageEnlargeStrategy.scale,
+                              viewportFraction: 1,
                             ),
                           ),
                         );
@@ -184,67 +183,7 @@ class LinkLainnya extends StatelessWidget {
                               isScrollControlled: true,
                               elevation: 0,
                               backgroundColor: Colors.transparent,
-                              builder: (context) => DraggableScrollableSheet(
-                                expand: false,
-                                maxChildSize: .3,
-                                initialChildSize: .3,
-                                minChildSize: .2,
-                                builder: (context, scrollController) =>
-                                    Container(
-                                  decoration: BoxDecoration(
-                                    color: context.colorScheme.background,
-                                    borderRadius: const BorderRadius.vertical(
-                                      top: Radius.circular(32),
-                                    ),
-                                  ),
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        margin: const EdgeInsets.all(16),
-                                        height: 4,
-                                        width: 64,
-                                        decoration: BoxDecoration(
-                                          color: context.theme.disabledColor,
-                                          borderRadius:
-                                              BorderRadius.circular(100),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: ListView(
-                                          shrinkWrap: true,
-                                          controller: scrollController,
-                                          children: [
-                                            ListTile(
-                                              onTap: () {
-                                                router.popAndPush(WebpageRoute(
-                                                    url:
-                                                        'https://tjc.org/id/sabat/'));
-                                              },
-                                              title: Text('Ibadah online'.tr()),
-                                            ),
-                                            ListTile(
-                                              onTap: () {
-                                                router.popAndPush(WebpageRoute(
-                                                    url:
-                                                        'https://tjc.org/id/audio-khotbah/'));
-                                              },
-                                              title: Text('Audio Khotbah'.tr()),
-                                            ),
-                                            ListTile(
-                                              onTap: () {
-                                                router.popAndPush(WebpageRoute(
-                                                    url:
-                                                        'https://tjc.org/id/video-khotbah/'));
-                                              },
-                                              title: Text('Video Khotbah'.tr()),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              builder: (context) => IbadahPopup(),
                             );
                             return;
                           }
@@ -296,6 +235,106 @@ class LinkLainnya extends StatelessWidget {
   }
 }
 
+class IbadahPopup extends StatefulWidget {
+  const IbadahPopup({
+    super.key,
+  });
+
+  @override
+  State<IbadahPopup> createState() => _IbadahPopupState();
+}
+
+class _IbadahPopupState extends State<IbadahPopup> {
+  ValueNotifier<double> childHeight = ValueNotifier(0.001);
+
+  GlobalKey widgetKey = GlobalKey();
+  GlobalKey handlerKey = GlobalKey();
+
+  @override
+  void didChangeDependencies() {
+    measureWidgetSize(
+      context,
+      keys: [widgetKey, handlerKey],
+      callback: (result) {
+        childHeight.value = result;
+      },
+    );
+    super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    childHeight.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder(
+      valueListenable: childHeight,
+      builder: (context, childHeight, child) => DraggableScrollableSheet(
+        expand: false,
+        maxChildSize: childHeight,
+        initialChildSize: childHeight,
+        minChildSize: (childHeight - .2).clamp(0.001, 1),
+        snap: true,
+        builder: (context, scrollController) => Container(
+          key: widgetKey,
+          padding: context.mediaQuery.viewInsets,
+          clipBehavior: Clip.hardEdge,
+          decoration: BoxDecoration(
+            color: context.colorScheme.background,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(12),
+            ),
+          ),
+          child: Column(
+            children: [
+              DragHandler(key: handlerKey),
+              Expanded(
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: Section(
+                    key: widgetKey,
+                    label: 'Ibadah'.tr(),
+                    child: (gap) => Material(
+                      child: Column(
+                        children: [
+                          ListTile(
+                            onTap: () {
+                              router.popAndPush(WebpageRoute(
+                                  url: 'https://tjc.org/id/sabat/'));
+                            },
+                            title: Text('⛪ ${'Ibadah online'.tr()}'),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              router.popAndPush(WebpageRoute(
+                                  url: 'https://tjc.org/id/audio-khotbah/'));
+                            },
+                            title: Text('🎤 ${'Audio Khotbah'.tr()}'),
+                          ),
+                          ListTile(
+                            onTap: () {
+                              router.popAndPush(WebpageRoute(
+                                  url: 'https://tjc.org/id/video-khotbah/'));
+                            },
+                            title: Text('📹 ${'Video Khotbah'.tr()}'),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class SauhBagiJiwa extends StatelessWidget {
   final Sauh item;
   const SauhBagiJiwa({
@@ -306,7 +345,7 @@ class SauhBagiJiwa extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section(
-      label: 'Sauh Bagi Jiwa',
+      label: 'Sauh Bagi Jiwa'.tr(),
       child: (gap) => InkWell(
         onTap: () {
           // FlutterWebBrowser.openWebPage(url: item.url);
@@ -319,7 +358,11 @@ class SauhBagiJiwa extends StatelessWidget {
             color: Colors.white,
           ),
           child: Container(
-            padding: EdgeInsets.symmetric(horizontal: gap),
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(4),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: gap),
             child: Stack(
               children: [
                 CachedNetworkImage(
@@ -376,7 +419,7 @@ class SuaraSejati extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Section(
-        label: 'Suara Sejati',
+        label: 'Suara Sejati'.tr(),
         child: (gap) => SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               padding: EdgeInsets.only(left: gap),
@@ -389,10 +432,11 @@ class SuaraSejati extends StatelessWidget {
                           router.push(WebpageRoute(url: e.url));
                         },
                         child: Container(
-                          width: 165,
+                          width: 165 * context.mediaQuery.textScaleFactor,
                           margin: const EdgeInsets.only(right: 4),
-                          height: 143,
+                          height: 143 * context.mediaQuery.textScaleFactor,
                           decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
                             border: Border.all(
                               color: context.theme.dividerColor,
                             ),
@@ -401,9 +445,11 @@ class SuaraSejati extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               ClipRRect(
+                                borderRadius: BorderRadius.circular(4),
                                 child: Container(
                                   color: Colors.grey,
-                                  height: 95,
+                                  height:
+                                      95 * context.mediaQuery.textScaleFactor,
                                   width: double.infinity,
                                   child: CachedNetworkImage(
                                     imageUrl: e.imageUrl,
@@ -412,8 +458,11 @@ class SuaraSejati extends StatelessWidget {
                                 ),
                               ),
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
+                                padding: EdgeInsets.symmetric(
+                                    horizontal:
+                                        8 * context.mediaQuery.textScaleFactor,
+                                    vertical:
+                                        4 * context.mediaQuery.textScaleFactor),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -421,6 +470,12 @@ class SuaraSejati extends StatelessWidget {
                                       e.title,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 12,
+                                        color:
+                                            context.textColor?.withOpacity(.87),
+                                      ),
                                     ),
                                     const SizedBox(
                                       height: 4,
@@ -429,9 +484,10 @@ class SuaraSejati extends StatelessWidget {
                                       e.description.trim(),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: const TextStyle(
-                                        fontSize: 10,
-                                      ),
+                                      style: TextStyle(
+                                          fontSize: 10,
+                                          color: context.textColor
+                                              ?.withOpacity(.65)),
                                     ),
                                   ],
                                 ),

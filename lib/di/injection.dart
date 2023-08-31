@@ -3,31 +3,18 @@ import 'dart:developer';
 import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path_provider/path_provider.dart';
 
-import '../data/repository/account_repository_impl.dart';
-import '../data/repository/auth_repository_impl.dart';
-import '../data/repository/bible_repository_impl.dart';
-import '../data/repository/scrapper_repository_impl.dart';
-import '../data/repository/song_repository_impl.dart';
-import '../domain/entity/appconfig/appconfig.dart';
-import '../domain/repository/account_repository.dart';
-import '../domain/repository/auth_repository.dart';
-import '../domain/repository/bible_repository.dart';
-import '../domain/repository/scrapper_repository.dart';
-import '../domain/repository/song_repository.dart';
-import '../presentations/auth/cubit/auth_cubit.dart';
-import '../presentations/bible/cubit/bible_cubit.dart';
-import '../presentations/dashboard/cubit/dashboard_cubit.dart';
-import '../presentations/faith/cubit/faith_cubit.dart';
-import '../presentations/home/bloc/home_cubit.dart';
-import '../presentations/initial/bloc/initial_cubit.dart';
-import '../presentations/literature/cubit/kesaksian/literature_kesaksian_cubit.dart';
-import '../presentations/literature/cubit/panduan/literature_panduan_cubit.dart';
-import '../presentations/literature/cubit/renungan/literature_renungan_cubit.dart';
-import '../presentations/literature/cubit/warta/literature_warta_cubit.dart';
-import '../presentations/settings/cubit/settings_cubit.dart';
-import '../presentations/song/cubit/song_cubit.dart';
+import '../data/data.dart';
+import '../data/repository/backupsync_repository_impl.dart';
+import '../data/repository/google_repository_impl.dart';
+import '../data/utilities/encrypt.dart';
+import '../domain/domain.dart';
+import '../domain/repository/backupsync_repository.dart';
+import '../domain/repository/google_repository.dart';
+import '../presentations/presentations.dart';
 
 var di = GetIt.I;
 AppConfig get config => di<AppConfig>();
@@ -51,6 +38,7 @@ _blocs() {
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AuthCubit(di()));
+  di.registerFactory(() => BackupCubit(di(), di(), di(), di()));
 }
 
 _utils(AppConfig appConfig) async {
@@ -58,9 +46,27 @@ _utils(AppConfig appConfig) async {
   var cache = (await getTemporaryDirectory()).path;
   var support = (await getApplicationSupportDirectory()).path;
   di.registerSingleton(AppDirectory(document, cache, support));
+  di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());
   di.registerSingleton(appConfig);
   di.registerFactory(() => Dio()..interceptors.add(loggingInterceptor));
+  di.registerLazySingletonAsync(
+    () async {
+      try {
+        var credentials = await FirebaseUtils.jsonConfig('mailer_credentials');
+        String username = credentials['username'];
+        String password = credentials['password'];
+        return Mailer(username, password);
+      } catch (e) {
+        return Mailer('', '');
+      }
+    },
+  );
+  di.registerSingleton(GoogleSignIn(
+    scopes: [
+      drive.DriveApi.driveAppdataScope,
+    ],
+  ));
 }
 
 _repositories() {
@@ -70,6 +76,9 @@ _repositories() {
   di.registerFactory<AuthRepository>(() => AuthRepositoryImpl());
   di.registerFactory<AccountRepository>(
       () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi));
+  di.registerFactory<BackupSyncRepository>(
+      () => BackupSyncRepositoryImpl(di()));
+  di.registerFactory<GoogleRepository>(() => GoogleRepositoryImpl(di()));
 }
 
 class AppDirectory {
@@ -82,6 +91,9 @@ class AppDirectory {
   String get bibleFolder => '$cache/bible';
   String get songMusicFolder => '$cache/song';
   String get songDbPath => '$cache/song/song.db';
+  String get backupFolder => '$cache/backup';
+  String get encryptFolder => '$cache/encrypted';
+  String get decryptFolder => '$cache/encrypted';
 }
 
 InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(

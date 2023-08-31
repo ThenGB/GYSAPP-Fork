@@ -28,7 +28,6 @@ mixin _$SongState {
   int get pageIndex => throw _privateConstructorUsedError;
   int get verseIndex => throw _privateConstructorUsedError;
   dynamic get isImageMode => throw _privateConstructorUsedError;
-  double get textScaleFactor => throw _privateConstructorUsedError;
   bool get showSizer => throw _privateConstructorUsedError;
   String get defaultAudioFormat => throw _privateConstructorUsedError;
   Song? get selectedSong => throw _privateConstructorUsedError;
@@ -40,6 +39,9 @@ mixin _$SongState {
   List<int> get shuffleIndex => throw _privateConstructorUsedError;
   bool get showAudio => throw _privateConstructorUsedError;
   String get searchTerms => throw _privateConstructorUsedError;
+  String get defaultFont => throw _privateConstructorUsedError;
+  double get defaultTextScale => throw _privateConstructorUsedError;
+  double get defaultTextHeight => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -61,7 +63,6 @@ abstract class $SongStateCopyWith<$Res> {
       int pageIndex,
       int verseIndex,
       dynamic isImageMode,
-      double textScaleFactor,
       bool showSizer,
       String defaultAudioFormat,
       Song? selectedSong,
@@ -72,7 +73,10 @@ abstract class $SongStateCopyWith<$Res> {
       bool shuffleMode,
       List<int> shuffleIndex,
       bool showAudio,
-      String searchTerms});
+      String searchTerms,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight});
 
   $SongCopyWith<$Res>? get selectedSong;
 }
@@ -98,7 +102,6 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? pageIndex = null,
     Object? verseIndex = null,
     Object? isImageMode = freezed,
-    Object? textScaleFactor = null,
     Object? showSizer = null,
     Object? defaultAudioFormat = null,
     Object? selectedSong = freezed,
@@ -110,6 +113,9 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? shuffleIndex = null,
     Object? showAudio = null,
     Object? searchTerms = null,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -144,10 +150,6 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.isImageMode
           : isImageMode // ignore: cast_nullable_to_non_nullable
               as dynamic,
-      textScaleFactor: null == textScaleFactor
-          ? _value.textScaleFactor
-          : textScaleFactor // ignore: cast_nullable_to_non_nullable
-              as double,
       showSizer: null == showSizer
           ? _value.showSizer
           : showSizer // ignore: cast_nullable_to_non_nullable
@@ -192,6 +194,18 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.searchTerms
           : searchTerms // ignore: cast_nullable_to_non_nullable
               as String,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _value.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 
@@ -224,7 +238,6 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       int pageIndex,
       int verseIndex,
       dynamic isImageMode,
-      double textScaleFactor,
       bool showSizer,
       String defaultAudioFormat,
       Song? selectedSong,
@@ -235,7 +248,10 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       bool shuffleMode,
       List<int> shuffleIndex,
       bool showAudio,
-      String searchTerms});
+      String searchTerms,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight});
 
   @override
   $SongCopyWith<$Res>? get selectedSong;
@@ -260,7 +276,6 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? pageIndex = null,
     Object? verseIndex = null,
     Object? isImageMode = freezed,
-    Object? textScaleFactor = null,
     Object? showSizer = null,
     Object? defaultAudioFormat = null,
     Object? selectedSong = freezed,
@@ -272,6 +287,9 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? shuffleIndex = null,
     Object? showAudio = null,
     Object? searchTerms = null,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
   }) {
     return _then(_$_SongState(
       isLoading: null == isLoading
@@ -303,10 +321,6 @@ class __$$_SongStateCopyWithImpl<$Res>
           : verseIndex // ignore: cast_nullable_to_non_nullable
               as int,
       isImageMode: freezed == isImageMode ? _value.isImageMode! : isImageMode,
-      textScaleFactor: null == textScaleFactor
-          ? _value.textScaleFactor
-          : textScaleFactor // ignore: cast_nullable_to_non_nullable
-              as double,
       showSizer: null == showSizer
           ? _value.showSizer
           : showSizer // ignore: cast_nullable_to_non_nullable
@@ -351,6 +365,18 @@ class __$$_SongStateCopyWithImpl<$Res>
           ? _value.searchTerms
           : searchTerms // ignore: cast_nullable_to_non_nullable
               as String,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _value.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -367,7 +393,6 @@ class _$_SongState extends _SongState {
       this.pageIndex = 0,
       this.verseIndex = 0,
       this.isImageMode = false,
-      this.textScaleFactor = 1,
       this.showSizer = false,
       this.defaultAudioFormat = 'mid',
       this.selectedSong,
@@ -378,7 +403,10 @@ class _$_SongState extends _SongState {
       this.shuffleMode = false,
       final List<int> shuffleIndex = const [],
       this.showAudio = false,
-      this.searchTerms = ''})
+      this.searchTerms = '',
+      this.defaultFont = 'Roboto',
+      this.defaultTextScale = 1.2,
+      this.defaultTextHeight = 1.5})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         _notes = notes,
@@ -426,9 +454,6 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final dynamic isImageMode;
-  @override
-  @JsonKey()
-  final double textScaleFactor;
   @override
   @JsonKey()
   final bool showSizer;
@@ -479,10 +504,19 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final String searchTerms;
+  @override
+  @JsonKey()
+  final String defaultFont;
+  @override
+  @JsonKey()
+  final double defaultTextScale;
+  @override
+  @JsonKey()
+  final double defaultTextHeight;
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, textScaleFactor: $textScaleFactor, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
   }
 
   @override
@@ -505,8 +539,6 @@ class _$_SongState extends _SongState {
                 other.verseIndex == verseIndex) &&
             const DeepCollectionEquality()
                 .equals(other.isImageMode, isImageMode) &&
-            (identical(other.textScaleFactor, textScaleFactor) ||
-                other.textScaleFactor == textScaleFactor) &&
             (identical(other.showSizer, showSizer) ||
                 other.showSizer == showSizer) &&
             (identical(other.defaultAudioFormat, defaultAudioFormat) ||
@@ -527,7 +559,13 @@ class _$_SongState extends _SongState {
             (identical(other.showAudio, showAudio) ||
                 other.showAudio == showAudio) &&
             (identical(other.searchTerms, searchTerms) ||
-                other.searchTerms == searchTerms));
+                other.searchTerms == searchTerms) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultTextHeight, defaultTextHeight) ||
+                other.defaultTextHeight == defaultTextHeight));
   }
 
   @JsonKey(ignore: true)
@@ -542,7 +580,6 @@ class _$_SongState extends _SongState {
         pageIndex,
         verseIndex,
         const DeepCollectionEquality().hash(isImageMode),
-        textScaleFactor,
         showSizer,
         defaultAudioFormat,
         selectedSong,
@@ -553,7 +590,10 @@ class _$_SongState extends _SongState {
         shuffleMode,
         const DeepCollectionEquality().hash(_shuffleIndex),
         showAudio,
-        searchTerms
+        searchTerms,
+        defaultFont,
+        defaultTextScale,
+        defaultTextHeight
       ]);
 
   @JsonKey(ignore: true)
@@ -580,7 +620,6 @@ abstract class _SongState extends SongState {
       final int pageIndex,
       final int verseIndex,
       final dynamic isImageMode,
-      final double textScaleFactor,
       final bool showSizer,
       final String defaultAudioFormat,
       final Song? selectedSong,
@@ -591,7 +630,10 @@ abstract class _SongState extends SongState {
       final bool shuffleMode,
       final List<int> shuffleIndex,
       final bool showAudio,
-      final String searchTerms}) = _$_SongState;
+      final String searchTerms,
+      final String defaultFont,
+      final double defaultTextScale,
+      final double defaultTextHeight}) = _$_SongState;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
@@ -614,8 +656,6 @@ abstract class _SongState extends SongState {
   @override
   dynamic get isImageMode;
   @override
-  double get textScaleFactor;
-  @override
   bool get showSizer;
   @override
   String get defaultAudioFormat;
@@ -637,6 +677,12 @@ abstract class _SongState extends SongState {
   bool get showAudio;
   @override
   String get searchTerms;
+  @override
+  String get defaultFont;
+  @override
+  double get defaultTextScale;
+  @override
+  double get defaultTextHeight;
   @override
   @JsonKey(ignore: true)
   _$$_SongStateCopyWith<_$_SongState> get copyWith =>

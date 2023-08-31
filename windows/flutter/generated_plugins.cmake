@@ -5,7 +5,9 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   awesome_notifications
+  connectivity_plus_windows
   firebase_core
+  flutter_tts
   pasteboard
   permission_handler_windows
   url_launcher_windows

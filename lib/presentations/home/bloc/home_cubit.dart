@@ -1,4 +1,7 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -12,6 +15,7 @@ export 'home_state.dart';
 
 class HomeCubit extends HydratedCubit<HomeState> {
   final ScrapperRepository repository;
+
   CollectionReference bannersCollection =
       FirebaseFirestore.instance.collection('banners');
   late BehaviorSubject<List<ImageBanner>> rxBanner =
@@ -19,6 +23,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
 
   ValueStream<List<ImageBanner>> get bannerObservable => rxBanner.stream;
   HomeCubit(this.repository) : super(const HomeState()) {
+    log(FirebaseAuth.instance.currentUser.toString());
     scrappSauhBagiJiwa();
     scrappTrueVoice();
     getMenu();

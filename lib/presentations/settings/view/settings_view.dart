@@ -6,20 +6,15 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../components/widgets/drag_handler.dart';
 import '../../../components/widgets/section.dart';
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/extensions/int_ext.dart';
-import '../../../data/utilities/extensions/locale_ext.dart';
-import '../../../data/utilities/variables/assets.dart';
+import '../../../data/data.dart';
+import '../../../data/utilities/functions/measurewidgetsize.dart';
+import '../../../domain/domain.dart';
 import '../../../router/router.dart';
-import '../../bible/cubit/bible_cubit.dart';
-import '../../bible/widget/bible_select_widget.dart';
-import '../../dashboard/cubit/dashboard_cubit.dart';
-import '../../dashboard/cubit/dashboard_state.dart';
-import '../../initial/bloc/initial_cubit.dart';
-import '../cubit/settings_cubit.dart';
+import '../../presentations.dart';
 
 @RoutePage()
 class SettingsView extends StatelessWidget {
@@ -119,8 +114,8 @@ class SettingsView extends StatelessWidget {
                             });
                           }
                         },
-                        child:
-                            Text(state.idToken == null ? 'Login' : 'Logout')),
+                        child: Text(
+                            (state.idToken == null ? 'Login' : 'Logout').tr())),
                   ],
                 ),
               ),
@@ -132,115 +127,217 @@ class SettingsView extends StatelessWidget {
                   BlocBuilder<BibleCubit, BibleState>(
                     builder: (context, state) => Section(
                       label: 'Verse'.tr(),
-                      child: (gap) => Column(
-                        children: [
-                          {
-                            'label': 'Version'.tr(),
-                            'desc': null,
-                            'onTap': () {},
-                            'trailing': ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              onPressed: () async {
-                                log('onTapSelectBible');
-                                context.read<BibleCubit>().getBibles();
-                                var bibleCodes = context
-                                    .read<BibleCubit>()
-                                    .state
-                                    .bibleCodes
-                                    .map(
-                                        (e) => e.split('.').first.toUpperCase())
-                                    .toList();
-                                await showModalBottomSheet(
-                                  context: context,
-                                  backgroundColor: Colors.transparent,
-                                  isScrollControlled: true,
-                                  builder: (ctx) => BibleSelectWidget(
-                                    bibleCodes: bibleCodes,
-                                    onTap: (index) async {
-                                      await context
+                      child: (gap) => Material(
+                        child: Column(
+                          children: [
+                            {
+                              'label': '📖 ${'Version'.tr()}',
+                              'desc': 'bible_version_desc'.tr(),
+                              'onTap': null,
+                              'trailing': Row(
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () {
+                                      router.push(BibleVersionRoute(
+                                        dashboardCubit: context.read(),
+                                      ));
+                                    },
+                                    icon: Icon(Icons.settings),
+                                  ),
+                                  SizedBox(
+                                    width: 4,
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    onPressed: () async {
+                                      log('onTapSelectBible');
+                                      context.read<BibleCubit>().getBibles();
+                                      var bibleCodes = context
                                           .read<BibleCubit>()
-                                          .selectBibleCode(index);
+                                          .state
+                                          .bibleCodes
+                                          .map((e) =>
+                                              e.split('.').first.toUpperCase())
+                                          .toList();
+                                      await showModalBottomSheet(
+                                        context: context,
+                                        backgroundColor: Colors.transparent,
+                                        isScrollControlled: true,
+                                        useSafeArea: true,
+                                        builder: (ctx) => BibleSelectWidget(
+                                          bibleCodes: bibleCodes,
+                                          onTap: (index) async {
+                                            await context
+                                                .read<BibleCubit>()
+                                                .selectBibleCode(index);
+                                            router.pop();
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    child: Text(
+                                        (state.currentBibleCode.split('_').last)
+                                            .toUpperCase()),
+                                  ),
+                                ],
+                              )
+                            },
+                            {
+                              'label': '📅 ${'Today Reading'.tr()}',
+                              'desc': 'today_reading_desc'.tr(),
+                              'onTap': null,
+                              'trailing': ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: () {
+                                  router.push(BibleListRoute(
+                                    bibleCode: state.currentBibleCode,
+                                    textScale: state.defaultTextScale,
+                                    onSelected: (newBible) {
+                                      context
+                                          .read<BibleCubit>()
+                                          .setTodayReading(newBible);
                                       router.pop();
                                     },
+                                    getBibles: (bookId, chapterId) async {
+                                      if (bookId == null || chapterId == null) {
+                                        return [];
+                                      }
+                                      return await context
+                                          .read<BibleCubit>()
+                                          .getVersesByBook(bookId, chapterId);
+                                    },
+                                    books: state.books,
+                                  ));
+                                },
+                                child: FutureBuilder<String>(
+                                    future: context
+                                        .read<BibleCubit>()
+                                        .getBibleTitle([state.todayReading]),
+                                    builder: (context, snapshot) =>
+                                        Text(snapshot.data ?? 'None'.tr())),
+                              ),
+                            },
+                            {
+                              'label': '🕰️ ${'Bible Reminder'.tr()}',
+                              'desc': 'bible_reminder_desc'.tr(),
+                              'onTap': null,
+                              'trailing': ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                ),
+                                onPressed: () async {
+                                  var settingCubit =
+                                      context.read<SettingsCubit>();
+
+                                  var weekdays =
+                                      List.generate(7, (index) => index + 1);
+                                  await showModalBottomSheet(
+                                    backgroundColor: Colors.transparent,
+                                    elevation: 0,
+                                    isScrollControlled: true,
+                                    context: context,
+                                    builder: (context) {
+                                      return BibleReminderDialog(
+                                          weekdays: weekdays,
+                                          settingCubit: settingCubit);
+                                    },
+                                  );
+                                },
+                                child: Text((context
+                                            .watch<SettingsCubit>()
+                                            .state
+                                            .isBibleReminderNotificationActive
+                                        ? 'On'
+                                        : 'Off')
+                                    .tr()),
+                              ),
+                            },
+                            {
+                              'label': '🎧 ${'Audio Bible Config'.tr()}',
+                              'desc': 'audio_bible_desc'.tr(),
+                              'onTap': () {
+                                router.push(
+                                  BibleAudioSettingRoute(
+                                    onSave: (voices, pitch, speed) {
+                                      context
+                                          .read<BibleCubit>()
+                                          .applyTtsSetting(
+                                              voices, pitch, speed);
+                                    },
+                                    initialPitchRate: context
+                                        .read<BibleCubit>()
+                                        .state
+                                        .pitchRate,
+                                    initialSpeedRate: context
+                                        .read<BibleCubit>()
+                                        .state
+                                        .speedRate,
+                                    initialVoices:
+                                        context.read<BibleCubit>().state.voices,
                                   ),
                                 );
                               },
-                              child: Text(
-                                  (state.currentBibleCode?.split('_').last ??
-                                          'none')
-                                      .toUpperCase()),
-                            ),
-                          },
+                            },
+                          ]
+                              .map((e) => ListTile(
+                                    dense: true,
+                                    style: ListTileStyle.list,
+                                    visualDensity: VisualDensity.compact,
+                                    title: Text(
+                                      e['label'] as String,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w500,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    trailing: e['trailing'] as Widget?,
+                                    onTap: e['onTap'] as Function()?,
+                                    subtitle: e['desc'] == null
+                                        ? null
+                                        : Text(e['desc'] as String),
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Section(
+                    label: 'Notification'.tr(),
+                    child: (gap) => Material(
+                      child: Column(
+                        children: [
                           {
-                            'label': 'Today Reading'.tr(),
-                            'desc': null,
-                            'onTap': () {},
+                            'label': '🔔 ${'Sabat Notification'.tr()}',
+                            'desc': state.isSabatNotificationActive
+                                ? 'sabat_notification_enabled_desc'.tr()
+                                : 'sabat_notification_disabled_desc'.tr(),
+                            'onTap': null,
                             'trailing': ElevatedButton(
                               style: ElevatedButton.styleFrom(
+                                backgroundColor: state.isSabatNotificationActive
+                                    ? context.colorScheme.primaryContainer
+                                    : context.colorScheme.errorContainer,
+                                foregroundColor: state.isSabatNotificationActive
+                                    ? context.colorScheme.onPrimaryContainer
+                                    : context.colorScheme.onErrorContainer,
                                 visualDensity: VisualDensity.compact,
                               ),
                               onPressed: () {
-                                router.push(BibleListRoute(
-                                  onSelected: (newBible) {
-                                    context
-                                        .read<BibleCubit>()
-                                        .setTodayReading(newBible);
-                                    router.pop();
-                                  },
-                                  getBibles: (bookId, chapterId) async {
-                                    if (bookId == null || chapterId == null) {
-                                      return [];
-                                    }
-                                    return await context
-                                        .read<BibleCubit>()
-                                        .getVersesByBook(bookId, chapterId);
-                                  },
-                                  books: state.books,
-                                ));
+                                context
+                                    .read<SettingsCubit>()
+                                    .toggleSabatNotification();
                               },
-                              child: FutureBuilder<String>(
-                                  future: context
-                                      .read<BibleCubit>()
-                                      .getBibleTitle([state.todayReading]),
-                                  builder: (context, snapshot) =>
-                                      Text(snapshot.data ?? 'None'.tr())),
-                            ),
-                          },
-                          {
-                            'label': 'Bible Reminder'.tr(),
-                            'desc': null,
-                            'onTap': () {},
-                            'trailing': ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
+                              child: Text(
+                                (state.isSabatNotificationActive ? 'On' : 'Off')
+                                    .tr(),
                               ),
-                              onPressed: () async {
-                                var settingCubit =
-                                    context.read<SettingsCubit>();
-
-                                var weekdays =
-                                    List.generate(7, (index) => index + 1);
-                                await showModalBottomSheet(
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                  isScrollControlled: true,
-                                  context: context,
-                                  builder: (context) {
-                                    return BibleReminderDialog(
-                                        weekdays: weekdays,
-                                        settingCubit: settingCubit);
-                                  },
-                                );
-                              },
-                              child: Text((context
-                                          .watch<SettingsCubit>()
-                                          .state
-                                          .isBibleReminderNotificationActive
-                                      ? 'On'
-                                      : 'Off')
-                                  .tr()),
                             ),
                           },
                         ]
@@ -266,121 +363,155 @@ class SettingsView extends StatelessWidget {
                     ),
                   ),
                   Section(
-                    label: 'Notification'.tr(),
-                    child: (gap) => Column(
-                      children: [
-                        {
-                          'label': 'Sabat Notification'.tr(),
-                          'desc': null,
-                          'onTap': () {},
-                          'trailing': ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: state.isSabatNotificationActive
-                                  ? context.colorScheme.primaryContainer
-                                  : context.colorScheme.errorContainer,
-                              foregroundColor: state.isSabatNotificationActive
-                                  ? context.colorScheme.onPrimaryContainer
-                                  : context.colorScheme.onErrorContainer,
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            onPressed: () {
-                              context
-                                  .read<SettingsCubit>()
-                                  .toggleSabatNotification();
-                            },
-                            child: Text(
-                              (state.isSabatNotificationActive ? 'ON' : 'OFF')
-                                  .tr(),
-                            ),
-                          ),
-                        },
-                      ]
-                          .map((e) => ListTile(
-                                dense: true,
-                                style: ListTileStyle.list,
+                    label: 'Others'.tr(),
+                    child: (gap) => Material(
+                      child: Column(
+                        children: [
+                          {
+                            'label': '🎨 ${'Theme'.tr()}',
+                            'desc': 'theme_desc'.tr(),
+                            'onTap': null,
+                            'trailing': ElevatedButton(
+                              style: ElevatedButton.styleFrom(
                                 visualDensity: VisualDensity.compact,
-                                title: Text(
-                                  e['label'] as String,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                              ),
+                              onPressed: () {
+                                context.read<InitialCubit>().toggleTheme(
+                                      context.theme.brightness ==
+                                              Brightness.light
+                                          ? ThemeMode.dark
+                                          : ThemeMode.light,
+                                      () => context,
+                                    );
+                              },
+                              child: Text(context
+                                  .read<InitialCubit>()
+                                  .state
+                                  .themeMode
+                                  .capitalize()
+                                  .tr()),
+                            ),
+                          },
+                          {
+                            'label': '🌐 ${'Language'.tr()}',
+                            'desc': 'language_desc'.tr(),
+                            'onTap': null,
+                            'trailing': ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                visualDensity: VisualDensity.compact,
+                              ),
+                              onPressed: () async {
+                                showModalBottomSheet(
+                                  context: context,
+                                  isScrollControlled: true,
+                                  backgroundColor: Colors.transparent,
+                                  elevation: 0,
+                                  builder: (c) => BlocProvider.value(
+                                      value: context.read<BibleCubit>(),
+                                      child: SelectLanguageDialog()),
+                                );
+                              },
+                              child: Text(context.locale.languageName),
+                            ),
+                          },
+                          {
+                            'label': '💾 ${'Backup'.tr()}',
+                            'desc': 'backup_desc'.tr(),
+                            'onTap': () {
+                              router.push(
+                                BackupRoute(
+                                  onSynced: (data) {
+                                    if (data.bibleState != null) {
+                                      context
+                                          .read<BibleCubit>()
+                                          .sync(data.bibleState!);
+                                    }
+                                    if (data.songState != null) {
+                                      context
+                                          .read<SongCubit>()
+                                          .sync(data.songState!);
+                                    }
+                                    if (data.faithState != null) {
+                                      context
+                                          .read<FaithCubit>()
+                                          .sync(data.faithState!);
+                                    }
+                                    if (data.settingsState != null) {
+                                      context
+                                          .read<SettingsCubit>()
+                                          .sync(data.settingsState!);
+                                    }
+
+                                    Fluttertoast.cancel();
+                                    Fluttertoast.showToast(
+                                        msg: 'Sync success'.tr());
+                                  },
+                                  data: AppBackupData(
+                                    bibleState:
+                                        context.read<BibleCubit>().state,
+                                    faithState:
+                                        context.read<FaithCubit>().state,
+                                    settingsState:
+                                        context.read<SettingsCubit>().state,
+                                    songState: context.read<SongCubit>().state,
                                   ),
                                 ),
-                                trailing: e['trailing'] as Widget?,
-                                onTap: e['onTap'] as Function()?,
-                                subtitle: e['desc'] == null
-                                    ? null
-                                    : Text(e['desc'] as String),
-                              ))
-                          .toList(),
-                    ),
-                  ),
-                  Section(
-                    label: 'Others'.tr(),
-                    child: (gap) => Column(
-                      children: [
-                        {
-                          'label': 'Theme'.tr(),
-                          'desc': null,
-                          'onTap': () {},
-                          'trailing': ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            onPressed: () {
-                              context.read<InitialCubit>().toggleTheme(
-                                    context.theme.brightness == Brightness.light
-                                        ? ThemeMode.dark
-                                        : ThemeMode.light,
-                                    context,
-                                  );
-                            },
-                            child: Text(context
-                                .read<InitialCubit>()
-                                .state
-                                .themeMode
-                                .toUpperCase()),
-                          ),
-                        },
-                        {
-                          'label': 'Language'.tr(),
-                          'desc': null,
-                          'onTap': () {},
-                          'trailing': ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            onPressed: () async {
-                              showModalBottomSheet(
-                                context: context,
-                                isScrollControlled: true,
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                                builder: (context) => SelectLanguageDialog(),
                               );
                             },
-                            child: Text(context.locale.languageName),
-                          ),
-                        },
-                      ]
-                          .map((e) => ListTile(
-                                dense: true,
-                                style: ListTileStyle.list,
-                                visualDensity: VisualDensity.compact,
-                                title: Text(
-                                  e['label'] as String,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 14,
+                          },
+                          {
+                            'label': '📢 ${'Report'.tr()}',
+                            'desc': 'report_desc'.tr(),
+                            'onTap': () {
+                              router.push(ReportRoute(
+                                account: context
+                                    .read<DashboardCubit>()
+                                    .state
+                                    .account,
+                                onLoggedIn: (token) async {
+                                  await context
+                                      .read<DashboardCubit>()
+                                      .loginSuccessCallback(token);
+                                  router.pop();
+                                  Fluttertoast.cancel();
+                                  Fluttertoast.showToast(
+                                      msg: 'BERHASIL LOGIN!');
+                                  // ignore: use_build_context_synchronously
+                                  return context
+                                      .read<DashboardCubit>()
+                                      .state
+                                      .account;
+                                },
+                              ));
+                            },
+                          },
+                          {
+                            'label': '🔤 ${'Font Settings'.tr()}',
+                            'desc': 'font_desc'.tr(),
+                            'onTap': () {
+                              router.push(FontSettingRoute());
+                            },
+                          },
+                        ]
+                            .map((e) => ListTile(
+                                  dense: true,
+                                  style: ListTileStyle.list,
+                                  visualDensity: VisualDensity.compact,
+                                  title: Text(
+                                    e['label'] as String,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                ),
-                                trailing: e['trailing'] as Widget?,
-                                onTap: e['onTap'] as Function()?,
-                                subtitle: e['desc'] == null
-                                    ? null
-                                    : Text(e['desc'] as String),
-                              ))
-                          .toList(),
+                                  trailing: e['trailing'] as Widget?,
+                                  onTap: e['onTap'] as Function()?,
+                                  subtitle: e['desc'] == null
+                                      ? null
+                                      : Text(e['desc'] as String),
+                                ))
+                            .toList(),
+                      ),
                     ),
                   )
                 ],
@@ -402,24 +533,6 @@ class SelectLanguageDialog extends StatefulWidget {
   State<SelectLanguageDialog> createState() => _SelectLanguageDialogState();
 }
 
-measureWidgetSize(
-    {required BuildContext context,
-    required List<GlobalKey> widgetKeys,
-    required Function(double childHeight) setState}) {
-  WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
-    double childHeight = 0;
-    double boxHeight = 0;
-    for (var widgetKey in widgetKeys) {
-      final RenderBox? box =
-          widgetKey.currentContext?.findRenderObject() as RenderBox?;
-      boxHeight += box?.size.height ?? 0;
-    }
-    childHeight = (boxHeight) / (MediaQuery.of(context).size.height);
-    await Future.delayed(kThemeAnimationDuration);
-    setState(childHeight);
-  });
-}
-
 class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
   final GlobalKey widgetKey = GlobalKey();
   final GlobalKey handlerKey = GlobalKey();
@@ -429,12 +542,12 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
   @override
   void initState() {
     measureWidgetSize(
-      context: context,
-      setState: (height) {
+      context,
+      callback: (height) {
         childHeight = height;
         setState(() {});
       },
-      widgetKeys: [widgetKey, handlerKey],
+      keys: [widgetKey, handlerKey],
     );
     super.initState();
   }
@@ -454,7 +567,7 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
           decoration: BoxDecoration(
             color: context.colorScheme.background,
             borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(32),
+              top: Radius.circular(12),
             ),
           ),
           child: Column(
@@ -464,29 +577,64 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
+                  // padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Section(
                     key: widgetKey,
                     label: 'Select Language'.tr(),
-                    child: (gap) => SafeArea(
-                      child: Column(
-                        children: context.supportedLocales
-                            .map((e) => Column(
-                                  children: [
-                                    ListTile(
-                                      onTap: () {
-                                        context.setLocale(e);
-                                        router.pop();
-                                        Fluttertoast.cancel();
-                                        Fluttertoast.showToast(
-                                          msg: 'Language switched'.tr(),
-                                        );
-                                      },
-                                      title: Text(e.languageName),
-                                    ),
-                                  ],
+                    child: (gap) => Column(
+                      children: [
+                        ...context.supportedLocales
+                            .map((e) => Material(
+                                  color: Colors.transparent,
+                                  child: Column(
+                                    children: [
+                                      ListTile(
+                                        onTap: () async {
+                                          await context
+                                              .setLocale(e)
+                                              .then((value) {
+                                            timeago.LookupMessages message =
+                                                timeago.EnShortMessages();
+                                            switch (e.languageCode) {
+                                              case 'id':
+                                                message =
+                                                    timeago.IdShortMessages();
+                                                break;
+                                              case 'zh':
+                                                message =
+                                                    timeago.ZhCnMessages();
+                                                break;
+                                              default:
+                                            }
+                                            timeago.setLocaleMessages(
+                                                e.languageCode, message);
+                                            router.pop();
+                                            Fluttertoast.cancel();
+                                            Fluttertoast.showToast(
+                                              msg: 'Language switched'.tr(),
+                                            );
+                                          });
+                                        },
+                                        title: Row(
+                                          children: [
+                                            Image.asset(
+                                                'assets/images/${e.languageCode}_flag.png',
+                                                width: 20,
+                                                fit: BoxFit.cover,
+                                                height: 14),
+                                            SizedBox(
+                                              width: 8,
+                                            ),
+                                            Text(e.languageName),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ))
                             .toList(),
-                      ),
+                        // SizedBox(height: 24),
+                      ],
                     ),
                   ),
                 ),
@@ -523,9 +671,9 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
   @override
   void initState() {
     measureWidgetSize(
-      context: context,
-      widgetKeys: [widgetKey, handlerKey],
-      setState: (h) {
+      context,
+      keys: [widgetKey, handlerKey],
+      callback: (h) {
         childHeight = h;
         setState(() {});
       },
@@ -645,12 +793,13 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                         padding: const EdgeInsets.all(16),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                              backgroundColor: context.colorScheme.primary,
-                              foregroundColor: context.colorScheme.onPrimary,
-                              minimumSize: Size.fromHeight(56),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              )),
+                            backgroundColor: context.colorScheme.primary,
+                            foregroundColor: context.colorScheme.onPrimary,
+                            minimumSize: Size.fromHeight(56),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
                           onPressed: () {
                             widget.settingCubit
                                 .setBibleReminderDailyNotification(data)

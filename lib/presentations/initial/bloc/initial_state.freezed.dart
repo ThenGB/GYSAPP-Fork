@@ -26,6 +26,10 @@ mixin _$InitialState {
   String get message => throw _privateConstructorUsedError;
   bool get isFreshInstall => throw _privateConstructorUsedError;
   String get themeMode => throw _privateConstructorUsedError;
+  int get configFetchTimeoutSeconds => throw _privateConstructorUsedError;
+  int get configFetchIntervalSeconds => throw _privateConstructorUsedError;
+  double get defaultTextScale => throw _privateConstructorUsedError;
+  String get defaultFont => throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -45,7 +49,11 @@ abstract class $InitialStateCopyWith<$Res> {
       bool isFailed,
       String message,
       bool isFreshInstall,
-      String themeMode});
+      String themeMode,
+      int configFetchTimeoutSeconds,
+      int configFetchIntervalSeconds,
+      double defaultTextScale,
+      String defaultFont});
 }
 
 /// @nodoc
@@ -67,6 +75,10 @@ class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
     Object? message = null,
     Object? isFreshInstall = null,
     Object? themeMode = null,
+    Object? configFetchTimeoutSeconds = null,
+    Object? configFetchIntervalSeconds = null,
+    Object? defaultTextScale = null,
+    Object? defaultFont = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -93,6 +105,22 @@ class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
           ? _value.themeMode
           : themeMode // ignore: cast_nullable_to_non_nullable
               as String,
+      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
+          ? _value.configFetchTimeoutSeconds
+          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      configFetchIntervalSeconds: null == configFetchIntervalSeconds
+          ? _value.configFetchIntervalSeconds
+          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
     ) as $Val);
   }
 }
@@ -111,7 +139,11 @@ abstract class _$$_InitialStateCopyWith<$Res>
       bool isFailed,
       String message,
       bool isFreshInstall,
-      String themeMode});
+      String themeMode,
+      int configFetchTimeoutSeconds,
+      int configFetchIntervalSeconds,
+      double defaultTextScale,
+      String defaultFont});
 }
 
 /// @nodoc
@@ -131,6 +163,10 @@ class __$$_InitialStateCopyWithImpl<$Res>
     Object? message = null,
     Object? isFreshInstall = null,
     Object? themeMode = null,
+    Object? configFetchTimeoutSeconds = null,
+    Object? configFetchIntervalSeconds = null,
+    Object? defaultTextScale = null,
+    Object? defaultFont = null,
   }) {
     return _then(_$_InitialState(
       isLoading: null == isLoading
@@ -157,6 +193,22 @@ class __$$_InitialStateCopyWithImpl<$Res>
           ? _value.themeMode
           : themeMode // ignore: cast_nullable_to_non_nullable
               as String,
+      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
+          ? _value.configFetchTimeoutSeconds
+          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      configFetchIntervalSeconds: null == configFetchIntervalSeconds
+          ? _value.configFetchIntervalSeconds
+          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      defaultTextScale: null == defaultTextScale
+          ? _value.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultFont: null == defaultFont
+          ? _value.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
     ));
   }
 }
@@ -170,7 +222,11 @@ class _$_InitialState extends _InitialState {
       this.isFailed = false,
       this.message = '',
       this.isFreshInstall = true,
-      this.themeMode = 'light'})
+      this.themeMode = 'light',
+      this.configFetchTimeoutSeconds = 5,
+      this.configFetchIntervalSeconds = 10,
+      this.defaultTextScale = 1.2,
+      this.defaultFont = 'Roboto'})
       : super._();
 
   factory _$_InitialState.fromJson(Map<String, dynamic> json) =>
@@ -194,10 +250,22 @@ class _$_InitialState extends _InitialState {
   @override
   @JsonKey()
   final String themeMode;
+  @override
+  @JsonKey()
+  final int configFetchTimeoutSeconds;
+  @override
+  @JsonKey()
+  final int configFetchIntervalSeconds;
+  @override
+  @JsonKey()
+  final double defaultTextScale;
+  @override
+  @JsonKey()
+  final String defaultFont;
 
   @override
   String toString() {
-    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode)';
+    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont)';
   }
 
   @override
@@ -215,13 +283,34 @@ class _$_InitialState extends _InitialState {
             (identical(other.isFreshInstall, isFreshInstall) ||
                 other.isFreshInstall == isFreshInstall) &&
             (identical(other.themeMode, themeMode) ||
-                other.themeMode == themeMode));
+                other.themeMode == themeMode) &&
+            (identical(other.configFetchTimeoutSeconds,
+                    configFetchTimeoutSeconds) ||
+                other.configFetchTimeoutSeconds == configFetchTimeoutSeconds) &&
+            (identical(other.configFetchIntervalSeconds,
+                    configFetchIntervalSeconds) ||
+                other.configFetchIntervalSeconds ==
+                    configFetchIntervalSeconds) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont));
   }
 
   @JsonKey(ignore: true)
   @override
-  int get hashCode => Object.hash(runtimeType, isLoading, isLoaded, isFailed,
-      message, isFreshInstall, themeMode);
+  int get hashCode => Object.hash(
+      runtimeType,
+      isLoading,
+      isLoaded,
+      isFailed,
+      message,
+      isFreshInstall,
+      themeMode,
+      configFetchTimeoutSeconds,
+      configFetchIntervalSeconds,
+      defaultTextScale,
+      defaultFont);
 
   @JsonKey(ignore: true)
   @override
@@ -244,7 +333,11 @@ abstract class _InitialState extends InitialState {
       final bool isFailed,
       final String message,
       final bool isFreshInstall,
-      final String themeMode}) = _$_InitialState;
+      final String themeMode,
+      final int configFetchTimeoutSeconds,
+      final int configFetchIntervalSeconds,
+      final double defaultTextScale,
+      final String defaultFont}) = _$_InitialState;
   const _InitialState._() : super._();
 
   factory _InitialState.fromJson(Map<String, dynamic> json) =
@@ -262,6 +355,14 @@ abstract class _InitialState extends InitialState {
   bool get isFreshInstall;
   @override
   String get themeMode;
+  @override
+  int get configFetchTimeoutSeconds;
+  @override
+  int get configFetchIntervalSeconds;
+  @override
+  double get defaultTextScale;
+  @override
+  String get defaultFont;
   @override
   @JsonKey(ignore: true)
   _$$_InitialStateCopyWith<_$_InitialState> get copyWith =>

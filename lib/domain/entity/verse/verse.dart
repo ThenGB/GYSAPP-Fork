@@ -8,21 +8,19 @@ part 'verse.g.dart';
 class Verse with _$Verse {
   const Verse._();
   const factory Verse({
-    @JsonKey(name: 'id')
+    @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
         required int id,
-    @JsonKey(name: 'b')
+    @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
         required int bookId,
-    @JsonKey(name: 'c')
+    @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
         required int chapterId,
-    @JsonKey(name: 'v')
+    @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
         required int verseId,
-    @JsonKey(name: 't')
-        String? verse,
-    @JsonKey(name: 'r')
-        int? revisionId,
+    @JsonKey(name: 't') String? verse,
+    @JsonKey(name: 'r') int? revisionId,
     @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
         String? c1,
-    @JsonKey(name: 'v1')
+    @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
         String? v1,
     @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
         Color? color,
@@ -59,5 +57,13 @@ dynamicToString(dynamic value) {
 }
 
 stringToDynamic(String? value) {
+  return value;
+}
+
+dynamicToInt(dynamic value) {
+  return int.parse(value.toString());
+}
+
+intToDynamic(int value) {
   return value;
 }

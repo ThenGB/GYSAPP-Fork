@@ -5,13 +5,15 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:pdf_render/pdf_render.dart';
 
-import '../../../data/utilities/extensions/list_extension.dart';
+import '../../../data/utilities/extensions/extensions.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
+import '../../../router/router.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -28,7 +30,6 @@ class SongState with _$SongState {
     @Default(0) int pageIndex,
     @Default(0) int verseIndex,
     @Default(false) isImageMode,
-    @Default(1) double textScaleFactor,
     @Default(false) bool showSizer,
     @Default('mid') String defaultAudioFormat,
     Song? selectedSong,
@@ -40,10 +41,61 @@ class SongState with _$SongState {
     @Default([]) List<int> shuffleIndex,
     @Default(false) bool showAudio,
     @Default('') String searchTerms,
+    @Default('Roboto') String defaultFont,
+    @Default(1.2) double defaultTextScale,
+    @Default(1.5) double defaultTextHeight,
   }) = _SongState;
 
   SongBook? get currentSong {
     return songBook.firstWhereOrNull((element) => element.code == bookCode);
+  }
+
+  TextTheme getTextThemeByFontName(String font) {
+    switch (font) {
+      case 'Roboto':
+        return GoogleFonts.robotoTextTheme();
+      case 'Roboto Serif':
+        return GoogleFonts.robotoSerifTextTheme();
+      case 'Open Sans':
+        return GoogleFonts.openSansTextTheme();
+      case 'Gentium Basic':
+        return GoogleFonts.gentiumBookBasicTextTheme();
+      case 'Arial':
+        return GoogleFonts.ptSansTextTheme();
+      default:
+        return GoogleFonts.robotoTextTheme();
+    }
+  }
+
+  TextTheme get defaultTextTheme {
+    var result = GoogleFonts.robotoTextTheme();
+    switch (defaultFont) {
+      case 'Roboto':
+        result = GoogleFonts.robotoTextTheme();
+        break;
+      case 'Roboto Serif':
+        result = GoogleFonts.robotoSerifTextTheme();
+        break;
+      case 'Open Sans':
+        result = GoogleFonts.openSansTextTheme();
+        break;
+      case 'Gentium Basic':
+        result = GoogleFonts.gentiumBookBasicTextTheme();
+        break;
+      case 'Arial':
+        result = GoogleFonts.ptSansTextTheme();
+        break;
+      default:
+        result = GoogleFonts.robotoTextTheme();
+        break;
+    }
+    return result.apply(
+        bodyColor:
+            router.navigatorKey.currentContext?.textTheme.bodyMedium?.color);
+  }
+
+  List<String> get availableFonts {
+    return ['Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
   }
 
   List<Song> get songs {
@@ -96,7 +148,7 @@ class SongState with _$SongState {
     /// generate the title of the note first
     for (var note in notes) {
       var title = note.song.title ?? '';
-      mapped[title] = note;
+      mapped['$title|${note.id}'] = note;
     }
 
     /// return all immediately if the filter is empty to show all
@@ -117,15 +169,16 @@ class SongState with _$SongState {
 
   int sortNotes(MapEntry<String, SongNote> a, MapEntry<String, SongNote> b) {
     return () {
+      title(String v) => v.split('|').first;
       switch (sortNotesBy) {
         case 'Newest':
           return b.value.createdDate.compareTo(a.value.createdDate);
         case 'Oldest':
           return a.value.createdDate.compareTo(b.value.createdDate);
         case 'A-Z':
-          return a.key.compareTo(b.key);
+          return title(a.key).compareTo(title(b.key));
         case 'Z-A':
-          return b.key.compareTo(a.key);
+          return title(b.key).compareTo(title(a.key));
         default:
           return 0;
       }

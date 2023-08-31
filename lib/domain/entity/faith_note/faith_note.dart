@@ -7,6 +7,7 @@ part 'faith_note.g.dart';
 class FaithNote with _$FaithNote {
   const FaithNote._();
   const factory FaithNote({
+    required int id,
     required List<int> verses,
     String? text,
     required DateTime createdDate,
@@ -15,6 +16,7 @@ class FaithNote with _$FaithNote {
 
   factory FaithNote.empty(List<int> verses) {
     return FaithNote(
+      id: DateTime.now().microsecondsSinceEpoch,
       verses: verses,
       createdDate: DateTime.now(),
       updatedDate: DateTime.now(),

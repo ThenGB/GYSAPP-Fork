@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
@@ -39,6 +40,10 @@ class SongCubit extends HydratedCubit<SongState> {
     });
   }
 
+  sync(SongState songState) {
+    emit(songState);
+  }
+
   onSearchTermsChanged(String text) {
     emit(state.copyWith(searchTerms: text));
   }
@@ -56,7 +61,13 @@ class SongCubit extends HydratedCubit<SongState> {
 
   saveNote(SongNote data) {
     var notes = List<SongNote>.from(state.notes);
-    notes.add(data);
+    int index = notes.indexWhere((note) => note.id == data.id);
+
+    if (index != -1) {
+      notes[index] = data; // Replace the note with the same id
+    } else {
+      notes.add(data); // Add the note if it doesn't exist in the list
+    }
 
     emit(state.copyWith(notes: notes));
   }
@@ -106,7 +117,7 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   modifyTextScaleFactor(double factor) {
-    emit(state.copyWith(textScaleFactor: state.textScaleFactor + factor));
+    emit(state.copyWith(defaultTextScale: state.defaultTextScale + factor));
   }
 
   Future<String?> isMidiAvailable(Song song) async {
@@ -130,7 +141,7 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Reference get storage => FirebaseStorage.instance.ref();
 
-  Future<String?> fetchAvailableSong(Song? song) async {
+  Future<String?> fetchAvailableSong(Song? song, [bool? reload]) async {
     if (song == null) return null;
     emit(state.copyWith(isAudioLoading: true));
     String? midi = await isMidiAvailable(song);
@@ -138,32 +149,43 @@ class SongCubit extends HydratedCubit<SongState> {
     List<String> data = [];
     if (midi != null) data.add(midi);
     if (mp3 != null) data.add(mp3);
-    final result = data.firstWhereOrNull((element) =>
-            element.toLowerCase().contains(state.defaultAudioFormat)) ??
-        data.firstOrNull;
+    var result = data.firstWhereOrNull(
+        (element) => element.toLowerCase().contains(state.defaultAudioFormat));
+    if (result == null && data.isNotEmpty) {
+      result = data.firstOrNull;
+      if (result != null) {
+        changeAudioFormat(result.startsWith('assets') ? 'midi' : 'mp3', false);
+        if (reload == true) {
+          Fluttertoast.cancel();
+          Fluttertoast.showToast(
+              msg: '${!result.startsWith('assets') ? 'MIDI' : 'MP3'} not found'
+                  .tr());
+        }
+      }
+    }
     if (result != null) {
       late Source url;
       var source = result;
       if (result.startsWith('assets')) {
         url = AssetSource(source.replaceAll('assets/', ''));
-
+        await audioPlayer.audioCache.clearAll();
         audioPlayer.setSource(url).then((value) async {
           emit(state.copyWith(isAudioLoading: false));
-          await Future.delayed(const Duration(seconds: 1));
-          audioPlayer
-              .play(audioPlayer.source!)
-              .then((value) => audioPlayer.stop());
+          // await Future.delayed(const Duration(seconds: 1));
+          // audioPlayer
+          //     .play(audioPlayer.source!)
+          //     .then((value) => audioPlayer.stop());
         });
       } else {
         DefaultCacheManager().getSingleFile(source).then((value) {
           url = DeviceFileSource(value.path);
           audioPlayer.setSource(url).then((value) async {
             emit(state.copyWith(isAudioLoading: false));
-            await Future.delayed(const Duration(seconds: 1));
+            // await Future.delayed(const Duration(seconds: 1));
 
-            audioPlayer
-                .play(audioPlayer.source!)
-                .then((value) => audioPlayer.stop());
+            // audioPlayer
+            //     .play(audioPlayer.source!)
+            //     .then((value) => audioPlayer.stop());
           });
         });
       }
@@ -171,9 +193,11 @@ class SongCubit extends HydratedCubit<SongState> {
     return result;
   }
 
-  changeAudioFormat(String format) {
+  changeAudioFormat(String format, bool reload) {
     emit(state.copyWith(defaultAudioFormat: format));
-    fetchAvailableSong(state.currentSong!.songs[state.pageIndex]);
+    if (reload) {
+      fetchAvailableSong(state.currentSong!.songs[state.pageIndex], reload);
+    }
   }
 
   Future<String?> isMp3Available(Song song) async {
@@ -196,8 +220,16 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(showAudio: !state.showAudio));
   }
 
-  changeScale(double scale) {
-    emit(state.copyWith(textScaleFactor: scale));
+  changeFont(String font) {
+    emit(state.copyWith(defaultFont: font));
+  }
+
+  changeTextScale(double value) {
+    emit(state.copyWith(defaultTextScale: value));
+  }
+
+  changeTextHeight(double value) {
+    emit(state.copyWith(defaultTextHeight: value));
   }
 
   changePage(int index, int verseIndex) async {

@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyBwg1W_u1DANHXPuOf3wAwXOWfirhfuhZs',
-    appId: '1:4071878363:android:4bb1eeb024369e36a266fe',
+    appId: '1:4071878363:android:fa4b33575c68ed0ea266fe',
     messagingSenderId: '4071878363',
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
@@ -65,14 +65,14 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyDcIOWyv9V4H5ToFywYLSxKX1filnOkOhI',
-    appId: '1:4071878363:ios:be2091037dcbfbf2a266fe',
+    appId: '1:4071878363:ios:8d1c778bb712122ca266fe',
     messagingSenderId: '4071878363',
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
     androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-19b7fans4of36rp94k1t0hha5209ebbd.apps.googleusercontent.com',
-    iosBundleId: 'id.or.gys.e',
+    iosClientId: '4071878363-7a41kf03rqhb80idlht4fisrcmvur8in.apps.googleusercontent.com',
+    iosBundleId: 'com.itm.hatiku',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(

@@ -9,6 +9,7 @@ part 'bible_note.g.dart';
 class BibleNote with _$BibleNote {
   const BibleNote._();
   const factory BibleNote({
+    required int id,
     required List<Verse> verses,
     String? text,
     required DateTime createdDate,
@@ -17,6 +18,7 @@ class BibleNote with _$BibleNote {
 
   factory BibleNote.empty(List<Verse> verses) {
     return BibleNote(
+      id: DateTime.now().microsecondsSinceEpoch,
       verses: verses,
       createdDate: DateTime.now(),
       updatedDate: DateTime.now(),

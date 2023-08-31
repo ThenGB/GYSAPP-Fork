@@ -16,9 +16,10 @@ _$_DashboardState _$$_DashboardStateFromJson(Map<String, dynamic> json) =>
       biblePath: json['biblePath'] as String?,
       isError: json['isError'] as bool? ?? false,
       isSyncing: json['isSyncing'] as bool? ?? false,
-      lastSync: json['lastSync'] == null
-          ? null
-          : DateTime.parse(json['lastSync'] as String),
+      lastSync: (json['lastSync'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, DateTime.parse(e as String)),
+          ) ??
+          const {},
       message: json['message'] as String?,
       configLiterature: json['configLiterature'] == null
           ? const ConfigLiterature()
@@ -40,7 +41,8 @@ Map<String, dynamic> _$$_DashboardStateToJson(_$_DashboardState instance) =>
       'biblePath': instance.biblePath,
       'isError': instance.isError,
       'isSyncing': instance.isSyncing,
-      'lastSync': instance.lastSync?.toIso8601String(),
+      'lastSync':
+          instance.lastSync.map((k, e) => MapEntry(k, e.toIso8601String())),
       'message': instance.message,
       'configLiterature': instance.configLiterature,
       'idToken': instance.idToken,

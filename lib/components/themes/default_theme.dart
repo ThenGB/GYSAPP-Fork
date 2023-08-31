@@ -1,28 +1,62 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
 
-ThemeData defaultTheme() {
+ThemeData defaultTheme(String defaultFont) {
   var colorScheme = ColorScheme.fromSeed(
     seedColor: const Color(0xff002D73),
   );
   return ThemeData(
-    fontFamily: GoogleFonts.roboto().fontFamily,
+    fontFamily: defaultFont,
     appBarTheme: AppBarTheme(
       systemOverlayStyle: SystemUiOverlayStyle.dark.copyWith(
-          statusBarColor: Colors.transparent,
-          systemNavigationBarColor: Colors.transparent),
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: colorScheme.background,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
       titleTextStyle: TextStyle(
         fontWeight: FontWeight.w600,
         fontSize: 16,
         color: Colors.grey.shade800,
       ),
     ),
-    textTheme: GoogleFonts.robotoTextTheme(),
-    primaryTextTheme: GoogleFonts.robotoTextTheme().apply(
+    elevatedButtonTheme: ElevatedButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.resolveWith(
+          (states) {
+            return TextStyle(
+              fontFamily: defaultFont,
+              fontWeight: FontWeight.bold,
+            );
+          },
+        ),
+      ),
+    ),
+    buttonTheme: ButtonThemeData(
+      textTheme: ButtonTextTheme.primary,
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: ButtonStyle(
+        textStyle: MaterialStateProperty.resolveWith(
+          (states) {
+            return TextStyle(
+              fontFamily: defaultFont,
+              fontWeight: FontWeight.bold,
+            );
+          },
+        ),
+      ),
+    ),
+    textTheme: Typography.blackHelsinki.apply(
+      bodyColor: Color(0xff333333),
+      displayColor: Color(0xff666666),
+      decorationColor: Color(0xff333333),
+      fontFamily: defaultFont,
+    ),
+    primaryTextTheme: Typography.blackHelsinki.apply(
       bodyColor: const Color(0xff002D73),
       displayColor: const Color(0xff002D73),
       decorationColor: const Color(0xff002D73),
+      fontFamily: defaultFont,
     ),
     useMaterial3: true,
     scaffoldBackgroundColor: Colors.grey.shade100,

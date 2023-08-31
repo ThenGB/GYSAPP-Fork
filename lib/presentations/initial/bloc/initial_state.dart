@@ -14,6 +14,10 @@ class InitialState with _$InitialState {
     @Default('') String message,
     @Default(true) bool isFreshInstall,
     @Default('light') String themeMode,
+    @Default(5) int configFetchTimeoutSeconds,
+    @Default(10) int configFetchIntervalSeconds,
+    @Default(1.2) double defaultTextScale,
+    @Default('Roboto') String defaultFont,
   }) = _InitialState;
 
   factory InitialState.fromJson(Map<String, dynamic> json) =>

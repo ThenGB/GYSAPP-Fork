@@ -113,17 +113,51 @@ class BibleRepositoryImpl implements BibleRepository {
   }
 
   @override
-  Future<List<Verse>> search(Database db, String searchText) async {
+  Future<List<Verse>> search(
+      Database db, String searchText, List<BibleBook> selectedBooks) async {
+    if (selectedBooks.isEmpty) {
+      return []; // Return an empty list if selectedBooks is empty
+    }
+
     final List<Verse> listData = [];
     try {
-      const String query = '''
-      SELECT * FROM bible
-      WHERE t LIKE ? OR t LIKE ? OR t LIKE ?
-    ''';
+      final List<String> inOrderPhrases = [];
+      final List<String> randomOrderWords = [];
 
-      final List<String> searchTextList = searchText.split(' ');
+      // Regular expression to match phrases enclosed in double quotes (")
+      final RegExp phraseRegex = RegExp(r'"([^"]+)"');
 
-      final List<String> whereArgs = searchTextList
+      // Extract phrases and words from searchText
+      final Iterable<Match> matches = phraseRegex.allMatches(searchText);
+
+      // Process the matches to separate phrases and words
+      for (var match in matches) {
+        final String matchText = match.group(1)!;
+        inOrderPhrases.add(matchText);
+        searchText = searchText.replaceFirst(
+            '"$matchText"', ''); // Remove the processed phrase from searchText
+      }
+
+      randomOrderWords.addAll(searchText.split(' '));
+      randomOrderWords.removeWhere((element) => element.isEmpty);
+
+      final String inOrderQuery = inOrderPhrases.isEmpty
+          ? ''
+          : ' AND t LIKE \'%${inOrderPhrases.join(' ')}%\'';
+
+      final String randomOrderQuery = randomOrderWords.isEmpty
+          ? ''
+          : ' AND ${List.generate(randomOrderWords.length, (index) => 't LIKE ?').join(' AND ')}';
+
+      final List<int> selectedBookIds =
+          selectedBooks.map((book) => book.id).toList();
+      final String selectedBooksQuery =
+          ' AND b IN (${selectedBookIds.join(', ')})';
+
+      final String query =
+          'SELECT * FROM bible WHERE 1=1 $inOrderQuery $randomOrderQuery$selectedBooksQuery';
+
+      final List<String> whereArgs = randomOrderWords
           .map((text) => '%$text%')
           .toList(); // Generate wildcard search strings
 
@@ -136,7 +170,7 @@ class BibleRepositoryImpl implements BibleRepository {
 
       return listData;
     } catch (e) {
-      print('@searchBibleByString: $e');
+      log('@searchBibleByString: $e');
       return listData;
     }
   }

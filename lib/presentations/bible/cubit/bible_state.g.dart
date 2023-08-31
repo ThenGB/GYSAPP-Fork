@@ -20,7 +20,17 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
       prevBible: json['prevBible'] == null
           ? null
           : Verse.fromJson(json['prevBible'] as Map<String, dynamic>),
+      currentBibleSplit: json['currentBibleSplit'] == null
+          ? null
+          : Verse.fromJson(json['currentBibleSplit'] as Map<String, dynamic>),
+      prevBibleSplit: json['prevBibleSplit'] == null
+          ? null
+          : Verse.fromJson(json['prevBibleSplit'] as Map<String, dynamic>),
       books: (json['books'] as List<dynamic>?)
+              ?.map((e) => BibleBook.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      booksSplit: (json['booksSplit'] as List<dynamic>?)
               ?.map((e) => BibleBook.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -29,14 +39,18 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       bookmarks: (json['bookmarks'] as List<dynamic>?)
-              ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
+              ?.map((e) => BibleBookmark.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       references: (json['references'] as List<dynamic>?)
               ?.map((e) => BibleRef.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      splitVerses: (json['splitVerses'] as List<dynamic>?)
+      referencesSplit: (json['referencesSplit'] as List<dynamic>?)
+              ?.map((e) => BibleRef.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      versesSplit: (json['versesSplit'] as List<dynamic>?)
               ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -49,7 +63,7 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Pericope.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      splitPericopes: (json['splitPericopes'] as List<dynamic>?)
+      pericopesSplit: (json['pericopesSplit'] as List<dynamic>?)
               ?.map((e) => Pericope.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
@@ -61,16 +75,17 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => PericopeParalel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      splitPericopesParalels: (json['splitPericopesParalels'] as List<dynamic>?)
+      pericopesParalelsSplit: (json['pericopesParalelsSplit'] as List<dynamic>?)
               ?.map((e) => PericopeParalel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
       currentBook: json['currentBook'] == null
           ? null
           : BibleBook.fromJson(json['currentBook'] as Map<String, dynamic>),
-      splitBook: json['splitBook'] == null
+      currentBookSplit: json['currentBookSplit'] == null
           ? null
-          : BibleBook.fromJson(json['splitBook'] as Map<String, dynamic>),
+          : BibleBook.fromJson(
+              json['currentBookSplit'] as Map<String, dynamic>),
       selectedVerse: (json['selectedVerse'] as List<dynamic>?)
               ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -86,9 +101,24 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
           ? null
           : DateTime.parse(json['lastOpenBible'] as String),
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
-      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1,
+      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
       defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
       sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
+      enableAudio: json['enableAudio'] as bool? ?? false,
+      isSpeaking: json['isSpeaking'] as bool? ?? false,
+      currentWord: json['currentWord'] as String? ?? '',
+      currentStartWord: json['currentStartWord'] as int? ?? 0,
+      currentEndWord: json['currentEndWord'] as int? ?? 0,
+      selectedFilterBooks: (json['selectedFilterBooks'] as List<dynamic>?)
+              ?.map((e) => BibleBook.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      voices: (json['voices'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, e as Map<String, dynamic>),
+          ) ??
+          const {},
+      speedRate: (json['speedRate'] as num?)?.toDouble() ?? .35,
+      pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? .90,
     );
 
 Map<String, dynamic> _$$_BibleStateToJson(_$_BibleState instance) =>
@@ -98,20 +128,24 @@ Map<String, dynamic> _$$_BibleStateToJson(_$_BibleState instance) =>
       'bibleCodes': instance.bibleCodes,
       'currentBible': instance.currentBible,
       'prevBible': instance.prevBible,
+      'currentBibleSplit': instance.currentBibleSplit,
+      'prevBibleSplit': instance.prevBibleSplit,
       'books': instance.books,
+      'booksSplit': instance.booksSplit,
       'verses': instance.verses,
       'bookmarks': instance.bookmarks,
       'references': instance.references,
-      'splitVerses': instance.splitVerses,
+      'referencesSplit': instance.referencesSplit,
+      'versesSplit': instance.versesSplit,
       'histories':
           instance.histories.map((k, e) => MapEntry(k.toIso8601String(), e)),
       'pericopes': instance.pericopes,
-      'splitPericopes': instance.splitPericopes,
+      'pericopesSplit': instance.pericopesSplit,
       'notes': instance.notes,
       'pericopesParalels': instance.pericopesParalels,
-      'splitPericopesParalels': instance.splitPericopesParalels,
+      'pericopesParalelsSplit': instance.pericopesParalelsSplit,
       'currentBook': instance.currentBook,
-      'splitBook': instance.splitBook,
+      'currentBookSplit': instance.currentBookSplit,
       'selectedVerse': instance.selectedVerse,
       'hightlightedVerse': instance.hightlightedVerse,
       'todayReading': instance.todayReading,
@@ -120,4 +154,13 @@ Map<String, dynamic> _$$_BibleStateToJson(_$_BibleState instance) =>
       'defaultTextScale': instance.defaultTextScale,
       'defaultTextHeight': instance.defaultTextHeight,
       'sortNotesBy': instance.sortNotesBy,
+      'enableAudio': instance.enableAudio,
+      'isSpeaking': instance.isSpeaking,
+      'currentWord': instance.currentWord,
+      'currentStartWord': instance.currentStartWord,
+      'currentEndWord': instance.currentEndWord,
+      'selectedFilterBooks': instance.selectedFilterBooks,
+      'voices': instance.voices,
+      'speedRate': instance.speedRate,
+      'pitchRate': instance.pitchRate,
     };

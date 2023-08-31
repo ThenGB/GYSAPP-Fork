@@ -4,6 +4,7 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
@@ -12,6 +13,7 @@ import '../../../data/utilities/string_utils.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/bcvbc/bcvbc.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
+import '../../../domain/entity/bible_bookmark/bible_bookmark.dart';
 import '../../../domain/entity/bible_note/bible_note.dart';
 import '../../../domain/entity/bible_ref/bible_ref.dart';
 import '../../../domain/entity/pericope/pericope.dart';
@@ -25,9 +27,11 @@ export 'bible_state.dart';
 class BibleCubit extends HydratedCubit<BibleState> {
   BibleCubit() : super(const BibleState()) {
     initBible();
+    initTts();
     log('Initialized BibleCubit');
     incrementTodayReading();
   }
+  final FlutterTts tts = FlutterTts();
 
   bool get isSelectingBible => state.selectedVerse.isNotEmpty;
 
@@ -36,43 +40,228 @@ class BibleCubit extends HydratedCubit<BibleState> {
   Database? bibleDb;
   Database? splitBibleDb;
   initBible() async {
-    if (state.currentBibleCode == null) return;
     await openDatabase(join(
             di<AppDirectory>().bibleFolder, '${state.currentBibleCode}.db'))
         .then((value) {
       bibleDb = value;
+      splitBibleDb = bibleDb;
       // getBooks();
       getContent(state.currentBible);
     });
+  }
+
+  updateFilterBook(List<BibleBook> values) {
+    emit(state.copyWith(selectedFilterBooks: values));
+  }
+
+  sync(BibleState bibleState) {
+    emit(bibleState);
+  }
+
+  applyTtsSetting(Map<String, Map> voices, double pitch, double speed) {
+    emit(state.copyWith(voices: voices, pitchRate: pitch, speedRate: speed));
+    initTts();
+  }
+
+  onFilterPerjanjianLama() {
+    if (state.isSelectedPerjanjianLama == null ||
+        state.isSelectedPerjanjianLama == true) {
+      List<BibleBook> listPerjanjianLama = List.from(state.selectedFilterBooks)
+        ..removeWhere((element) => element.id <= 39);
+      updateFilterBook(listPerjanjianLama);
+    } else if (state.isSelectedPerjanjianLama == false) {
+      List<BibleBook> listAdd = List.from(state.books)
+        ..removeWhere((element) => element.id > 39);
+      updateFilterBook(List.from(state.selectedFilterBooks)..addAll(listAdd));
+    }
+  }
+
+  onFilterCurrentBible() {
+    if (state.selectedFilterBooks.length == 1 &&
+        state.selectedFilterBooks.single == state.currentBook) {
+      updateFilterBook([]);
+    } else {
+      updateFilterBook([state.currentBook!]);
+    }
+  }
+
+  onFilterPerjanjianBaru() {
+    if (state.isSelectedPerjanjianBaru == null ||
+        state.isSelectedPerjanjianBaru == true) {
+      List<BibleBook> listPerjanjianLama = List.from(state.selectedFilterBooks)
+        ..removeWhere((element) => element.id > 39);
+      updateFilterBook(listPerjanjianLama);
+    } else if (state.isSelectedPerjanjianBaru == false) {
+      List<BibleBook> listAdd = List.from(state.books)
+        ..removeWhere((element) => element.id <= 39);
+      updateFilterBook(List.from(state.selectedFilterBooks)..addAll(listAdd));
+    }
   }
 
   late List<GlobalKey<VerseWidgetState>> verseKeys = List.generate(
       state.verses.length,
       (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
   late List<GlobalKey<VerseWidgetState>> verseKeys2 = List.generate(
-      state.verses.length, (index) => GlobalKey<VerseWidgetState>());
+      state.verses.length,
+      (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
 
-  modifyBookmark(Verse item) {
-    List<Verse> bookmarks = (List.from(state.bookmarks));
-    if (bookmarks.contains(item)) {
-      bookmarks.remove(item);
-    } else {
-      bookmarks.add(item);
+  modifyBookmark() {
+    List<BibleBookmark> bookmarks = List.from(state.bookmarks);
+    List<BibleBookmark> newValues = List.from(state.selectedVerse)
+        .map((e) => BibleBookmark(
+            createdAt: DateTime.now(), isBookmarkAll: false, verse: e))
+        .toList();
+    if (newValues.isEmpty) {
+      newValues.add(BibleBookmark(
+          createdAt: DateTime.now(),
+          isBookmarkAll: true,
+          verse: state.verses.first));
     }
+
+    for (BibleBookmark item in newValues) {
+      var savedItem = bookmarks.indexWhere((element) =>
+          element.isBookmarkAll == item.isBookmarkAll &&
+          element.verse.verseId == item.verse.verseId);
+      if (!savedItem.isNegative) {
+        bookmarks.removeAt(savedItem);
+      } else {
+        bookmarks.add(item);
+      }
+    }
+
     if (bookmarks.length > 20) {
-      bookmarks = bookmarks.sublist(1);
+      // Keep the latest 20 bookmarks
+      bookmarks = bookmarks.sublist(bookmarks.length - 20);
     }
+    // Fluttertoast.cancel();
+    // Fluttertoast.showToast(
+    //     msg:
+    //         'Bookmarks modified! To see all bookmark, tap on "See all bookmarks"'
+    //             .tr());
     emit(state.copyWith(bookmarks: bookmarks));
   }
 
-  replaceBookmarks(List<Verse> items) {
+  speakTheBible() async {
+    emit(state.copyWith(isSpeaking: true));
+    List<Verse> verses = [];
+
+    if (state.selectedVerse.isNotEmpty) {
+      verses = List.from(
+          state.selectedVerse.sorted((a, b) => a.verseId.compareTo(b.verseId)));
+    } else {
+      verses = List.from(state.verses);
+    }
+    for (var verse in verses) {
+      if (state.isSpeaking) {
+        List<Pericope>? pericope = state.pericopes.getById(verse.id);
+        String sentence = '';
+        if (pericope.isNotEmpty) {
+          sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
+        }
+        sentence += verse.verse ?? '';
+        sentence = sentence.replaceAll('Allah', 'Alla');
+        sentence = sentence.replaceAll('allah', 'alla');
+        sentence = sentence.replaceAll('Demikian', 'Demi kian');
+        sentence = sentence.replaceAll('demikian', 'demi kian');
+        sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
+        sentence = sentence.replaceAll('pentakosta', 'penta kosta');
+        emit(state.copyWith(currentBible: verse));
+        await Future.delayed(
+          Duration(milliseconds: 600),
+        );
+        await tts.speak(sentence);
+        emit(state.copyWith(currentStartWord: 0, currentEndWord: 0));
+      }
+    }
+    emit(state.copyWith(isSpeaking: false));
+  }
+
+  stopSpeaking() async {
+    await tts.stop();
+    emit(state.copyWith(isSpeaking: false));
+  }
+
+  replaceBookmarks(List<BibleBookmark> items) {
     emit(state.copyWith(bookmarks: items));
   }
 
   Future<List<Verse>> searchBibleByString(String searchText) async {
     if (searchText.isEmpty) return [];
-    final response = await bibleRepository.search(bibleDb!, searchText);
+    final response = await bibleRepository.search(
+        bibleDb!, searchText, state.selectedFilterBooks);
     return response;
+  }
+
+  toggleAudio() {
+    emit(state.copyWith(enableAudio: !state.enableAudio));
+  }
+
+  initTts() async {
+    await tts.awaitSpeakCompletion(true);
+    await tts.awaitSynthCompletion(true);
+    await tts.setSpeechRate(state.speedRate);
+    await tts.setPitch(state.pitchRate);
+    List<String> langs =
+        ((await tts.getLanguages) as List<Object?>).cast<String>().toList();
+    int? lang = langs.map((e) => e.split('-').first).toList().indexWhere(
+        (element) => element == state.currentBibleLanguage.split('-').first);
+    await tts.setLanguage(langs[lang]);
+    // List<Map<String, String>> voices =
+    //     ((await tts.getVoices) as List).cast<Map<String, String>>().toList();
+    List<Map> voices = (await tts.getVoices as List<Object?>)
+        .cast<Map>()
+        .toList()
+        .map((e) =>
+            e.map((key, value) => MapEntry(key.toString(), value.toString())))
+        .toList();
+    var currentLang = state.currentBibleLanguage;
+    Map<String, String>? voice =
+        (voices.firstWhereOrNull((element) => element['locale'] == currentLang))
+            ?.map((key, value) => MapEntry(key.toString(), value.toString()));
+    if (voice != null) {
+      var savedVoice = state.voices[currentLang];
+      if (savedVoice == null) {
+        var savedVoices = Map.from(state.voices);
+        savedVoices[currentLang] = voice;
+        emit(state.copyWith(voices: savedVoices.cast()));
+      }
+      await tts.setVoice(savedVoice?.cast() ?? voice);
+    }
+    await tts.setVolume(1);
+    tts.setProgressHandler((text, start, end, word) {
+      log('TTS Speaking \ntext: $text\nstart: $start\nend: $end\nword: $word\n',
+          name: 'Speaking');
+      var mustAdd = [
+        'Alla',
+        'alla',
+        'Penta kosta',
+        'Demi kian',
+        'penta kosta',
+        'demi kian'
+      ];
+      log(end.toString(), name: 'END BEFORE ADD');
+      if (mustAdd.any((element) => text.contains(element))) {
+        start =
+            start + countSelectedWords(text.substring(0, end + 4), mustAdd) - 1;
+        if (start.isNegative) {
+          start = 0;
+        }
+        end = end + countSelectedWords(text.substring(0, end + 4), mustAdd);
+      }
+      log(end.toString(), name: 'END AFTER ADD');
+      if (mustAdd.contains(word)) {
+        // end = end + 1;
+        word = word.replaceAll('Alla', 'Allah');
+        word = word.replaceAll('alla', 'allah');
+        word = word.replaceAll('Demi kian', 'Demikian');
+        word = word.replaceAll('demi kian', 'demikian');
+        word = word.replaceAll('Penta kosta', 'Pentakosta');
+        word = word.replaceAll('penta kosta', 'pentakosta');
+      }
+
+      emit(state.copyWith(
+          currentWord: word, currentStartWord: start, currentEndWord: end));
+    });
   }
 
   incrementTodayReading() async {
@@ -84,6 +273,19 @@ class BibleCubit extends HydratedCubit<BibleState> {
     nextChapter(days, true).then((value) {
       setTodayReading(state.currentBible);
     });
+  }
+
+  int countSelectedWords(String text, List<String> selectedWords) {
+    final words = text.split(RegExp(r'\W+'));
+    int totalCount = 0;
+
+    for (var word in words) {
+      if (selectedWords.contains(word)) {
+        totalCount++;
+      }
+    }
+    log(totalCount.toString(), name: 'totalCount');
+    return totalCount;
   }
 
   setTodayReading(Verse? bible) {
@@ -138,6 +340,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
       emit(
         state.copyWith(currentBibleCode: bibleCode),
       );
+      initTts();
     }
 
     // getBooks();
@@ -180,13 +383,20 @@ class BibleCubit extends HydratedCubit<BibleState> {
   saveToHistory(Verse verse) {
     Map<DateTime, Verse> map = Map.from(state.histories);
     if (map.length >= 20) {
-      map = Map.fromIterable(List.from(map.entries).sublist(1, 21));
+      var last = map.entries.last;
+      map.remove(last.key);
     }
     map[DateTime.now()] = verse;
     emit(state.copyWith(histories: map));
   }
 
-  Future getContent(Verse? bible) async {
+  Future getContent(Verse? bible, {VerseMode mode = VerseMode.both}) async {
+    if ([VerseMode.both, VerseMode.bottomOnly].contains(mode)) {
+      getContent2(bible);
+    }
+    if (mode == VerseMode.bottomOnly) {
+      return;
+    }
     emit(state.copyWith(selectedVerse: []));
     if (bible == null) {
       emit(
@@ -235,61 +445,103 @@ class BibleCubit extends HydratedCubit<BibleState> {
       bibleDb!,
       bc: bcvbc.bc!,
     );
-
     List<BibleRef> references =
         await bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!);
-
-    List<Verse> splitBibleContent = [];
-    List<BibleBook> splitBookContent = [];
-    List<Pericope> splitPericopes = [];
-    List<PericopeParalel> splitPericopeParalels = [];
-    if (splitBibleDb != null) {
-      splitBibleContent = await bibleRepository.getVerses(
-        splitBibleDb!,
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-      splitBookContent = await bibleRepository.getBooks(
-        splitBibleDb!,
-        // bookId: bookId,
-      );
-      splitPericopes = await bibleRepository.getPericope(
-        splitBibleDb!,
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-      splitPericopeParalels = await bibleRepository.getPericopeParalel(
-        splitBibleDb!,
-        bc: bcvbc.bc!,
-      );
-    }
     var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
-    var book2 =
-        splitBookContent.firstWhereOrNull((element) => element.id == bookId);
-
     verseKeys = List.generate(bibleContent.length,
         (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
-    verseKeys2 = List.generate(
-        bibleContent.length, (index) => GlobalKey<VerseWidgetState>());
-
     emit(
       state.copyWith(
         books: bookContent,
+        selectedFilterBooks: bookContent,
         currentBook: book,
-        splitBook: book2,
         verses: bibleContent,
         references: references,
-        splitVerses: splitBibleContent,
         pericopes: pericopes,
-        splitPericopes: splitPericopes,
         pericopesParalels: pericopeParalels,
-        splitPericopesParalels: splitPericopeParalels,
         lastOpenBible: DateTime.now(),
       ),
     );
   }
 
-  Future previousChapter() async {
+  Future getContent2(Verse? bible) async {
+    try {
+      emit(state.copyWith(selectedVerse: []));
+      if (bible == null) {
+        emit(
+          state.copyWith(
+            prevBibleSplit: state.currentBibleSplit,
+            currentBibleSplit: const Verse(
+              id: 1001001,
+              bookId: 1,
+              chapterId: 1,
+              verseId: 1,
+            ),
+          ),
+        );
+      } else {
+        emit(state.copyWith(
+            prevBibleSplit: state.currentBibleSplit, currentBibleSplit: bible));
+      }
+      int bibleId = state.currentBibleSplit!.id;
+      // int verseId = state.currentBible!.verseId;
+      Bcvbc bcvbc = Bcvbc.fromBibleId(bibleId);
+      int bookId = state.currentBibleSplit!.bookId;
+      int chapterId = state.currentBibleSplit!.chapterId;
+      // String? title = await convertIDtoNameAlkitab(
+      //   bibleId,
+      //   null,
+      //   bibleDb: bibleDb!,
+      //   isLong: true,
+      //   withVerse: false,
+      // );
+
+      List<Verse> bibleContent = await bibleRepository.getVerses(
+        splitBibleDb!,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+      List<BibleBook> bookContent = await bibleRepository.getBooks(
+        splitBibleDb!,
+        // bookId: bookId,
+      );
+      List<Pericope> pericopes = await bibleRepository.getPericope(
+        splitBibleDb!,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+      List<PericopeParalel> pericopeParalels =
+          await bibleRepository.getPericopeParalel(
+        splitBibleDb!,
+        bc: bcvbc.bc!,
+      );
+
+      List<BibleRef> references =
+          await bibleRepository.getRef(splitBibleDb!, bc: bcvbc.bc!);
+
+      var book =
+          bookContent.firstWhereOrNull((element) => element.id == bookId);
+
+      verseKeys2 = List.generate(bibleContent.length,
+          (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
+
+      emit(
+        state.copyWith(
+          booksSplit: bookContent,
+          currentBookSplit: book,
+          versesSplit: bibleContent,
+          referencesSplit: references,
+          pericopesSplit: pericopes,
+          pericopesParalelsSplit: pericopeParalels,
+          lastOpenBible: DateTime.now(),
+        ),
+      );
+    } catch (e) {
+      log('test');
+    }
+  }
+
+  Future previousChapter(VerseMode mode) async {
     emit(state.copyWith(selectedVerse: []));
     int bookId = state.currentBible!.bookId;
     int chapterId = state.currentBible!.chapterId;
@@ -303,18 +555,23 @@ class BibleCubit extends HydratedCubit<BibleState> {
       chapterId--;
     }
     int bibleId = bookId * 1000000 + chapterId * 1000 + 1;
-    return await getContent(Verse(
-      id: bibleId,
-      bookId: bookId,
-      chapterId: chapterId,
-      verseId: 1,
-    ));
+    return await getContent(
+      Verse(
+        id: bibleId,
+        bookId: bookId,
+        chapterId: chapterId,
+        verseId: 1,
+      ),
+      mode: mode,
+    );
   }
 
   previousVerse() {}
 
   hightLightBible(List<Verse> bible) {
     List<Verse> temp = List.from(state.hightlightedVerse);
+    var existsAndSelected = state.hightlightedVerse.where(
+        (element) => state.selectedVerse.map((e) => e.id).contains(element.id));
     for (var b in bible) {
       var exists = temp.any((element) => element.isSame(b));
 
@@ -323,9 +580,15 @@ class BibleCubit extends HydratedCubit<BibleState> {
             temp.firstWhereOrNull((element) => element.isSame(b)) ?? b);
         if (temp[index].color == b.color) {
           temp.removeAt(index);
+        } else {
+          if (!existsAndSelected.map((e) => e.color).contains(b.color)) {
+            temp[index] = b;
+          }
         }
       } else {
-        temp.add(b);
+        if (!existsAndSelected.map((e) => e.color).contains(b.color)) {
+          temp.add(b);
+        }
       }
     }
     temp = temp.toSet().toList();
@@ -347,7 +610,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(selectedVerse: []));
   }
 
-  Future nextChapter([int? step, bool fromTodayReading = false]) async {
+  Future nextChapter(
+      [int? step, bool fromTodayReading = false, VerseMode? mode]) async {
     if (step != null && step < 1) {
       return; // Exit the function if step is less than 1
     }
@@ -390,6 +654,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
         chapterId: chapterId,
         verseId: 1,
       ),
+      mode: mode ?? VerseMode.topOnly,
     );
   }
 
@@ -413,7 +678,19 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   saveNote(BibleNote data) {
     var notes = List<BibleNote>.from(state.notes);
-    notes.add(data);
+    bool isNoteFound = false;
+
+    for (int i = 0; i < notes.length; i++) {
+      if (notes[i].id == data.id) {
+        notes[i] = data; // Replace the note with the same id
+        isNoteFound = true;
+        break;
+      }
+    }
+
+    if (!isNoteFound) {
+      notes.add(data); // Add the note if it doesn't exist in the list
+    }
 
     emit(state.copyWith(notes: notes));
   }
@@ -597,3 +874,5 @@ String? convertZeroNumber(String? number) {
     return null;
   }
 }
+
+enum VerseMode { both, topOnly, bottomOnly }

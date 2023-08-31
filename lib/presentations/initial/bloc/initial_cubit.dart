@@ -1,11 +1,14 @@
 import 'dart:developer';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../app.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/firebase_utils.dart';
 import '../../../data/utilities/variables/failure.dart';
 import 'initial_state.dart';
@@ -19,8 +22,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
     try {
       FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
-          fetchTimeout: const Duration(seconds: 5),
-          minimumFetchInterval: const Duration(seconds: 10),
+          fetchTimeout: Duration(
+              seconds: kReleaseMode ? state.configFetchTimeoutSeconds : 5),
+          minimumFetchInterval: Duration(
+              seconds: kReleaseMode ? state.configFetchIntervalSeconds : 1),
         ),
       );
       var isConnectedToInternet =
@@ -38,8 +43,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
   initState() async {
     log('Initiating application state');
     await getRemoteConfig();
+    var firebaseRemoteConfig =
+        await FirebaseUtils.jsonConfig('firebase_remote_config');
+    emit(
+      state.copyWith(
+        configFetchTimeoutSeconds: firebaseRemoteConfig['fetch_timeout'] ??
+            state.configFetchTimeoutSeconds,
+        configFetchIntervalSeconds: firebaseRemoteConfig['fetch_interval'] ??
+            state.configFetchIntervalSeconds,
+      ),
+    );
     var result =
         (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
+    try {
+      await FirebaseAuth.instance
+          .signInAnonymously()
+          .timeout(Duration(seconds: 5));
+    } catch (e) {
+      log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
+    }
 
     if (!result && state.isFreshInstall) {
       emit(
@@ -64,16 +86,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
     }
   }
 
-  toggleTheme(ThemeMode themeMode, BuildContext context) {
+  toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
     emit(state.copyWith(themeMode: themeMode.toThemeString));
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      SystemChrome.setSystemUIOverlayStyle((themeMode == ThemeMode.dark
-              ? SystemUiOverlayStyle.light
-              : SystemUiOverlayStyle.dark)
-          .copyWith(
-              statusBarColor: Colors.transparent,
-              systemNavigationBarColor: Colors.transparent));
-    });
+    Future.delayed(
+      kThemeChangeDuration,
+      () {
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          SystemChrome.setSystemUIOverlayStyle(
+              context().theme.appBarTheme.systemOverlayStyle!);
+        });
+      },
+    );
+  }
+
+  changeTextScale(double newScale) {
+    emit(state.copyWith(defaultTextScale: newScale));
+  }
+
+  changeFontStyle(String newValue) {
+    emit(state.copyWith(defaultFont: newValue));
   }
 
   @override

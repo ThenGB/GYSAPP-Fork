@@ -28,7 +28,7 @@ mixin _$DashboardState {
   String? get biblePath => throw _privateConstructorUsedError;
   bool get isError => throw _privateConstructorUsedError;
   bool get isSyncing => throw _privateConstructorUsedError;
-  DateTime? get lastSync => throw _privateConstructorUsedError;
+  Map<String, DateTime> get lastSync => throw _privateConstructorUsedError;
   String? get message => throw _privateConstructorUsedError;
   ConfigLiterature get configLiterature => throw _privateConstructorUsedError;
   String? get idToken => throw _privateConstructorUsedError;
@@ -55,7 +55,7 @@ abstract class $DashboardStateCopyWith<$Res> {
       String? biblePath,
       bool isError,
       bool isSyncing,
-      DateTime? lastSync,
+      Map<String, DateTime> lastSync,
       String? message,
       ConfigLiterature configLiterature,
       String? idToken,
@@ -86,7 +86,7 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
     Object? biblePath = freezed,
     Object? isError = null,
     Object? isSyncing = null,
-    Object? lastSync = freezed,
+    Object? lastSync = null,
     Object? message = freezed,
     Object? configLiterature = null,
     Object? idToken = freezed,
@@ -125,10 +125,10 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
           ? _value.isSyncing
           : isSyncing // ignore: cast_nullable_to_non_nullable
               as bool,
-      lastSync: freezed == lastSync
+      lastSync: null == lastSync
           ? _value.lastSync
           : lastSync // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
+              as Map<String, DateTime>,
       message: freezed == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -186,7 +186,7 @@ abstract class _$$_DashboardStateCopyWith<$Res>
       String? biblePath,
       bool isError,
       bool isSyncing,
-      DateTime? lastSync,
+      Map<String, DateTime> lastSync,
       String? message,
       ConfigLiterature configLiterature,
       String? idToken,
@@ -217,7 +217,7 @@ class __$$_DashboardStateCopyWithImpl<$Res>
     Object? biblePath = freezed,
     Object? isError = null,
     Object? isSyncing = null,
-    Object? lastSync = freezed,
+    Object? lastSync = null,
     Object? message = freezed,
     Object? configLiterature = null,
     Object? idToken = freezed,
@@ -256,10 +256,10 @@ class __$$_DashboardStateCopyWithImpl<$Res>
           ? _value.isSyncing
           : isSyncing // ignore: cast_nullable_to_non_nullable
               as bool,
-      lastSync: freezed == lastSync
-          ? _value.lastSync
+      lastSync: null == lastSync
+          ? _value._lastSync
           : lastSync // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
+              as Map<String, DateTime>,
       message: freezed == message
           ? _value.message
           : message // ignore: cast_nullable_to_non_nullable
@@ -292,12 +292,13 @@ class _$_DashboardState extends _DashboardState {
       this.biblePath,
       this.isError = false,
       this.isSyncing = false,
-      this.lastSync,
+      final Map<String, DateTime> lastSync = const {},
       this.message,
       this.configLiterature = const ConfigLiterature(),
       this.idToken,
       this.account})
-      : super._();
+      : _lastSync = lastSync,
+        super._();
 
   factory _$_DashboardState.fromJson(Map<String, dynamic> json) =>
       _$$_DashboardStateFromJson(json);
@@ -321,8 +322,15 @@ class _$_DashboardState extends _DashboardState {
   @override
   @JsonKey()
   final bool isSyncing;
+  final Map<String, DateTime> _lastSync;
   @override
-  final DateTime? lastSync;
+  @JsonKey()
+  Map<String, DateTime> get lastSync {
+    if (_lastSync is EqualUnmodifiableMapView) return _lastSync;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_lastSync);
+  }
+
   @override
   final String? message;
   @override
@@ -356,8 +364,7 @@ class _$_DashboardState extends _DashboardState {
             (identical(other.isError, isError) || other.isError == isError) &&
             (identical(other.isSyncing, isSyncing) ||
                 other.isSyncing == isSyncing) &&
-            (identical(other.lastSync, lastSync) ||
-                other.lastSync == lastSync) &&
+            const DeepCollectionEquality().equals(other._lastSync, _lastSync) &&
             (identical(other.message, message) || other.message == message) &&
             (identical(other.configLiterature, configLiterature) ||
                 other.configLiterature == configLiterature) &&
@@ -377,7 +384,7 @@ class _$_DashboardState extends _DashboardState {
       biblePath,
       isError,
       isSyncing,
-      lastSync,
+      const DeepCollectionEquality().hash(_lastSync),
       message,
       configLiterature,
       idToken,
@@ -407,7 +414,7 @@ abstract class _DashboardState extends DashboardState {
       final String? biblePath,
       final bool isError,
       final bool isSyncing,
-      final DateTime? lastSync,
+      final Map<String, DateTime> lastSync,
       final String? message,
       final ConfigLiterature configLiterature,
       final String? idToken,
@@ -434,7 +441,7 @@ abstract class _DashboardState extends DashboardState {
   @override
   bool get isSyncing;
   @override
-  DateTime? get lastSync;
+  Map<String, DateTime> get lastSync;
   @override
   String? get message;
   @override

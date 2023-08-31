@@ -7,25 +7,25 @@ part of 'verse.dart';
 // **************************************************************************
 
 _$_Verse _$$_VerseFromJson(Map<String, dynamic> json) => _$_Verse(
-      id: json['id'] as int,
-      bookId: json['b'] as int,
-      chapterId: json['c'] as int,
-      verseId: json['v'] as int,
+      id: dynamicToInt(json['id']),
+      bookId: dynamicToInt(json['b']),
+      chapterId: dynamicToInt(json['c']),
+      verseId: dynamicToInt(json['v']),
       verse: json['t'] as String?,
       revisionId: json['r'] as int?,
       c1: dynamicToString(json['c1']),
-      v1: json['v1'] as String?,
+      v1: dynamicToString(json['v1']),
       color: _colorFromJson(json['color']),
     );
 
 Map<String, dynamic> _$$_VerseToJson(_$_Verse instance) => <String, dynamic>{
-      'id': instance.id,
-      'b': instance.bookId,
-      'c': instance.chapterId,
-      'v': instance.verseId,
+      'id': intToDynamic(instance.id),
+      'b': intToDynamic(instance.bookId),
+      'c': intToDynamic(instance.chapterId),
+      'v': intToDynamic(instance.verseId),
       't': instance.verse,
       'r': instance.revisionId,
       'c1': stringToDynamic(instance.c1),
-      'v1': instance.v1,
+      'v1': stringToDynamic(instance.v1),
       'color': _colorToJson(instance.color),
     };

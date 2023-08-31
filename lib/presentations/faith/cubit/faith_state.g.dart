@@ -17,6 +17,10 @@ _$_FaithState _$$_FaithStateFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
+      language: json['language'] as String? ?? 'id',
+      defaultFont: json['defaultFont'] as String? ?? 'Roboto',
+      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
+      defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
     );
 
 Map<String, dynamic> _$$_FaithStateToJson(_$_FaithState instance) =>
@@ -24,4 +28,8 @@ Map<String, dynamic> _$$_FaithStateToJson(_$_FaithState instance) =>
       'selectedFaith': instance.selectedFaith,
       'notes': instance.notes,
       'sortNotesBy': instance.sortNotesBy,
+      'language': instance.language,
+      'defaultFont': instance.defaultFont,
+      'defaultTextScale': instance.defaultTextScale,
+      'defaultTextHeight': instance.defaultTextHeight,
     };

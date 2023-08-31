@@ -1,9 +1,12 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -20,7 +23,7 @@ import 'data/utilities/variables/assets.dart';
 import 'di/injection.dart';
 import 'domain/entity/appconfig/appconfig.dart';
 import 'firebase_options.dart';
-import 'presentations/initial/bloc/initial_cubit.dart';
+import 'presentations/presentations.dart';
 import 'router/router.dart';
 
 Future initApplication() async {
@@ -35,6 +38,15 @@ Future initApplication() async {
   await setupInjection(appConfig);
   await _setupNotification();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
+  Isolate.current.addErrorListener(RawReceivePort((pair) {
+    final errorAndStackTrace = pair as List<dynamic>;
+    FirebaseCrashlytics.instance.recordError(
+      errorAndStackTrace.firstOrNull,
+      StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
+      fatal: true,
+    );
+  }).sendPort);
   await FirebaseRemoteConfig.instance.ensureInitialized();
   AppDirectory localDir = di();
   var file = File('${localDir.bibleFolder}/b_tb.db');
@@ -46,6 +58,7 @@ Future initApplication() async {
         buffer.asUint8List(fileData.offsetInBytes, fileData.lengthInBytes));
   }
   FlutterNativeSplash.remove();
+  log('App Initialization DONE');
 }
 
 Future _setupNotification() async {
@@ -94,7 +107,6 @@ class _AppState extends State<App> {
   StreamSubscription<InternetConnectionStatus>? connectivitySubscription;
   @override
   void initState() {
-    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     // connectivitySubscription = internetChecker.onStatusChange
     //     .listen((InternetConnectionStatus status) {
     //   log('status $status');
@@ -110,8 +122,15 @@ class _AppState extends State<App> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<InitialCubit>(
-      create: (context) => di(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<InitialCubit>(
+          create: (context) => di(),
+        ),
+        BlocProvider<BackupCubit>(
+          create: (context) => di(),
+        ),
+      ],
       child: BlocBuilder<InitialCubit, InitialState>(
         builder: (context, state) {
           return MaterialApp.router(
@@ -120,14 +139,21 @@ class _AppState extends State<App> {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             routerConfig: router.config(),
-            theme: defaultTheme(),
-            darkTheme: darkTheme(),
+            theme: defaultTheme(state.defaultFont),
+            darkTheme: darkTheme(state.defaultFont),
             themeMode: state.themeMode.toThemeMode,
             builder: (context, child) {
-              return MediaQuery(
-                data: context.mediaQuery
-                    .copyWith(textScaleFactor: 1, alwaysUse24HourFormat: true),
-                child: child!,
+              // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+              // });
+              return BlocBuilder<InitialCubit, InitialState>(
+                builder: (context, state) => MediaQuery(
+                  data: context.mediaQuery.copyWith(
+                    textScaleFactor: state.defaultTextScale,
+                    alwaysUse24HourFormat: true,
+                  ),
+                  child: child!,
+                ),
               );
             },
           );

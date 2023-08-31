@@ -1,23 +1,16 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/variables/assets.dart';
+import '../../../data/data.dart';
 import '../../../di/injection.dart';
 import '../../../router/router.dart';
-import '../../bible/cubit/bible_cubit.dart';
-import '../../faith/cubit/faith_cubit.dart';
-import '../../faith/cubit/faith_state.dart';
-import '../../home/bloc/home_cubit.dart';
-import '../../settings/cubit/settings_cubit.dart';
-import '../../song/cubit/song_cubit.dart';
-import '../cubit/dashboard_cubit.dart';
-import '../cubit/dashboard_state.dart';
+import '../../presentations.dart';
 
 @RoutePage()
 class DashboardView extends StatefulWidget {
@@ -117,19 +110,24 @@ class _DashboardViewState extends State<DashboardView> {
             child: WillPopScope(
               onWillPop: () async {
                 if (tabRouter?.activeIndex != 0) {
+                  context.read<BibleCubit>().stopSpeaking();
+                  context.read<SongCubit>().pause();
                   var mustBeNot = [
                     context.read<BibleCubit>().isSelectingBible,
                     context.read<SongCubit>().isSelectingSong,
                     context.read<FaithCubit>().isSelectingFaith,
                   ];
-                  if (mustBeNot.any((element) => !element)) {
+                  var isContainTrue = mustBeNot.contains(true);
+                  if (isContainTrue) {
                     context.read<BibleCubit>().removeSelection();
                     context.read<SongCubit>().removeSelection();
                     context.read<FaithCubit>().removeSelection();
+                    return false;
                   }
                   tabRouter?.setActiveIndex(0);
                   return false;
                 }
+
                 return true;
               },
               child: AutoTabsScaffold(
@@ -138,7 +136,9 @@ class _DashboardViewState extends State<DashboardView> {
                 transitionBuilder: (context, child, animation) {
                   return Column(
                     children: [
-                      Expanded(child: child),
+                      Expanded(
+                          child:
+                              FadeTransition(opacity: animation, child: child)),
                       AnimatedSize(
                         alignment: Alignment.bottomCenter,
                         duration: kThemeAnimationDuration,
@@ -186,7 +186,8 @@ class _DashboardViewState extends State<DashboardView> {
                                   width: double.infinity,
                                 );
                               }
-                              var size = 80 + context.mediaQuery.padding.bottom;
+                              var size =
+                                  58 + context.mediaQuery.viewPadding.bottom;
                               return PlayAnimationBuilder(
                                 duration: kThemeAnimationDuration,
                                 tween: Tween<double>(begin: 0, end: 1),
@@ -218,6 +219,10 @@ class _DashboardViewState extends State<DashboardView> {
                                             context.textTheme.bodyMedium!.color,
                                       ),
                                       onTap: (value) {
+                                        context
+                                            .read<BibleCubit>()
+                                            .stopSpeaking();
+                                        context.read<SongCubit>().pause();
                                         tabsRouter.setActiveIndex(value);
                                         var list = [
                                           BibleRoute,
@@ -243,10 +248,10 @@ class _DashboardViewState extends State<DashboardView> {
                                                         bottom: 4)
                                                     .add(const EdgeInsets
                                                             .symmetric(
-                                                        horizontal: 4)),
+                                                        horizontal: 8)),
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        vertical: 4),
+                                                        vertical: 0),
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -276,12 +281,13 @@ class _DashboardViewState extends State<DashboardView> {
                                                   ),
                                                   child: Image.asset(
                                                     e['icon'] as String,
-                                                    width: 32,
-                                                    height: 32,
+                                                    width: 24,
+                                                    height: 24,
                                                   ),
                                                 ),
                                               ),
-                                              label: (e['label'] as String),
+                                              label:
+                                                  (e['label'] as String).tr(),
                                             ),
                                           )
                                           .toList(),

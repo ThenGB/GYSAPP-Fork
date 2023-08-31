@@ -6,15 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 
-import '../../../data/utilities/enums.dart';
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/extensions/datetime_ext.dart';
-import '../../../data/utilities/extensions/int_ext.dart';
-import '../../../data/utilities/variables/assets.dart';
+import '../../../data/data.dart';
 import '../../../router/router.dart';
 import '../../bible/cubit/bible_cubit.dart';
 import '../cubit/faith_cubit.dart';
-import '../cubit/faith_state.dart';
 
 @RoutePage()
 class FaithNoteListView extends StatefulWidget {
@@ -61,6 +56,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
               ),
               actions: [
                 PopupMenuButton(
+                  offset: Offset(0, 48),
                   onSelected: (value) {
                     context.read<BibleCubit>().changeSortNote(value);
                   },
@@ -170,7 +166,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
               visible: state.notes.isNotEmpty,
               replacement: NoDataFound(
                 title: 'No notes found'.tr(),
-                description: 'Create a note and view it here',
+                description: 'Create a note and view it here'.tr(),
                 action: ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: context.colorScheme.primary,
@@ -179,7 +175,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                   onPressed: () {
                     router.pop();
                   },
-                  child: Text('Back'),
+                  child: Text('Back'.tr()),
                 ),
               ),
               child: Column(
@@ -203,8 +199,8 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title:
-                                  '"${searchController.text}" ${'not found'.tr()}',
+                              title: 'not found'
+                                  .tr(args: ['"${searchController.text}"']),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),
@@ -330,6 +326,7 @@ class NoDataFound extends StatelessWidget {
           ),
           Text(
             title,
+            textAlign: TextAlign.center,
             style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 16,
@@ -337,6 +334,7 @@ class NoDataFound extends StatelessWidget {
           ),
           Text(
             description,
+            textAlign: TextAlign.center,
             style: context.textTheme.bodyMedium?.copyWith(
               color: context.textTheme.bodyMedium?.color?.withOpacity(.5),
             ),

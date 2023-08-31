@@ -7,6 +7,7 @@ part of 'faith_note.dart';
 // **************************************************************************
 
 _$_FaithNote _$$_FaithNoteFromJson(Map<String, dynamic> json) => _$_FaithNote(
+      id: json['id'] as int,
       verses: (json['verses'] as List<dynamic>).map((e) => e as int).toList(),
       text: json['text'] as String?,
       createdDate: DateTime.parse(json['createdDate'] as String),
@@ -15,6 +16,7 @@ _$_FaithNote _$$_FaithNoteFromJson(Map<String, dynamic> json) => _$_FaithNote(
 
 Map<String, dynamic> _$$_FaithNoteToJson(_$_FaithNote instance) =>
     <String, dynamic>{
+      'id': instance.id,
       'verses': instance.verses,
       'text': instance.text,
       'createdDate': instance.createdDate.toIso8601String(),

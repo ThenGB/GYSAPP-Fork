@@ -9,9 +9,7 @@ class DragHandler extends StatelessWidget {
       child: Container(
         height: 5,
         width: 40,
-        margin: const EdgeInsets.symmetric(vertical: 12).add(
-          const EdgeInsets.only(bottom: 8),
-        ),
+        margin: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           color: Colors.grey,
           borderRadius: BorderRadius.circular(5),

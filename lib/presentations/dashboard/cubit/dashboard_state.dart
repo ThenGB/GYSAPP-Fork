@@ -18,7 +18,7 @@ class DashboardState with _$DashboardState {
     String? biblePath,
     @Default(false) bool isError,
     @Default(false) bool isSyncing,
-    DateTime? lastSync,
+    @Default({}) Map<String, DateTime> lastSync,
     String? message,
     @Default(ConfigLiterature()) ConfigLiterature configLiterature,
     String? idToken,

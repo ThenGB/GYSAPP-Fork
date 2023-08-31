@@ -58,6 +58,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
               ),
               actions: [
                 PopupMenuButton(
+                  offset: Offset(0, 48),
                   onSelected: (value) {
                     context.read<SongCubit>().changeSortNote(value);
                   },
@@ -176,7 +177,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                   onPressed: () {
                     router.pop();
                   },
-                  child: Text('Back'),
+                  child: Text('Back'.tr()),
                 ),
               ),
               child: Column(
@@ -200,8 +201,8 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title:
-                                  '"${searchController.text}" ${'not found'.tr()}',
+                              title: 'not found'
+                                  .tr(args: ['"${searchController.text}"']),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),

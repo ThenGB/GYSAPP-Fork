@@ -20,6 +20,7 @@ BibleNote _$BibleNoteFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$BibleNote {
+  int get id => throw _privateConstructorUsedError;
   List<Verse> get verses => throw _privateConstructorUsedError;
   String? get text => throw _privateConstructorUsedError;
   DateTime get createdDate => throw _privateConstructorUsedError;
@@ -37,7 +38,8 @@ abstract class $BibleNoteCopyWith<$Res> {
       _$BibleNoteCopyWithImpl<$Res, BibleNote>;
   @useResult
   $Res call(
-      {List<Verse> verses,
+      {int id,
+      List<Verse> verses,
       String? text,
       DateTime createdDate,
       DateTime updatedDate});
@@ -56,12 +58,17 @@ class _$BibleNoteCopyWithImpl<$Res, $Val extends BibleNote>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? verses = null,
     Object? text = freezed,
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
     return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       verses: null == verses
           ? _value.verses
           : verses // ignore: cast_nullable_to_non_nullable
@@ -90,7 +97,8 @@ abstract class _$$_BibleNoteCopyWith<$Res> implements $BibleNoteCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {List<Verse> verses,
+      {int id,
+      List<Verse> verses,
       String? text,
       DateTime createdDate,
       DateTime updatedDate});
@@ -107,12 +115,17 @@ class __$$_BibleNoteCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? verses = null,
     Object? text = freezed,
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
     return _then(_$_BibleNote(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       verses: null == verses
           ? _value._verses
           : verses // ignore: cast_nullable_to_non_nullable
@@ -137,7 +150,8 @@ class __$$_BibleNoteCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_BibleNote extends _BibleNote {
   const _$_BibleNote(
-      {required final List<Verse> verses,
+      {required this.id,
+      required final List<Verse> verses,
       this.text,
       required this.createdDate,
       required this.updatedDate})
@@ -147,6 +161,8 @@ class _$_BibleNote extends _BibleNote {
   factory _$_BibleNote.fromJson(Map<String, dynamic> json) =>
       _$$_BibleNoteFromJson(json);
 
+  @override
+  final int id;
   final List<Verse> _verses;
   @override
   List<Verse> get verses {
@@ -164,7 +180,7 @@ class _$_BibleNote extends _BibleNote {
 
   @override
   String toString() {
-    return 'BibleNote(verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
+    return 'BibleNote(id: $id, verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
   }
 
   @override
@@ -172,6 +188,7 @@ class _$_BibleNote extends _BibleNote {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_BibleNote &&
+            (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
             (identical(other.text, text) || other.text == text) &&
             (identical(other.createdDate, createdDate) ||
@@ -184,6 +201,7 @@ class _$_BibleNote extends _BibleNote {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      id,
       const DeepCollectionEquality().hash(_verses),
       text,
       createdDate,
@@ -205,7 +223,8 @@ class _$_BibleNote extends _BibleNote {
 
 abstract class _BibleNote extends BibleNote {
   const factory _BibleNote(
-      {required final List<Verse> verses,
+      {required final int id,
+      required final List<Verse> verses,
       final String? text,
       required final DateTime createdDate,
       required final DateTime updatedDate}) = _$_BibleNote;
@@ -214,6 +233,8 @@ abstract class _BibleNote extends BibleNote {
   factory _BibleNote.fromJson(Map<String, dynamic> json) =
       _$_BibleNote.fromJson;
 
+  @override
+  int get id;
   @override
   List<Verse> get verses;
   @override

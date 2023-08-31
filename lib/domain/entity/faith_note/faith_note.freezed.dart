@@ -20,6 +20,7 @@ FaithNote _$FaithNoteFromJson(Map<String, dynamic> json) {
 
 /// @nodoc
 mixin _$FaithNote {
+  int get id => throw _privateConstructorUsedError;
   List<int> get verses => throw _privateConstructorUsedError;
   String? get text => throw _privateConstructorUsedError;
   DateTime get createdDate => throw _privateConstructorUsedError;
@@ -37,7 +38,8 @@ abstract class $FaithNoteCopyWith<$Res> {
       _$FaithNoteCopyWithImpl<$Res, FaithNote>;
   @useResult
   $Res call(
-      {List<int> verses,
+      {int id,
+      List<int> verses,
       String? text,
       DateTime createdDate,
       DateTime updatedDate});
@@ -56,12 +58,17 @@ class _$FaithNoteCopyWithImpl<$Res, $Val extends FaithNote>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? verses = null,
     Object? text = freezed,
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
     return _then(_value.copyWith(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       verses: null == verses
           ? _value.verses
           : verses // ignore: cast_nullable_to_non_nullable
@@ -90,7 +97,8 @@ abstract class _$$_FaithNoteCopyWith<$Res> implements $FaithNoteCopyWith<$Res> {
   @override
   @useResult
   $Res call(
-      {List<int> verses,
+      {int id,
+      List<int> verses,
       String? text,
       DateTime createdDate,
       DateTime updatedDate});
@@ -107,12 +115,17 @@ class __$$_FaithNoteCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? id = null,
     Object? verses = null,
     Object? text = freezed,
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
     return _then(_$_FaithNote(
+      id: null == id
+          ? _value.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
       verses: null == verses
           ? _value._verses
           : verses // ignore: cast_nullable_to_non_nullable
@@ -137,7 +150,8 @@ class __$$_FaithNoteCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_FaithNote extends _FaithNote {
   const _$_FaithNote(
-      {required final List<int> verses,
+      {required this.id,
+      required final List<int> verses,
       this.text,
       required this.createdDate,
       required this.updatedDate})
@@ -147,6 +161,8 @@ class _$_FaithNote extends _FaithNote {
   factory _$_FaithNote.fromJson(Map<String, dynamic> json) =>
       _$$_FaithNoteFromJson(json);
 
+  @override
+  final int id;
   final List<int> _verses;
   @override
   List<int> get verses {
@@ -164,7 +180,7 @@ class _$_FaithNote extends _FaithNote {
 
   @override
   String toString() {
-    return 'FaithNote(verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
+    return 'FaithNote(id: $id, verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
   }
 
   @override
@@ -172,6 +188,7 @@ class _$_FaithNote extends _FaithNote {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$_FaithNote &&
+            (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
             (identical(other.text, text) || other.text == text) &&
             (identical(other.createdDate, createdDate) ||
@@ -184,6 +201,7 @@ class _$_FaithNote extends _FaithNote {
   @override
   int get hashCode => Object.hash(
       runtimeType,
+      id,
       const DeepCollectionEquality().hash(_verses),
       text,
       createdDate,
@@ -205,7 +223,8 @@ class _$_FaithNote extends _FaithNote {
 
 abstract class _FaithNote extends FaithNote {
   const factory _FaithNote(
-      {required final List<int> verses,
+      {required final int id,
+      required final List<int> verses,
       final String? text,
       required final DateTime createdDate,
       required final DateTime updatedDate}) = _$_FaithNote;
@@ -214,6 +233,8 @@ abstract class _FaithNote extends FaithNote {
   factory _FaithNote.fromJson(Map<String, dynamic> json) =
       _$_FaithNote.fromJson;
 
+  @override
+  int get id;
   @override
   List<int> get verses;
   @override

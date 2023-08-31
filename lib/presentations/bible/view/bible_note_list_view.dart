@@ -6,24 +6,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_quill/flutter_quill.dart' as quill;
 
-import '../../../data/utilities/enums.dart';
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/extensions/datetime_ext.dart';
+import '../../../data/data.dart';
 import '../../../router/router.dart';
-import '../../faith/view/faith_note_list_view.dart';
 import '../../presentations.dart';
 
 @RoutePage()
 class BibleNoteListView extends StatefulWidget {
   final BibleCubit cubit;
-  const BibleNoteListView({super.key, required this.cubit});
+  final String? initialSearch;
+  const BibleNoteListView({super.key, required this.cubit, this.initialSearch});
 
   @override
   State<BibleNoteListView> createState() => _BibleNoteListViewState();
 }
 
 class _BibleNoteListViewState extends State<BibleNoteListView> {
-  late TextEditingController searchController = TextEditingController();
+  late TextEditingController searchController =
+      TextEditingController(text: widget.initialSearch);
 
   @override
   void dispose() {
@@ -58,6 +57,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
               ),
               actions: [
                 PopupMenuButton(
+                  offset: Offset(0, 48),
                   onSelected: (value) {
                     context.read<BibleCubit>().changeSortNote(value);
                   },
@@ -176,7 +176,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                   onPressed: () {
                     router.pop();
                   },
-                  child: Text('Back'),
+                  child: Text('Back'.tr()),
                 ),
               ),
               child: Column(
@@ -205,8 +205,8 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title:
-                                  '"${searchController.text}" ${'not found'.tr()}',
+                              title: 'not found'
+                                  .tr(args: ['"${searchController.text}"']),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),

@@ -9,6 +9,7 @@ part 'song_note.g.dart';
 class SongNote with _$SongNote {
   const SongNote._();
   const factory SongNote({
+    required int id,
     required Song song,
     String? text,
     required DateTime createdDate,
@@ -17,6 +18,7 @@ class SongNote with _$SongNote {
 
   factory SongNote.empty(Song song) {
     return SongNote(
+      id: DateTime.now().microsecondsSinceEpoch,
       song: song,
       createdDate: DateTime.now(),
       updatedDate: DateTime.now(),

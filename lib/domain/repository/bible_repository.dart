@@ -18,5 +18,6 @@ abstract class BibleRepository {
   Future<List<Verse>> getVersesByIdRange(Database db,
       {required int fromId, required int? toId});
 
-  Future<List<Verse>> search(Database db, String searchText);
+  Future<List<Verse>> search(
+      Database db, String searchText, List<BibleBook> selectedBooks);
 }

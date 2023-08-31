@@ -1,5 +1,6 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
@@ -10,10 +11,15 @@ export 'settings_state.dart';
 
 class SettingsCubit extends HydratedCubit<SettingsState> {
   SettingsCubit() : super(const SettingsState()) {
-    toggleSabatNotification(state.isSabatNotificationActive);
+    toggleSabatNotification(state.isSabatNotificationActive, true);
   }
 
-  toggleSabatNotification([bool? value]) async {
+  toggleSabatNotification([bool? value, bool isInit = false]) async {
+    if (!(await AwesomeNotifications().isNotificationAllowed())) {
+      var res =
+          await AwesomeNotifications().requestPermissionToSendNotifications();
+      if (!res) return;
+    }
     var data = value ?? !state.isSabatNotificationActive;
     var json = await FirebaseUtils.jsonConfig('notifikasi_sabat');
     if (data) {
@@ -35,14 +41,26 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
           second: 00,
         ),
       );
+      if (!isInit) {
+        Fluttertoast.cancel();
+        Fluttertoast.showToast(msg: 'Sabat notification enabled'.tr());
+      }
     } else {
       await AwesomeNotifications().cancel(31111);
+      if (!isInit) {
+        Fluttertoast.cancel();
+        Fluttertoast.showToast(msg: 'Sabat notification disabled'.tr());
+      }
     }
     emit(
       state.copyWith(
-        isSabatNotificationActive: !state.isSabatNotificationActive,
+        isSabatNotificationActive: value ?? !state.isSabatNotificationActive,
       ),
     );
+  }
+
+  sync(SettingsState settingsState) {
+    emit(settingsState);
   }
 
   Future setBibleReminderDailyNotification(Map<int, DateTime> days) async {

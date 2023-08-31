@@ -1,9 +1,14 @@
+import 'dart:ui';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 extension ContextExt on BuildContext {
   ThemeData get theme => Theme.of(this);
   ColorScheme get colorScheme => theme.colorScheme;
   TextTheme get textTheme => theme.textTheme;
+  Color? get textColor => theme.textTheme.titleSmall?.color;
+  Color? get textDisplayColor => theme.textTheme.displaySmall?.color;
   TextTheme get primaryTextTheme => theme.primaryTextTheme;
   Brightness get brightness => theme.brightness;
   bool get isDark => brightness == Brightness.dark;
@@ -16,9 +21,6 @@ extension ContextExt on BuildContext {
   double get longestSide => mediaQuery.size.longestSide;
   bool get isPortrait => mediaQuery.orientation == Orientation.portrait;
   bool get isLandscape => mediaQuery.orientation == Orientation.landscape;
-  TextDirection get textDirection => Directionality.of(this);
-  bool get isRTL => textDirection == TextDirection.rtl;
-  bool get isLTR => textDirection == TextDirection.ltr;
   bool get isSmall => shortestSide < 600;
   bool get isMedium => shortestSide >= 600 && shortestSide < 960;
   bool get isLarge => shortestSide >= 960 && shortestSide < 1280;
@@ -36,27 +38,89 @@ extension ContextExt on BuildContext {
     return await showDialog(
           context: this,
           builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Confirmation'),
-              content: Text(question),
-              actions: [
-                TextButton(
-                  child: Text('Yes'),
-                  onPressed: () {
-                    Navigator.of(context).pop(true);
-                  },
+            return BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+              child: AlertDialog(
+                backgroundColor: colorScheme.background,
+                contentPadding: EdgeInsets.all(8),
+                titleTextStyle: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                    color: textColor),
+                alignment: Alignment.center,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
+                titlePadding: EdgeInsets.symmetric(horizontal: 0),
+                actionsPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                title: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(12),
+                      child: Text('Confirmation'.tr(),
+                          textAlign: TextAlign.center),
+                    ),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: context.textColor?.withOpacity(.3),
+                        borderRadius: BorderRadius.circular(100),
+                      ),
+                      height: 4,
+                      width: 40,
+                    ),
+                  ],
                 ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: context.colorScheme.primary,
-                    foregroundColor: context.colorScheme.onPrimary,
+                content: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    question,
+                    textAlign: TextAlign.center,
                   ),
-                  child: Text('No'),
-                  onPressed: () {
-                    Navigator.of(context).pop(false);
-                  },
                 ),
-              ],
+                actions: [
+                  SizedBox(
+                    height: 48,
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Expanded(
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(
+                                  color: context.colorScheme.primary,
+                                  strokeAlign: BorderSide.strokeAlignInside,
+                                ),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text('Yes'.tr()),
+                            onPressed: () {
+                              Navigator.of(context).pop(true);
+                            },
+                          ),
+                        ),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: TextButton(
+                            style: TextButton.styleFrom(
+                              backgroundColor: context.colorScheme.primary,
+                              foregroundColor: context.colorScheme.onPrimary,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text('No'.tr()),
+                            onPressed: () {
+                              Navigator.of(context).pop(false);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             );
           },
         ) ??

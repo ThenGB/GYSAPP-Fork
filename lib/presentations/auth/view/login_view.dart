@@ -44,7 +44,7 @@ class _LoginViewState extends State<LoginView> {
     } else if (cmd == 'googlelogin' || cmd == 'google-signup') {
       context.read<AuthCubit>().onGoogleLogin(
             _webViewController!,
-            msg['action'],
+            msg['action'] ?? cmd,
           );
     }
   }
@@ -58,125 +58,125 @@ class _LoginViewState extends State<LoginView> {
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) => Scaffold(
-        body: SafeArea(
-          maintainBottomViewPadding: true,
-          child: Stack(
-            fit: StackFit.passthrough,
-            children: [
-              Container(
-                color: context.colorScheme.background,
-                child: InAppWebView(
-                  onLoadStop: (controller, url) {
-                    context.read<AuthCubit>().toggleLoading(false);
-                  },
-                  onLoadStart: (controller, url) {
-                    context.read<AuthCubit>().toggleLoading(true);
-                  },
-                  onProgressChanged: (controller, progress) {
-                    context.read<AuthCubit>().onProgress(progress);
-                  },
-                  initialOptions: InAppWebViewGroupOptions(
-                    crossPlatform: InAppWebViewOptions(
-                      transparentBackground: true,
-                      cacheEnabled: false,
-                    ),
-                    android: AndroidInAppWebViewOptions(
-                      supportMultipleWindows: true,
-                    ),
+        body: Stack(
+          fit: StackFit.passthrough,
+          children: [
+            Container(
+              color: context.colorScheme.background,
+              child: InAppWebView(
+                onLoadStop: (controller, url) {
+                  context.read<AuthCubit>().toggleLoading(false);
+                },
+                onLoadStart: (controller, url) {
+                  context.read<AuthCubit>().toggleLoading(true);
+                },
+                onProgressChanged: (controller, progress) {
+                  context.read<AuthCubit>().onProgress(progress);
+                },
+                initialOptions: InAppWebViewGroupOptions(
+                  crossPlatform: InAppWebViewOptions(
+                    transparentBackground: true,
+                    cacheEnabled: false,
                   ),
-                  onConsoleMessage: (controller, consoleMessage) {
-                    log(consoleMessage.message);
-                  },
-                  onCloseWindow: (controller) {
-                    log('On Close Window');
-                    Navigator.pop(context);
-                  },
-                  onCreateWindow: (controller, createWindowAction) async {
-                    log('On Create Window');
-                    showModalBottomSheet(
-                      context: context,
-                      useSafeArea: true,
-                      isScrollControlled: true,
-                      builder: (context) {
-                        return Padding(
-                          padding: context.mediaQuery.viewInsets,
-                          child: InAppWebView(
-                            key: windowKey,
-                            // Setting the windowId property is important here!
-                            windowId: createWindowAction.windowId,
-                            initialOptions: InAppWebViewGroupOptions(),
-                            onWebViewCreated:
-                                (InAppWebViewController controller) {
-                              _webViewPopupController = controller;
-                              _webViewPopupController?.addJavaScriptHandler(
-                                handlerName: 'mobile',
-                                callback: (arguments) {
-                                  var json = arguments.firstOrNull
-                                      as Map<String, dynamic>;
+                  android: AndroidInAppWebViewOptions(
+                    supportMultipleWindows: true,
+                  ),
+                ),
+                onConsoleMessage: (controller, consoleMessage) {
+                  log(consoleMessage.message);
+                },
+                onCloseWindow: (controller) {
+                  log('On Close Window');
+                  Navigator.pop(context);
+                },
+                onCreateWindow: (controller, createWindowAction) async {
+                  log('On Create Window');
+                  showModalBottomSheet(
+                    context: context,
+                    useSafeArea: true,
+                    isScrollControlled: true,
+                    builder: (context) {
+                      return Padding(
+                        padding: context.mediaQuery.viewInsets,
+                        child: InAppWebView(
+                          key: windowKey,
+                          // Setting the windowId property is important here!
+                          windowId: createWindowAction.windowId,
+                          initialOptions: InAppWebViewGroupOptions(),
+                          onWebViewCreated:
+                              (InAppWebViewController controller) {
+                            _webViewPopupController = controller;
+                            _webViewPopupController?.addJavaScriptHandler(
+                              handlerName: 'mobile',
+                              callback: (arguments) {
+                                var json = arguments.firstOrNull
+                                    as Map<String, dynamic>;
 
-                                  channelListener(json);
-                                },
-                              );
-                            },
-                          ),
-                        );
-                      },
-                    );
-                    return true;
-                  },
-                  onWebViewCreated: (controller) {
-                    _webViewController = controller;
-                    _webViewController?.addJavaScriptHandler(
-                      handlerName: 'mobile',
-                      callback: (arguments) {
-                        var json =
-                            arguments.firstOrNull as Map<String, dynamic>;
+                                channelListener(json);
+                              },
+                            );
+                          },
+                        ),
+                      );
+                    },
+                  );
+                  return true;
+                },
+                onWebViewCreated: (controller) {
+                  _webViewController = controller;
+                  _webViewController?.addJavaScriptHandler(
+                    handlerName: 'mobile',
+                    callback: (arguments) {
+                      var json = arguments.firstOrNull as Map<String, dynamic>;
 
-                        channelListener(json);
-                      },
-                    );
-                  },
-                  initialUrlRequest: URLRequest(
-                    url: Uri.parse('https://e.gys.or.id/login'),
+                      channelListener(json);
+                    },
+                  );
+                },
+                initialUrlRequest: URLRequest(
+                  url: Uri.parse(
+                    'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}',
                   ),
                 ),
               ),
-              Positioned.fill(
-                child: AnimatedCrossFade(
-                  duration: kThemeAnimationDuration,
-                  crossFadeState: state.isLoading
-                      ? CrossFadeState.showFirst
-                      : CrossFadeState.showSecond,
-                  secondChild: SizedBox(),
-                  alignment: Alignment.center,
-                  layoutBuilder:
-                      (topChild, topChildKey, bottomChild, bottomChildKey) {
-                    return SizedBox(
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: topChild);
-                  },
-                  firstChild: Container(
-                    color: context.colorScheme.background,
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          CircularProgressIndicator.adaptive(
-                            value: (state.progress / 100).clamp(0, 1),
-                          ),
-                          SizedBox(
-                            height: 16,
-                          ),
-                          Text('${state.progress} %'),
-                          Text('Loading'.tr()),
-                        ],
-                      ),
+            ),
+            Positioned.fill(
+              child: AnimatedCrossFade(
+                duration: kThemeAnimationDuration,
+                crossFadeState: state.isLoading
+                    ? CrossFadeState.showFirst
+                    : CrossFadeState.showSecond,
+                secondChild: SizedBox(),
+                alignment: Alignment.center,
+                layoutBuilder:
+                    (topChild, topChildKey, bottomChild, bottomChildKey) {
+                  return SizedBox(
+                      width: double.infinity,
+                      height: double.infinity,
+                      child: topChild);
+                },
+                firstChild: Container(
+                  color: context.colorScheme.background,
+                  child: Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        CircularProgressIndicator.adaptive(
+                          value: (state.progress / 100).clamp(0, 1),
+                        ),
+                        SizedBox(
+                          height: 16,
+                        ),
+                        Text('${state.progress} %'),
+                        Text('Loading'.tr()),
+                      ],
                     ),
                   ),
                 ),
               ),
-              Container(
+            ),
+            SafeArea(
+              child: Container(
                 alignment: Alignment.center,
                 width: double.infinity,
                 height: 56,
@@ -187,8 +187,8 @@ class _LoginViewState extends State<LoginView> {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

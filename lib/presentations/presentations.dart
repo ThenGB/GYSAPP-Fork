@@ -1,10 +1,13 @@
 export 'auth/auth.dart';
+export 'backup/backup.dart';
 export 'bible/bible.dart';
 export 'dashboard/dashboard.dart';
 export 'faith/faith.dart';
+export 'font_setting/font_setting.dart';
 export 'home/home.dart';
 export 'initial/initial.dart';
+export 'literature/literature.dart';
+export 'report/report.dart';
 export 'settings/settings.dart';
 export 'song/song.dart';
 export 'web/web.dart';
-export 'literature/literature.dart';

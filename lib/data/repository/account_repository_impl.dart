@@ -34,7 +34,6 @@ class AccountRepositoryImpl implements AccountRepository {
 
   @override
   Future<Either<Failure, Account>> updateProfile() {
-    // TODO: implement updateProfile
     throw UnimplementedError();
   }
 }

@@ -21,7 +21,6 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
       pageIndex: json['pageIndex'] as int? ?? 0,
       verseIndex: json['verseIndex'] as int? ?? 0,
       isImageMode: json['isImageMode'] ?? false,
-      textScaleFactor: (json['textScaleFactor'] as num?)?.toDouble() ?? 1,
       showSizer: json['showSizer'] as bool? ?? false,
       defaultAudioFormat: json['defaultAudioFormat'] as String? ?? 'mid',
       selectedSong: json['selectedSong'] == null
@@ -44,6 +43,9 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
           const [],
       showAudio: json['showAudio'] as bool? ?? false,
       searchTerms: json['searchTerms'] as String? ?? '',
+      defaultFont: json['defaultFont'] as String? ?? 'Roboto',
+      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
+      defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
     );
 
 Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
@@ -56,7 +58,6 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'pageIndex': instance.pageIndex,
       'verseIndex': instance.verseIndex,
       'isImageMode': instance.isImageMode,
-      'textScaleFactor': instance.textScaleFactor,
       'showSizer': instance.showSizer,
       'defaultAudioFormat': instance.defaultAudioFormat,
       'selectedSong': instance.selectedSong,
@@ -68,4 +69,7 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'shuffleIndex': instance.shuffleIndex,
       'showAudio': instance.showAudio,
       'searchTerms': instance.searchTerms,
+      'defaultFont': instance.defaultFont,
+      'defaultTextScale': instance.defaultTextScale,
+      'defaultTextHeight': instance.defaultTextHeight,
     };

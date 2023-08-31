@@ -22,6 +22,23 @@ extension IntExt on int {
   }
 }
 
+extension SizeExtensions on int {
+  String fromSizeToBytes() {
+    if (this < 1024) {
+      return '$this B';
+    } else if (this < 1024 * 1024) {
+      double kb = this / 1024;
+      return '${kb.toStringAsFixed(2)} KB';
+    } else if (this < 1024 * 1024 * 1024) {
+      double mb = this / (1024 * 1024);
+      return '${mb.toStringAsFixed(2)} MB';
+    } else {
+      double gb = this / (1024 * 1024 * 1024);
+      return '${gb.toStringAsFixed(2)} GB';
+    }
+  }
+}
+
 extension ListInt on List<int> {
   String joinToString() {
     if (isEmpty) {

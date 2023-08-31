@@ -14,6 +14,11 @@ _$_InitialState _$$_InitialStateFromJson(Map<String, dynamic> json) =>
       message: json['message'] as String? ?? '',
       isFreshInstall: json['isFreshInstall'] as bool? ?? true,
       themeMode: json['themeMode'] as String? ?? 'light',
+      configFetchTimeoutSeconds: json['configFetchTimeoutSeconds'] as int? ?? 5,
+      configFetchIntervalSeconds:
+          json['configFetchIntervalSeconds'] as int? ?? 10,
+      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
+      defaultFont: json['defaultFont'] as String? ?? 'Roboto',
     );
 
 Map<String, dynamic> _$$_InitialStateToJson(_$_InitialState instance) =>
@@ -24,4 +29,8 @@ Map<String, dynamic> _$$_InitialStateToJson(_$_InitialState instance) =>
       'message': instance.message,
       'isFreshInstall': instance.isFreshInstall,
       'themeMode': instance.themeMode,
+      'configFetchTimeoutSeconds': instance.configFetchTimeoutSeconds,
+      'configFetchIntervalSeconds': instance.configFetchIntervalSeconds,
+      'defaultTextScale': instance.defaultTextScale,
+      'defaultFont': instance.defaultFont,
     };
