@@ -359,6 +359,7 @@ class _BibleViewState extends State<BibleView> {
                       child: OutlinedButton(
                         style: OutlinedButton.styleFrom(
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          // padding: EdgeInsets.only(left: 12, right: 12),
                           side: BorderSide(
                             strokeAlign: BorderSide.strokeAlignCenter,
                             width: 1,
@@ -396,19 +397,18 @@ class _BibleViewState extends State<BibleView> {
                           future: context
                               .read<BibleCubit>()
                               .getBibleTitle([state.currentBible]),
-                          builder: (context, snapshot) => Text(
-                            snapshot.data ?? '',
-                            textAlign: TextAlign.left,
-                            maxLines: 2,
-                            textHeightBehavior: TextHeightBehavior(
-                              applyHeightToFirstAscent: false,
-                              applyHeightToLastDescent: false,
-                              leadingDistribution:
-                                  TextLeadingDistribution.proportional,
+                          builder: (context, snapshot) =>
+                              DefaultTextStyle.merge(
+                            textAlign: TextAlign.center,
+                            child: LetterWrapText(
+                              text: snapshot.data ?? '',
+                              textStyle: TextStyle(
+                                height: 1,
+                                color: context.colorScheme.primary,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
-                            softWrap: true,
-                            overflow: TextOverflow.fade,
-                            style: TextStyle(height: 1),
                           ),
                         ),
                       ),
@@ -437,12 +437,15 @@ class _BibleViewState extends State<BibleView> {
                                     var index = e.key;
                                     return PopupMenuItem(
                                       value: index,
-                                      child: Text(
-                                        getBibleCodeName(code),
-                                        maxLines: 1,
-                                        softWrap: false,
-                                        overflow: TextOverflow.fade,
-                                        style: TextStyle(),
+                                      child: FutureBuilder(
+                                        future: getBibleCodeName(code),
+                                        builder: (context, snapshot) => Text(
+                                          snapshot.data ?? '',
+                                          maxLines: 1,
+                                          softWrap: false,
+                                          overflow: TextOverflow.fade,
+                                          style: TextStyle(),
+                                        ),
                                       ),
                                     );
                                   }).toList(),
@@ -548,77 +551,84 @@ class _BibleViewState extends State<BibleView> {
                                                     'Empty'.tr(),
                                                   ),
                                                 )
-                                              : Column(
-                                                  children: state
-                                                      .histories.entries
-                                                      .toList()
-                                                      .reversed
-                                                      .map((e) => FutureBuilder(
-                                                            future: context
-                                                                .read<
-                                                                    BibleCubit>()
-                                                                .getBibleTitle([
-                                                              e.value
-                                                            ], withVerse: true),
-                                                            builder: (context,
-                                                                    snapshot) =>
-                                                                ListTile(
-                                                              trailing: Text(
-                                                                timeago.format(
-                                                                  e.key,
-                                                                  locale: context
-                                                                      .locale
-                                                                      .languageCode,
-                                                                ),
-                                                              ),
-                                                              onTap: () async {
-                                                                context
-                                                                    .read<
-                                                                        BibleCubit>()
-                                                                    .getContent(
-                                                                        e.value)
-                                                                    .then(
-                                                                        (value) {
-                                                                  var verse = (context
-                                                                              .read<BibleCubit>()
-                                                                              .state
-                                                                              .currentBible
-                                                                              ?.verseId ??
-                                                                          1) -
-                                                                      1;
-                                                                  router.pop();
-                                                                  scrollToVerse(
-                                                                      verse,
-                                                                      true);
-                                                                  Future
-                                                                      .delayed(
-                                                                    Duration(
-                                                                        seconds:
-                                                                            1),
-                                                                    () {
-                                                                      // var ctx = scaffoldKey
-                                                                      //     .currentContext;
-                                                                      // ctx
-                                                                      //     ?.read<
-                                                                      //         BibleCubit>()
-                                                                      //     .selectBible(
-                                                                      //         e.value);
-                                                                    },
-                                                                  );
-                                                                });
+                                              : Column(children: [
+                                                  ...List.generate(
+                                                      state.histories.length,
+                                                      (index) {
+                                                    var e = state
+                                                        .histories.entries
+                                                        .toList()[index];
+                                                    return FutureBuilder(
+                                                      future: context
+                                                          .read<BibleCubit>()
+                                                          .getBibleTitle(
+                                                              [e.value],
+                                                              withVerse: true),
+                                                      builder:
+                                                          (context, snapshot) =>
+                                                              ListTile(
+                                                        contentPadding:
+                                                            EdgeInsets
+                                                                .symmetric(
+                                                                    horizontal:
+                                                                        16),
+                                                        minVerticalPadding: 0,
+                                                        dense: true,
+                                                        visualDensity:
+                                                            VisualDensity
+                                                                .compact,
+                                                        trailing: Text(
+                                                          timeago.format(
+                                                            e.key,
+                                                            locale: context
+                                                                .locale
+                                                                .languageCode,
+                                                          ),
+                                                        ),
+                                                        onTap: () async {
+                                                          context
+                                                              .read<
+                                                                  BibleCubit>()
+                                                              .getContent(
+                                                                  e.value)
+                                                              .then((value) {
+                                                            var verse = (context
+                                                                        .read<
+                                                                            BibleCubit>()
+                                                                        .state
+                                                                        .currentBible
+                                                                        ?.verseId ??
+                                                                    1) -
+                                                                1;
+                                                            router.pop();
+                                                            scrollToVerse(
+                                                                verse, true);
+                                                            Future.delayed(
+                                                              Duration(
+                                                                  seconds: 1),
+                                                              () {
+                                                                // var ctx = scaffoldKey
+                                                                //     .currentContext;
+                                                                // ctx
+                                                                //     ?.read<
+                                                                //         BibleCubit>()
+                                                                //     .selectBible(
+                                                                //         e.value);
                                                               },
-                                                              title: Text(
-                                                                snapshot.data ??
-                                                                    '',
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 14,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ))
-                                                      .toList(),
-                                                ),
+                                                            );
+                                                          });
+                                                        },
+                                                        title: Text(
+                                                          snapshot.data ?? '',
+                                                          style: TextStyle(
+                                                            fontSize: 14,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    );
+                                                  }),
+                                                  SizedBox(height: 8),
+                                                ]),
                                         ),
                                       ),
                                     ),
@@ -1053,13 +1063,19 @@ class _BibleViewState extends State<BibleView> {
                                                   var index = e.key;
                                                   return PopupMenuItem(
                                                     value: index,
-                                                    child: Text(
-                                                      getBibleCodeName(code),
-                                                      maxLines: 1,
-                                                      softWrap: false,
-                                                      overflow:
-                                                          TextOverflow.fade,
-                                                      style: TextStyle(),
+                                                    child: FutureBuilder(
+                                                      future: getBibleCodeName(
+                                                          code),
+                                                      builder:
+                                                          (context, snapshot) =>
+                                                              Text(
+                                                        snapshot.data ?? '',
+                                                        maxLines: 1,
+                                                        softWrap: false,
+                                                        overflow:
+                                                            TextOverflow.fade,
+                                                        style: TextStyle(),
+                                                      ),
                                                     ),
                                                   );
                                                 }).toList(),
@@ -1225,6 +1241,35 @@ class _BibleViewState extends State<BibleView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+class LetterWrapText extends StatelessWidget {
+  final String text;
+  final TextStyle textStyle;
+
+  const LetterWrapText(
+      {super.key, required this.text, required this.textStyle});
+
+  @override
+  Widget build(BuildContext context) {
+    // Split the text into individual letters.
+    final letters = text.split('');
+
+    // Create a list of TextSpans for each letter.
+    final letterSpans = letters.map((letter) {
+      return Text(
+        letter,
+        style: textStyle.merge(TextStyle(
+          letterSpacing: -.8,
+        )),
+      );
+    }).toList();
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      children: letterSpans,
     );
   }
 }

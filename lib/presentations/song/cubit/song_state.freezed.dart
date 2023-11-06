@@ -42,6 +42,9 @@ mixin _$SongState {
   String get defaultFont => throw _privateConstructorUsedError;
   double get defaultTextScale => throw _privateConstructorUsedError;
   double get defaultTextHeight => throw _privateConstructorUsedError;
+  Map<String, DateTime> get lastSync => throw _privateConstructorUsedError;
+  Map<String, DateTime> get remoteLyricsUpdateAt =>
+      throw _privateConstructorUsedError;
 
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
   @JsonKey(ignore: true)
@@ -76,7 +79,9 @@ abstract class $SongStateCopyWith<$Res> {
       String searchTerms,
       String defaultFont,
       double defaultTextScale,
-      double defaultTextHeight});
+      double defaultTextHeight,
+      Map<String, DateTime> lastSync,
+      Map<String, DateTime> remoteLyricsUpdateAt});
 
   $SongCopyWith<$Res>? get selectedSong;
 }
@@ -116,6 +121,8 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
+    Object? lastSync = null,
+    Object? remoteLyricsUpdateAt = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -206,6 +213,14 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
           ? _value.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      lastSync: null == lastSync
+          ? _value.lastSync
+          : lastSync // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
+      remoteLyricsUpdateAt: null == remoteLyricsUpdateAt
+          ? _value.remoteLyricsUpdateAt
+          : remoteLyricsUpdateAt // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
     ) as $Val);
   }
 
@@ -251,7 +266,9 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
       String searchTerms,
       String defaultFont,
       double defaultTextScale,
-      double defaultTextHeight});
+      double defaultTextHeight,
+      Map<String, DateTime> lastSync,
+      Map<String, DateTime> remoteLyricsUpdateAt});
 
   @override
   $SongCopyWith<$Res>? get selectedSong;
@@ -290,6 +307,8 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
+    Object? lastSync = null,
+    Object? remoteLyricsUpdateAt = null,
   }) {
     return _then(_$_SongState(
       isLoading: null == isLoading
@@ -377,6 +396,14 @@ class __$$_SongStateCopyWithImpl<$Res>
           ? _value.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
+      lastSync: null == lastSync
+          ? _value._lastSync
+          : lastSync // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
+      remoteLyricsUpdateAt: null == remoteLyricsUpdateAt
+          ? _value._remoteLyricsUpdateAt
+          : remoteLyricsUpdateAt // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
     ));
   }
 }
@@ -406,12 +433,16 @@ class _$_SongState extends _SongState {
       this.searchTerms = '',
       this.defaultFont = 'Roboto',
       this.defaultTextScale = 1.2,
-      this.defaultTextHeight = 1.5})
+      this.defaultTextHeight = 1.5,
+      final Map<String, DateTime> lastSync = const {},
+      final Map<String, DateTime> remoteLyricsUpdateAt = const {}})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         _notes = notes,
         _histories = histories,
         _shuffleIndex = shuffleIndex,
+        _lastSync = lastSync,
+        _remoteLyricsUpdateAt = remoteLyricsUpdateAt,
         super._();
 
   factory _$_SongState.fromJson(Map<String, dynamic> json) =>
@@ -513,10 +544,28 @@ class _$_SongState extends _SongState {
   @override
   @JsonKey()
   final double defaultTextHeight;
+  final Map<String, DateTime> _lastSync;
+  @override
+  @JsonKey()
+  Map<String, DateTime> get lastSync {
+    if (_lastSync is EqualUnmodifiableMapView) return _lastSync;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_lastSync);
+  }
+
+  final Map<String, DateTime> _remoteLyricsUpdateAt;
+  @override
+  @JsonKey()
+  Map<String, DateTime> get remoteLyricsUpdateAt {
+    if (_remoteLyricsUpdateAt is EqualUnmodifiableMapView)
+      return _remoteLyricsUpdateAt;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_remoteLyricsUpdateAt);
+  }
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt)';
   }
 
   @override
@@ -565,7 +614,10 @@ class _$_SongState extends _SongState {
             (identical(other.defaultTextScale, defaultTextScale) ||
                 other.defaultTextScale == defaultTextScale) &&
             (identical(other.defaultTextHeight, defaultTextHeight) ||
-                other.defaultTextHeight == defaultTextHeight));
+                other.defaultTextHeight == defaultTextHeight) &&
+            const DeepCollectionEquality().equals(other._lastSync, _lastSync) &&
+            const DeepCollectionEquality()
+                .equals(other._remoteLyricsUpdateAt, _remoteLyricsUpdateAt));
   }
 
   @JsonKey(ignore: true)
@@ -593,7 +645,9 @@ class _$_SongState extends _SongState {
         searchTerms,
         defaultFont,
         defaultTextScale,
-        defaultTextHeight
+        defaultTextHeight,
+        const DeepCollectionEquality().hash(_lastSync),
+        const DeepCollectionEquality().hash(_remoteLyricsUpdateAt)
       ]);
 
   @JsonKey(ignore: true)
@@ -633,7 +687,9 @@ abstract class _SongState extends SongState {
       final String searchTerms,
       final String defaultFont,
       final double defaultTextScale,
-      final double defaultTextHeight}) = _$_SongState;
+      final double defaultTextHeight,
+      final Map<String, DateTime> lastSync,
+      final Map<String, DateTime> remoteLyricsUpdateAt}) = _$_SongState;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
@@ -683,6 +739,10 @@ abstract class _SongState extends SongState {
   double get defaultTextScale;
   @override
   double get defaultTextHeight;
+  @override
+  Map<String, DateTime> get lastSync;
+  @override
+  Map<String, DateTime> get remoteLyricsUpdateAt;
   @override
   @JsonKey(ignore: true)
   _$$_SongStateCopyWith<_$_SongState> get copyWith =>

@@ -206,6 +206,15 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                               sentence.replaceAll('<t>', '');
                                           sentence =
                                               sentence.replaceAll('</t>', '');
+                                          sentence =
+                                              sentence.replaceAll('<i>', '');
+                                          sentence =
+                                              sentence.replaceAll('</i>', '');
+                                          sentence =
+                                              sentence.replaceAll('<J>', '');
+                                          sentence =
+                                              sentence.replaceAll('</J>', '');
+
                                           return Text.rich(
                                               style: TextStyle(
                                                 fontSize: 12,
@@ -255,6 +264,53 @@ class _BibleSearchViewState extends State<BibleSearchView> {
           ),
         ),
       ),
+    );
+  }
+
+  TextSpan mergeBuildStyledText(TextSpan originalSpan) {
+    String text = originalSpan.text ?? '';
+    List<TextSpan> spans = [];
+    int currentIndex = 0;
+
+    TextStyle baseStyle = originalSpan.style ?? TextStyle();
+
+    while (currentIndex < text.length) {
+      int startTagIndex = text.indexOf('<J>', currentIndex);
+      if (startTagIndex == -1) {
+        spans.add(TextSpan(
+          text: text.substring(currentIndex),
+          style: baseStyle,
+        ));
+        break;
+      }
+
+      int endTagIndex = text.indexOf('</J>', startTagIndex);
+      if (endTagIndex == -1) {
+        spans.add(TextSpan(
+          text: text.substring(currentIndex),
+          style: baseStyle,
+        ));
+        break;
+      }
+
+      spans.add(TextSpan(
+        text: text.substring(currentIndex, startTagIndex),
+        style: baseStyle,
+      ));
+      spans.add(TextSpan(
+        text: text.substring(startTagIndex + 3, endTagIndex),
+        style: baseStyle.copyWith(
+          color: context.isLight
+              ? Color(0xffFF3131)
+              : Color(0xffEE4B2B), // Apply red color
+        ),
+      ));
+
+      currentIndex = endTagIndex + 4; // +4 to skip </J>
+    }
+
+    return TextSpan(
+      children: spans,
     );
   }
 }

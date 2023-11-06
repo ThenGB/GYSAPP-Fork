@@ -1,8 +1,11 @@
+import 'dart:developer';
 import 'dart:io';
 
+import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -28,6 +31,32 @@ class _DashboardViewState extends State<DashboardView> {
   }
 
   TabsRouter? tabRouter;
+
+  @override
+  void initState() {
+    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+      initUniLinks();
+    });
+    super.initState();
+  }
+
+  final _appLinks = AppLinks();
+
+  Future<void> initUniLinks() async {
+    // Platform messages may fail, so we use a try/catch PlatformException.
+    try {
+      _appLinks.allUriLinkStream.listen((uri) {
+        log(uri.toString());
+        router.push(WebpageRoute(url: uri.toString()));
+        // Do something (navigation, ...)
+      });
+      // Parse the link and warn the user, if it is not correct,
+      // but keep in mind it could be `null`.
+    } on PlatformException {
+      // Handle exception by warning the user their action did not succeed
+      // return?
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -68,9 +97,6 @@ class _DashboardViewState extends State<DashboardView> {
           create: (context) => di(),
         ),
         BlocProvider<BibleCubit>(
-          create: (context) => di(),
-        ),
-        BlocProvider<SongCubit>(
           create: (context) => di(),
         ),
         BlocProvider<FaithCubit>(
@@ -235,6 +261,14 @@ class _DashboardViewState extends State<DashboardView> {
                                               .elementAt(value)['page']
                                               .runtimeType)) {
                                             WakelockPlus.enable();
+                                            if (pages
+                                                    .elementAt(value)['page']
+                                                    .runtimeType !=
+                                                SongRoute) {
+                                              context
+                                                  .read<SongCubit>()
+                                                  .toggleAudio(false);
+                                            }
                                           } else {
                                             WakelockPlus.disable();
                                           }
@@ -247,7 +281,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                 margin: const EdgeInsets.only(
                                                         bottom: 4)
                                                     .add(const EdgeInsets
-                                                            .symmetric(
+                                                        .symmetric(
                                                         horizontal: 8)),
                                                 padding:
                                                     const EdgeInsets.symmetric(

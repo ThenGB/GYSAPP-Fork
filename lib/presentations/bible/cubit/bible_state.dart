@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/data.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
 import '../../../domain/entity/bible_bookmark/bible_bookmark.dart';
 import '../../../domain/entity/bible_note/bible_note.dart';
@@ -203,38 +203,20 @@ class BibleState with _$BibleState {
     return ['Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
   }
 
-  String get currentBibleCodeName {
+  Future<String> get currentBibleCodeName async {
     String code = currentBibleCode.split('_').last.toUpperCase();
-    switch (code) {
-      case 'TB':
-        return 'Terjemahan Baru';
-      case 'CUV':
-        return 'Chinese Union Version';
-      case 'KJV':
-        return 'King James Version';
-
-      default:
-        return 'Unknown'.tr();
-    }
+    var fb = await FirebaseUtils.jsonConfig('bible_codename');
+    return fb[code] ?? 'Unknown'.tr();
   }
 }
 
-String getBibleCodeName(String? code) {
+Future<String> getBibleCodeName(String? code) async {
   code = code?.split('_').last.toUpperCase() ?? '';
   if (code.contains('.')) {
     code = code.split('.').first;
   }
-  switch (code) {
-    case 'TB':
-      return 'Terjemahan Baru';
-    case 'CUV':
-      return 'Chinese Union Version';
-    case 'KJV':
-      return 'King James Version';
-
-    default:
-      return 'Unknown'.tr();
-  }
+  var fb = await FirebaseUtils.jsonConfig('bible_codename');
+  return fb[code] ?? 'Unknown'.tr();
 }
 
 extension GetByPericope on List<Pericope> {

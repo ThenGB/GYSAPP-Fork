@@ -74,8 +74,15 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
                               onTap: () {
                                 widget.onTap(index);
                               },
-                              title: Text(
-                                '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${getBibleCodeName(widget.bibleCodes[index].split('_').last.toUpperCase())}',
+                              title: FutureBuilder(
+                                future: getBibleCodeName(widget
+                                    .bibleCodes[index]
+                                    .split('_')
+                                    .last
+                                    .toUpperCase()),
+                                builder: (context, snapshot) => Text(
+                                  '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${snapshot.data ?? ''}',
+                                ),
                               ),
                             ),
                           ),

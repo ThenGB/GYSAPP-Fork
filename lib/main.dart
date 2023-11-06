@@ -24,7 +24,7 @@ void main() async {
           assetLoader: SmartNetworkAssetLoader(
             localeUrl: (String localeName) {
               var url = 'https://e.gys.or.id/assets/translations/';
-              log('GETTING Locale from network $url');
+              log('GETTING Locale from network $url$localeName.json');
               return url;
             },
             assetsPath: 'assets/translations',

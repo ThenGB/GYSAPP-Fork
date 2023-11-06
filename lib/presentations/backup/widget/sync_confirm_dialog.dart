@@ -4,7 +4,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../data/data.dart';
-import '../../../data/utilities/functions/measurewidgetsize.dart';
 import '../../../router/router.dart';
 
 class SyncConfirmDialog extends StatefulWidget {

@@ -5,12 +5,11 @@ import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-// ignore: implementation_imports
-import 'package:ftpconnect/src/ftp_entry.dart';
 import 'package:shimmer/shimmer.dart';
 
 import '../../../data/data.dart';
@@ -27,7 +26,7 @@ class BibleVersionView extends StatefulWidget {
 }
 
 class _BibleVersionViewState extends State<BibleVersionView> {
-  List<FTPEntry>? initialData;
+  List<FullMetadata>? initialData;
 
   Map<String, Function()> callbacks = {};
 
@@ -190,10 +189,10 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                   var item = snapshot.data![index];
                   AppDirectory localDir = di();
                   var localFile = File('${localDir.bibleFolder}/${item.name}');
-                  var difference = item.modifyTime
+                  var difference = item.updated
                           ?.difference(
                             widget.dashboardCubit.state.lastSync[item.name] ??
-                                item.modifyTime ??
+                                item.updated ??
                                 DateTime.now(),
                           )
                           .inMinutes ??
@@ -206,7 +205,26 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                     title: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (isSyncronized)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: FutureBuilder(
+                                future: getBibleCodeName(item.name),
+                                builder: (context, snapshot) => Text(
+                                  snapshot.data ?? '',
+                                  style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (!isSyncronized && isExist) ...[
+                          SizedBox(
+                            height: 2,
+                          ),
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(100),
@@ -218,7 +236,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  CupertinoIcons.checkmark_seal_fill,
+                                  CupertinoIcons.cloud_download,
                                   size: 14,
                                   color: Colors.white,
                                 ),
@@ -226,7 +244,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                                   width: 4,
                                 ),
                                 Text(
-                                  '・${item.size?.fromSizeToBytes() ?? '∞'}',
+                                  'Need Update'.tr(),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10,
@@ -235,22 +253,12 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                                 )
                               ],
                             ),
-                          ),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Flexible(
-                              child: Text(
-                                getBibleCodeName(item.name),
-                                style: TextStyle(
-                                    fontWeight: FontWeight.bold, fontSize: 14),
-                              ),
-                            ),
-                          ],
-                        ),
+                          )
+                        ],
                       ],
                     ),
                     trailing: SyncButton(
+                      isExist: isExist,
                       localFile: localFile,
                       cubit: widget.dashboardCubit,
                       item: item,
@@ -259,11 +267,54 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                         callbacks[localFile.path] = callback;
                       },
                     ),
-                    subtitle: Text(
-                      '${'Updated at'.tr()} ${DateFormat('HH:mm | dd MMM yyyy', context.locale.languageCode).format((item.modifyTime ?? DateTime.now()).toLocal())}',
-                      style: TextStyle(
-                        fontSize: 12,
-                      ),
+                    subtitle: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (1 + 1 == 3)
+                          Container(
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(100),
+                              color: Colors.green,
+                            ),
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 2, vertical: 2),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  CupertinoIcons.checkmark_seal_fill,
+                                  size: 12,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(
+                                  width: 4,
+                                ),
+                                Text(
+                                  '・${item.size?.fromSizeToBytes() ?? '∞'}',
+                                  style: TextStyle(
+                                    height: 1,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                                SizedBox(
+                                  width: 2,
+                                ),
+                              ],
+                            ),
+                          ),
+                        Text(
+                          DateFormat('HH:mm | dd MMM yyyy',
+                                  context.locale.languageCode)
+                              .format(
+                                  (item.updated ?? DateTime.now()).toLocal()),
+                          style: TextStyle(
+                            height: 1,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   );
                 },
@@ -284,12 +335,14 @@ class SyncButton extends StatefulWidget {
     required this.item,
     required this.isSyncronized,
     required this.downloadCallback,
+    required this.isExist,
   });
 
   final File localFile;
   final DashboardCubit cubit;
-  final FTPEntry item;
+  final FullMetadata item;
   final bool isSyncronized;
+  final bool isExist;
   final Function(Function() callback) downloadCallback;
   @override
   State<SyncButton> createState() => _SyncButtonState();
@@ -436,6 +489,13 @@ class _SyncButtonState extends State<SyncButton> {
                           ? null
                           : (isSyncronized) async {
                               if (!isSyncronized!) {
+                                if (!widget.isSyncronized && widget.isExist) {
+                                  if (await context.showConfirmation(
+                                      'Do you want to update?'.tr())) {
+                                    downloadCallback();
+                                    return;
+                                  }
+                                }
                                 if (await context.showConfirmation(
                                     'Are you sure want to delete this version from your local cache?'
                                         .tr())) {

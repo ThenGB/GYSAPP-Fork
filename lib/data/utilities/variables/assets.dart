@@ -1,18 +1,6 @@
 class Assets {
   Assets._();
   
-  /// Assets for assetsDataASMI
-  /// assets/data/ASM-I.pdf
-  static const String assetsDataASMI = "assets/data/ASM-I.pdf";
-
-  /// Assets for assetsDataASMM
-  /// assets/data/ASM-M.pdf
-  static const String assetsDataASMM = "assets/data/ASM-M.pdf";
-
-  /// Assets for assetsDataASMP
-  /// assets/data/ASM-P.pdf
-  static const String assetsDataASMP = "assets/data/ASM-P.pdf";
-
   /// Assets for assetsDataBTb
   /// assets/data/b_tb.db
   static const String assetsDataBTb = "assets/data/b_tb.db";
@@ -25,17 +13,29 @@ class Assets {
   /// assets/data/faith.json
   static const String assetsDataFaith = "assets/data/faith.json";
 
-  /// Assets for assetsDataKR
-  /// assets/data/KR.pdf
-  static const String assetsDataKR = "assets/data/KR.pdf";
-
-  /// Assets for assetsDataMDR
-  /// assets/data/MDR.pdf
-  static const String assetsDataMDR = "assets/data/MDR.pdf";
-
   /// Assets for assetsDataSong
   /// assets/data/song.db
   static const String assetsDataSong = "assets/data/song.db";
+
+  /// Assets for assetsDataSongsASMI
+  /// assets/data/songs/ASM-I.pdf
+  static const String assetsDataSongsASMI = "assets/data/songs/ASM-I.pdf";
+
+  /// Assets for assetsDataSongsASMM
+  /// assets/data/songs/ASM-M.pdf
+  static const String assetsDataSongsASMM = "assets/data/songs/ASM-M.pdf";
+
+  /// Assets for assetsDataSongsASMP
+  /// assets/data/songs/ASM-P.pdf
+  static const String assetsDataSongsASMP = "assets/data/songs/ASM-P.pdf";
+
+  /// Assets for assetsDataSongsKR
+  /// assets/data/songs/KR.pdf
+  static const String assetsDataSongsKR = "assets/data/songs/KR.pdf";
+
+  /// Assets for assetsDataSongsMDR
+  /// assets/data/songs/MDR.pdf
+  static const String assetsDataSongsMDR = "assets/data/songs/MDR.pdf";
 
   /// Assets for assetsDataSounds011
   /// assets/data/sounds/011.MID

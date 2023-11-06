@@ -9,17 +9,16 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
-import 'data/utilities/extensions/context_ext.dart';
-import 'data/utilities/variables/assets.dart';
+import 'data/data.dart';
 import 'di/injection.dart';
 import 'domain/entity/appconfig/appconfig.dart';
 import 'firebase_options.dart';
@@ -48,17 +47,28 @@ Future initApplication() async {
     );
   }).sendPort);
   await FirebaseRemoteConfig.instance.ensureInitialized();
-  AppDirectory localDir = di();
-  var file = File('${localDir.bibleFolder}/b_tb.db');
-  if (!file.existsSync()) {
-    ByteData fileData = await rootBundle.load(Assets.assetsDataBTb);
-    final buffer = fileData.buffer;
-    file.createSync(recursive: true);
-    await file.writeAsBytes(
-        buffer.asUint8List(fileData.offsetInBytes, fileData.lengthInBytes));
-  }
+
+  await _setupLocalData();
   FlutterNativeSplash.remove();
   log('App Initialization DONE');
+}
+
+Future _setupLocalData() async {
+  AppDirectory localDir = di();
+  for (var item in [
+    [Assets.assetsDataBTb, localDir.bibleFolder],
+    [Assets.assetsDataSong, dirname(localDir.songDbPath)],
+    [Assets.assetsDataSongsASMI, localDir.songLyricFolder],
+    [Assets.assetsDataSongsASMM, localDir.songLyricFolder],
+    [Assets.assetsDataSongsASMP, localDir.songLyricFolder],
+    [Assets.assetsDataSongsKR, localDir.songLyricFolder],
+    [Assets.assetsDataSongsMDR, localDir.songLyricFolder],
+  ]) {
+    await assetToStorage(
+      assetFilePath: item[0],
+      localFilePath: '${item[1]}/${basename(item[0])}',
+    );
+  }
 }
 
 Future _setupNotification() async {
@@ -128,6 +138,9 @@ class _AppState extends State<App> {
           create: (context) => di(),
         ),
         BlocProvider<BackupCubit>(
+          create: (context) => di(),
+        ),
+        BlocProvider<SongCubit>(
           create: (context) => di(),
         ),
       ],

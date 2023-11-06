@@ -11,6 +11,7 @@ import '../../../app.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/firebase_utils.dart';
 import '../../../data/utilities/variables/failure.dart';
+import '../../../di/injection.dart';
 import 'initial_state.dart';
 
 export 'initial_state.dart';
@@ -41,6 +42,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   initState() async {
+    await di.allReady();
     log('Initiating application state');
     await getRemoteConfig();
     var firebaseRemoteConfig =

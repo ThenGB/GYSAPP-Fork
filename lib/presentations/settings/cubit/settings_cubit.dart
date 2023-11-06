@@ -1,6 +1,5 @@
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
@@ -42,14 +41,14 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
         ),
       );
       if (!isInit) {
-        Fluttertoast.cancel();
-        Fluttertoast.showToast(msg: 'Sabat notification enabled'.tr());
+        // Fluttertoast.cancel();
+        // Fluttertoast.showToast(msg: 'Sabat notification enabled'.tr());
       }
     } else {
       await AwesomeNotifications().cancel(31111);
       if (!isInit) {
-        Fluttertoast.cancel();
-        Fluttertoast.showToast(msg: 'Sabat notification disabled'.tr());
+        // Fluttertoast.cancel();
+        // Fluttertoast.showToast(msg: 'Sabat notification disabled'.tr());
       }
     }
     emit(

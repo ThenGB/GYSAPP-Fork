@@ -44,6 +44,8 @@ class SongState with _$SongState {
     @Default('Roboto') String defaultFont,
     @Default(1.2) double defaultTextScale,
     @Default(1.5) double defaultTextHeight,
+    @Default({}) Map<String, DateTime> lastSync,
+    @Default({}) Map<String, DateTime> remoteLyricsUpdateAt,
   }) = _SongState;
 
   SongBook? get currentSong {
@@ -117,9 +119,9 @@ class SongState with _$SongState {
   Future<List<Uint8List>> getImageLyricPath(
       BuildContext context, int pageStart, int pageLength) async {
     final result = <Uint8List>[];
-    var data = await rootBundle.load('assets/data/$bookCode.pdf');
-    var file = File('${di<AppDirectory>().cache}/$bookCode.pdf');
+    var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
     if (!file.existsSync()) {
+      var data = await rootBundle.load('assets/data/$bookCode.pdf');
       List<int> bytes =
           data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
       await file.writeAsBytes(bytes, flush: true);

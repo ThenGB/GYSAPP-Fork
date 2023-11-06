@@ -5,6 +5,7 @@ import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:collection/collection.dart';
+import 'package:dio/dio.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/services.dart';
@@ -14,7 +15,8 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
-import '../../../data/utilities/variables/assets.dart';
+import '../../../data/data.dart';
+import '../../../data/utilities/song_handler.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
@@ -26,22 +28,261 @@ export 'song_state.dart';
 
 class SongCubit extends HydratedCubit<SongState> {
   final SongRepository songRepository;
+  final SongHandler songHandler;
+  AudioPlayer get audioPlayer => songHandler.player;
 
   bool get isSelectingSong => state.selectedSong != null;
 
-  SongCubit(this.songRepository) : super(const SongState()) {
+  SongCubit(this.songRepository, this.songHandler) : super(const SongState()) {
     initDb().then((value) {
       getData().then(
         (value) => fetchAvailableSong(
-          state.currentSong?.songs[state.pageIndex] ??
-              state.songBook.firstOrNull?.songs[0],
+          state.songs[state.pageIndex],
         ),
       );
+      Map<String, DateTime> lastSync = Map.from(state.lastSync);
+      if (!lastSync.containsKey('song.db')) {
+        lastSync['song.db'] = DateTime(2023, 9, 15);
+        emit(state.copyWith(lastSync: lastSync));
+      }
+      checkIsSynced();
     });
+  }
+  Future<bool> downloadLyric(
+      String sRemoteName,
+      File localFile,
+      Function(double progressInPercent, int totalReceived, int fileSize)
+          onProgress) async {
+    try {
+      final storage = FirebaseStorage.instance;
+      final fileRef = storage.ref('v2/song/lyrics/$sRemoteName');
+
+      final downloadUrl = await fileRef.getDownloadURL();
+
+      final dio = Dio();
+
+      // Create a temporary file to hold the download
+      var tempFile = File('${localFile.path}.tmp');
+
+      final response = await dio.download(
+        downloadUrl,
+        tempFile.path,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            double percentage = (received / total) * 100;
+            onProgress(percentage, received, total);
+          }
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // If download was successful, move the temp file to the desired location
+        await tempFile.rename(localFile.path);
+
+        Map<String, DateTime> lastSync = Map.from(state.lastSync);
+        lastSync[basename(sRemoteName)] = DateTime.now();
+        emit(state.copyWith(lastSync: lastSync));
+        return true;
+      } else {
+        // If the download was unsuccessful, delete the temp file
+        await tempFile.delete();
+      }
+
+      return false;
+    } catch (e) {
+      log('Error downloading lyric $sRemoteName from Firebase with Dio: $e');
+      return false;
+    }
+  }
+
+  Future<bool> downloadSongDb(
+      String sRemoteName,
+      File localFile,
+      Function(double progressInPercent, int totalReceived, int fileSize)
+          onProgress) async {
+    try {
+      final storage = FirebaseStorage.instance;
+      final fileRef = storage.ref('v2/song/$sRemoteName');
+
+      final downloadUrl = await fileRef.getDownloadURL();
+
+      final dio = Dio();
+
+      // Create a temporary file to hold the download
+      var tempFile = File('${localFile.path}.tmp');
+
+      final response = await dio.download(
+        downloadUrl,
+        tempFile.path,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            double percentage = (received / total) * 100;
+            onProgress(percentage, received, total);
+          }
+        },
+      );
+
+      if (response.statusCode == 200) {
+        // If download was successful, move the temp file to the desired location
+        await tempFile.rename(localFile.path);
+
+        Map<String, DateTime> lastSync = Map.from(state.lastSync);
+        lastSync[basename(sRemoteName)] = DateTime.now();
+        emit(state.copyWith(lastSync: lastSync));
+        return true;
+      } else {
+        // If the download was unsuccessful, delete the temp file
+        await tempFile.delete();
+      }
+
+      return false;
+    } catch (e) {
+      log('Error downloading lyric $sRemoteName from Firebase with Dio: $e');
+      return false;
+    }
+  }
+
+  Future<bool> isSynced() async {
+    bool synced = true; // assuming all files are synced by default
+
+    await checkingSyncCompleter.future.then((connectionSuccess) {
+      if (connectionSuccess) {
+        Map<String, DateTime> remoteLyricsUpdateAt =
+            Map.from(state.remoteLyricsUpdateAt);
+        Map<String, DateTime> lastSync = Map.from(state.lastSync);
+
+        // Check if any of the remote files have been updated since the last sync
+        for (var filename in remoteLyricsUpdateAt.keys) {
+          if (!lastSync.containsKey(filename) ||
+              remoteLyricsUpdateAt[filename]!
+                  .isAfter(lastSync[filename] ?? DateTime(2022))) {
+            /// why 2022? bisa semua tahun yang penting dibelakang terkahir kali update
+            synced = false; // found a file that is not synced
+            break; // exit the loop since we found a non-synced file
+          }
+        }
+      }
+      // If connection is unsuccessful, synced remains true.
+    });
+
+    return synced;
+  }
+
+  Future<List<String>> getUnsyncedFiles() async {
+    List<String> unsyncedFiles = [];
+
+    bool connectionSuccess = await checkingSyncCompleter.future;
+    if (connectionSuccess) {
+      Map<String, DateTime> remoteLyricsUpdateAt =
+          Map.from(state.remoteLyricsUpdateAt);
+      Map<String, DateTime> lastSync = Map.from(state.lastSync);
+
+      // Check which files in the remote map have been updated since the last sync
+      for (var filename in remoteLyricsUpdateAt.keys) {
+        if (!lastSync.containsKey(filename) ||
+            remoteLyricsUpdateAt[filename]!
+                .isAfter(lastSync[filename] ?? DateTime(2022))) {
+          unsyncedFiles.add(filename); // add the unsynced file to the list
+        }
+      }
+    }
+
+    return unsyncedFiles;
+  }
+
+  Completer<bool> checkingSyncCompleter = Completer();
+
+  Future checkIsSynced() async {
+    checkingSyncCompleter = Completer();
+    AppDirectory localDir = di();
+    try {
+      Map<String, DateTime> remoteLyricsUpdateAt =
+          Map.from(state.remoteLyricsUpdateAt);
+      final storage = FirebaseStorage.instance;
+      final songDbRef = storage.ref('v2/song/song.db');
+      FullMetadata db = await songDbRef.getMetadata();
+      if (db.updated != null || db.timeCreated != null) {
+        remoteLyricsUpdateAt[basename(db.name)] = db.updated ?? db.timeCreated!;
+      }
+      var difference = db.updated
+              ?.difference(
+                state.lastSync[basename(db.name)] ??
+                    db.updated ??
+                    DateTime.now(),
+              )
+              .inMinutes ??
+          0;
+      var localFile = File(localDir.songDbPath);
+      bool isExist = localFile.existsSync();
+      bool isSyncronized =
+          (difference.isNegative || difference == 0) && isExist;
+      if (isSyncronized) {
+        Map<String, DateTime> lastSync = Map.from(state.lastSync);
+        lastSync[basename(db.name)] = DateTime.now();
+        emit(state.copyWith(lastSync: lastSync));
+      }
+      final lyricFolderRef = await storage.ref('v2/song/lyrics').listAll();
+
+      for (var book in state.songBook) {
+        // lyricFolderRef.
+        var remoteBook = lyricFolderRef.items
+            .firstWhereOrNull((element) => element.name == '${book.code}.pdf');
+        if (remoteBook != null) {
+          final meta = await remoteBook.getMetadata();
+          remoteLyricsUpdateAt[remoteBook.name] =
+              meta.updated ?? meta.timeCreated ?? DateTime.now();
+        }
+      }
+      emit(state.copyWith(remoteLyricsUpdateAt: remoteLyricsUpdateAt));
+      checkingSyncCompleter.complete(true);
+    } catch (e) {
+      checkingSyncCompleter.complete(false);
+      log(e.toString());
+    }
   }
 
   sync(SongState songState) {
     emit(songState);
+  }
+
+  syncDbAndLyric({required Function(String status) onProgress}) async {
+    AppDirectory localDir = di();
+    try {
+      final db = (await getUnsyncedFiles())
+          .firstWhereOrNull((element) => element.contains('.db'));
+      if (db != null) {
+        bool isDownloaded = await downloadSongDb(db, File(localDir.songDbPath),
+            (progressInPercent, totalReceived, fileSize) {
+          onProgress(
+              '${basenameWithoutExtension(db)} ${progressInPercent.toInt()}%');
+        });
+        if (isDownloaded) {
+          await songDb?.close();
+          songDb = null;
+          songDb = await openDatabase(localDir.songDbPath, readOnly: true);
+          getData().then(
+            (value) => fetchAvailableSong(
+              state.currentSong?.songs[state.pageIndex] ??
+                  state.songBook.firstOrNull?.songs[0],
+            ),
+          );
+          await checkIsSynced();
+        }
+      }
+      final lyrics = (await getUnsyncedFiles())
+          .where((element) => !element.contains('.db'));
+      for (var file in lyrics) {
+        await downloadLyric(file, File('${localDir.songLyricFolder}/$file'),
+            (progressInPercent, totalReceived, fileSize) {
+          onProgress('$file ${progressInPercent.toInt()}%');
+          log('$file $progressInPercent%');
+        });
+      }
+      onProgress('');
+    } catch (e) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: Failure.fromError(e).message);
+    }
   }
 
   onSearchTermsChanged(String text) {
@@ -87,8 +328,6 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(selectedSong: song));
   }
 
-  AudioPlayer audioPlayer = AudioPlayer()..setReleaseMode(ReleaseMode.stop);
-
   Database? songDb;
 
   Future initDb() async {
@@ -120,8 +359,14 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(defaultTextScale: state.defaultTextScale + factor));
   }
 
+  syncSong() async {
+    // final response = await repository
+  }
+
   Future<String?> isMidiAvailable(Song song) async {
-    if (song.code != 'KR') return null;
+    List<String> enableMusicCode =
+        (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
+    if (enableMusicCode.contains(song.code)) return null;
     try {
       var asset = 'assets/data/sounds/${song.number}.MID';
       await rootBundle.load(asset);
@@ -132,11 +377,11 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   pause() {
-    audioPlayer.pause();
+    songHandler.pause();
   }
 
   play() {
-    audioPlayer.play(audioPlayer.source!);
+    songHandler.play();
   }
 
   Reference get storage => FirebaseStorage.instance.ref();
@@ -169,7 +414,8 @@ class SongCubit extends HydratedCubit<SongState> {
       if (result.startsWith('assets')) {
         url = AssetSource(source.replaceAll('assets/', ''));
         await audioPlayer.audioCache.clearAll();
-        audioPlayer.setSource(url).then((value) async {
+
+        songHandler.setSource(url, song).then((value) async {
           emit(state.copyWith(isAudioLoading: false));
           // await Future.delayed(const Duration(seconds: 1));
           // audioPlayer
@@ -179,7 +425,7 @@ class SongCubit extends HydratedCubit<SongState> {
       } else {
         DefaultCacheManager().getSingleFile(source).then((value) {
           url = DeviceFileSource(value.path);
-          audioPlayer.setSource(url).then((value) async {
+          songHandler.setSource(url, song).then((value) async {
             emit(state.copyWith(isAudioLoading: false));
             // await Future.delayed(const Duration(seconds: 1));
 
@@ -201,7 +447,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Future<String?> isMp3Available(Song song) async {
-    if (song.code != 'KR') return null;
+    List<String> enableMusicCode =
+        (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
+    if (enableMusicCode.contains(song.code)) return null;
     try {
       final result = await storage
           .child('/Kidungpujian/song/${song.number}.mp3')
@@ -216,8 +464,8 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(showSizer: !state.showSizer));
   }
 
-  toggleAudio() {
-    emit(state.copyWith(showAudio: !state.showAudio));
+  toggleAudio([bool? show]) {
+    emit(state.copyWith(showAudio: show ?? !state.showAudio));
   }
 
   changeFont(String font) {
@@ -233,9 +481,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   changePage(int index, int verseIndex) async {
-    await audioPlayer.seek(Duration.zero);
-    audioPlayer.stop();
-    debounce(() => fetchAvailableSong(state.currentSong!.songs[index]));
+    await songHandler.seek(Duration.zero);
+    songHandler.stop();
+    debounce(() => fetchAvailableSong(state.songs[index]));
     emit(state.copyWith(pageIndex: index, verseIndex: verseIndex));
   }
 
@@ -300,7 +548,7 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  changeBookcode(String bookCode, [bool isFavorite = false]) {
+  changeBookcode(String bookCode, {bool isFavorite = false}) {
     List<Song> songs = [];
     for (var book in state.favoriteSongBook) {
       songs.addAll(book.songs);

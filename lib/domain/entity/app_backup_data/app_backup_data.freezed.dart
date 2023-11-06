@@ -268,14 +268,11 @@ class _$_AppBackupData extends _AppBackupData {
 
 abstract class _AppBackupData extends AppBackupData {
   const factory _AppBackupData(
-      {@JsonKey(name: 'bible_state')
-          final BibleState? bibleState,
-      @JsonKey(name: 'song_state')
-          final SongState? songState,
-      @JsonKey(name: 'faith_state')
-          final FaithState? faithState,
+      {@JsonKey(name: 'bible_state') final BibleState? bibleState,
+      @JsonKey(name: 'song_state') final SongState? songState,
+      @JsonKey(name: 'faith_state') final FaithState? faithState,
       @JsonKey(name: 'settings_state')
-          final SettingsState? settingsState}) = _$_AppBackupData;
+      final SettingsState? settingsState}) = _$_AppBackupData;
   const _AppBackupData._() : super._();
 
   factory _AppBackupData.fromJson(Map<String, dynamic> json) =

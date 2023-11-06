@@ -1,13 +1,19 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../data/data.dart';
 import '../../../router/router.dart';
 
 @RoutePage()
 class WebpageView extends StatefulWidget {
   final String url;
-  const WebpageView({super.key, required this.url});
+  final FutureOr<Color?> Function(InAppWebViewController controller)?
+      getNavColor;
+  const WebpageView({super.key, required this.url, this.getNavColor});
 
   @override
   State<WebpageView> createState() => _WebpageViewState();
@@ -15,6 +21,9 @@ class WebpageView extends StatefulWidget {
 
 class _WebpageViewState extends State<WebpageView> {
   final GlobalKey key = GlobalKey();
+
+  late Brightness initialBrightness = context.brightness;
+  late Brightness currentBrightness = initialBrightness;
   @override
   void initState() {
     super.initState();
@@ -27,10 +36,18 @@ class _WebpageViewState extends State<WebpageView> {
   @override
   void dispose() {
     progress.dispose();
+    Future.delayed(Duration.zero, () {
+      var context = router.navigatorKey.currentContext!;
+      SystemChrome.setSystemUIOverlayStyle(context
+          .theme.appBarTheme.systemOverlayStyle!
+          .copyWith(statusBarBrightness: initialBrightness));
+    });
     super.dispose();
   }
 
   bool forceClose = false;
+
+  Color? navColor;
 
   @override
   Widget build(BuildContext context) {
@@ -46,6 +63,18 @@ class _WebpageViewState extends State<WebpageView> {
       },
       child: Scaffold(
         appBar: AppBar(
+          backgroundColor: navColor,
+          systemOverlayStyle: context.theme.appBarTheme.systemOverlayStyle!
+              .copyWith(statusBarBrightness: currentBrightness),
+          foregroundColor: navColor == null
+              ? null
+              : () {
+                  var luminance = navColor!.computeLuminance();
+
+                  return luminance > 0.5;
+                }()
+                  ? Colors.black
+                  : Colors.white,
           leading: BackButton(
             onPressed: () {
               router.pop();
@@ -63,7 +92,19 @@ class _WebpageViewState extends State<WebpageView> {
             future: controller?.getTitle(),
             initialData: 'GYS',
             builder: (context, snapshot) {
-              return Text(snapshot.data ?? '');
+              return Text(
+                snapshot.data ?? '',
+                style: TextStyle(
+                  color: navColor == null
+                      ? null
+                      : () {
+                          var luminance = navColor!.computeLuminance();
+                          return luminance > 0.5;
+                        }()
+                          ? Colors.black
+                          : Colors.white,
+                ),
+              );
             },
           ),
         ),
@@ -82,7 +123,11 @@ class _WebpageViewState extends State<WebpageView> {
               onWebViewCreated: (c) {
                 controller = c;
               },
-              onLoadStop: (controller, url) {
+              onLoadStop: (controller, url) async {
+                navColor = await widget.getNavColor?.call(controller);
+                var luminance = navColor!.computeLuminance();
+                currentBrightness =
+                    luminance > 0.5 ? Brightness.light : Brightness.dark;
                 setState(() {});
               },
               onLoadStart: (controller, url) {

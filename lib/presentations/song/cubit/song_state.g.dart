@@ -46,6 +46,15 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
       defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
       defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
+      lastSync: (json['lastSync'] as Map<String, dynamic>?)?.map(
+            (k, e) => MapEntry(k, DateTime.parse(e as String)),
+          ) ??
+          const {},
+      remoteLyricsUpdateAt:
+          (json['remoteLyricsUpdateAt'] as Map<String, dynamic>?)?.map(
+                (k, e) => MapEntry(k, DateTime.parse(e as String)),
+              ) ??
+              const {},
     );
 
 Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
@@ -72,4 +81,8 @@ Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
       'defaultFont': instance.defaultFont,
       'defaultTextScale': instance.defaultTextScale,
       'defaultTextHeight': instance.defaultTextHeight,
+      'lastSync':
+          instance.lastSync.map((k, e) => MapEntry(k, e.toIso8601String())),
+      'remoteLyricsUpdateAt': instance.remoteLyricsUpdateAt
+          .map((k, e) => MapEntry(k, e.toIso8601String())),
     };

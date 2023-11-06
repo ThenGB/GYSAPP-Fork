@@ -157,16 +157,16 @@ class __$$_ConfigLiteratureCopyWithImpl<$Res>
 @JsonSerializable()
 class _$_ConfigLiterature extends _ConfigLiterature {
   const _$_ConfigLiterature(
-      {@JsonKey(name: 'kesaksian') this.kesaksian =
-          '#posts-table-1 > tbody > tr > td > a',
-      @JsonKey(name: 'wartasejati') this.wartaSejati =
-          '#posts-table-2 > tbody > tr > td > a',
+      {@JsonKey(name: 'kesaksian')
+      this.kesaksian = '#posts-table-1 > tbody > tr > td > a',
+      @JsonKey(name: 'wartasejati')
+      this.wartaSejati = '#posts-table-2 > tbody > tr > td > a',
       @JsonKey(name: 'panduanalkitab') this.panduanAlkitab =
           'div.module.module-accordion.tb_9pdq304 > ul > li > div > div > div > table > tbody > tr > td > a',
       @JsonKey(name: 'renungan') this.renungan =
           'div.module.module-accordion.tb_1uum169 > ul > li > div > div > div > table > tbody > tr > td > a',
-      @JsonKey(name: 'pelitakecil') this.pelitaKecil =
-          '#posts-table-3 > tbody > tr > td > a'})
+      @JsonKey(name: 'pelitakecil')
+      this.pelitaKecil = '#posts-table-3 > tbody > tr > td > a'})
       : super._();
 
   factory _$_ConfigLiterature.fromJson(Map<String, dynamic> json) =>

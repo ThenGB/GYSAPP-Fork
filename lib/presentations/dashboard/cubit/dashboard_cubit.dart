@@ -1,11 +1,11 @@
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:ftpconnect/ftpconnect.dart';
-// ignore: implementation_imports
-import 'package:ftpconnect/src/ftp_entry.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 
@@ -24,6 +24,11 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       if (state.ftpHost == null) {
         emit(state.copyWith(isError: true));
         return;
+      }
+      Map<String, DateTime> lastSync = Map.from(state.lastSync);
+      if (!lastSync.containsKey('b_tb.db')) {
+        lastSync['b_tb.db'] = DateTime(2023, 9, 15);
+        emit(state.copyWith(lastSync: lastSync));
       }
       // Future.delayed(const Duration(seconds: 1)).then((value) async {
       //   await syncBible();
@@ -107,22 +112,29 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   bool isListing = false;
-  List<FTPEntry> lastContent = [];
+  List<FullMetadata> lastContent = [];
 
-  Future<List<FTPEntry>> listNetworkBibles(bool reload) async {
+  Future<List<FullMetadata>> listNetworkBibles(bool reload) async {
     try {
       if (isListing || reload) {
         return lastContent;
       }
       isListing = true;
-      await ftp!.connect();
-      await Future.delayed(const Duration(seconds: 1));
-      await ftp!.changeDirectory(state.biblePath);
-      await Future.delayed(const Duration(seconds: 1));
-      var contents = await ftp!.listDirectoryContent();
-      await Future.delayed(const Duration(seconds: 1));
-      await ftp!.disconnect();
-      await Future.delayed(const Duration(seconds: 1));
+      // await ftp!.connect();
+      // await Future.delayed(const Duration(seconds: 1));
+      // await ftp!.changeDirectory(state.biblePath);
+      // await Future.delayed(const Duration(seconds: 1));
+      // var contents = await ftp!.listDirectoryContent();
+      // await Future.delayed(const Duration(seconds: 1));
+      // await ftp!.disconnect();
+      // await Future.delayed(const Duration(seconds: 1));
+      final storage = FirebaseStorage.instance;
+      final folderRef = storage.ref('v2/alkitab');
+      List<FullMetadata> contents = [];
+      final result = await folderRef.listAll();
+      for (var file in result.items) {
+        contents.add(await file.getMetadata());
+      }
       lastContent = List.from(contents);
       return contents;
     } catch (e) {
@@ -143,19 +155,34 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
     try {
-      await ftp!.connect();
-      await ftp!.changeDirectory(state.biblePath);
-      var downloaded =
-          await ftp!.downloadFile(sRemoteName, fFile, onProgress: onProgress);
-      await ftp!.disconnect();
-      if (downloaded) {
+      final storage = FirebaseStorage.instance;
+      final fileRef = storage.ref('v2/alkitab/$sRemoteName');
+
+      final downloadUrl = await fileRef.getDownloadURL();
+
+      final dio = Dio();
+
+      final response = await dio.download(
+        downloadUrl,
+        fFile.path,
+        onReceiveProgress: (received, total) {
+          if (total != -1) {
+            double percentage = (received / total) * 100;
+            onProgress(percentage, received, total);
+          }
+        },
+      );
+
+      if (response.statusCode == 200) {
         Map<String, DateTime> lastSync = Map.from(state.lastSync);
         lastSync[basename(sRemoteName)] = DateTime.now();
         emit(state.copyWith(lastSync: lastSync));
+        return true;
       }
-      return downloaded;
+
+      return false;
     } catch (e) {
-      await ftp!.disconnect();
+      log('Error downloading from Firebase with Dio: $e');
       return false;
     }
   }

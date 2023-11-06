@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:device_apps/device_apps.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -12,9 +11,7 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../components/components.dart';
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/functions/measurewidgetsize.dart';
-import '../../../data/utilities/variables/assets.dart';
+import '../../../data/data.dart';
 import '../../../domain/entity/banner/banner.dart';
 import '../../../domain/entity/menulink/menulink_entity.dart';
 import '../../../domain/entity/sauh/sauh_entity.dart';
@@ -144,30 +141,33 @@ class LinkLainnya extends StatelessWidget {
                         // FlutterWebBrowser.openWebPage(url: e.value.url);
                         if (e.value.url.startsWith('app://') &&
                             Platform.isAndroid) {
-                          var appId = e.value.url.replaceFirst('app://', '');
-                          DeviceApps.isAppInstalled(appId).then((value) async {
-                            if (value) {
-                              DeviceApps.openApp(appId);
-                            } else {
-                              context.showSnackBar(
-                                'Aplikasi tidak ditemukan',
-                              );
-                              if (await canLaunchUrl(Uri.parse(
-                                  'https://play.google.com/store/apps/details?id=$appId'))) {
-                                /// open playstore
-                                launchUrl(
-                                  Uri.parse(
-                                      'https://play.google.com/store/apps/details?id=$appId'),
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              } else {
-                                // ignore: use_build_context_synchronously
-                                context.showSnackBar(
-                                  'Tidak dapat membuka link',
-                                );
-                              }
-                            }
-                          });
+                          // var appId = e.value.url.replaceFirst('app://', '');
+                          context.showSnackBar(
+                            'Aplikasi tidak ditemukan',
+                          );
+                          // DeviceApps.isAppInstalled(appId).then((value) async {
+                          //   if (value) {
+                          //     DeviceApps.openApp(appId);
+                          //   } else {
+                          //     context.showSnackBar(
+                          //       'Aplikasi tidak ditemukan',
+                          //     );
+                          //     if (await canLaunchUrl(Uri.parse(
+                          //         'https://play.google.com/store/apps/details?id=$appId'))) {
+                          //       /// open playstore
+                          //       launchUrl(
+                          //         Uri.parse(
+                          //             'https://play.google.com/store/apps/details?id=$appId'),
+                          //         mode: LaunchMode.externalApplication,
+                          //       );
+                          //     } else {
+                          //       // ignore: use_build_context_synchronously
+                          //       context.showSnackBar(
+                          //         'Tidak dapat membuka link',
+                          //       );
+                          //     }
+                          //   }
+                          // });
                           return;
                         }
                         if (e.value.url.contains('http')) {
@@ -219,7 +219,7 @@ class LinkLainnya extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              Text(e.value.label),
+                              Text(e.value.label, textAlign: TextAlign.center),
                             ],
                           ),
                         ),
@@ -542,7 +542,8 @@ class _HomeHeaderState extends State<HomeHeader> {
                     ? Image.asset(Assets.assetsImagesAppicon, width: 32)
                     : ClipOval(
                         child: CachedNetworkImage(
-                            imageUrl: state.account?.profilePicture ?? ''),
+                          imageUrl: state.account?.profilePicture ?? '',
+                        ),
                       ),
               ),
             ),
@@ -562,7 +563,8 @@ class _HomeHeaderState extends State<HomeHeader> {
                       fontSize: 16,
                     ),
                   ),
-                  if (context.watch<DashboardCubit>().state.idToken == null)
+                  if (context.watch<DashboardCubit>().state.idToken ==
+                      null) ...[
                     Text.rich(
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -588,6 +590,51 @@ class _HomeHeaderState extends State<HomeHeader> {
                             ));
                           },
                         )),
+                  ] else
+                    FutureBuilder(
+                      future: FirebaseUtils.boolConfig('enable_memberarea'),
+                      builder: (context, snapshot) => Visibility(
+                        visible: snapshot.data == true,
+                        child: TextButton(
+                          style: TextButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
+                            textStyle: TextStyle(
+                              fontSize: 10,
+                            ),
+                            minimumSize: Size.zero,
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            padding: EdgeInsets.all(12),
+                            backgroundColor: context.colorScheme.primary,
+                            foregroundColor: context.colorScheme.onPrimary,
+                          ),
+                          onPressed: () {
+                            var url =
+                                'https://e.gys.or.id/home?token=${context.read<DashboardCubit>().state.idToken}';
+                            router.push(WebpageRoute(
+                                url: url,
+                                getNavColor: (controller) async {
+                                  var color = await controller.evaluateJavascript(
+                                      source:
+                                          "window.getComputedStyle( document.getElementsByClassName('navbar')[0] ,null).getPropertyValue('background-color');");
+                                  if (color.toString().contains('rgb')) {
+                                    var temp = color.toString();
+                                    temp = temp.substring(temp.indexOf('(') + 1,
+                                        temp.indexOf(')'));
+                                    var rgb = temp
+                                        .split(',')
+                                        .map((e) => int.parse(e))
+                                        .toList();
+                                    var navColor = Color.fromRGBO(
+                                        rgb[0], rgb[1], rgb[2], 1);
+                                    return navColor;
+                                  }
+                                  return null;
+                                }));
+                          },
+                          child: Text('Member Area'),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),

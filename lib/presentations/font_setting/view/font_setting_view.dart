@@ -57,7 +57,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                   }
                 });
               },
-              child: Text('Apply')),
+              child: Text('Apply'.tr())),
         ),
         body: BlocBuilder<InitialCubit, InitialState>(
           builder: (context, state) => SingleChildScrollView(

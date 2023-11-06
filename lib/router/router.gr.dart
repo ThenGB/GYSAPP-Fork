@@ -173,6 +173,7 @@ abstract class _$AppRouter extends RootStackRouter {
         child: WebpageView(
           key: args.key,
           url: args.url,
+          getNavColor: args.getNavColor,
         ),
       );
     },
@@ -184,6 +185,12 @@ abstract class _$AppRouter extends RootStackRouter {
           key: args.key,
           cubit: args.cubit,
         ),
+      );
+    },
+    SongSyncRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const SongSyncView(),
       );
     },
     SongRoute.name: (routeData) {
@@ -208,6 +215,8 @@ abstract class _$AppRouter extends RootStackRouter {
           onTapFavorite: args.onTapFavorite,
           initialSearchText: args.initialSearchText,
           onSearchTermsChanged: args.onSearchTermsChanged,
+          onBack: args.onBack,
+          onPlayFavorite: args.onPlayFavorite,
         ),
       );
     },
@@ -819,12 +828,14 @@ class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
   WebpageRoute({
     Key? key,
     required String url,
+    FutureOr<Color?> Function(InAppWebViewController)? getNavColor,
     List<PageRouteInfo>? children,
   }) : super(
           WebpageRoute.name,
           args: WebpageRouteArgs(
             key: key,
             url: url,
+            getNavColor: getNavColor,
           ),
           initialChildren: children,
         );
@@ -839,15 +850,18 @@ class WebpageRouteArgs {
   const WebpageRouteArgs({
     this.key,
     required this.url,
+    this.getNavColor,
   });
 
   final Key? key;
 
   final String url;
 
+  final FutureOr<Color?> Function(InAppWebViewController)? getNavColor;
+
   @override
   String toString() {
-    return 'WebpageRouteArgs{key: $key, url: $url}';
+    return 'WebpageRouteArgs{key: $key, url: $url, getNavColor: $getNavColor}';
   }
 }
 
@@ -890,6 +904,20 @@ class SongNotesListRouteArgs {
 }
 
 /// generated route for
+/// [SongSyncView]
+class SongSyncRoute extends PageRouteInfo<void> {
+  const SongSyncRoute({List<PageRouteInfo>? children})
+      : super(
+          SongSyncRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'SongSyncRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
 /// [SongView]
 class SongRoute extends PageRouteInfo<void> {
   const SongRoute({List<PageRouteInfo>? children})
@@ -918,6 +946,8 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
     required dynamic Function(Song) onTapFavorite,
     required String initialSearchText,
     required dynamic Function(String) onSearchTermsChanged,
+    required dynamic Function() onBack,
+    required dynamic Function() onPlayFavorite,
     List<PageRouteInfo>? children,
   }) : super(
           SongListRoute.name,
@@ -933,6 +963,8 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
             onTapFavorite: onTapFavorite,
             initialSearchText: initialSearchText,
             onSearchTermsChanged: onSearchTermsChanged,
+            onBack: onBack,
+            onPlayFavorite: onPlayFavorite,
           ),
           initialChildren: children,
         );
@@ -956,6 +988,8 @@ class SongListRouteArgs {
     required this.onTapFavorite,
     required this.initialSearchText,
     required this.onSearchTermsChanged,
+    required this.onBack,
+    required this.onPlayFavorite,
   });
 
   final Key? key;
@@ -980,9 +1014,13 @@ class SongListRouteArgs {
 
   final dynamic Function(String) onSearchTermsChanged;
 
+  final dynamic Function() onBack;
+
+  final dynamic Function() onPlayFavorite;
+
   @override
   String toString() {
-    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged}';
+    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged, onBack: $onBack, onPlayFavorite: $onPlayFavorite}';
   }
 }
 

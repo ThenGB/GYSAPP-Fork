@@ -138,7 +138,14 @@ class BibleCubit extends HydratedCubit<BibleState> {
     //     msg:
     //         'Bookmarks modified! To see all bookmark, tap on "See all bookmarks"'
     //             .tr());
-    emit(state.copyWith(bookmarks: bookmarks));
+    emit(
+      state.copyWith(
+        bookmarks: List.from(bookmarks)
+          ..sort(
+            (a, b) => b.createdAt.compareTo(a.createdAt),
+          ),
+      ),
+    );
   }
 
   speakTheBible() async {
@@ -382,12 +389,23 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   saveToHistory(Verse verse) {
     Map<DateTime, Verse> map = Map.from(state.histories);
-    if (map.length >= 20) {
-      var last = map.entries.last;
-      map.remove(last.key);
-    }
+
+    // Add the new entry to the map
     map[DateTime.now()] = verse;
-    emit(state.copyWith(histories: map));
+
+    // Convert the map to a list of key-value pairs and sort it by keys in descending order
+    List<MapEntry<DateTime, Verse>> sortedEntries = map.entries.toList()
+      ..sort((a, b) => b.key.compareTo(a.key));
+
+    // Truncate the list to keep only the latest 20 entries
+    if (sortedEntries.length > 20) {
+      sortedEntries = sortedEntries.sublist(0, 20);
+    }
+
+    // Convert the sorted list back into a map
+    Map<DateTime, Verse> sortedMap = Map.fromEntries(sortedEntries);
+
+    emit(state.copyWith(histories: sortedMap));
   }
 
   Future getContent(Verse? bible, {VerseMode mode = VerseMode.both}) async {

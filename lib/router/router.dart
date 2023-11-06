@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../data/data.dart';
 import '../domain/domain.dart';
@@ -18,7 +21,10 @@ class AppRouter extends _$AppRouter {
         CupertinoRoute(path: '/', page: InitialRoute.page),
         CupertinoRoute(page: LoginRoute.page),
         MaterialRoute(page: WebpageRoute.page),
-        CupertinoRoute(page: LiteratureRoute.page),
+        CupertinoRoute(
+          path: '/literature',
+          page: LiteratureRoute.page,
+        ),
         CupertinoRoute(page: LiteratureKesaksianRoute.page),
         CupertinoRoute(page: LiteratureWartaRoute.page),
         CupertinoRoute(page: LiteratureRenunganRoute.page),
@@ -41,11 +47,11 @@ class AppRouter extends _$AppRouter {
         CupertinoRoute(
           page: DashboardRoute.page,
           children: [
-            CupertinoRoute(page: HomeRoute.page),
-            CupertinoRoute(page: BibleRoute.page),
-            CupertinoRoute(page: SongRoute.page),
-            CupertinoRoute(page: FaithRoute.page),
-            CupertinoRoute(page: SettingsRoute.page),
+            CupertinoRoute(page: HomeRoute.page, path: 'home-route'),
+            CupertinoRoute(page: BibleRoute.page, path: 'bible-route'),
+            CupertinoRoute(page: SongRoute.page, path: 'song-route'),
+            CupertinoRoute(page: FaithRoute.page, path: 'faith-route'),
+            CupertinoRoute(page: SettingsRoute.page, path: 'settings-route'),
           ],
         ),
       ];

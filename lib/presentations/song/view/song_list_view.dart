@@ -1,18 +1,22 @@
+import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/data.dart';
 import '../../../domain/entity/song/song_entity.dart';
-import '../../../router/router.dart';
 import '../../presentations.dart';
 
 @RoutePage()
 class SongListView extends StatefulWidget {
+  final Function() onBack;
+  final Function() onPlayFavorite;
   final List<SongBook> Function() books;
   final List<SongBook> Function() favoriteBooks;
   final SongBook Function() currentBook;
@@ -25,18 +29,21 @@ class SongListView extends StatefulWidget {
   final String initialSearchText;
   final Function(String text) onSearchTermsChanged;
 
-  const SongListView(
-      {super.key,
-      required this.books,
-      required this.currentBook,
-      required this.onTapPageNumber,
-      required this.onChangeBookCode,
-      required this.isFavorite,
-      required this.onFavorite,
-      required this.favoriteBooks,
-      required this.onTapFavorite,
-      required this.initialSearchText,
-      required this.onSearchTermsChanged});
+  const SongListView({
+    super.key,
+    required this.books,
+    required this.currentBook,
+    required this.onTapPageNumber,
+    required this.onChangeBookCode,
+    required this.isFavorite,
+    required this.onFavorite,
+    required this.favoriteBooks,
+    required this.onTapFavorite,
+    required this.initialSearchText,
+    required this.onSearchTermsChanged,
+    required this.onBack,
+    required this.onPlayFavorite,
+  });
 
   @override
   State<SongListView> createState() => _SongListViewState();
@@ -51,6 +58,7 @@ class _SongListViewState extends State<SongListView>
     ..addListener(tabListener);
   @override
   void dispose() {
+    log('List disposed');
     searchController.dispose();
     tabController.dispose();
     super.dispose();
@@ -71,44 +79,46 @@ class _SongListViewState extends State<SongListView>
   List<Song> getFilteredItems(List<Song> data) {
     var value = searchController.text;
     List<Song> result = [];
+
+    bool isMatch(String text, String query) {
+      // Convert text and query into list of words
+      var textWords = text.split(RegExp(r'\s+'));
+      var queryWords = query.split(RegExp(r'\s+'));
+
+      // For each word in the query, check if it is contained within any word of the text
+      for (var qWord in queryWords) {
+        bool found = false;
+        for (var tWord in textWords) {
+          if (tWord.contains(qWord)) {
+            found = true;
+            break;
+          }
+        }
+        if (!found) {
+          return false; // If a word from the query wasn't found in the text, return false
+        }
+      }
+
+      return true;
+    }
+
     if (value.isNotEmpty) {
       result = List.from(
         data.where(
           (element) {
-            var title = element.title?.toLowerNoSpace ?? '';
-            var lyric = element.verses.join().toLowerNoSpace;
-            var search = value.toLowerNoSpace;
-            bool containNumber =
-                (element.number?.toLowerNoSpace.contains(search) ?? false);
-            bool containTitle = title.contains(search);
-            bool containLyric = lyric.contains(search);
+            var title = element.title?.toLowerCase() ?? '';
+            var lyric = element.verses.join().toLowerCase();
+            var search = value.toLowerCase();
+
+            bool containNumber = element.number != null &&
+                isMatch(element.number.toString().toLowerCase(), search);
+            bool containTitle = isMatch(title, search);
+            bool containLyric = isMatch(lyric, search);
+
             return containNumber || containTitle || containLyric;
           },
         ),
       );
-
-      // Sort based on priority (Title match first, then Lyrics match)
-      // result.sort((a, b) {
-      //   var aNumber = int.tryParse(a.number?.toLowerNoSpace ?? '') ?? 0;
-      //   var bNumber = int.tryParse(b.number?.toLowerNoSpace ?? '') ?? 0;
-
-      //   var aTitle = a.title?.toLowerCase() ?? '';
-      //   var bTitle = b.title?.toLowerCase() ?? '';
-      //   var aLyric = a.verses.join().toLowerCase();
-      //   var bLyric = b.verses.join().toLowerCase();
-
-      //   if (aTitle.contains(value)) {
-      //     return -1; // Put aTitle first
-      //   } else if (bTitle.contains(value)) {
-      //     return 1; // Put bTitle first
-      //   } else {
-      //     if (aNumber != bNumber) {
-      //       return aNumber.compareTo(bNumber);
-      //     } else {
-      //       return aLyric.compareTo(bLyric);
-      //     }
-      //   }
-      // });
     } else {
       result = List.from(data);
     }
@@ -127,9 +137,7 @@ class _SongListViewState extends State<SongListView>
         titleSpacing: 0,
         leading: Center(
           child: GestureDetector(
-            onTap: () {
-              router.pop();
-            },
+            onTap: widget.onBack,
             child: Container(
               padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
@@ -145,6 +153,37 @@ class _SongListViewState extends State<SongListView>
           ),
         ),
         centerTitle: true,
+        actions: [
+          if (tabController.index == 1) ...[
+            StreamBuilder(
+              stream:
+                  context.read<SongCubit>().audioPlayer.onPlayerStateChanged,
+              builder: (context, snapshot) => IconButton(
+                visualDensity: VisualDensity.compact,
+                onPressed: widget.onPlayFavorite,
+                icon: Icon(snapshot.data == PlayerState.playing
+                    ? Icons.pause_circle
+                    : Icons.play_circle),
+              ),
+            ),
+            BlocBuilder<SongCubit, SongState>(
+              builder: (context, state) => IconButton(
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () {
+                    context.read<SongCubit>().toggleShuffle();
+                  },
+                  icon: Icon(
+                    state.shuffleMode
+                        ? Icons.shuffle_on_rounded
+                        : Icons.shuffle_rounded,
+                    color: context.colorScheme.primary,
+                  )),
+            ),
+            SizedBox(
+              width: 8,
+            ),
+          ],
+        ],
         title: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(100),
@@ -308,6 +347,7 @@ class _SongListViewState extends State<SongListView>
                         Material(
                           child: ListTile(
                             onTap: () {
+                              FocusManager.instance.primaryFocus?.unfocus();
                               widget
                                   .onSearchTermsChanged(searchController.text);
                               widget.onTapPageNumber(item.number!);

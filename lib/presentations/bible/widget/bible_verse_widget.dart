@@ -108,7 +108,8 @@ class VerseWidgetState extends State<VerseWidget>
                                     .read<BibleCubit>()
                                     .state
                                     .defaultTextHeight),
-                            text: '${e.value.title!}${!isLast ? '\n' : ''}');
+                            text:
+                                '${widget.verse.verseId > 1 && (!isLast || widget.pericope.length == 1) ? '\n' : ''}${e.value.title!}${!isLast ? '\n' : ''}');
                       }),
                     ],
                     if (widget.hasPericopeParalel) ...[

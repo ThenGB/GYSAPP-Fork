@@ -37,4 +37,11 @@ class FirebaseUtils {
     log(jsonString.toString(), name: 'Get $key from Remote Config');
     return jsonString;
   }
+
+  static Future<bool> boolConfig(String key) async {
+    var config = await initialization.future;
+    var jsonString = config.getBool(key);
+    log(jsonString.toString(), name: 'Get $key from Remote Config');
+    return jsonString;
+  }
 }
