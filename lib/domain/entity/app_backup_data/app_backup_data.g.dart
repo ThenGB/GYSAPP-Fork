@@ -6,8 +6,8 @@ part of 'app_backup_data.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_AppBackupData _$$_AppBackupDataFromJson(Map<String, dynamic> json) =>
-    _$_AppBackupData(
+_$AppBackupDataImpl _$$AppBackupDataImplFromJson(Map<String, dynamic> json) =>
+    _$AppBackupDataImpl(
       bibleState: json['bible_state'] == null
           ? null
           : BibleState.fromJson(json['bible_state'] as Map<String, dynamic>),
@@ -23,7 +23,7 @@ _$_AppBackupData _$$_AppBackupDataFromJson(Map<String, dynamic> json) =>
               json['settings_state'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$_AppBackupDataToJson(_$_AppBackupData instance) =>
+Map<String, dynamic> _$$AppBackupDataImplToJson(_$AppBackupDataImpl instance) =>
     <String, dynamic>{
       'bible_state': instance.bibleState,
       'song_state': instance.songState,

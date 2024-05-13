@@ -170,11 +170,11 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
 }
 
 /// @nodoc
-abstract class _$$_DashboardStateCopyWith<$Res>
+abstract class _$$DashboardStateImplCopyWith<$Res>
     implements $DashboardStateCopyWith<$Res> {
-  factory _$$_DashboardStateCopyWith(
-          _$_DashboardState value, $Res Function(_$_DashboardState) then) =
-      __$$_DashboardStateCopyWithImpl<$Res>;
+  factory _$$DashboardStateImplCopyWith(_$DashboardStateImpl value,
+          $Res Function(_$DashboardStateImpl) then) =
+      __$$DashboardStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -199,11 +199,11 @@ abstract class _$$_DashboardStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_DashboardStateCopyWithImpl<$Res>
-    extends _$DashboardStateCopyWithImpl<$Res, _$_DashboardState>
-    implements _$$_DashboardStateCopyWith<$Res> {
-  __$$_DashboardStateCopyWithImpl(
-      _$_DashboardState _value, $Res Function(_$_DashboardState) _then)
+class __$$DashboardStateImplCopyWithImpl<$Res>
+    extends _$DashboardStateCopyWithImpl<$Res, _$DashboardStateImpl>
+    implements _$$DashboardStateImplCopyWith<$Res> {
+  __$$DashboardStateImplCopyWithImpl(
+      _$DashboardStateImpl _value, $Res Function(_$DashboardStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -223,7 +223,7 @@ class __$$_DashboardStateCopyWithImpl<$Res>
     Object? idToken = freezed,
     Object? account = freezed,
   }) {
-    return _then(_$_DashboardState(
+    return _then(_$DashboardStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -282,8 +282,8 @@ class __$$_DashboardStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_DashboardState extends _DashboardState {
-  const _$_DashboardState(
+class _$DashboardStateImpl extends _DashboardState {
+  const _$DashboardStateImpl(
       {this.isLoading = false,
       this.ftpHost,
       this.ftpPort,
@@ -300,8 +300,8 @@ class _$_DashboardState extends _DashboardState {
       : _lastSync = lastSync,
         super._();
 
-  factory _$_DashboardState.fromJson(Map<String, dynamic> json) =>
-      _$$_DashboardStateFromJson(json);
+  factory _$DashboardStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DashboardStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -347,10 +347,10 @@ class _$_DashboardState extends _DashboardState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_DashboardState &&
+            other is _$DashboardStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.ftpHost, ftpHost) || other.ftpHost == ftpHost) &&
@@ -393,12 +393,13 @@ class _$_DashboardState extends _DashboardState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_DashboardStateCopyWith<_$_DashboardState> get copyWith =>
-      __$$_DashboardStateCopyWithImpl<_$_DashboardState>(this, _$identity);
+  _$$DashboardStateImplCopyWith<_$DashboardStateImpl> get copyWith =>
+      __$$DashboardStateImplCopyWithImpl<_$DashboardStateImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_DashboardStateToJson(
+    return _$$DashboardStateImplToJson(
       this,
     );
   }
@@ -418,11 +419,11 @@ abstract class _DashboardState extends DashboardState {
       final String? message,
       final ConfigLiterature configLiterature,
       final String? idToken,
-      final Account? account}) = _$_DashboardState;
+      final Account? account}) = _$DashboardStateImpl;
   const _DashboardState._() : super._();
 
   factory _DashboardState.fromJson(Map<String, dynamic> json) =
-      _$_DashboardState.fromJson;
+      _$DashboardStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -452,6 +453,6 @@ abstract class _DashboardState extends DashboardState {
   Account? get account;
   @override
   @JsonKey(ignore: true)
-  _$$_DashboardStateCopyWith<_$_DashboardState> get copyWith =>
+  _$$DashboardStateImplCopyWith<_$DashboardStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

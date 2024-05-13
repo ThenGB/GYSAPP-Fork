@@ -6,7 +6,8 @@ part of 'account_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Account _$$_AccountFromJson(Map<String, dynamic> json) => _$_Account(
+_$AccountImpl _$$AccountImplFromJson(Map<String, dynamic> json) =>
+    _$AccountImpl(
       id: json['id'] as int? ?? 0,
       email: json['email'] as String?,
       name: json['name'] as String?,
@@ -17,7 +18,7 @@ _$_Account _$$_AccountFromJson(Map<String, dynamic> json) => _$_Account(
       branchId: json['branchid'] as int? ?? 0,
     );
 
-Map<String, dynamic> _$$_AccountToJson(_$_Account instance) =>
+Map<String, dynamic> _$$AccountImplToJson(_$AccountImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'email': instance.email,

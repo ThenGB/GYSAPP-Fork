@@ -70,23 +70,25 @@ class _$LiteratureRenunganStateCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_LiteratureRenunganStateCopyWith<$Res>
+abstract class _$$LiteratureRenunganStateImplCopyWith<$Res>
     implements $LiteratureRenunganStateCopyWith<$Res> {
-  factory _$$_LiteratureRenunganStateCopyWith(_$_LiteratureRenunganState value,
-          $Res Function(_$_LiteratureRenunganState) then) =
-      __$$_LiteratureRenunganStateCopyWithImpl<$Res>;
+  factory _$$LiteratureRenunganStateImplCopyWith(
+          _$LiteratureRenunganStateImpl value,
+          $Res Function(_$LiteratureRenunganStateImpl) then) =
+      __$$LiteratureRenunganStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool isLoading, List<Renungan> items});
 }
 
 /// @nodoc
-class __$$_LiteratureRenunganStateCopyWithImpl<$Res>
+class __$$LiteratureRenunganStateImplCopyWithImpl<$Res>
     extends _$LiteratureRenunganStateCopyWithImpl<$Res,
-        _$_LiteratureRenunganState>
-    implements _$$_LiteratureRenunganStateCopyWith<$Res> {
-  __$$_LiteratureRenunganStateCopyWithImpl(_$_LiteratureRenunganState _value,
-      $Res Function(_$_LiteratureRenunganState) _then)
+        _$LiteratureRenunganStateImpl>
+    implements _$$LiteratureRenunganStateImplCopyWith<$Res> {
+  __$$LiteratureRenunganStateImplCopyWithImpl(
+      _$LiteratureRenunganStateImpl _value,
+      $Res Function(_$LiteratureRenunganStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -95,7 +97,7 @@ class __$$_LiteratureRenunganStateCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? items = null,
   }) {
-    return _then(_$_LiteratureRenunganState(
+    return _then(_$LiteratureRenunganStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -110,14 +112,14 @@ class __$$_LiteratureRenunganStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LiteratureRenunganState extends _LiteratureRenunganState {
-  const _$_LiteratureRenunganState(
+class _$LiteratureRenunganStateImpl extends _LiteratureRenunganState {
+  const _$LiteratureRenunganStateImpl(
       {this.isLoading = false, final List<Renungan> items = const []})
       : _items = items,
         super._();
 
-  factory _$_LiteratureRenunganState.fromJson(Map<String, dynamic> json) =>
-      _$$_LiteratureRenunganStateFromJson(json);
+  factory _$LiteratureRenunganStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LiteratureRenunganStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -137,10 +139,10 @@ class _$_LiteratureRenunganState extends _LiteratureRenunganState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LiteratureRenunganState &&
+            other is _$LiteratureRenunganStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other._items, _items));
@@ -154,14 +156,13 @@ class _$_LiteratureRenunganState extends _LiteratureRenunganState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LiteratureRenunganStateCopyWith<_$_LiteratureRenunganState>
-      get copyWith =>
-          __$$_LiteratureRenunganStateCopyWithImpl<_$_LiteratureRenunganState>(
-              this, _$identity);
+  _$$LiteratureRenunganStateImplCopyWith<_$LiteratureRenunganStateImpl>
+      get copyWith => __$$LiteratureRenunganStateImplCopyWithImpl<
+          _$LiteratureRenunganStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LiteratureRenunganStateToJson(
+    return _$$LiteratureRenunganStateImplToJson(
       this,
     );
   }
@@ -170,11 +171,11 @@ class _$_LiteratureRenunganState extends _LiteratureRenunganState {
 abstract class _LiteratureRenunganState extends LiteratureRenunganState {
   const factory _LiteratureRenunganState(
       {final bool isLoading,
-      final List<Renungan> items}) = _$_LiteratureRenunganState;
+      final List<Renungan> items}) = _$LiteratureRenunganStateImpl;
   const _LiteratureRenunganState._() : super._();
 
   factory _LiteratureRenunganState.fromJson(Map<String, dynamic> json) =
-      _$_LiteratureRenunganState.fromJson;
+      _$LiteratureRenunganStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -182,6 +183,6 @@ abstract class _LiteratureRenunganState extends LiteratureRenunganState {
   List<Renungan> get items;
   @override
   @JsonKey(ignore: true)
-  _$$_LiteratureRenunganStateCopyWith<_$_LiteratureRenunganState>
+  _$$LiteratureRenunganStateImplCopyWith<_$LiteratureRenunganStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

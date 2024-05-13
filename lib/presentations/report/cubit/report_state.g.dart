@@ -6,12 +6,12 @@ part of 'report_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_ReportState _$$_ReportStateFromJson(Map<String, dynamic> json) =>
-    _$_ReportState(
+_$ReportStateImpl _$$ReportStateImplFromJson(Map<String, dynamic> json) =>
+    _$ReportStateImpl(
       isLoading: json['isLoading'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$_ReportStateToJson(_$_ReportState instance) =>
+Map<String, dynamic> _$$ReportStateImplToJson(_$ReportStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
     };

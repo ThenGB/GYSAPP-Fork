@@ -70,24 +70,25 @@ class _$LiteratureKesaksianStateCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_LiteratureKesaksianStateCopyWith<$Res>
+abstract class _$$LiteratureKesaksianStateImplCopyWith<$Res>
     implements $LiteratureKesaksianStateCopyWith<$Res> {
-  factory _$$_LiteratureKesaksianStateCopyWith(
-          _$_LiteratureKesaksianState value,
-          $Res Function(_$_LiteratureKesaksianState) then) =
-      __$$_LiteratureKesaksianStateCopyWithImpl<$Res>;
+  factory _$$LiteratureKesaksianStateImplCopyWith(
+          _$LiteratureKesaksianStateImpl value,
+          $Res Function(_$LiteratureKesaksianStateImpl) then) =
+      __$$LiteratureKesaksianStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool isLoading, List<Kesaksian> items});
 }
 
 /// @nodoc
-class __$$_LiteratureKesaksianStateCopyWithImpl<$Res>
+class __$$LiteratureKesaksianStateImplCopyWithImpl<$Res>
     extends _$LiteratureKesaksianStateCopyWithImpl<$Res,
-        _$_LiteratureKesaksianState>
-    implements _$$_LiteratureKesaksianStateCopyWith<$Res> {
-  __$$_LiteratureKesaksianStateCopyWithImpl(_$_LiteratureKesaksianState _value,
-      $Res Function(_$_LiteratureKesaksianState) _then)
+        _$LiteratureKesaksianStateImpl>
+    implements _$$LiteratureKesaksianStateImplCopyWith<$Res> {
+  __$$LiteratureKesaksianStateImplCopyWithImpl(
+      _$LiteratureKesaksianStateImpl _value,
+      $Res Function(_$LiteratureKesaksianStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -96,7 +97,7 @@ class __$$_LiteratureKesaksianStateCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? items = null,
   }) {
-    return _then(_$_LiteratureKesaksianState(
+    return _then(_$LiteratureKesaksianStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -111,14 +112,14 @@ class __$$_LiteratureKesaksianStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LiteratureKesaksianState extends _LiteratureKesaksianState {
-  const _$_LiteratureKesaksianState(
+class _$LiteratureKesaksianStateImpl extends _LiteratureKesaksianState {
+  const _$LiteratureKesaksianStateImpl(
       {this.isLoading = false, final List<Kesaksian> items = const []})
       : _items = items,
         super._();
 
-  factory _$_LiteratureKesaksianState.fromJson(Map<String, dynamic> json) =>
-      _$$_LiteratureKesaksianStateFromJson(json);
+  factory _$LiteratureKesaksianStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LiteratureKesaksianStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -138,10 +139,10 @@ class _$_LiteratureKesaksianState extends _LiteratureKesaksianState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LiteratureKesaksianState &&
+            other is _$LiteratureKesaksianStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other._items, _items));
@@ -155,13 +156,13 @@ class _$_LiteratureKesaksianState extends _LiteratureKesaksianState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LiteratureKesaksianStateCopyWith<_$_LiteratureKesaksianState>
-      get copyWith => __$$_LiteratureKesaksianStateCopyWithImpl<
-          _$_LiteratureKesaksianState>(this, _$identity);
+  _$$LiteratureKesaksianStateImplCopyWith<_$LiteratureKesaksianStateImpl>
+      get copyWith => __$$LiteratureKesaksianStateImplCopyWithImpl<
+          _$LiteratureKesaksianStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LiteratureKesaksianStateToJson(
+    return _$$LiteratureKesaksianStateImplToJson(
       this,
     );
   }
@@ -170,11 +171,11 @@ class _$_LiteratureKesaksianState extends _LiteratureKesaksianState {
 abstract class _LiteratureKesaksianState extends LiteratureKesaksianState {
   const factory _LiteratureKesaksianState(
       {final bool isLoading,
-      final List<Kesaksian> items}) = _$_LiteratureKesaksianState;
+      final List<Kesaksian> items}) = _$LiteratureKesaksianStateImpl;
   const _LiteratureKesaksianState._() : super._();
 
   factory _LiteratureKesaksianState.fromJson(Map<String, dynamic> json) =
-      _$_LiteratureKesaksianState.fromJson;
+      _$LiteratureKesaksianStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -182,6 +183,6 @@ abstract class _LiteratureKesaksianState extends LiteratureKesaksianState {
   List<Kesaksian> get items;
   @override
   @JsonKey(ignore: true)
-  _$$_LiteratureKesaksianStateCopyWith<_$_LiteratureKesaksianState>
+  _$$LiteratureKesaksianStateImplCopyWith<_$LiteratureKesaksianStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

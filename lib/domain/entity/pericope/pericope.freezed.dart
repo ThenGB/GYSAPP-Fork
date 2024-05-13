@@ -102,10 +102,11 @@ class _$PericopeCopyWithImpl<$Res, $Val extends Pericope>
 }
 
 /// @nodoc
-abstract class _$$_PericopeCopyWith<$Res> implements $PericopeCopyWith<$Res> {
-  factory _$$_PericopeCopyWith(
-          _$_Pericope value, $Res Function(_$_Pericope) then) =
-      __$$_PericopeCopyWithImpl<$Res>;
+abstract class _$$PericopeImplCopyWith<$Res>
+    implements $PericopeCopyWith<$Res> {
+  factory _$$PericopeImplCopyWith(
+          _$PericopeImpl value, $Res Function(_$PericopeImpl) then) =
+      __$$PericopeImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -118,11 +119,11 @@ abstract class _$$_PericopeCopyWith<$Res> implements $PericopeCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_PericopeCopyWithImpl<$Res>
-    extends _$PericopeCopyWithImpl<$Res, _$_Pericope>
-    implements _$$_PericopeCopyWith<$Res> {
-  __$$_PericopeCopyWithImpl(
-      _$_Pericope _value, $Res Function(_$_Pericope) _then)
+class __$$PericopeImplCopyWithImpl<$Res>
+    extends _$PericopeCopyWithImpl<$Res, _$PericopeImpl>
+    implements _$$PericopeImplCopyWith<$Res> {
+  __$$PericopeImplCopyWithImpl(
+      _$PericopeImpl _value, $Res Function(_$PericopeImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -135,7 +136,7 @@ class __$$_PericopeCopyWithImpl<$Res>
     Object? verseId = freezed,
     Object? title = freezed,
   }) {
-    return _then(_$_Pericope(
+    return _then(_$PericopeImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -166,8 +167,8 @@ class __$$_PericopeCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Pericope extends _Pericope {
-  const _$_Pericope(
+class _$PericopeImpl extends _Pericope {
+  const _$PericopeImpl(
       {required this.id,
       @JsonKey(name: 's') this.s,
       @JsonKey(name: 'b') this.bookId,
@@ -176,8 +177,8 @@ class _$_Pericope extends _Pericope {
       @JsonKey(name: 't') this.title})
       : super._();
 
-  factory _$_Pericope.fromJson(Map<String, dynamic> json) =>
-      _$$_PericopeFromJson(json);
+  factory _$PericopeImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PericopeImplFromJson(json);
 
   @override
   final int id;
@@ -203,10 +204,10 @@ class _$_Pericope extends _Pericope {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Pericope &&
+            other is _$PericopeImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.s, s) || other.s == s) &&
             (identical(other.bookId, bookId) || other.bookId == bookId) &&
@@ -224,12 +225,12 @@ class _$_Pericope extends _Pericope {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PericopeCopyWith<_$_Pericope> get copyWith =>
-      __$$_PericopeCopyWithImpl<_$_Pericope>(this, _$identity);
+  _$$PericopeImplCopyWith<_$PericopeImpl> get copyWith =>
+      __$$PericopeImplCopyWithImpl<_$PericopeImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_PericopeToJson(
+    return _$$PericopeImplToJson(
       this,
     );
   }
@@ -242,10 +243,11 @@ abstract class _Pericope extends Pericope {
       @JsonKey(name: 'b') final int? bookId,
       @JsonKey(name: 'c') final int? chapterId,
       @JsonKey(name: 'v') final int? verseId,
-      @JsonKey(name: 't') final String? title}) = _$_Pericope;
+      @JsonKey(name: 't') final String? title}) = _$PericopeImpl;
   const _Pericope._() : super._();
 
-  factory _Pericope.fromJson(Map<String, dynamic> json) = _$_Pericope.fromJson;
+  factory _Pericope.fromJson(Map<String, dynamic> json) =
+      _$PericopeImpl.fromJson;
 
   @override
   int get id;
@@ -266,6 +268,6 @@ abstract class _Pericope extends Pericope {
   String? get title;
   @override
   @JsonKey(ignore: true)
-  _$$_PericopeCopyWith<_$_Pericope> get copyWith =>
+  _$$PericopeImplCopyWith<_$PericopeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

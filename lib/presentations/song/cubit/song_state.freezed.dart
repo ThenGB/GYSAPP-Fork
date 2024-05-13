@@ -238,10 +238,11 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
 }
 
 /// @nodoc
-abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
-  factory _$$_SongStateCopyWith(
-          _$_SongState value, $Res Function(_$_SongState) then) =
-      __$$_SongStateCopyWithImpl<$Res>;
+abstract class _$$SongStateImplCopyWith<$Res>
+    implements $SongStateCopyWith<$Res> {
+  factory _$$SongStateImplCopyWith(
+          _$SongStateImpl value, $Res Function(_$SongStateImpl) then) =
+      __$$SongStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -275,11 +276,11 @@ abstract class _$$_SongStateCopyWith<$Res> implements $SongStateCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_SongStateCopyWithImpl<$Res>
-    extends _$SongStateCopyWithImpl<$Res, _$_SongState>
-    implements _$$_SongStateCopyWith<$Res> {
-  __$$_SongStateCopyWithImpl(
-      _$_SongState _value, $Res Function(_$_SongState) _then)
+class __$$SongStateImplCopyWithImpl<$Res>
+    extends _$SongStateCopyWithImpl<$Res, _$SongStateImpl>
+    implements _$$SongStateImplCopyWith<$Res> {
+  __$$SongStateImplCopyWithImpl(
+      _$SongStateImpl _value, $Res Function(_$SongStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -310,7 +311,7 @@ class __$$_SongStateCopyWithImpl<$Res>
     Object? lastSync = null,
     Object? remoteLyricsUpdateAt = null,
   }) {
-    return _then(_$_SongState(
+    return _then(_$SongStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -410,8 +411,8 @@ class __$$_SongStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_SongState extends _SongState {
-  const _$_SongState(
+class _$SongStateImpl extends _SongState {
+  const _$SongStateImpl(
       {this.isLoading = false,
       this.isAudioLoading = false,
       final List<SongBook> songBook = const [],
@@ -445,8 +446,8 @@ class _$_SongState extends _SongState {
         _remoteLyricsUpdateAt = remoteLyricsUpdateAt,
         super._();
 
-  factory _$_SongState.fromJson(Map<String, dynamic> json) =>
-      _$$_SongStateFromJson(json);
+  factory _$SongStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SongStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -569,10 +570,10 @@ class _$_SongState extends _SongState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_SongState &&
+            other is _$SongStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isAudioLoading, isAudioLoading) ||
@@ -653,12 +654,12 @@ class _$_SongState extends _SongState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SongStateCopyWith<_$_SongState> get copyWith =>
-      __$$_SongStateCopyWithImpl<_$_SongState>(this, _$identity);
+  _$$SongStateImplCopyWith<_$SongStateImpl> get copyWith =>
+      __$$SongStateImplCopyWithImpl<_$SongStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SongStateToJson(
+    return _$$SongStateImplToJson(
       this,
     );
   }
@@ -689,11 +690,11 @@ abstract class _SongState extends SongState {
       final double defaultTextScale,
       final double defaultTextHeight,
       final Map<String, DateTime> lastSync,
-      final Map<String, DateTime> remoteLyricsUpdateAt}) = _$_SongState;
+      final Map<String, DateTime> remoteLyricsUpdateAt}) = _$SongStateImpl;
   const _SongState._() : super._();
 
   factory _SongState.fromJson(Map<String, dynamic> json) =
-      _$_SongState.fromJson;
+      _$SongStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -745,6 +746,6 @@ abstract class _SongState extends SongState {
   Map<String, DateTime> get remoteLyricsUpdateAt;
   @override
   @JsonKey(ignore: true)
-  _$$_SongStateCopyWith<_$_SongState> get copyWith =>
+  _$$SongStateImplCopyWith<_$SongStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

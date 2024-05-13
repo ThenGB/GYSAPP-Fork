@@ -1,7 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:dartz/dartz.dart';
+import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../domain/entity/kesaksian/kesaksian_entity.dart';
 import '../../domain/entity/panduan/panduan_entity.dart';
@@ -10,32 +13,46 @@ import '../../domain/entity/sauh/sauh_entity.dart';
 import '../../domain/entity/truevoice/truevoice_entity.dart';
 import '../../domain/entity/warta/warta_entity.dart';
 import '../../domain/repository/scrapper_repository.dart';
-import '../utilities/variables/failure.dart';
+import '../data.dart';
 
 class ScrapperRepositoryImpl implements ScrapperRepository {
   final Chaleno chaleno;
+  late final WebViewController webViewController = WebViewController()
+    ..setNavigationDelegate(NavigationDelegate(
+      onProgress: (progress) {
+        if (progress == 100 && !scrapperCompleter.isCompleted) {
+          scrapperCompleter.complete(true);
+        }
+      },
+    ))
+    ..setJavaScriptMode(JavaScriptMode.unrestricted);
 
   ScrapperRepositoryImpl(this.chaleno);
+
+  Completer<bool> scrapperCompleter = Completer();
   @override
   Future<Either<Failure, List<Sauh>>> getSauh() async {
     bool hasError = false;
     List<Sauh> data = [];
     late Failure failure;
     try {
-      var parser = await chaleno.load('https://tjc.org/id/sauhbagijiwa/');
-      if (parser == null) throw "Can't get data online";
-      var parent = Parser(parser.querySelector('.grid4').html);
-
-      var articles = parent.getElementsByTagName('article')?.toList();
-      if (articles != null) {
-        for (var article in articles) {
-          var title = article.querySelector('.post-title')?.text ?? '';
-          var time = article.querySelector('.year')?.text ?? '';
-          var url = article.querySelector('a')?.href ?? '#';
-          var imageUrl = article.querySelector('img')?.src ?? '';
-          data.add(Sauh(
-              title: title, description: time, url: url, imageUrl: imageUrl));
-        }
+      scrapperCompleter = Completer();
+      await webViewController
+          .loadRequest(Uri.parse('https://tjc.org/id/sauhbagijiwa/'));
+      final config = await FirebaseUtils.stringConfig('sauhconfig');
+      final req = await scrapperCompleter.future;
+      if (!req) throw 'Tidak dapat mengambil data dari internet';
+      final jsR = await webViewController.runJavaScriptReturningResult(config);
+      final List res = jsonDecode(jsR as String);
+      for (final map in res) {
+        data.add(
+          Sauh(
+            title: map['title'],
+            description: '---',
+            url: map['linkUrl'],
+            imageUrl: map['imageUrl'],
+          ),
+        );
       }
     } catch (e) {
       hasError = true;

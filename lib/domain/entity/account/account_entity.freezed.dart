@@ -118,10 +118,10 @@ class _$AccountCopyWithImpl<$Res, $Val extends Account>
 }
 
 /// @nodoc
-abstract class _$$_AccountCopyWith<$Res> implements $AccountCopyWith<$Res> {
-  factory _$$_AccountCopyWith(
-          _$_Account value, $Res Function(_$_Account) then) =
-      __$$_AccountCopyWithImpl<$Res>;
+abstract class _$$AccountImplCopyWith<$Res> implements $AccountCopyWith<$Res> {
+  factory _$$AccountImplCopyWith(
+          _$AccountImpl value, $Res Function(_$AccountImpl) then) =
+      __$$AccountImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -136,10 +136,11 @@ abstract class _$$_AccountCopyWith<$Res> implements $AccountCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_AccountCopyWithImpl<$Res>
-    extends _$AccountCopyWithImpl<$Res, _$_Account>
-    implements _$$_AccountCopyWith<$Res> {
-  __$$_AccountCopyWithImpl(_$_Account _value, $Res Function(_$_Account) _then)
+class __$$AccountImplCopyWithImpl<$Res>
+    extends _$AccountCopyWithImpl<$Res, _$AccountImpl>
+    implements _$$AccountImplCopyWith<$Res> {
+  __$$AccountImplCopyWithImpl(
+      _$AccountImpl _value, $Res Function(_$AccountImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -154,7 +155,7 @@ class __$$_AccountCopyWithImpl<$Res>
     Object? status = freezed,
     Object? branchId = null,
   }) {
-    return _then(_$_Account(
+    return _then(_$AccountImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -193,8 +194,8 @@ class __$$_AccountCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Account extends _Account {
-  const _$_Account(
+class _$AccountImpl extends _Account {
+  const _$AccountImpl(
       {@JsonKey(name: 'id') this.id = 0,
       @JsonKey(name: 'email') this.email,
       @JsonKey(name: 'name') this.name,
@@ -205,8 +206,8 @@ class _$_Account extends _Account {
       @JsonKey(name: 'branchid') this.branchId = 0})
       : super._();
 
-  factory _$_Account.fromJson(Map<String, dynamic> json) =>
-      _$$_AccountFromJson(json);
+  factory _$AccountImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AccountImplFromJson(json);
 
   @override
   @JsonKey(name: 'id')
@@ -239,10 +240,10 @@ class _$_Account extends _Account {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Account &&
+            other is _$AccountImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.email, email) || other.email == email) &&
             (identical(other.name, name) || other.name == name) &&
@@ -264,12 +265,12 @@ class _$_Account extends _Account {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AccountCopyWith<_$_Account> get copyWith =>
-      __$$_AccountCopyWithImpl<_$_Account>(this, _$identity);
+  _$$AccountImplCopyWith<_$AccountImpl> get copyWith =>
+      __$$AccountImplCopyWithImpl<_$AccountImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AccountToJson(
+    return _$$AccountImplToJson(
       this,
     );
   }
@@ -284,10 +285,10 @@ abstract class _Account extends Account {
       @JsonKey(name: 'mobilephone') final String? mobilePhone,
       @JsonKey(name: 'profilepicture') final String? profilePicture,
       @JsonKey(name: 'status') final String? status,
-      @JsonKey(name: 'branchid') final int branchId}) = _$_Account;
+      @JsonKey(name: 'branchid') final int branchId}) = _$AccountImpl;
   const _Account._() : super._();
 
-  factory _Account.fromJson(Map<String, dynamic> json) = _$_Account.fromJson;
+  factory _Account.fromJson(Map<String, dynamic> json) = _$AccountImpl.fromJson;
 
   @override
   @JsonKey(name: 'id')
@@ -315,6 +316,6 @@ abstract class _Account extends Account {
   int get branchId;
   @override
   @JsonKey(ignore: true)
-  _$$_AccountCopyWith<_$_Account> get copyWith =>
+  _$$AccountImplCopyWith<_$AccountImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

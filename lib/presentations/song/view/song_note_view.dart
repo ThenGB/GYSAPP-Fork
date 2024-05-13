@@ -150,16 +150,17 @@ class _SongNoteViewState extends State<SongNoteView> {
             body: Container(
               padding: EdgeInsets.all(16),
               child: quill.QuillEditor(
-                locale: context.locale,
-                showCursor: mode == NoteMode.write,
-                padding: EdgeInsets.zero,
-                expands: true,
+                configurations: quill.QuillEditorConfigurations(
+                  showCursor: mode == NoteMode.write,
+                  padding: EdgeInsets.zero,
+                  expands: true,
+                  scrollable: true,
+                  autoFocus: true,
+                  controller: controller,
+                  readOnly: mode == NoteMode.viewOnly,
+                ),
                 focusNode: focusNode,
                 scrollController: scrollController,
-                scrollable: true,
-                autoFocus: true,
-                controller: controller,
-                readOnly: mode == NoteMode.viewOnly,
               ),
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
@@ -167,9 +168,10 @@ class _SongNoteViewState extends State<SongNoteView> {
                 : Container(
                     margin: context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
-                    child: quill.QuillToolbar.basic(
-                      locale: context.locale,
-                      controller: controller,
+                    child: quill.QuillToolbar.simple(
+                      configurations: quill.QuillSimpleToolbarConfigurations(
+                        controller: controller,
+                      ),
                     ),
                   ),
           ),

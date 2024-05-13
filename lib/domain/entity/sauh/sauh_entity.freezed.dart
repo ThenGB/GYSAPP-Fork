@@ -78,18 +78,20 @@ class _$SauhCopyWithImpl<$Res, $Val extends Sauh>
 }
 
 /// @nodoc
-abstract class _$$_SauhCopyWith<$Res> implements $SauhCopyWith<$Res> {
-  factory _$$_SauhCopyWith(_$_Sauh value, $Res Function(_$_Sauh) then) =
-      __$$_SauhCopyWithImpl<$Res>;
+abstract class _$$SauhImplCopyWith<$Res> implements $SauhCopyWith<$Res> {
+  factory _$$SauhImplCopyWith(
+          _$SauhImpl value, $Res Function(_$SauhImpl) then) =
+      __$$SauhImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_SauhCopyWithImpl<$Res> extends _$SauhCopyWithImpl<$Res, _$_Sauh>
-    implements _$$_SauhCopyWith<$Res> {
-  __$$_SauhCopyWithImpl(_$_Sauh _value, $Res Function(_$_Sauh) _then)
+class __$$SauhImplCopyWithImpl<$Res>
+    extends _$SauhCopyWithImpl<$Res, _$SauhImpl>
+    implements _$$SauhImplCopyWith<$Res> {
+  __$$SauhImplCopyWithImpl(_$SauhImpl _value, $Res Function(_$SauhImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -100,7 +102,7 @@ class __$$_SauhCopyWithImpl<$Res> extends _$SauhCopyWithImpl<$Res, _$_Sauh>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_Sauh(
+    return _then(_$SauhImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -123,15 +125,16 @@ class __$$_SauhCopyWithImpl<$Res> extends _$SauhCopyWithImpl<$Res, _$_Sauh>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Sauh extends _Sauh {
-  const _$_Sauh(
+class _$SauhImpl extends _Sauh {
+  const _$SauhImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_Sauh.fromJson(Map<String, dynamic> json) => _$$_SauhFromJson(json);
+  factory _$SauhImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SauhImplFromJson(json);
 
   @override
   final String title;
@@ -148,10 +151,10 @@ class _$_Sauh extends _Sauh {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Sauh &&
+            other is _$SauhImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -168,12 +171,12 @@ class _$_Sauh extends _Sauh {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SauhCopyWith<_$_Sauh> get copyWith =>
-      __$$_SauhCopyWithImpl<_$_Sauh>(this, _$identity);
+  _$$SauhImplCopyWith<_$SauhImpl> get copyWith =>
+      __$$SauhImplCopyWithImpl<_$SauhImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SauhToJson(
+    return _$$SauhImplToJson(
       this,
     );
   }
@@ -184,10 +187,10 @@ abstract class _Sauh extends Sauh {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_Sauh;
+      required final String imageUrl}) = _$SauhImpl;
   const _Sauh._() : super._();
 
-  factory _Sauh.fromJson(Map<String, dynamic> json) = _$_Sauh.fromJson;
+  factory _Sauh.fromJson(Map<String, dynamic> json) = _$SauhImpl.fromJson;
 
   @override
   String get title;
@@ -199,5 +202,6 @@ abstract class _Sauh extends Sauh {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_SauhCopyWith<_$_Sauh> get copyWith => throw _privateConstructorUsedError;
+  _$$SauhImplCopyWith<_$SauhImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

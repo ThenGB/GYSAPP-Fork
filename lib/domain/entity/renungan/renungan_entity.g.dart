@@ -6,14 +6,15 @@ part of 'renungan_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Renungan _$$_RenunganFromJson(Map<String, dynamic> json) => _$_Renungan(
+_$RenunganImpl _$$RenunganImplFromJson(Map<String, dynamic> json) =>
+    _$RenunganImpl(
       title: json['title'] as String,
       description: json['description'] as String,
       url: json['url'] as String,
       imageUrl: json['imageUrl'] as String,
     );
 
-Map<String, dynamic> _$$_RenunganToJson(_$_Renungan instance) =>
+Map<String, dynamic> _$$RenunganImplToJson(_$RenunganImpl instance) =>
     <String, dynamic>{
       'title': instance.title,
       'description': instance.description,

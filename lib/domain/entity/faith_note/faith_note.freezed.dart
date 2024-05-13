@@ -90,10 +90,11 @@ class _$FaithNoteCopyWithImpl<$Res, $Val extends FaithNote>
 }
 
 /// @nodoc
-abstract class _$$_FaithNoteCopyWith<$Res> implements $FaithNoteCopyWith<$Res> {
-  factory _$$_FaithNoteCopyWith(
-          _$_FaithNote value, $Res Function(_$_FaithNote) then) =
-      __$$_FaithNoteCopyWithImpl<$Res>;
+abstract class _$$FaithNoteImplCopyWith<$Res>
+    implements $FaithNoteCopyWith<$Res> {
+  factory _$$FaithNoteImplCopyWith(
+          _$FaithNoteImpl value, $Res Function(_$FaithNoteImpl) then) =
+      __$$FaithNoteImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -105,11 +106,11 @@ abstract class _$$_FaithNoteCopyWith<$Res> implements $FaithNoteCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_FaithNoteCopyWithImpl<$Res>
-    extends _$FaithNoteCopyWithImpl<$Res, _$_FaithNote>
-    implements _$$_FaithNoteCopyWith<$Res> {
-  __$$_FaithNoteCopyWithImpl(
-      _$_FaithNote _value, $Res Function(_$_FaithNote) _then)
+class __$$FaithNoteImplCopyWithImpl<$Res>
+    extends _$FaithNoteCopyWithImpl<$Res, _$FaithNoteImpl>
+    implements _$$FaithNoteImplCopyWith<$Res> {
+  __$$FaithNoteImplCopyWithImpl(
+      _$FaithNoteImpl _value, $Res Function(_$FaithNoteImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -121,7 +122,7 @@ class __$$_FaithNoteCopyWithImpl<$Res>
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
-    return _then(_$_FaithNote(
+    return _then(_$FaithNoteImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -148,8 +149,8 @@ class __$$_FaithNoteCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_FaithNote extends _FaithNote {
-  const _$_FaithNote(
+class _$FaithNoteImpl extends _FaithNote {
+  const _$FaithNoteImpl(
       {required this.id,
       required final List<int> verses,
       this.text,
@@ -158,8 +159,8 @@ class _$_FaithNote extends _FaithNote {
       : _verses = verses,
         super._();
 
-  factory _$_FaithNote.fromJson(Map<String, dynamic> json) =>
-      _$$_FaithNoteFromJson(json);
+  factory _$FaithNoteImpl.fromJson(Map<String, dynamic> json) =>
+      _$$FaithNoteImplFromJson(json);
 
   @override
   final int id;
@@ -184,10 +185,10 @@ class _$_FaithNote extends _FaithNote {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_FaithNote &&
+            other is _$FaithNoteImpl &&
             (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
             (identical(other.text, text) || other.text == text) &&
@@ -210,12 +211,12 @@ class _$_FaithNote extends _FaithNote {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_FaithNoteCopyWith<_$_FaithNote> get copyWith =>
-      __$$_FaithNoteCopyWithImpl<_$_FaithNote>(this, _$identity);
+  _$$FaithNoteImplCopyWith<_$FaithNoteImpl> get copyWith =>
+      __$$FaithNoteImplCopyWithImpl<_$FaithNoteImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_FaithNoteToJson(
+    return _$$FaithNoteImplToJson(
       this,
     );
   }
@@ -227,11 +228,11 @@ abstract class _FaithNote extends FaithNote {
       required final List<int> verses,
       final String? text,
       required final DateTime createdDate,
-      required final DateTime updatedDate}) = _$_FaithNote;
+      required final DateTime updatedDate}) = _$FaithNoteImpl;
   const _FaithNote._() : super._();
 
   factory _FaithNote.fromJson(Map<String, dynamic> json) =
-      _$_FaithNote.fromJson;
+      _$FaithNoteImpl.fromJson;
 
   @override
   int get id;
@@ -245,6 +246,6 @@ abstract class _FaithNote extends FaithNote {
   DateTime get updatedDate;
   @override
   @JsonKey(ignore: true)
-  _$$_FaithNoteCopyWith<_$_FaithNote> get copyWith =>
+  _$$FaithNoteImplCopyWith<_$FaithNoteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

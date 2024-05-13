@@ -70,23 +70,25 @@ class _$LiteraturePanduanStateCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_LiteraturePanduanStateCopyWith<$Res>
+abstract class _$$LiteraturePanduanStateImplCopyWith<$Res>
     implements $LiteraturePanduanStateCopyWith<$Res> {
-  factory _$$_LiteraturePanduanStateCopyWith(_$_LiteraturePanduanState value,
-          $Res Function(_$_LiteraturePanduanState) then) =
-      __$$_LiteraturePanduanStateCopyWithImpl<$Res>;
+  factory _$$LiteraturePanduanStateImplCopyWith(
+          _$LiteraturePanduanStateImpl value,
+          $Res Function(_$LiteraturePanduanStateImpl) then) =
+      __$$LiteraturePanduanStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool isLoading, List<Panduan> items});
 }
 
 /// @nodoc
-class __$$_LiteraturePanduanStateCopyWithImpl<$Res>
+class __$$LiteraturePanduanStateImplCopyWithImpl<$Res>
     extends _$LiteraturePanduanStateCopyWithImpl<$Res,
-        _$_LiteraturePanduanState>
-    implements _$$_LiteraturePanduanStateCopyWith<$Res> {
-  __$$_LiteraturePanduanStateCopyWithImpl(_$_LiteraturePanduanState _value,
-      $Res Function(_$_LiteraturePanduanState) _then)
+        _$LiteraturePanduanStateImpl>
+    implements _$$LiteraturePanduanStateImplCopyWith<$Res> {
+  __$$LiteraturePanduanStateImplCopyWithImpl(
+      _$LiteraturePanduanStateImpl _value,
+      $Res Function(_$LiteraturePanduanStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -95,7 +97,7 @@ class __$$_LiteraturePanduanStateCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? items = null,
   }) {
-    return _then(_$_LiteraturePanduanState(
+    return _then(_$LiteraturePanduanStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -110,14 +112,14 @@ class __$$_LiteraturePanduanStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LiteraturePanduanState extends _LiteraturePanduanState {
-  const _$_LiteraturePanduanState(
+class _$LiteraturePanduanStateImpl extends _LiteraturePanduanState {
+  const _$LiteraturePanduanStateImpl(
       {this.isLoading = false, final List<Panduan> items = const []})
       : _items = items,
         super._();
 
-  factory _$_LiteraturePanduanState.fromJson(Map<String, dynamic> json) =>
-      _$$_LiteraturePanduanStateFromJson(json);
+  factory _$LiteraturePanduanStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LiteraturePanduanStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -137,10 +139,10 @@ class _$_LiteraturePanduanState extends _LiteraturePanduanState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LiteraturePanduanState &&
+            other is _$LiteraturePanduanStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other._items, _items));
@@ -154,13 +156,13 @@ class _$_LiteraturePanduanState extends _LiteraturePanduanState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LiteraturePanduanStateCopyWith<_$_LiteraturePanduanState> get copyWith =>
-      __$$_LiteraturePanduanStateCopyWithImpl<_$_LiteraturePanduanState>(
-          this, _$identity);
+  _$$LiteraturePanduanStateImplCopyWith<_$LiteraturePanduanStateImpl>
+      get copyWith => __$$LiteraturePanduanStateImplCopyWithImpl<
+          _$LiteraturePanduanStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LiteraturePanduanStateToJson(
+    return _$$LiteraturePanduanStateImplToJson(
       this,
     );
   }
@@ -169,11 +171,11 @@ class _$_LiteraturePanduanState extends _LiteraturePanduanState {
 abstract class _LiteraturePanduanState extends LiteraturePanduanState {
   const factory _LiteraturePanduanState(
       {final bool isLoading,
-      final List<Panduan> items}) = _$_LiteraturePanduanState;
+      final List<Panduan> items}) = _$LiteraturePanduanStateImpl;
   const _LiteraturePanduanState._() : super._();
 
   factory _LiteraturePanduanState.fromJson(Map<String, dynamic> json) =
-      _$_LiteraturePanduanState.fromJson;
+      _$LiteraturePanduanStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -181,6 +183,6 @@ abstract class _LiteraturePanduanState extends LiteraturePanduanState {
   List<Panduan> get items;
   @override
   @JsonKey(ignore: true)
-  _$$_LiteraturePanduanStateCopyWith<_$_LiteraturePanduanState> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$LiteraturePanduanStateImplCopyWith<_$LiteraturePanduanStateImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

@@ -219,7 +219,12 @@ class LinkLainnya extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              Text(e.value.label, textAlign: TextAlign.center),
+                              Text(
+                                e.value.label,
+                                textAlign: TextAlign.center,
+                                softWrap: false,
+                                overflow: TextOverflow.fade,
+                              ),
                             ],
                           ),
                         ),
@@ -418,6 +423,7 @@ class SuaraSejati extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (trueVoices.isEmpty) return SizedBox();
     return Section(
         label: 'Suara Sejati'.tr(),
         child: (gap) => SingleChildScrollView(

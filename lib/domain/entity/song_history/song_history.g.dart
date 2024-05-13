@@ -6,14 +6,14 @@ part of 'song_history.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_SongHistory _$$_SongHistoryFromJson(Map<String, dynamic> json) =>
-    _$_SongHistory(
+_$SongHistoryImpl _$$SongHistoryImplFromJson(Map<String, dynamic> json) =>
+    _$SongHistoryImpl(
       index: json['index'] as int,
       bookCode: json['bookCode'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );
 
-Map<String, dynamic> _$$_SongHistoryToJson(_$_SongHistory instance) =>
+Map<String, dynamic> _$$SongHistoryImplToJson(_$SongHistoryImpl instance) =>
     <String, dynamic>{
       'index': instance.index,
       'bookCode': instance.bookCode,

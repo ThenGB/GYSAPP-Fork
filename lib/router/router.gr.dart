@@ -15,6 +15,82 @@ abstract class _$AppRouter extends RootStackRouter {
 
   @override
   final Map<String, PageFactory> pagesMap = {
+    BackupRoute.name: (routeData) {
+      final args = routeData.argsAs<BackupRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BackupView(
+          key: args.key,
+          data: args.data,
+          onSynced: args.onSynced,
+        ),
+      );
+    },
+    BibleAudioSettingRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleAudioSettingRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleAudioSettingView(
+          key: args.key,
+          initialVoices: args.initialVoices,
+          initialPitchRate: args.initialPitchRate,
+          initialSpeedRate: args.initialSpeedRate,
+          onSave: args.onSave,
+        ),
+      );
+    },
+    BibleListRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleListView(
+          key: args.key,
+          books: args.books,
+          getBibles: args.getBibles,
+          onSelected: args.onSelected,
+          textScale: args.textScale,
+          bibleCode: args.bibleCode,
+        ),
+      );
+    },
+    BibleNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleNoteListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleNoteListView(
+          key: args.key,
+          cubit: args.cubit,
+          initialSearch: args.initialSearch,
+        ),
+      );
+    },
+    BibleNoteRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleNoteRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleNoteView(
+          key: args.key,
+          initialData: args.initialData,
+          cubit: args.cubit,
+          mode: args.mode,
+          onSave: args.onSave,
+        ),
+      );
+    },
+    BibleSearchFilterRoute.name: (routeData) {
+      final args = routeData.argsAs<BibleSearchFilterRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: BibleSearchFilterView(
+          key: args.key,
+          allBooks: args.allBooks,
+          initialValues: args.initialValues,
+          onFiltered: args.onFiltered,
+          textScale: args.textScale,
+          bibleCode: args.bibleCode,
+        ),
+      );
+    },
     BibleSearchRoute.name: (routeData) {
       final args = routeData.argsAs<BibleSearchRouteArgs>();
       return AutoRoutePage<dynamic>(
@@ -42,49 +118,27 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const BibleView(),
       );
     },
-    BibleNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleNoteListRouteArgs>();
+    DashboardRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: BibleNoteListView(
+        child: const DashboardView(),
+      );
+    },
+    FaithNoteListRoute.name: (routeData) {
+      final args = routeData.argsAs<FaithNoteListRouteArgs>();
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: FaithNoteListView(
           key: args.key,
           cubit: args.cubit,
-          initialSearch: args.initialSearch,
         ),
       );
     },
-    BibleSearchFilterRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleSearchFilterRouteArgs>();
+    FaithNoteRoute.name: (routeData) {
+      final args = routeData.argsAs<FaithNoteRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: BibleSearchFilterView(
-          key: args.key,
-          allBooks: args.allBooks,
-          initialValues: args.initialValues,
-          onFiltered: args.onFiltered,
-          textScale: args.textScale,
-          bibleCode: args.bibleCode,
-        ),
-      );
-    },
-    BibleAudioSettingRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleAudioSettingRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleAudioSettingView(
-          key: args.key,
-          initialVoices: args.initialVoices,
-          initialPitchRate: args.initialPitchRate,
-          initialSpeedRate: args.initialSpeedRate,
-          onSave: args.onSave,
-        ),
-      );
-    },
-    BibleNoteRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleNoteRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleNoteView(
+        child: FaithNoteView(
           key: args.key,
           initialData: args.initialData,
           cubit: args.cubit,
@@ -93,24 +147,16 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
-    BibleListRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleListRouteArgs>();
+    FaithRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: BibleListView(
-          key: args.key,
-          books: args.books,
-          getBibles: args.getBibles,
-          onSelected: args.onSelected,
-          textScale: args.textScale,
-          bibleCode: args.bibleCode,
-        ),
+        child: const FaithView(),
       );
     },
-    SettingsRoute.name: (routeData) {
+    FontSettingRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const SettingsView(),
+        child: const FontSettingView(),
       );
     },
     HomeRoute.name: (routeData) {
@@ -119,22 +165,16 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const HomeView(),
       );
     },
+    InitialRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const InitialView(),
+      );
+    },
     LiteratureKesaksianRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
         child: const LiteratureKesaksianView(),
-      );
-    },
-    LiteratureWartaRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureWartaView(),
-      );
-    },
-    LiteratureRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureView(),
       );
     },
     LiteraturePanduanKitabRoute.name: (routeData) {
@@ -149,10 +189,16 @@ abstract class _$AppRouter extends RootStackRouter {
         child: const LiteratureRenunganView(),
       );
     },
-    InitialRoute.name: (routeData) {
+    LiteratureRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const InitialView(),
+        child: const LiteratureView(),
+      );
+    },
+    LiteratureWartaRoute.name: (routeData) {
+      return AutoRoutePage<dynamic>(
+        routeData: routeData,
+        child: const LiteratureWartaView(),
       );
     },
     LoginRoute.name: (routeData) {
@@ -166,37 +212,21 @@ abstract class _$AppRouter extends RootStackRouter {
         )),
       );
     },
-    WebpageRoute.name: (routeData) {
-      final args = routeData.argsAs<WebpageRouteArgs>();
+    ReportRoute.name: (routeData) {
+      final args = routeData.argsAs<ReportRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: WebpageView(
+        child: ReportView(
           key: args.key,
-          url: args.url,
-          getNavColor: args.getNavColor,
+          account: args.account,
+          onLoggedIn: args.onLoggedIn,
         ),
       );
     },
-    SongNotesListRoute.name: (routeData) {
-      final args = routeData.argsAs<SongNotesListRouteArgs>();
+    SettingsRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: SongNotesListView(
-          key: args.key,
-          cubit: args.cubit,
-        ),
-      );
-    },
-    SongSyncRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SongSyncView(),
-      );
-    },
-    SongRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SongView(),
+        child: const SettingsView(),
       );
     },
     SongListRoute.name: (routeData) {
@@ -233,70 +263,361 @@ abstract class _$AppRouter extends RootStackRouter {
         ),
       );
     },
-    DashboardRoute.name: (routeData) {
+    SongNotesListRoute.name: (routeData) {
+      final args = routeData.argsAs<SongNotesListRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const DashboardView(),
-      );
-    },
-    FontSettingRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const FontSettingView(),
-      );
-    },
-    ReportRoute.name: (routeData) {
-      final args = routeData.argsAs<ReportRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: ReportView(
-          key: args.key,
-          account: args.account,
-          onLoggedIn: args.onLoggedIn,
-        ),
-      );
-    },
-    FaithNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<FaithNoteListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: FaithNoteListView(
+        child: SongNotesListView(
           key: args.key,
           cubit: args.cubit,
         ),
       );
     },
-    FaithNoteRoute.name: (routeData) {
-      final args = routeData.argsAs<FaithNoteRouteArgs>();
+    SongSyncRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: FaithNoteView(
-          key: args.key,
-          initialData: args.initialData,
-          cubit: args.cubit,
-          mode: args.mode,
-          onSave: args.onSave,
-        ),
+        child: const SongSyncView(),
       );
     },
-    FaithRoute.name: (routeData) {
+    SongRoute.name: (routeData) {
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: const FaithView(),
+        child: const SongView(),
       );
     },
-    BackupRoute.name: (routeData) {
-      final args = routeData.argsAs<BackupRouteArgs>();
+    WebpageRoute.name: (routeData) {
+      final args = routeData.argsAs<WebpageRouteArgs>();
       return AutoRoutePage<dynamic>(
         routeData: routeData,
-        child: BackupView(
+        child: WebpageView(
           key: args.key,
-          data: args.data,
-          onSynced: args.onSynced,
+          url: args.url,
+          getNavColor: args.getNavColor,
         ),
       );
     },
   };
+}
+
+/// generated route for
+/// [BackupView]
+class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
+  BackupRoute({
+    Key? key,
+    required AppBackupData data,
+    required dynamic Function(AppBackupData) onSynced,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BackupRoute.name,
+          args: BackupRouteArgs(
+            key: key,
+            data: data,
+            onSynced: onSynced,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BackupRoute';
+
+  static const PageInfo<BackupRouteArgs> page = PageInfo<BackupRouteArgs>(name);
+}
+
+class BackupRouteArgs {
+  const BackupRouteArgs({
+    this.key,
+    required this.data,
+    required this.onSynced,
+  });
+
+  final Key? key;
+
+  final AppBackupData data;
+
+  final dynamic Function(AppBackupData) onSynced;
+
+  @override
+  String toString() {
+    return 'BackupRouteArgs{key: $key, data: $data, onSynced: $onSynced}';
+  }
+}
+
+/// generated route for
+/// [BibleAudioSettingView]
+class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
+  BibleAudioSettingRoute({
+    Key? key,
+    required Map<String, Map<dynamic, dynamic>> initialVoices,
+    required double initialPitchRate,
+    required double initialSpeedRate,
+    required dynamic Function(
+      Map<String, Map<dynamic, dynamic>>,
+      double,
+      double,
+    ) onSave,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleAudioSettingRoute.name,
+          args: BibleAudioSettingRouteArgs(
+            key: key,
+            initialVoices: initialVoices,
+            initialPitchRate: initialPitchRate,
+            initialSpeedRate: initialSpeedRate,
+            onSave: onSave,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleAudioSettingRoute';
+
+  static const PageInfo<BibleAudioSettingRouteArgs> page =
+      PageInfo<BibleAudioSettingRouteArgs>(name);
+}
+
+class BibleAudioSettingRouteArgs {
+  const BibleAudioSettingRouteArgs({
+    this.key,
+    required this.initialVoices,
+    required this.initialPitchRate,
+    required this.initialSpeedRate,
+    required this.onSave,
+  });
+
+  final Key? key;
+
+  final Map<String, Map<dynamic, dynamic>> initialVoices;
+
+  final double initialPitchRate;
+
+  final double initialSpeedRate;
+
+  final dynamic Function(
+    Map<String, Map<dynamic, dynamic>>,
+    double,
+    double,
+  ) onSave;
+
+  @override
+  String toString() {
+    return 'BibleAudioSettingRouteArgs{key: $key, initialVoices: $initialVoices, initialPitchRate: $initialPitchRate, initialSpeedRate: $initialSpeedRate, onSave: $onSave}';
+  }
+}
+
+/// generated route for
+/// [BibleListView]
+class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
+  BibleListRoute({
+    Key? key,
+    required List<BibleBook> books,
+    required Future<List<Verse>> Function(
+      int?,
+      int?,
+    ) getBibles,
+    required dynamic Function(Verse) onSelected,
+    required double textScale,
+    required String bibleCode,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleListRoute.name,
+          args: BibleListRouteArgs(
+            key: key,
+            books: books,
+            getBibles: getBibles,
+            onSelected: onSelected,
+            textScale: textScale,
+            bibleCode: bibleCode,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleListRoute';
+
+  static const PageInfo<BibleListRouteArgs> page =
+      PageInfo<BibleListRouteArgs>(name);
+}
+
+class BibleListRouteArgs {
+  const BibleListRouteArgs({
+    this.key,
+    required this.books,
+    required this.getBibles,
+    required this.onSelected,
+    required this.textScale,
+    required this.bibleCode,
+  });
+
+  final Key? key;
+
+  final List<BibleBook> books;
+
+  final Future<List<Verse>> Function(
+    int?,
+    int?,
+  ) getBibles;
+
+  final dynamic Function(Verse) onSelected;
+
+  final double textScale;
+
+  final String bibleCode;
+
+  @override
+  String toString() {
+    return 'BibleListRouteArgs{key: $key, books: $books, getBibles: $getBibles, onSelected: $onSelected, textScale: $textScale, bibleCode: $bibleCode}';
+  }
+}
+
+/// generated route for
+/// [BibleNoteListView]
+class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
+  BibleNoteListRoute({
+    Key? key,
+    required BibleCubit cubit,
+    String? initialSearch,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleNoteListRoute.name,
+          args: BibleNoteListRouteArgs(
+            key: key,
+            cubit: cubit,
+            initialSearch: initialSearch,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleNoteListRoute';
+
+  static const PageInfo<BibleNoteListRouteArgs> page =
+      PageInfo<BibleNoteListRouteArgs>(name);
+}
+
+class BibleNoteListRouteArgs {
+  const BibleNoteListRouteArgs({
+    this.key,
+    required this.cubit,
+    this.initialSearch,
+  });
+
+  final Key? key;
+
+  final BibleCubit cubit;
+
+  final String? initialSearch;
+
+  @override
+  String toString() {
+    return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit, initialSearch: $initialSearch}';
+  }
+}
+
+/// generated route for
+/// [BibleNoteView]
+class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
+  BibleNoteRoute({
+    Key? key,
+    required BibleNote initialData,
+    required BibleCubit cubit,
+    required NoteMode mode,
+    required dynamic Function(BibleNote) onSave,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleNoteRoute.name,
+          args: BibleNoteRouteArgs(
+            key: key,
+            initialData: initialData,
+            cubit: cubit,
+            mode: mode,
+            onSave: onSave,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleNoteRoute';
+
+  static const PageInfo<BibleNoteRouteArgs> page =
+      PageInfo<BibleNoteRouteArgs>(name);
+}
+
+class BibleNoteRouteArgs {
+  const BibleNoteRouteArgs({
+    this.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
+
+  final Key? key;
+
+  final BibleNote initialData;
+
+  final BibleCubit cubit;
+
+  final NoteMode mode;
+
+  final dynamic Function(BibleNote) onSave;
+
+  @override
+  String toString() {
+    return 'BibleNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
+  }
+}
+
+/// generated route for
+/// [BibleSearchFilterView]
+class BibleSearchFilterRoute extends PageRouteInfo<BibleSearchFilterRouteArgs> {
+  BibleSearchFilterRoute({
+    Key? key,
+    required List<BibleBook> allBooks,
+    required List<BibleBook> initialValues,
+    required dynamic Function(List<BibleBook>) onFiltered,
+    required double textScale,
+    required String bibleCode,
+    List<PageRouteInfo>? children,
+  }) : super(
+          BibleSearchFilterRoute.name,
+          args: BibleSearchFilterRouteArgs(
+            key: key,
+            allBooks: allBooks,
+            initialValues: initialValues,
+            onFiltered: onFiltered,
+            textScale: textScale,
+            bibleCode: bibleCode,
+          ),
+          initialChildren: children,
+        );
+
+  static const String name = 'BibleSearchFilterRoute';
+
+  static const PageInfo<BibleSearchFilterRouteArgs> page =
+      PageInfo<BibleSearchFilterRouteArgs>(name);
+}
+
+class BibleSearchFilterRouteArgs {
+  const BibleSearchFilterRouteArgs({
+    this.key,
+    required this.allBooks,
+    required this.initialValues,
+    required this.onFiltered,
+    required this.textScale,
+    required this.bibleCode,
+  });
+
+  final Key? key;
+
+  final List<BibleBook> allBooks;
+
+  final List<BibleBook> initialValues;
+
+  final dynamic Function(List<BibleBook>) onFiltered;
+
+  final double textScale;
+
+  final String bibleCode;
+
+  @override
+  String toString() {
+    return 'BibleSearchFilterRouteArgs{key: $key, allBooks: $allBooks, initialValues: $initialValues, onFiltered: $onFiltered, textScale: $textScale, bibleCode: $bibleCode}';
+  }
 }
 
 /// generated route for
@@ -395,180 +716,70 @@ class BibleRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [BibleNoteListView]
-class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
-  BibleNoteListRoute({
+/// [DashboardView]
+class DashboardRoute extends PageRouteInfo<void> {
+  const DashboardRoute({List<PageRouteInfo>? children})
+      : super(
+          DashboardRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'DashboardRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [FaithNoteListView]
+class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
+  FaithNoteListRoute({
     Key? key,
-    required BibleCubit cubit,
-    String? initialSearch,
+    required FaithCubit cubit,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleNoteListRoute.name,
-          args: BibleNoteListRouteArgs(
+          FaithNoteListRoute.name,
+          args: FaithNoteListRouteArgs(
             key: key,
             cubit: cubit,
-            initialSearch: initialSearch,
           ),
           initialChildren: children,
         );
 
-  static const String name = 'BibleNoteListRoute';
+  static const String name = 'FaithNoteListRoute';
 
-  static const PageInfo<BibleNoteListRouteArgs> page =
-      PageInfo<BibleNoteListRouteArgs>(name);
+  static const PageInfo<FaithNoteListRouteArgs> page =
+      PageInfo<FaithNoteListRouteArgs>(name);
 }
 
-class BibleNoteListRouteArgs {
-  const BibleNoteListRouteArgs({
+class FaithNoteListRouteArgs {
+  const FaithNoteListRouteArgs({
     this.key,
     required this.cubit,
-    this.initialSearch,
   });
 
   final Key? key;
 
-  final BibleCubit cubit;
-
-  final String? initialSearch;
+  final FaithCubit cubit;
 
   @override
   String toString() {
-    return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit, initialSearch: $initialSearch}';
+    return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
   }
 }
 
 /// generated route for
-/// [BibleSearchFilterView]
-class BibleSearchFilterRoute extends PageRouteInfo<BibleSearchFilterRouteArgs> {
-  BibleSearchFilterRoute({
+/// [FaithNoteView]
+class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
+  FaithNoteRoute({
     Key? key,
-    required List<BibleBook> allBooks,
-    required List<BibleBook> initialValues,
-    required dynamic Function(List<BibleBook>) onFiltered,
-    required double textScale,
-    required String bibleCode,
-    List<PageRouteInfo>? children,
-  }) : super(
-          BibleSearchFilterRoute.name,
-          args: BibleSearchFilterRouteArgs(
-            key: key,
-            allBooks: allBooks,
-            initialValues: initialValues,
-            onFiltered: onFiltered,
-            textScale: textScale,
-            bibleCode: bibleCode,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'BibleSearchFilterRoute';
-
-  static const PageInfo<BibleSearchFilterRouteArgs> page =
-      PageInfo<BibleSearchFilterRouteArgs>(name);
-}
-
-class BibleSearchFilterRouteArgs {
-  const BibleSearchFilterRouteArgs({
-    this.key,
-    required this.allBooks,
-    required this.initialValues,
-    required this.onFiltered,
-    required this.textScale,
-    required this.bibleCode,
-  });
-
-  final Key? key;
-
-  final List<BibleBook> allBooks;
-
-  final List<BibleBook> initialValues;
-
-  final dynamic Function(List<BibleBook>) onFiltered;
-
-  final double textScale;
-
-  final String bibleCode;
-
-  @override
-  String toString() {
-    return 'BibleSearchFilterRouteArgs{key: $key, allBooks: $allBooks, initialValues: $initialValues, onFiltered: $onFiltered, textScale: $textScale, bibleCode: $bibleCode}';
-  }
-}
-
-/// generated route for
-/// [BibleAudioSettingView]
-class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
-  BibleAudioSettingRoute({
-    Key? key,
-    required Map<String, Map<dynamic, dynamic>> initialVoices,
-    required double initialPitchRate,
-    required double initialSpeedRate,
-    required dynamic Function(
-      Map<String, Map<dynamic, dynamic>>,
-      double,
-      double,
-    ) onSave,
-    List<PageRouteInfo>? children,
-  }) : super(
-          BibleAudioSettingRoute.name,
-          args: BibleAudioSettingRouteArgs(
-            key: key,
-            initialVoices: initialVoices,
-            initialPitchRate: initialPitchRate,
-            initialSpeedRate: initialSpeedRate,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'BibleAudioSettingRoute';
-
-  static const PageInfo<BibleAudioSettingRouteArgs> page =
-      PageInfo<BibleAudioSettingRouteArgs>(name);
-}
-
-class BibleAudioSettingRouteArgs {
-  const BibleAudioSettingRouteArgs({
-    this.key,
-    required this.initialVoices,
-    required this.initialPitchRate,
-    required this.initialSpeedRate,
-    required this.onSave,
-  });
-
-  final Key? key;
-
-  final Map<String, Map<dynamic, dynamic>> initialVoices;
-
-  final double initialPitchRate;
-
-  final double initialSpeedRate;
-
-  final dynamic Function(
-    Map<String, Map<dynamic, dynamic>>,
-    double,
-    double,
-  ) onSave;
-
-  @override
-  String toString() {
-    return 'BibleAudioSettingRouteArgs{key: $key, initialVoices: $initialVoices, initialPitchRate: $initialPitchRate, initialSpeedRate: $initialSpeedRate, onSave: $onSave}';
-  }
-}
-
-/// generated route for
-/// [BibleNoteView]
-class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
-  BibleNoteRoute({
-    Key? key,
-    required BibleNote initialData,
-    required BibleCubit cubit,
+    required FaithNote initialData,
+    required FaithCubit cubit,
     required NoteMode mode,
-    required dynamic Function(BibleNote) onSave,
+    required dynamic Function(FaithNote) onSave,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleNoteRoute.name,
-          args: BibleNoteRouteArgs(
+          FaithNoteRoute.name,
+          args: FaithNoteRouteArgs(
             key: key,
             initialData: initialData,
             cubit: cubit,
@@ -578,14 +789,14 @@ class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
           initialChildren: children,
         );
 
-  static const String name = 'BibleNoteRoute';
+  static const String name = 'FaithNoteRoute';
 
-  static const PageInfo<BibleNoteRouteArgs> page =
-      PageInfo<BibleNoteRouteArgs>(name);
+  static const PageInfo<FaithNoteRouteArgs> page =
+      PageInfo<FaithNoteRouteArgs>(name);
 }
 
-class BibleNoteRouteArgs {
-  const BibleNoteRouteArgs({
+class FaithNoteRouteArgs {
+  const FaithNoteRouteArgs({
     this.key,
     required this.initialData,
     required this.cubit,
@@ -595,94 +806,44 @@ class BibleNoteRouteArgs {
 
   final Key? key;
 
-  final BibleNote initialData;
+  final FaithNote initialData;
 
-  final BibleCubit cubit;
+  final FaithCubit cubit;
 
   final NoteMode mode;
 
-  final dynamic Function(BibleNote) onSave;
+  final dynamic Function(FaithNote) onSave;
 
   @override
   String toString() {
-    return 'BibleNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
+    return 'FaithNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
 }
 
 /// generated route for
-/// [BibleListView]
-class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
-  BibleListRoute({
-    Key? key,
-    required List<BibleBook> books,
-    required Future<List<Verse>> Function(
-      int?,
-      int?,
-    ) getBibles,
-    required dynamic Function(Verse) onSelected,
-    required double textScale,
-    required String bibleCode,
-    List<PageRouteInfo>? children,
-  }) : super(
-          BibleListRoute.name,
-          args: BibleListRouteArgs(
-            key: key,
-            books: books,
-            getBibles: getBibles,
-            onSelected: onSelected,
-            textScale: textScale,
-            bibleCode: bibleCode,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'BibleListRoute';
-
-  static const PageInfo<BibleListRouteArgs> page =
-      PageInfo<BibleListRouteArgs>(name);
-}
-
-class BibleListRouteArgs {
-  const BibleListRouteArgs({
-    this.key,
-    required this.books,
-    required this.getBibles,
-    required this.onSelected,
-    required this.textScale,
-    required this.bibleCode,
-  });
-
-  final Key? key;
-
-  final List<BibleBook> books;
-
-  final Future<List<Verse>> Function(
-    int?,
-    int?,
-  ) getBibles;
-
-  final dynamic Function(Verse) onSelected;
-
-  final double textScale;
-
-  final String bibleCode;
-
-  @override
-  String toString() {
-    return 'BibleListRouteArgs{key: $key, books: $books, getBibles: $getBibles, onSelected: $onSelected, textScale: $textScale, bibleCode: $bibleCode}';
-  }
-}
-
-/// generated route for
-/// [SettingsView]
-class SettingsRoute extends PageRouteInfo<void> {
-  const SettingsRoute({List<PageRouteInfo>? children})
+/// [FaithView]
+class FaithRoute extends PageRouteInfo<void> {
+  const FaithRoute({List<PageRouteInfo>? children})
       : super(
-          SettingsRoute.name,
+          FaithRoute.name,
           initialChildren: children,
         );
 
-  static const String name = 'SettingsRoute';
+  static const String name = 'FaithRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [FontSettingView]
+class FontSettingRoute extends PageRouteInfo<void> {
+  const FontSettingRoute({List<PageRouteInfo>? children})
+      : super(
+          FontSettingRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'FontSettingRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
@@ -702,6 +863,20 @@ class HomeRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [InitialView]
+class InitialRoute extends PageRouteInfo<void> {
+  const InitialRoute({List<PageRouteInfo>? children})
+      : super(
+          InitialRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'InitialRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
 /// [LiteratureKesaksianView]
 class LiteratureKesaksianRoute extends PageRouteInfo<void> {
   const LiteratureKesaksianRoute({List<PageRouteInfo>? children})
@@ -711,34 +886,6 @@ class LiteratureKesaksianRoute extends PageRouteInfo<void> {
         );
 
   static const String name = 'LiteratureKesaksianRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [LiteratureWartaView]
-class LiteratureWartaRoute extends PageRouteInfo<void> {
-  const LiteratureWartaRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureWartaRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'LiteratureWartaRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [LiteratureView]
-class LiteratureRoute extends PageRouteInfo<void> {
-  const LiteratureRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'LiteratureRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
@@ -772,15 +919,29 @@ class LiteratureRenunganRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [InitialView]
-class InitialRoute extends PageRouteInfo<void> {
-  const InitialRoute({List<PageRouteInfo>? children})
+/// [LiteratureView]
+class LiteratureRoute extends PageRouteInfo<void> {
+  const LiteratureRoute({List<PageRouteInfo>? children})
       : super(
-          InitialRoute.name,
+          LiteratureRoute.name,
           initialChildren: children,
         );
 
-  static const String name = 'InitialRoute';
+  static const String name = 'LiteratureRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [LiteratureWartaView]
+class LiteratureWartaRoute extends PageRouteInfo<void> {
+  const LiteratureWartaRoute({List<PageRouteInfo>? children})
+      : super(
+          LiteratureWartaRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'LiteratureWartaRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
@@ -823,110 +984,57 @@ class LoginRouteArgs {
 }
 
 /// generated route for
-/// [WebpageView]
-class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
-  WebpageRoute({
+/// [ReportView]
+class ReportRoute extends PageRouteInfo<ReportRouteArgs> {
+  ReportRoute({
     Key? key,
-    required String url,
-    FutureOr<Color?> Function(InAppWebViewController)? getNavColor,
+    Account? account,
+    required Future<Account?> Function(String) onLoggedIn,
     List<PageRouteInfo>? children,
   }) : super(
-          WebpageRoute.name,
-          args: WebpageRouteArgs(
+          ReportRoute.name,
+          args: ReportRouteArgs(
             key: key,
-            url: url,
-            getNavColor: getNavColor,
+            account: account,
+            onLoggedIn: onLoggedIn,
           ),
           initialChildren: children,
         );
 
-  static const String name = 'WebpageRoute';
+  static const String name = 'ReportRoute';
 
-  static const PageInfo<WebpageRouteArgs> page =
-      PageInfo<WebpageRouteArgs>(name);
+  static const PageInfo<ReportRouteArgs> page = PageInfo<ReportRouteArgs>(name);
 }
 
-class WebpageRouteArgs {
-  const WebpageRouteArgs({
+class ReportRouteArgs {
+  const ReportRouteArgs({
     this.key,
-    required this.url,
-    this.getNavColor,
+    this.account,
+    required this.onLoggedIn,
   });
 
   final Key? key;
 
-  final String url;
+  final Account? account;
 
-  final FutureOr<Color?> Function(InAppWebViewController)? getNavColor;
+  final Future<Account?> Function(String) onLoggedIn;
 
   @override
   String toString() {
-    return 'WebpageRouteArgs{key: $key, url: $url, getNavColor: $getNavColor}';
+    return 'ReportRouteArgs{key: $key, account: $account, onLoggedIn: $onLoggedIn}';
   }
 }
 
 /// generated route for
-/// [SongNotesListView]
-class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
-  SongNotesListRoute({
-    Key? key,
-    required SongCubit cubit,
-    List<PageRouteInfo>? children,
-  }) : super(
-          SongNotesListRoute.name,
-          args: SongNotesListRouteArgs(
-            key: key,
-            cubit: cubit,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'SongNotesListRoute';
-
-  static const PageInfo<SongNotesListRouteArgs> page =
-      PageInfo<SongNotesListRouteArgs>(name);
-}
-
-class SongNotesListRouteArgs {
-  const SongNotesListRouteArgs({
-    this.key,
-    required this.cubit,
-  });
-
-  final Key? key;
-
-  final SongCubit cubit;
-
-  @override
-  String toString() {
-    return 'SongNotesListRouteArgs{key: $key, cubit: $cubit}';
-  }
-}
-
-/// generated route for
-/// [SongSyncView]
-class SongSyncRoute extends PageRouteInfo<void> {
-  const SongSyncRoute({List<PageRouteInfo>? children})
+/// [SettingsView]
+class SettingsRoute extends PageRouteInfo<void> {
+  const SettingsRoute({List<PageRouteInfo>? children})
       : super(
-          SongSyncRoute.name,
+          SettingsRoute.name,
           initialChildren: children,
         );
 
-  static const String name = 'SongSyncRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [SongView]
-class SongRoute extends PageRouteInfo<void> {
-  const SongRoute({List<PageRouteInfo>? children})
-      : super(
-          SongRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'SongRoute';
+  static const String name = 'SettingsRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
@@ -1078,218 +1186,110 @@ class SongNoteRouteArgs {
 }
 
 /// generated route for
-/// [DashboardView]
-class DashboardRoute extends PageRouteInfo<void> {
-  const DashboardRoute({List<PageRouteInfo>? children})
-      : super(
-          DashboardRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'DashboardRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [FontSettingView]
-class FontSettingRoute extends PageRouteInfo<void> {
-  const FontSettingRoute({List<PageRouteInfo>? children})
-      : super(
-          FontSettingRoute.name,
-          initialChildren: children,
-        );
-
-  static const String name = 'FontSettingRoute';
-
-  static const PageInfo<void> page = PageInfo<void>(name);
-}
-
-/// generated route for
-/// [ReportView]
-class ReportRoute extends PageRouteInfo<ReportRouteArgs> {
-  ReportRoute({
+/// [SongNotesListView]
+class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
+  SongNotesListRoute({
     Key? key,
-    Account? account,
-    required Future<Account?> Function(String) onLoggedIn,
+    required SongCubit cubit,
     List<PageRouteInfo>? children,
   }) : super(
-          ReportRoute.name,
-          args: ReportRouteArgs(
-            key: key,
-            account: account,
-            onLoggedIn: onLoggedIn,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'ReportRoute';
-
-  static const PageInfo<ReportRouteArgs> page = PageInfo<ReportRouteArgs>(name);
-}
-
-class ReportRouteArgs {
-  const ReportRouteArgs({
-    this.key,
-    this.account,
-    required this.onLoggedIn,
-  });
-
-  final Key? key;
-
-  final Account? account;
-
-  final Future<Account?> Function(String) onLoggedIn;
-
-  @override
-  String toString() {
-    return 'ReportRouteArgs{key: $key, account: $account, onLoggedIn: $onLoggedIn}';
-  }
-}
-
-/// generated route for
-/// [FaithNoteListView]
-class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
-  FaithNoteListRoute({
-    Key? key,
-    required FaithCubit cubit,
-    List<PageRouteInfo>? children,
-  }) : super(
-          FaithNoteListRoute.name,
-          args: FaithNoteListRouteArgs(
+          SongNotesListRoute.name,
+          args: SongNotesListRouteArgs(
             key: key,
             cubit: cubit,
           ),
           initialChildren: children,
         );
 
-  static const String name = 'FaithNoteListRoute';
+  static const String name = 'SongNotesListRoute';
 
-  static const PageInfo<FaithNoteListRouteArgs> page =
-      PageInfo<FaithNoteListRouteArgs>(name);
+  static const PageInfo<SongNotesListRouteArgs> page =
+      PageInfo<SongNotesListRouteArgs>(name);
 }
 
-class FaithNoteListRouteArgs {
-  const FaithNoteListRouteArgs({
+class SongNotesListRouteArgs {
+  const SongNotesListRouteArgs({
     this.key,
     required this.cubit,
   });
 
   final Key? key;
 
-  final FaithCubit cubit;
+  final SongCubit cubit;
 
   @override
   String toString() {
-    return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
+    return 'SongNotesListRouteArgs{key: $key, cubit: $cubit}';
   }
 }
 
 /// generated route for
-/// [FaithNoteView]
-class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
-  FaithNoteRoute({
-    Key? key,
-    required FaithNote initialData,
-    required FaithCubit cubit,
-    required NoteMode mode,
-    required dynamic Function(FaithNote) onSave,
-    List<PageRouteInfo>? children,
-  }) : super(
-          FaithNoteRoute.name,
-          args: FaithNoteRouteArgs(
-            key: key,
-            initialData: initialData,
-            cubit: cubit,
-            mode: mode,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
-
-  static const String name = 'FaithNoteRoute';
-
-  static const PageInfo<FaithNoteRouteArgs> page =
-      PageInfo<FaithNoteRouteArgs>(name);
-}
-
-class FaithNoteRouteArgs {
-  const FaithNoteRouteArgs({
-    this.key,
-    required this.initialData,
-    required this.cubit,
-    required this.mode,
-    required this.onSave,
-  });
-
-  final Key? key;
-
-  final FaithNote initialData;
-
-  final FaithCubit cubit;
-
-  final NoteMode mode;
-
-  final dynamic Function(FaithNote) onSave;
-
-  @override
-  String toString() {
-    return 'FaithNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
-  }
-}
-
-/// generated route for
-/// [FaithView]
-class FaithRoute extends PageRouteInfo<void> {
-  const FaithRoute({List<PageRouteInfo>? children})
+/// [SongSyncView]
+class SongSyncRoute extends PageRouteInfo<void> {
+  const SongSyncRoute({List<PageRouteInfo>? children})
       : super(
-          FaithRoute.name,
+          SongSyncRoute.name,
           initialChildren: children,
         );
 
-  static const String name = 'FaithRoute';
+  static const String name = 'SongSyncRoute';
 
   static const PageInfo<void> page = PageInfo<void>(name);
 }
 
 /// generated route for
-/// [BackupView]
-class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
-  BackupRoute({
+/// [SongView]
+class SongRoute extends PageRouteInfo<void> {
+  const SongRoute({List<PageRouteInfo>? children})
+      : super(
+          SongRoute.name,
+          initialChildren: children,
+        );
+
+  static const String name = 'SongRoute';
+
+  static const PageInfo<void> page = PageInfo<void>(name);
+}
+
+/// generated route for
+/// [WebpageView]
+class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
+  WebpageRoute({
     Key? key,
-    required AppBackupData data,
-    required dynamic Function(AppBackupData) onSynced,
+    required String url,
+    FutureOr<Color?> Function(InAppWebViewController)? getNavColor,
     List<PageRouteInfo>? children,
   }) : super(
-          BackupRoute.name,
-          args: BackupRouteArgs(
+          WebpageRoute.name,
+          args: WebpageRouteArgs(
             key: key,
-            data: data,
-            onSynced: onSynced,
+            url: url,
+            getNavColor: getNavColor,
           ),
           initialChildren: children,
         );
 
-  static const String name = 'BackupRoute';
+  static const String name = 'WebpageRoute';
 
-  static const PageInfo<BackupRouteArgs> page = PageInfo<BackupRouteArgs>(name);
+  static const PageInfo<WebpageRouteArgs> page =
+      PageInfo<WebpageRouteArgs>(name);
 }
 
-class BackupRouteArgs {
-  const BackupRouteArgs({
+class WebpageRouteArgs {
+  const WebpageRouteArgs({
     this.key,
-    required this.data,
-    required this.onSynced,
+    required this.url,
+    this.getNavColor,
   });
 
   final Key? key;
 
-  final AppBackupData data;
+  final String url;
 
-  final dynamic Function(AppBackupData) onSynced;
+  final FutureOr<Color?> Function(InAppWebViewController)? getNavColor;
 
   @override
   String toString() {
-    return 'BackupRouteArgs{key: $key, data: $data, onSynced: $onSynced}';
+    return 'WebpageRouteArgs{key: $key, url: $url, getNavColor: $getNavColor}';
   }
 }

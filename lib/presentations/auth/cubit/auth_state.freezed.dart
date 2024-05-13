@@ -73,21 +73,22 @@ class _$AuthStateCopyWithImpl<$Res, $Val extends AuthState>
 }
 
 /// @nodoc
-abstract class _$$_AuthStateCopyWith<$Res> implements $AuthStateCopyWith<$Res> {
-  factory _$$_AuthStateCopyWith(
-          _$_AuthState value, $Res Function(_$_AuthState) then) =
-      __$$_AuthStateCopyWithImpl<$Res>;
+abstract class _$$AuthStateImplCopyWith<$Res>
+    implements $AuthStateCopyWith<$Res> {
+  factory _$$AuthStateImplCopyWith(
+          _$AuthStateImpl value, $Res Function(_$AuthStateImpl) then) =
+      __$$AuthStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String? idToken, bool isLoading, int progress});
 }
 
 /// @nodoc
-class __$$_AuthStateCopyWithImpl<$Res>
-    extends _$AuthStateCopyWithImpl<$Res, _$_AuthState>
-    implements _$$_AuthStateCopyWith<$Res> {
-  __$$_AuthStateCopyWithImpl(
-      _$_AuthState _value, $Res Function(_$_AuthState) _then)
+class __$$AuthStateImplCopyWithImpl<$Res>
+    extends _$AuthStateCopyWithImpl<$Res, _$AuthStateImpl>
+    implements _$$AuthStateImplCopyWith<$Res> {
+  __$$AuthStateImplCopyWithImpl(
+      _$AuthStateImpl _value, $Res Function(_$AuthStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -97,7 +98,7 @@ class __$$_AuthStateCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? progress = null,
   }) {
-    return _then(_$_AuthState(
+    return _then(_$AuthStateImpl(
       idToken: freezed == idToken
           ? _value.idToken
           : idToken // ignore: cast_nullable_to_non_nullable
@@ -116,12 +117,13 @@ class __$$_AuthStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_AuthState extends _AuthState {
-  const _$_AuthState({this.idToken, this.isLoading = false, this.progress = 0})
+class _$AuthStateImpl extends _AuthState {
+  const _$AuthStateImpl(
+      {this.idToken, this.isLoading = false, this.progress = 0})
       : super._();
 
-  factory _$_AuthState.fromJson(Map<String, dynamic> json) =>
-      _$$_AuthStateFromJson(json);
+  factory _$AuthStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AuthStateImplFromJson(json);
 
   @override
   final String? idToken;
@@ -138,10 +140,10 @@ class _$_AuthState extends _AuthState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AuthState &&
+            other is _$AuthStateImpl &&
             (identical(other.idToken, idToken) || other.idToken == idToken) &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
@@ -156,12 +158,12 @@ class _$_AuthState extends _AuthState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AuthStateCopyWith<_$_AuthState> get copyWith =>
-      __$$_AuthStateCopyWithImpl<_$_AuthState>(this, _$identity);
+  _$$AuthStateImplCopyWith<_$AuthStateImpl> get copyWith =>
+      __$$AuthStateImplCopyWithImpl<_$AuthStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AuthStateToJson(
+    return _$$AuthStateImplToJson(
       this,
     );
   }
@@ -171,11 +173,11 @@ abstract class _AuthState extends AuthState {
   const factory _AuthState(
       {final String? idToken,
       final bool isLoading,
-      final int progress}) = _$_AuthState;
+      final int progress}) = _$AuthStateImpl;
   const _AuthState._() : super._();
 
   factory _AuthState.fromJson(Map<String, dynamic> json) =
-      _$_AuthState.fromJson;
+      _$AuthStateImpl.fromJson;
 
   @override
   String? get idToken;
@@ -185,6 +187,6 @@ abstract class _AuthState extends AuthState {
   int get progress;
   @override
   @JsonKey(ignore: true)
-  _$$_AuthStateCopyWith<_$_AuthState> get copyWith =>
+  _$$AuthStateImplCopyWith<_$AuthStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

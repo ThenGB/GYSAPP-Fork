@@ -74,22 +74,22 @@ class _$SongHistoryCopyWithImpl<$Res, $Val extends SongHistory>
 }
 
 /// @nodoc
-abstract class _$$_SongHistoryCopyWith<$Res>
+abstract class _$$SongHistoryImplCopyWith<$Res>
     implements $SongHistoryCopyWith<$Res> {
-  factory _$$_SongHistoryCopyWith(
-          _$_SongHistory value, $Res Function(_$_SongHistory) then) =
-      __$$_SongHistoryCopyWithImpl<$Res>;
+  factory _$$SongHistoryImplCopyWith(
+          _$SongHistoryImpl value, $Res Function(_$SongHistoryImpl) then) =
+      __$$SongHistoryImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({int index, String bookCode, DateTime createdAt});
 }
 
 /// @nodoc
-class __$$_SongHistoryCopyWithImpl<$Res>
-    extends _$SongHistoryCopyWithImpl<$Res, _$_SongHistory>
-    implements _$$_SongHistoryCopyWith<$Res> {
-  __$$_SongHistoryCopyWithImpl(
-      _$_SongHistory _value, $Res Function(_$_SongHistory) _then)
+class __$$SongHistoryImplCopyWithImpl<$Res>
+    extends _$SongHistoryCopyWithImpl<$Res, _$SongHistoryImpl>
+    implements _$$SongHistoryImplCopyWith<$Res> {
+  __$$SongHistoryImplCopyWithImpl(
+      _$SongHistoryImpl _value, $Res Function(_$SongHistoryImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -99,7 +99,7 @@ class __$$_SongHistoryCopyWithImpl<$Res>
     Object? bookCode = null,
     Object? createdAt = null,
   }) {
-    return _then(_$_SongHistory(
+    return _then(_$SongHistoryImpl(
       index: null == index
           ? _value.index
           : index // ignore: cast_nullable_to_non_nullable
@@ -118,13 +118,13 @@ class __$$_SongHistoryCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_SongHistory extends _SongHistory {
-  const _$_SongHistory(
+class _$SongHistoryImpl extends _SongHistory {
+  const _$SongHistoryImpl(
       {required this.index, required this.bookCode, required this.createdAt})
       : super._();
 
-  factory _$_SongHistory.fromJson(Map<String, dynamic> json) =>
-      _$$_SongHistoryFromJson(json);
+  factory _$SongHistoryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SongHistoryImplFromJson(json);
 
   @override
   final int index;
@@ -139,10 +139,10 @@ class _$_SongHistory extends _SongHistory {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_SongHistory &&
+            other is _$SongHistoryImpl &&
             (identical(other.index, index) || other.index == index) &&
             (identical(other.bookCode, bookCode) ||
                 other.bookCode == bookCode) &&
@@ -157,12 +157,12 @@ class _$_SongHistory extends _SongHistory {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SongHistoryCopyWith<_$_SongHistory> get copyWith =>
-      __$$_SongHistoryCopyWithImpl<_$_SongHistory>(this, _$identity);
+  _$$SongHistoryImplCopyWith<_$SongHistoryImpl> get copyWith =>
+      __$$SongHistoryImplCopyWithImpl<_$SongHistoryImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SongHistoryToJson(
+    return _$$SongHistoryImplToJson(
       this,
     );
   }
@@ -172,11 +172,11 @@ abstract class _SongHistory extends SongHistory {
   const factory _SongHistory(
       {required final int index,
       required final String bookCode,
-      required final DateTime createdAt}) = _$_SongHistory;
+      required final DateTime createdAt}) = _$SongHistoryImpl;
   const _SongHistory._() : super._();
 
   factory _SongHistory.fromJson(Map<String, dynamic> json) =
-      _$_SongHistory.fromJson;
+      _$SongHistoryImpl.fromJson;
 
   @override
   int get index;
@@ -186,6 +186,6 @@ abstract class _SongHistory extends SongHistory {
   DateTime get createdAt;
   @override
   @JsonKey(ignore: true)
-  _$$_SongHistoryCopyWith<_$_SongHistory> get copyWith =>
+  _$$SongHistoryImplCopyWith<_$SongHistoryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

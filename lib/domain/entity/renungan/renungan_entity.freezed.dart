@@ -79,21 +79,22 @@ class _$RenunganCopyWithImpl<$Res, $Val extends Renungan>
 }
 
 /// @nodoc
-abstract class _$$_RenunganCopyWith<$Res> implements $RenunganCopyWith<$Res> {
-  factory _$$_RenunganCopyWith(
-          _$_Renungan value, $Res Function(_$_Renungan) then) =
-      __$$_RenunganCopyWithImpl<$Res>;
+abstract class _$$RenunganImplCopyWith<$Res>
+    implements $RenunganCopyWith<$Res> {
+  factory _$$RenunganImplCopyWith(
+          _$RenunganImpl value, $Res Function(_$RenunganImpl) then) =
+      __$$RenunganImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_RenunganCopyWithImpl<$Res>
-    extends _$RenunganCopyWithImpl<$Res, _$_Renungan>
-    implements _$$_RenunganCopyWith<$Res> {
-  __$$_RenunganCopyWithImpl(
-      _$_Renungan _value, $Res Function(_$_Renungan) _then)
+class __$$RenunganImplCopyWithImpl<$Res>
+    extends _$RenunganCopyWithImpl<$Res, _$RenunganImpl>
+    implements _$$RenunganImplCopyWith<$Res> {
+  __$$RenunganImplCopyWithImpl(
+      _$RenunganImpl _value, $Res Function(_$RenunganImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -104,7 +105,7 @@ class __$$_RenunganCopyWithImpl<$Res>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_Renungan(
+    return _then(_$RenunganImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -127,16 +128,16 @@ class __$$_RenunganCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Renungan extends _Renungan {
-  const _$_Renungan(
+class _$RenunganImpl extends _Renungan {
+  const _$RenunganImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_Renungan.fromJson(Map<String, dynamic> json) =>
-      _$$_RenunganFromJson(json);
+  factory _$RenunganImpl.fromJson(Map<String, dynamic> json) =>
+      _$$RenunganImplFromJson(json);
 
   @override
   final String title;
@@ -153,10 +154,10 @@ class _$_Renungan extends _Renungan {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Renungan &&
+            other is _$RenunganImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -173,12 +174,12 @@ class _$_Renungan extends _Renungan {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_RenunganCopyWith<_$_Renungan> get copyWith =>
-      __$$_RenunganCopyWithImpl<_$_Renungan>(this, _$identity);
+  _$$RenunganImplCopyWith<_$RenunganImpl> get copyWith =>
+      __$$RenunganImplCopyWithImpl<_$RenunganImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_RenunganToJson(
+    return _$$RenunganImplToJson(
       this,
     );
   }
@@ -189,10 +190,11 @@ abstract class _Renungan extends Renungan {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_Renungan;
+      required final String imageUrl}) = _$RenunganImpl;
   const _Renungan._() : super._();
 
-  factory _Renungan.fromJson(Map<String, dynamic> json) = _$_Renungan.fromJson;
+  factory _Renungan.fromJson(Map<String, dynamic> json) =
+      _$RenunganImpl.fromJson;
 
   @override
   String get title;
@@ -204,6 +206,6 @@ abstract class _Renungan extends Renungan {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_RenunganCopyWith<_$_Renungan> get copyWith =>
+  _$$RenunganImplCopyWith<_$RenunganImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -88,11 +88,11 @@ class _$PericopeParalelCopyWithImpl<$Res, $Val extends PericopeParalel>
 }
 
 /// @nodoc
-abstract class _$$_PericopeParalelCopyWith<$Res>
+abstract class _$$PericopeParalelImplCopyWith<$Res>
     implements $PericopeParalelCopyWith<$Res> {
-  factory _$$_PericopeParalelCopyWith(
-          _$_PericopeParalel value, $Res Function(_$_PericopeParalel) then) =
-      __$$_PericopeParalelCopyWithImpl<$Res>;
+  factory _$$PericopeParalelImplCopyWith(_$PericopeParalelImpl value,
+          $Res Function(_$PericopeParalelImpl) then) =
+      __$$PericopeParalelImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -103,11 +103,11 @@ abstract class _$$_PericopeParalelCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_PericopeParalelCopyWithImpl<$Res>
-    extends _$PericopeParalelCopyWithImpl<$Res, _$_PericopeParalel>
-    implements _$$_PericopeParalelCopyWith<$Res> {
-  __$$_PericopeParalelCopyWithImpl(
-      _$_PericopeParalel _value, $Res Function(_$_PericopeParalel) _then)
+class __$$PericopeParalelImplCopyWithImpl<$Res>
+    extends _$PericopeParalelCopyWithImpl<$Res, _$PericopeParalelImpl>
+    implements _$$PericopeParalelImplCopyWith<$Res> {
+  __$$PericopeParalelImplCopyWithImpl(
+      _$PericopeParalelImpl _value, $Res Function(_$PericopeParalelImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -118,7 +118,7 @@ class __$$_PericopeParalelCopyWithImpl<$Res>
     Object? id2 = freezed,
     Object? t = freezed,
   }) {
-    return _then(_$_PericopeParalel(
+    return _then(_$PericopeParalelImpl(
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -141,16 +141,16 @@ class __$$_PericopeParalelCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_PericopeParalel extends _PericopeParalel {
-  const _$_PericopeParalel(
+class _$PericopeParalelImpl extends _PericopeParalel {
+  const _$PericopeParalelImpl(
       {@JsonKey(name: 'id') this.id,
       @JsonKey(name: 'id1') this.id1,
       @JsonKey(name: 'id2') this.id2,
       @JsonKey(name: 't') this.t})
       : super._();
 
-  factory _$_PericopeParalel.fromJson(Map<String, dynamic> json) =>
-      _$$_PericopeParalelFromJson(json);
+  factory _$PericopeParalelImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PericopeParalelImplFromJson(json);
 
   @override
   @JsonKey(name: 'id')
@@ -171,10 +171,10 @@ class _$_PericopeParalel extends _PericopeParalel {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_PericopeParalel &&
+            other is _$PericopeParalelImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.id1, id1) || other.id1 == id1) &&
             (identical(other.id2, id2) || other.id2 == id2) &&
@@ -188,12 +188,13 @@ class _$_PericopeParalel extends _PericopeParalel {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PericopeParalelCopyWith<_$_PericopeParalel> get copyWith =>
-      __$$_PericopeParalelCopyWithImpl<_$_PericopeParalel>(this, _$identity);
+  _$$PericopeParalelImplCopyWith<_$PericopeParalelImpl> get copyWith =>
+      __$$PericopeParalelImplCopyWithImpl<_$PericopeParalelImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_PericopeParalelToJson(
+    return _$$PericopeParalelImplToJson(
       this,
     );
   }
@@ -204,11 +205,11 @@ abstract class _PericopeParalel extends PericopeParalel {
       {@JsonKey(name: 'id') final int? id,
       @JsonKey(name: 'id1') final int? id1,
       @JsonKey(name: 'id2') final int? id2,
-      @JsonKey(name: 't') final String? t}) = _$_PericopeParalel;
+      @JsonKey(name: 't') final String? t}) = _$PericopeParalelImpl;
   const _PericopeParalel._() : super._();
 
   factory _PericopeParalel.fromJson(Map<String, dynamic> json) =
-      _$_PericopeParalel.fromJson;
+      _$PericopeParalelImpl.fromJson;
 
   @override
   @JsonKey(name: 'id')
@@ -224,6 +225,6 @@ abstract class _PericopeParalel extends PericopeParalel {
   String? get t;
   @override
   @JsonKey(ignore: true)
-  _$$_PericopeParalelCopyWith<_$_PericopeParalel> get copyWith =>
+  _$$PericopeParalelImplCopyWith<_$PericopeParalelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

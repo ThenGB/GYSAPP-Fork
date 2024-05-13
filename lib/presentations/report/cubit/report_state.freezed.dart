@@ -62,22 +62,22 @@ class _$ReportStateCopyWithImpl<$Res, $Val extends ReportState>
 }
 
 /// @nodoc
-abstract class _$$_ReportStateCopyWith<$Res>
+abstract class _$$ReportStateImplCopyWith<$Res>
     implements $ReportStateCopyWith<$Res> {
-  factory _$$_ReportStateCopyWith(
-          _$_ReportState value, $Res Function(_$_ReportState) then) =
-      __$$_ReportStateCopyWithImpl<$Res>;
+  factory _$$ReportStateImplCopyWith(
+          _$ReportStateImpl value, $Res Function(_$ReportStateImpl) then) =
+      __$$ReportStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool isLoading});
 }
 
 /// @nodoc
-class __$$_ReportStateCopyWithImpl<$Res>
-    extends _$ReportStateCopyWithImpl<$Res, _$_ReportState>
-    implements _$$_ReportStateCopyWith<$Res> {
-  __$$_ReportStateCopyWithImpl(
-      _$_ReportState _value, $Res Function(_$_ReportState) _then)
+class __$$ReportStateImplCopyWithImpl<$Res>
+    extends _$ReportStateCopyWithImpl<$Res, _$ReportStateImpl>
+    implements _$$ReportStateImplCopyWith<$Res> {
+  __$$ReportStateImplCopyWithImpl(
+      _$ReportStateImpl _value, $Res Function(_$ReportStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -85,7 +85,7 @@ class __$$_ReportStateCopyWithImpl<$Res>
   $Res call({
     Object? isLoading = null,
   }) {
-    return _then(_$_ReportState(
+    return _then(_$ReportStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -96,11 +96,11 @@ class __$$_ReportStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_ReportState extends _ReportState {
-  const _$_ReportState({this.isLoading = false}) : super._();
+class _$ReportStateImpl extends _ReportState {
+  const _$ReportStateImpl({this.isLoading = false}) : super._();
 
-  factory _$_ReportState.fromJson(Map<String, dynamic> json) =>
-      _$$_ReportStateFromJson(json);
+  factory _$ReportStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ReportStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -112,10 +112,10 @@ class _$_ReportState extends _ReportState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ReportState &&
+            other is _$ReportStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading));
   }
@@ -127,28 +127,28 @@ class _$_ReportState extends _ReportState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ReportStateCopyWith<_$_ReportState> get copyWith =>
-      __$$_ReportStateCopyWithImpl<_$_ReportState>(this, _$identity);
+  _$$ReportStateImplCopyWith<_$ReportStateImpl> get copyWith =>
+      __$$ReportStateImplCopyWithImpl<_$ReportStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_ReportStateToJson(
+    return _$$ReportStateImplToJson(
       this,
     );
   }
 }
 
 abstract class _ReportState extends ReportState {
-  const factory _ReportState({final bool isLoading}) = _$_ReportState;
+  const factory _ReportState({final bool isLoading}) = _$ReportStateImpl;
   const _ReportState._() : super._();
 
   factory _ReportState.fromJson(Map<String, dynamic> json) =
-      _$_ReportState.fromJson;
+      _$ReportStateImpl.fromJson;
 
   @override
   bool get isLoading;
   @override
   @JsonKey(ignore: true)
-  _$$_ReportStateCopyWith<_$_ReportState> get copyWith =>
+  _$$ReportStateImplCopyWith<_$ReportStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

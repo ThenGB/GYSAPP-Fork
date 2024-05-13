@@ -71,10 +71,11 @@ class _$SongBookCopyWithImpl<$Res, $Val extends SongBook>
 }
 
 /// @nodoc
-abstract class _$$_SongBookCopyWith<$Res> implements $SongBookCopyWith<$Res> {
-  factory _$$_SongBookCopyWith(
-          _$_SongBook value, $Res Function(_$_SongBook) then) =
-      __$$_SongBookCopyWithImpl<$Res>;
+abstract class _$$SongBookImplCopyWith<$Res>
+    implements $SongBookCopyWith<$Res> {
+  factory _$$SongBookImplCopyWith(
+          _$SongBookImpl value, $Res Function(_$SongBookImpl) then) =
+      __$$SongBookImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -83,11 +84,11 @@ abstract class _$$_SongBookCopyWith<$Res> implements $SongBookCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_SongBookCopyWithImpl<$Res>
-    extends _$SongBookCopyWithImpl<$Res, _$_SongBook>
-    implements _$$_SongBookCopyWith<$Res> {
-  __$$_SongBookCopyWithImpl(
-      _$_SongBook _value, $Res Function(_$_SongBook) _then)
+class __$$SongBookImplCopyWithImpl<$Res>
+    extends _$SongBookCopyWithImpl<$Res, _$SongBookImpl>
+    implements _$$SongBookImplCopyWith<$Res> {
+  __$$SongBookImplCopyWithImpl(
+      _$SongBookImpl _value, $Res Function(_$SongBookImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -96,7 +97,7 @@ class __$$_SongBookCopyWithImpl<$Res>
     Object? code = freezed,
     Object? songs = null,
   }) {
-    return _then(_$_SongBook(
+    return _then(_$SongBookImpl(
       code: freezed == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -111,15 +112,15 @@ class __$$_SongBookCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_SongBook extends _SongBook {
-  const _$_SongBook(
+class _$SongBookImpl extends _SongBook {
+  const _$SongBookImpl(
       {@JsonKey(name: 'code') this.code,
       @JsonKey(name: 'songs') final List<Song> songs = const []})
       : _songs = songs,
         super._();
 
-  factory _$_SongBook.fromJson(Map<String, dynamic> json) =>
-      _$$_SongBookFromJson(json);
+  factory _$SongBookImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SongBookImplFromJson(json);
 
   @override
   @JsonKey(name: 'code')
@@ -139,10 +140,10 @@ class _$_SongBook extends _SongBook {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_SongBook &&
+            other is _$SongBookImpl &&
             (identical(other.code, code) || other.code == code) &&
             const DeepCollectionEquality().equals(other._songs, _songs));
   }
@@ -155,12 +156,12 @@ class _$_SongBook extends _SongBook {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SongBookCopyWith<_$_SongBook> get copyWith =>
-      __$$_SongBookCopyWithImpl<_$_SongBook>(this, _$identity);
+  _$$SongBookImplCopyWith<_$SongBookImpl> get copyWith =>
+      __$$SongBookImplCopyWithImpl<_$SongBookImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SongBookToJson(
+    return _$$SongBookImplToJson(
       this,
     );
   }
@@ -169,10 +170,11 @@ class _$_SongBook extends _SongBook {
 abstract class _SongBook extends SongBook {
   const factory _SongBook(
       {@JsonKey(name: 'code') final String? code,
-      @JsonKey(name: 'songs') final List<Song> songs}) = _$_SongBook;
+      @JsonKey(name: 'songs') final List<Song> songs}) = _$SongBookImpl;
   const _SongBook._() : super._();
 
-  factory _SongBook.fromJson(Map<String, dynamic> json) = _$_SongBook.fromJson;
+  factory _SongBook.fromJson(Map<String, dynamic> json) =
+      _$SongBookImpl.fromJson;
 
   @override
   @JsonKey(name: 'code')
@@ -182,7 +184,7 @@ abstract class _SongBook extends SongBook {
   List<Song> get songs;
   @override
   @JsonKey(ignore: true)
-  _$$_SongBookCopyWith<_$_SongBook> get copyWith =>
+  _$$SongBookImplCopyWith<_$SongBookImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
 
@@ -290,9 +292,10 @@ class _$SongCopyWithImpl<$Res, $Val extends Song>
 }
 
 /// @nodoc
-abstract class _$$_SongCopyWith<$Res> implements $SongCopyWith<$Res> {
-  factory _$$_SongCopyWith(_$_Song value, $Res Function(_$_Song) then) =
-      __$$_SongCopyWithImpl<$Res>;
+abstract class _$$SongImplCopyWith<$Res> implements $SongCopyWith<$Res> {
+  factory _$$SongImplCopyWith(
+          _$SongImpl value, $Res Function(_$SongImpl) then) =
+      __$$SongImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -307,9 +310,10 @@ abstract class _$$_SongCopyWith<$Res> implements $SongCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_SongCopyWithImpl<$Res> extends _$SongCopyWithImpl<$Res, _$_Song>
-    implements _$$_SongCopyWith<$Res> {
-  __$$_SongCopyWithImpl(_$_Song _value, $Res Function(_$_Song) _then)
+class __$$SongImplCopyWithImpl<$Res>
+    extends _$SongCopyWithImpl<$Res, _$SongImpl>
+    implements _$$SongImplCopyWith<$Res> {
+  __$$SongImplCopyWithImpl(_$SongImpl _value, $Res Function(_$SongImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -324,7 +328,7 @@ class __$$_SongCopyWithImpl<$Res> extends _$SongCopyWithImpl<$Res, _$_Song>
     Object? pageStart = freezed,
     Object? verses = null,
   }) {
-    return _then(_$_Song(
+    return _then(_$SongImpl(
       code: freezed == code
           ? _value.code
           : code // ignore: cast_nullable_to_non_nullable
@@ -363,8 +367,8 @@ class __$$_SongCopyWithImpl<$Res> extends _$SongCopyWithImpl<$Res, _$_Song>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Song extends _Song {
-  const _$_Song(
+class _$SongImpl extends _Song {
+  const _$SongImpl(
       {@JsonKey(name: 'code') this.code,
       @JsonKey(name: 'number') this.number,
       @JsonKey(name: 'number2') this.number2,
@@ -376,7 +380,8 @@ class _$_Song extends _Song {
       : _verses = verses,
         super._();
 
-  factory _$_Song.fromJson(Map<String, dynamic> json) => _$$_SongFromJson(json);
+  factory _$SongImpl.fromJson(Map<String, dynamic> json) =>
+      _$$SongImplFromJson(json);
 
   @override
   @JsonKey(name: 'code')
@@ -414,10 +419,10 @@ class _$_Song extends _Song {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Song &&
+            other is _$SongImpl &&
             (identical(other.code, code) || other.code == code) &&
             (identical(other.number, number) || other.number == number) &&
             (identical(other.number2, number2) || other.number2 == number2) &&
@@ -447,12 +452,12 @@ class _$_Song extends _Song {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_SongCopyWith<_$_Song> get copyWith =>
-      __$$_SongCopyWithImpl<_$_Song>(this, _$identity);
+  _$$SongImplCopyWith<_$SongImpl> get copyWith =>
+      __$$SongImplCopyWithImpl<_$SongImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_SongToJson(
+    return _$$SongImplToJson(
       this,
     );
   }
@@ -467,10 +472,10 @@ abstract class _Song extends Song {
       @JsonKey(name: 'song') final String? soundfilePath,
       @JsonKey(name: 'pages') final int? pageLength,
       @JsonKey(name: 'page') final int? pageStart,
-      @JsonKey(name: 'verses') final List<String> verses}) = _$_Song;
+      @JsonKey(name: 'verses') final List<String> verses}) = _$SongImpl;
   const _Song._() : super._();
 
-  factory _Song.fromJson(Map<String, dynamic> json) = _$_Song.fromJson;
+  factory _Song.fromJson(Map<String, dynamic> json) = _$SongImpl.fromJson;
 
   @override
   @JsonKey(name: 'code')
@@ -498,5 +503,6 @@ abstract class _Song extends Song {
   List<String> get verses;
   @override
   @JsonKey(ignore: true)
-  _$$_SongCopyWith<_$_Song> get copyWith => throw _privateConstructorUsedError;
+  _$$SongImplCopyWith<_$SongImpl> get copyWith =>
+      throw _privateConstructorUsedError;
 }

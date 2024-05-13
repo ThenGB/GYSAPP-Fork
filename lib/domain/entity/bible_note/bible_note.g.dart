@@ -6,7 +6,8 @@ part of 'bible_note.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_BibleNote _$$_BibleNoteFromJson(Map<String, dynamic> json) => _$_BibleNote(
+_$BibleNoteImpl _$$BibleNoteImplFromJson(Map<String, dynamic> json) =>
+    _$BibleNoteImpl(
       id: json['id'] as int,
       verses: (json['verses'] as List<dynamic>)
           .map((e) => Verse.fromJson(e as Map<String, dynamic>))
@@ -16,7 +17,7 @@ _$_BibleNote _$$_BibleNoteFromJson(Map<String, dynamic> json) => _$_BibleNote(
       updatedDate: DateTime.parse(json['updatedDate'] as String),
     );
 
-Map<String, dynamic> _$$_BibleNoteToJson(_$_BibleNote instance) =>
+Map<String, dynamic> _$$BibleNoteImplToJson(_$BibleNoteImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'verses': instance.verses,

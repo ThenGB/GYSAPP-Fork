@@ -63,22 +63,22 @@ class _$DataSummaryCopyWithImpl<$Res, $Val extends DataSummary>
 }
 
 /// @nodoc
-abstract class _$$_DataSummaryCopyWith<$Res>
+abstract class _$$DataSummaryImplCopyWith<$Res>
     implements $DataSummaryCopyWith<$Res> {
-  factory _$$_DataSummaryCopyWith(
-          _$_DataSummary value, $Res Function(_$_DataSummary) then) =
-      __$$_DataSummaryCopyWithImpl<$Res>;
+  factory _$$DataSummaryImplCopyWith(
+          _$DataSummaryImpl value, $Res Function(_$DataSummaryImpl) then) =
+      __$$DataSummaryImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({@JsonKey(name: 'values') List<String> values});
 }
 
 /// @nodoc
-class __$$_DataSummaryCopyWithImpl<$Res>
-    extends _$DataSummaryCopyWithImpl<$Res, _$_DataSummary>
-    implements _$$_DataSummaryCopyWith<$Res> {
-  __$$_DataSummaryCopyWithImpl(
-      _$_DataSummary _value, $Res Function(_$_DataSummary) _then)
+class __$$DataSummaryImplCopyWithImpl<$Res>
+    extends _$DataSummaryCopyWithImpl<$Res, _$DataSummaryImpl>
+    implements _$$DataSummaryImplCopyWith<$Res> {
+  __$$DataSummaryImplCopyWithImpl(
+      _$DataSummaryImpl _value, $Res Function(_$DataSummaryImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -86,7 +86,7 @@ class __$$_DataSummaryCopyWithImpl<$Res>
   $Res call({
     Object? values = null,
   }) {
-    return _then(_$_DataSummary(
+    return _then(_$DataSummaryImpl(
       values: null == values
           ? _value._values
           : values // ignore: cast_nullable_to_non_nullable
@@ -97,14 +97,14 @@ class __$$_DataSummaryCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_DataSummary extends _DataSummary {
-  const _$_DataSummary(
+class _$DataSummaryImpl extends _DataSummary {
+  const _$DataSummaryImpl(
       {@JsonKey(name: 'values') final List<String> values = const []})
       : _values = values,
         super._();
 
-  factory _$_DataSummary.fromJson(Map<String, dynamic> json) =>
-      _$$_DataSummaryFromJson(json);
+  factory _$DataSummaryImpl.fromJson(Map<String, dynamic> json) =>
+      _$$DataSummaryImplFromJson(json);
 
   final List<String> _values;
   @override
@@ -121,10 +121,10 @@ class _$_DataSummary extends _DataSummary {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_DataSummary &&
+            other is _$DataSummaryImpl &&
             const DeepCollectionEquality().equals(other._values, _values));
   }
 
@@ -136,12 +136,12 @@ class _$_DataSummary extends _DataSummary {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_DataSummaryCopyWith<_$_DataSummary> get copyWith =>
-      __$$_DataSummaryCopyWithImpl<_$_DataSummary>(this, _$identity);
+  _$$DataSummaryImplCopyWith<_$DataSummaryImpl> get copyWith =>
+      __$$DataSummaryImplCopyWithImpl<_$DataSummaryImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_DataSummaryToJson(
+    return _$$DataSummaryImplToJson(
       this,
     );
   }
@@ -149,17 +149,17 @@ class _$_DataSummary extends _DataSummary {
 
 abstract class _DataSummary extends DataSummary {
   const factory _DataSummary(
-      {@JsonKey(name: 'values') final List<String> values}) = _$_DataSummary;
+      {@JsonKey(name: 'values') final List<String> values}) = _$DataSummaryImpl;
   const _DataSummary._() : super._();
 
   factory _DataSummary.fromJson(Map<String, dynamic> json) =
-      _$_DataSummary.fromJson;
+      _$DataSummaryImpl.fromJson;
 
   @override
   @JsonKey(name: 'values')
   List<String> get values;
   @override
   @JsonKey(ignore: true)
-  _$$_DataSummaryCopyWith<_$_DataSummary> get copyWith =>
+  _$$DataSummaryImplCopyWith<_$DataSummaryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

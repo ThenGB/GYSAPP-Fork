@@ -79,21 +79,22 @@ class _$TrueVoiceCopyWithImpl<$Res, $Val extends TrueVoice>
 }
 
 /// @nodoc
-abstract class _$$_TrueVoiceCopyWith<$Res> implements $TrueVoiceCopyWith<$Res> {
-  factory _$$_TrueVoiceCopyWith(
-          _$_TrueVoice value, $Res Function(_$_TrueVoice) then) =
-      __$$_TrueVoiceCopyWithImpl<$Res>;
+abstract class _$$TrueVoiceImplCopyWith<$Res>
+    implements $TrueVoiceCopyWith<$Res> {
+  factory _$$TrueVoiceImplCopyWith(
+          _$TrueVoiceImpl value, $Res Function(_$TrueVoiceImpl) then) =
+      __$$TrueVoiceImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_TrueVoiceCopyWithImpl<$Res>
-    extends _$TrueVoiceCopyWithImpl<$Res, _$_TrueVoice>
-    implements _$$_TrueVoiceCopyWith<$Res> {
-  __$$_TrueVoiceCopyWithImpl(
-      _$_TrueVoice _value, $Res Function(_$_TrueVoice) _then)
+class __$$TrueVoiceImplCopyWithImpl<$Res>
+    extends _$TrueVoiceCopyWithImpl<$Res, _$TrueVoiceImpl>
+    implements _$$TrueVoiceImplCopyWith<$Res> {
+  __$$TrueVoiceImplCopyWithImpl(
+      _$TrueVoiceImpl _value, $Res Function(_$TrueVoiceImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -104,7 +105,7 @@ class __$$_TrueVoiceCopyWithImpl<$Res>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_TrueVoice(
+    return _then(_$TrueVoiceImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -127,16 +128,16 @@ class __$$_TrueVoiceCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_TrueVoice extends _TrueVoice {
-  const _$_TrueVoice(
+class _$TrueVoiceImpl extends _TrueVoice {
+  const _$TrueVoiceImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_TrueVoice.fromJson(Map<String, dynamic> json) =>
-      _$$_TrueVoiceFromJson(json);
+  factory _$TrueVoiceImpl.fromJson(Map<String, dynamic> json) =>
+      _$$TrueVoiceImplFromJson(json);
 
   @override
   final String title;
@@ -153,10 +154,10 @@ class _$_TrueVoice extends _TrueVoice {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_TrueVoice &&
+            other is _$TrueVoiceImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -173,12 +174,12 @@ class _$_TrueVoice extends _TrueVoice {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_TrueVoiceCopyWith<_$_TrueVoice> get copyWith =>
-      __$$_TrueVoiceCopyWithImpl<_$_TrueVoice>(this, _$identity);
+  _$$TrueVoiceImplCopyWith<_$TrueVoiceImpl> get copyWith =>
+      __$$TrueVoiceImplCopyWithImpl<_$TrueVoiceImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_TrueVoiceToJson(
+    return _$$TrueVoiceImplToJson(
       this,
     );
   }
@@ -189,11 +190,11 @@ abstract class _TrueVoice extends TrueVoice {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_TrueVoice;
+      required final String imageUrl}) = _$TrueVoiceImpl;
   const _TrueVoice._() : super._();
 
   factory _TrueVoice.fromJson(Map<String, dynamic> json) =
-      _$_TrueVoice.fromJson;
+      _$TrueVoiceImpl.fromJson;
 
   @override
   String get title;
@@ -205,6 +206,6 @@ abstract class _TrueVoice extends TrueVoice {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_TrueVoiceCopyWith<_$_TrueVoice> get copyWith =>
+  _$$TrueVoiceImplCopyWith<_$TrueVoiceImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

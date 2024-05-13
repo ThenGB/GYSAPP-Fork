@@ -86,10 +86,11 @@ class _$BibleBookCopyWithImpl<$Res, $Val extends BibleBook>
 }
 
 /// @nodoc
-abstract class _$$_BibleBookCopyWith<$Res> implements $BibleBookCopyWith<$Res> {
-  factory _$$_BibleBookCopyWith(
-          _$_BibleBook value, $Res Function(_$_BibleBook) then) =
-      __$$_BibleBookCopyWithImpl<$Res>;
+abstract class _$$BibleBookImplCopyWith<$Res>
+    implements $BibleBookCopyWith<$Res> {
+  factory _$$BibleBookImplCopyWith(
+          _$BibleBookImpl value, $Res Function(_$BibleBookImpl) then) =
+      __$$BibleBookImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -100,11 +101,11 @@ abstract class _$$_BibleBookCopyWith<$Res> implements $BibleBookCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_BibleBookCopyWithImpl<$Res>
-    extends _$BibleBookCopyWithImpl<$Res, _$_BibleBook>
-    implements _$$_BibleBookCopyWith<$Res> {
-  __$$_BibleBookCopyWithImpl(
-      _$_BibleBook _value, $Res Function(_$_BibleBook) _then)
+class __$$BibleBookImplCopyWithImpl<$Res>
+    extends _$BibleBookCopyWithImpl<$Res, _$BibleBookImpl>
+    implements _$$BibleBookImplCopyWith<$Res> {
+  __$$BibleBookImplCopyWithImpl(
+      _$BibleBookImpl _value, $Res Function(_$BibleBookImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -115,7 +116,7 @@ class __$$_BibleBookCopyWithImpl<$Res>
     Object? longName = freezed,
     Object? chapterCount = freezed,
   }) {
-    return _then(_$_BibleBook(
+    return _then(_$BibleBookImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -138,16 +139,16 @@ class __$$_BibleBookCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BibleBook extends _BibleBook {
-  const _$_BibleBook(
+class _$BibleBookImpl extends _BibleBook {
+  const _$BibleBookImpl(
       {required this.id,
       @JsonKey(name: 'bs') this.shortName,
       @JsonKey(name: 'bl') this.longName,
       @JsonKey(name: 'c') this.chapterCount})
       : super._();
 
-  factory _$_BibleBook.fromJson(Map<String, dynamic> json) =>
-      _$$_BibleBookFromJson(json);
+  factory _$BibleBookImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BibleBookImplFromJson(json);
 
   @override
   final int id;
@@ -167,10 +168,10 @@ class _$_BibleBook extends _BibleBook {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BibleBook &&
+            other is _$BibleBookImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.shortName, shortName) ||
                 other.shortName == shortName) &&
@@ -188,12 +189,12 @@ class _$_BibleBook extends _BibleBook {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BibleBookCopyWith<_$_BibleBook> get copyWith =>
-      __$$_BibleBookCopyWithImpl<_$_BibleBook>(this, _$identity);
+  _$$BibleBookImplCopyWith<_$BibleBookImpl> get copyWith =>
+      __$$BibleBookImplCopyWithImpl<_$BibleBookImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BibleBookToJson(
+    return _$$BibleBookImplToJson(
       this,
     );
   }
@@ -204,11 +205,11 @@ abstract class _BibleBook extends BibleBook {
       {required final int id,
       @JsonKey(name: 'bs') final String? shortName,
       @JsonKey(name: 'bl') final String? longName,
-      @JsonKey(name: 'c') final int? chapterCount}) = _$_BibleBook;
+      @JsonKey(name: 'c') final int? chapterCount}) = _$BibleBookImpl;
   const _BibleBook._() : super._();
 
   factory _BibleBook.fromJson(Map<String, dynamic> json) =
-      _$_BibleBook.fromJson;
+      _$BibleBookImpl.fromJson;
 
   @override
   int get id;
@@ -223,6 +224,6 @@ abstract class _BibleBook extends BibleBook {
   int? get chapterCount;
   @override
   @JsonKey(ignore: true)
-  _$$_BibleBookCopyWith<_$_BibleBook> get copyWith =>
+  _$$BibleBookImplCopyWith<_$BibleBookImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

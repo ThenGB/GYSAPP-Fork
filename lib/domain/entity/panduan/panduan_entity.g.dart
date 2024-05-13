@@ -6,14 +6,15 @@ part of 'panduan_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Panduan _$$_PanduanFromJson(Map<String, dynamic> json) => _$_Panduan(
+_$PanduanImpl _$$PanduanImplFromJson(Map<String, dynamic> json) =>
+    _$PanduanImpl(
       title: json['title'] as String,
       description: json['description'] as String,
       url: json['url'] as String,
       imageUrl: json['imageUrl'] as String,
     );
 
-Map<String, dynamic> _$$_PanduanToJson(_$_Panduan instance) =>
+Map<String, dynamic> _$$PanduanImplToJson(_$PanduanImpl instance) =>
     <String, dynamic>{
       'title': instance.title,
       'description': instance.description,

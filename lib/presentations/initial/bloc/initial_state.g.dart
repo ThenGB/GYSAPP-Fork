@@ -6,8 +6,8 @@ part of 'initial_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_InitialState _$$_InitialStateFromJson(Map<String, dynamic> json) =>
-    _$_InitialState(
+_$InitialStateImpl _$$InitialStateImplFromJson(Map<String, dynamic> json) =>
+    _$InitialStateImpl(
       isLoading: json['isLoading'] as bool? ?? false,
       isLoaded: json['isLoaded'] as bool? ?? false,
       isFailed: json['isFailed'] as bool? ?? false,
@@ -21,7 +21,7 @@ _$_InitialState _$$_InitialStateFromJson(Map<String, dynamic> json) =>
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
     );
 
-Map<String, dynamic> _$$_InitialStateToJson(_$_InitialState instance) =>
+Map<String, dynamic> _$$InitialStateImplToJson(_$InitialStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'isLoaded': instance.isLoaded,

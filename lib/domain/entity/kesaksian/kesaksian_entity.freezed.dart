@@ -79,21 +79,22 @@ class _$KesaksianCopyWithImpl<$Res, $Val extends Kesaksian>
 }
 
 /// @nodoc
-abstract class _$$_KesaksianCopyWith<$Res> implements $KesaksianCopyWith<$Res> {
-  factory _$$_KesaksianCopyWith(
-          _$_Kesaksian value, $Res Function(_$_Kesaksian) then) =
-      __$$_KesaksianCopyWithImpl<$Res>;
+abstract class _$$KesaksianImplCopyWith<$Res>
+    implements $KesaksianCopyWith<$Res> {
+  factory _$$KesaksianImplCopyWith(
+          _$KesaksianImpl value, $Res Function(_$KesaksianImpl) then) =
+      __$$KesaksianImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_KesaksianCopyWithImpl<$Res>
-    extends _$KesaksianCopyWithImpl<$Res, _$_Kesaksian>
-    implements _$$_KesaksianCopyWith<$Res> {
-  __$$_KesaksianCopyWithImpl(
-      _$_Kesaksian _value, $Res Function(_$_Kesaksian) _then)
+class __$$KesaksianImplCopyWithImpl<$Res>
+    extends _$KesaksianCopyWithImpl<$Res, _$KesaksianImpl>
+    implements _$$KesaksianImplCopyWith<$Res> {
+  __$$KesaksianImplCopyWithImpl(
+      _$KesaksianImpl _value, $Res Function(_$KesaksianImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -104,7 +105,7 @@ class __$$_KesaksianCopyWithImpl<$Res>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_Kesaksian(
+    return _then(_$KesaksianImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -127,16 +128,16 @@ class __$$_KesaksianCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Kesaksian extends _Kesaksian {
-  const _$_Kesaksian(
+class _$KesaksianImpl extends _Kesaksian {
+  const _$KesaksianImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_Kesaksian.fromJson(Map<String, dynamic> json) =>
-      _$$_KesaksianFromJson(json);
+  factory _$KesaksianImpl.fromJson(Map<String, dynamic> json) =>
+      _$$KesaksianImplFromJson(json);
 
   @override
   final String title;
@@ -153,10 +154,10 @@ class _$_Kesaksian extends _Kesaksian {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Kesaksian &&
+            other is _$KesaksianImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -173,12 +174,12 @@ class _$_Kesaksian extends _Kesaksian {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_KesaksianCopyWith<_$_Kesaksian> get copyWith =>
-      __$$_KesaksianCopyWithImpl<_$_Kesaksian>(this, _$identity);
+  _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
+      __$$KesaksianImplCopyWithImpl<_$KesaksianImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_KesaksianToJson(
+    return _$$KesaksianImplToJson(
       this,
     );
   }
@@ -189,11 +190,11 @@ abstract class _Kesaksian extends Kesaksian {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_Kesaksian;
+      required final String imageUrl}) = _$KesaksianImpl;
   const _Kesaksian._() : super._();
 
   factory _Kesaksian.fromJson(Map<String, dynamic> json) =
-      _$_Kesaksian.fromJson;
+      _$KesaksianImpl.fromJson;
 
   @override
   String get title;
@@ -205,6 +206,6 @@ abstract class _Kesaksian extends Kesaksian {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_KesaksianCopyWith<_$_Kesaksian> get copyWith =>
+  _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

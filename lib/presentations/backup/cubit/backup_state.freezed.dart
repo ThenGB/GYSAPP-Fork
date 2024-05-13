@@ -119,11 +119,11 @@ class _$BackupStateCopyWithImpl<$Res, $Val extends BackupState>
 }
 
 /// @nodoc
-abstract class _$$_BackupStateCopyWith<$Res>
+abstract class _$$BackupStateImplCopyWith<$Res>
     implements $BackupStateCopyWith<$Res> {
-  factory _$$_BackupStateCopyWith(
-          _$_BackupState value, $Res Function(_$_BackupState) then) =
-      __$$_BackupStateCopyWithImpl<$Res>;
+  factory _$$BackupStateImplCopyWith(
+          _$BackupStateImpl value, $Res Function(_$BackupStateImpl) then) =
+      __$$BackupStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -140,11 +140,11 @@ abstract class _$$_BackupStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_BackupStateCopyWithImpl<$Res>
-    extends _$BackupStateCopyWithImpl<$Res, _$_BackupState>
-    implements _$$_BackupStateCopyWith<$Res> {
-  __$$_BackupStateCopyWithImpl(
-      _$_BackupState _value, $Res Function(_$_BackupState) _then)
+class __$$BackupStateImplCopyWithImpl<$Res>
+    extends _$BackupStateCopyWithImpl<$Res, _$BackupStateImpl>
+    implements _$$BackupStateImplCopyWith<$Res> {
+  __$$BackupStateImplCopyWithImpl(
+      _$BackupStateImpl _value, $Res Function(_$BackupStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -158,7 +158,7 @@ class __$$_BackupStateCopyWithImpl<$Res>
     Object? localDataSummary = null,
     Object? appBackupData = freezed,
   }) {
-    return _then(_$_BackupState(
+    return _then(_$BackupStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -193,8 +193,8 @@ class __$$_BackupStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BackupState extends _BackupState {
-  const _$_BackupState(
+class _$BackupStateImpl extends _BackupState {
+  const _$BackupStateImpl(
       {this.isLoading = false,
       this.isBackuping = false,
       this.isSyncing = false,
@@ -205,8 +205,8 @@ class _$_BackupState extends _BackupState {
       : _localDataSummary = localDataSummary,
         super._();
 
-  factory _$_BackupState.fromJson(Map<String, dynamic> json) =>
-      _$$_BackupStateFromJson(json);
+  factory _$BackupStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BackupStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -240,10 +240,10 @@ class _$_BackupState extends _BackupState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BackupState &&
+            other is _$BackupStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isBackuping, isBackuping) ||
@@ -275,12 +275,12 @@ class _$_BackupState extends _BackupState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BackupStateCopyWith<_$_BackupState> get copyWith =>
-      __$$_BackupStateCopyWithImpl<_$_BackupState>(this, _$identity);
+  _$$BackupStateImplCopyWith<_$BackupStateImpl> get copyWith =>
+      __$$BackupStateImplCopyWithImpl<_$BackupStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BackupStateToJson(
+    return _$$BackupStateImplToJson(
       this,
     );
   }
@@ -294,11 +294,11 @@ abstract class _BackupState extends BackupState {
       final double? backupProgress,
       final double? syncProgress,
       final List<String> localDataSummary,
-      final AppBackupData? appBackupData}) = _$_BackupState;
+      final AppBackupData? appBackupData}) = _$BackupStateImpl;
   const _BackupState._() : super._();
 
   factory _BackupState.fromJson(Map<String, dynamic> json) =
-      _$_BackupState.fromJson;
+      _$BackupStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -316,6 +316,6 @@ abstract class _BackupState extends BackupState {
   AppBackupData? get appBackupData;
   @override
   @JsonKey(ignore: true)
-  _$$_BackupStateCopyWith<_$_BackupState> get copyWith =>
+  _$$BackupStateImplCopyWith<_$BackupStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

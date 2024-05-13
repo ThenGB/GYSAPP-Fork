@@ -448,17 +448,51 @@ class _SongViewState extends State<SongView> {
                                       state.songs[currentPageIndex].code ?? ''),
                                 ),
                                 SizedBox(width: 12),
-                                OrientationBuilder(
-                                  builder: (context, orientation) =>
-                                      MediaQuery.of(context).orientation ==
-                                              Orientation.portrait
-                                          ? SizedBox()
-                                          : ValueListenableBuilder(
-                                              valueListenable: songTitle,
-                                              builder:
-                                                  (context, songTitle, child) =>
-                                                      Text(songTitle),
-                                            ),
+                                Expanded(
+                                  child: Center(
+                                    child: OrientationBuilder(
+                                      builder: (context, orientation) =>
+                                          MediaQuery.of(context).orientation ==
+                                                  Orientation.portrait
+                                              ? SizedBox()
+                                              : ValueListenableBuilder(
+                                                  valueListenable: songTitle,
+                                                  builder: (context, songTitle,
+                                                          child) =>
+                                                      GestureDetector(
+                                                    onTap: () {
+                                                      if (state.selectedSong ==
+                                                          null) {
+                                                        context
+                                                            .read<SongCubit>()
+                                                            .selectSong(state
+                                                                    .songs[
+                                                                currentPageIndex]);
+                                                      } else {
+                                                        context
+                                                            .read<SongCubit>()
+                                                            .removeSelection();
+                                                      }
+                                                    },
+                                                    child: Row(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        Text(songTitle),
+                                                        Icon(
+                                                          state.selectedSong ==
+                                                                  null
+                                                              ? Icons
+                                                                  .keyboard_arrow_down_rounded
+                                                              : Icons
+                                                                  .keyboard_arrow_up_rounded,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                    ),
+                                  ),
                                 ),
                               ],
                             ),
@@ -853,6 +887,16 @@ class _SongViewState extends State<SongView> {
                                   if (!onScaling) {
                                     setState(() {
                                       onScaling = true;
+                                    });
+                                  }
+                                }
+                              },
+                              onPointerCancel: (event) {
+                                touches.remove(event.pointer);
+                                if (touches.length <= 1) {
+                                  if (onScaling) {
+                                    setState(() {
+                                      onScaling = false;
                                     });
                                   }
                                 }

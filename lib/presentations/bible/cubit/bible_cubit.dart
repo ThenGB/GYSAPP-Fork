@@ -165,13 +165,21 @@ class BibleCubit extends HydratedCubit<BibleState> {
         if (pericope.isNotEmpty) {
           sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
         }
-        sentence += verse.verse ?? '';
+        sentence += (verse.verse ?? '').replaceAll('  ', ' ');
         sentence = sentence.replaceAll('Allah', 'Alla');
         sentence = sentence.replaceAll('allah', 'alla');
         sentence = sentence.replaceAll('Demikian', 'Demi kian');
         sentence = sentence.replaceAll('demikian', 'demi kian');
         sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
         sentence = sentence.replaceAll('pentakosta', 'penta kosta');
+        sentence = removeTextBetweenTags(sentence, 'f');
+        sentence = sentence.replaceAll('<pb/>', '    ');
+        sentence = sentence.replaceAll('<t>', '');
+        sentence = sentence.replaceAll('</t>', '');
+        sentence = sentence.replaceAll('<i>', '');
+        sentence = sentence.replaceAll('</i>', '');
+        sentence = sentence.replaceAll('<J>', '');
+        sentence = sentence.replaceAll('</J>', '');
         emit(state.copyWith(currentBible: verse));
         await Future.delayed(
           Duration(milliseconds: 600),

@@ -6,8 +6,8 @@ part of 'bible_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
-    _$_BibleState(
+_$BibleStateImpl _$$BibleStateImplFromJson(Map<String, dynamic> json) =>
+    _$BibleStateImpl(
       currentBibleCode: json['currentBibleCode'] as String? ?? 'b_tb',
       splitBibleCode: json['splitBibleCode'] as String? ?? 'b_tb',
       bibleCodes: (json['bibleCodes'] as List<dynamic>?)
@@ -117,11 +117,11 @@ _$_BibleState _$$_BibleStateFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as Map<String, dynamic>),
           ) ??
           const {},
-      speedRate: (json['speedRate'] as num?)?.toDouble() ?? .35,
-      pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? .90,
+      speedRate: (json['speedRate'] as num?)?.toDouble() ?? 0.35,
+      pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? 0.9,
     );
 
-Map<String, dynamic> _$$_BibleStateToJson(_$_BibleState instance) =>
+Map<String, dynamic> _$$BibleStateImplToJson(_$BibleStateImpl instance) =>
     <String, dynamic>{
       'currentBibleCode': instance.currentBibleCode,
       'splitBibleCode': instance.splitBibleCode,

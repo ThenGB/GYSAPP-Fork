@@ -69,22 +69,22 @@ class _$LiteratureWartaStateCopyWithImpl<$Res,
 }
 
 /// @nodoc
-abstract class _$$_LiteratureWartaStateCopyWith<$Res>
+abstract class _$$LiteratureWartaStateImplCopyWith<$Res>
     implements $LiteratureWartaStateCopyWith<$Res> {
-  factory _$$_LiteratureWartaStateCopyWith(_$_LiteratureWartaState value,
-          $Res Function(_$_LiteratureWartaState) then) =
-      __$$_LiteratureWartaStateCopyWithImpl<$Res>;
+  factory _$$LiteratureWartaStateImplCopyWith(_$LiteratureWartaStateImpl value,
+          $Res Function(_$LiteratureWartaStateImpl) then) =
+      __$$LiteratureWartaStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({bool isLoading, List<Warta> items});
 }
 
 /// @nodoc
-class __$$_LiteratureWartaStateCopyWithImpl<$Res>
-    extends _$LiteratureWartaStateCopyWithImpl<$Res, _$_LiteratureWartaState>
-    implements _$$_LiteratureWartaStateCopyWith<$Res> {
-  __$$_LiteratureWartaStateCopyWithImpl(_$_LiteratureWartaState _value,
-      $Res Function(_$_LiteratureWartaState) _then)
+class __$$LiteratureWartaStateImplCopyWithImpl<$Res>
+    extends _$LiteratureWartaStateCopyWithImpl<$Res, _$LiteratureWartaStateImpl>
+    implements _$$LiteratureWartaStateImplCopyWith<$Res> {
+  __$$LiteratureWartaStateImplCopyWithImpl(_$LiteratureWartaStateImpl _value,
+      $Res Function(_$LiteratureWartaStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -93,7 +93,7 @@ class __$$_LiteratureWartaStateCopyWithImpl<$Res>
     Object? isLoading = null,
     Object? items = null,
   }) {
-    return _then(_$_LiteratureWartaState(
+    return _then(_$LiteratureWartaStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -108,14 +108,14 @@ class __$$_LiteratureWartaStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_LiteratureWartaState extends _LiteratureWartaState {
-  const _$_LiteratureWartaState(
+class _$LiteratureWartaStateImpl extends _LiteratureWartaState {
+  const _$LiteratureWartaStateImpl(
       {this.isLoading = false, final List<Warta> items = const []})
       : _items = items,
         super._();
 
-  factory _$_LiteratureWartaState.fromJson(Map<String, dynamic> json) =>
-      _$$_LiteratureWartaStateFromJson(json);
+  factory _$LiteratureWartaStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$LiteratureWartaStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -135,10 +135,10 @@ class _$_LiteratureWartaState extends _LiteratureWartaState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_LiteratureWartaState &&
+            other is _$LiteratureWartaStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other._items, _items));
@@ -152,13 +152,14 @@ class _$_LiteratureWartaState extends _LiteratureWartaState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_LiteratureWartaStateCopyWith<_$_LiteratureWartaState> get copyWith =>
-      __$$_LiteratureWartaStateCopyWithImpl<_$_LiteratureWartaState>(
-          this, _$identity);
+  _$$LiteratureWartaStateImplCopyWith<_$LiteratureWartaStateImpl>
+      get copyWith =>
+          __$$LiteratureWartaStateImplCopyWithImpl<_$LiteratureWartaStateImpl>(
+              this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_LiteratureWartaStateToJson(
+    return _$$LiteratureWartaStateImplToJson(
       this,
     );
   }
@@ -167,11 +168,11 @@ class _$_LiteratureWartaState extends _LiteratureWartaState {
 abstract class _LiteratureWartaState extends LiteratureWartaState {
   const factory _LiteratureWartaState(
       {final bool isLoading,
-      final List<Warta> items}) = _$_LiteratureWartaState;
+      final List<Warta> items}) = _$LiteratureWartaStateImpl;
   const _LiteratureWartaState._() : super._();
 
   factory _LiteratureWartaState.fromJson(Map<String, dynamic> json) =
-      _$_LiteratureWartaState.fromJson;
+      _$LiteratureWartaStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -179,6 +180,6 @@ abstract class _LiteratureWartaState extends LiteratureWartaState {
   List<Warta> get items;
   @override
   @JsonKey(ignore: true)
-  _$$_LiteratureWartaStateCopyWith<_$_LiteratureWartaState> get copyWith =>
-      throw _privateConstructorUsedError;
+  _$$LiteratureWartaStateImplCopyWith<_$LiteratureWartaStateImpl>
+      get copyWith => throw _privateConstructorUsedError;
 }

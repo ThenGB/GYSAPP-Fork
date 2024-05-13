@@ -86,9 +86,10 @@ class _$BcvbcCopyWithImpl<$Res, $Val extends Bcvbc>
 }
 
 /// @nodoc
-abstract class _$$_BcvbcCopyWith<$Res> implements $BcvbcCopyWith<$Res> {
-  factory _$$_BcvbcCopyWith(_$_Bcvbc value, $Res Function(_$_Bcvbc) then) =
-      __$$_BcvbcCopyWithImpl<$Res>;
+abstract class _$$BcvbcImplCopyWith<$Res> implements $BcvbcCopyWith<$Res> {
+  factory _$$BcvbcImplCopyWith(
+          _$BcvbcImpl value, $Res Function(_$BcvbcImpl) then) =
+      __$$BcvbcImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -99,9 +100,11 @@ abstract class _$$_BcvbcCopyWith<$Res> implements $BcvbcCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_BcvbcCopyWithImpl<$Res> extends _$BcvbcCopyWithImpl<$Res, _$_Bcvbc>
-    implements _$$_BcvbcCopyWith<$Res> {
-  __$$_BcvbcCopyWithImpl(_$_Bcvbc _value, $Res Function(_$_Bcvbc) _then)
+class __$$BcvbcImplCopyWithImpl<$Res>
+    extends _$BcvbcCopyWithImpl<$Res, _$BcvbcImpl>
+    implements _$$BcvbcImplCopyWith<$Res> {
+  __$$BcvbcImplCopyWithImpl(
+      _$BcvbcImpl _value, $Res Function(_$BcvbcImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -112,7 +115,7 @@ class __$$_BcvbcCopyWithImpl<$Res> extends _$BcvbcCopyWithImpl<$Res, _$_Bcvbc>
     Object? v = freezed,
     Object? bc = freezed,
   }) {
-    return _then(_$_Bcvbc(
+    return _then(_$BcvbcImpl(
       b: freezed == b
           ? _value.b
           : b // ignore: cast_nullable_to_non_nullable
@@ -135,16 +138,16 @@ class __$$_BcvbcCopyWithImpl<$Res> extends _$BcvbcCopyWithImpl<$Res, _$_Bcvbc>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Bcvbc extends _Bcvbc {
-  const _$_Bcvbc(
+class _$BcvbcImpl extends _Bcvbc {
+  const _$BcvbcImpl(
       {@JsonKey(name: 'b') this.b,
       @JsonKey(name: 'c') this.c,
       @JsonKey(name: 'v') this.v,
       @JsonKey(name: 'bc') this.bc})
       : super._();
 
-  factory _$_Bcvbc.fromJson(Map<String, dynamic> json) =>
-      _$$_BcvbcFromJson(json);
+  factory _$BcvbcImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BcvbcImplFromJson(json);
 
   @override
   @JsonKey(name: 'b')
@@ -165,10 +168,10 @@ class _$_Bcvbc extends _Bcvbc {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Bcvbc &&
+            other is _$BcvbcImpl &&
             (identical(other.b, b) || other.b == b) &&
             (identical(other.c, c) || other.c == c) &&
             (identical(other.v, v) || other.v == v) &&
@@ -182,12 +185,12 @@ class _$_Bcvbc extends _Bcvbc {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BcvbcCopyWith<_$_Bcvbc> get copyWith =>
-      __$$_BcvbcCopyWithImpl<_$_Bcvbc>(this, _$identity);
+  _$$BcvbcImplCopyWith<_$BcvbcImpl> get copyWith =>
+      __$$BcvbcImplCopyWithImpl<_$BcvbcImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BcvbcToJson(
+    return _$$BcvbcImplToJson(
       this,
     );
   }
@@ -198,10 +201,10 @@ abstract class _Bcvbc extends Bcvbc {
       {@JsonKey(name: 'b') final String? b,
       @JsonKey(name: 'c') final String? c,
       @JsonKey(name: 'v') final String? v,
-      @JsonKey(name: 'bc') final int? bc}) = _$_Bcvbc;
+      @JsonKey(name: 'bc') final int? bc}) = _$BcvbcImpl;
   const _Bcvbc._() : super._();
 
-  factory _Bcvbc.fromJson(Map<String, dynamic> json) = _$_Bcvbc.fromJson;
+  factory _Bcvbc.fromJson(Map<String, dynamic> json) = _$BcvbcImpl.fromJson;
 
   @override
   @JsonKey(name: 'b')
@@ -217,6 +220,6 @@ abstract class _Bcvbc extends Bcvbc {
   int? get bc;
   @override
   @JsonKey(ignore: true)
-  _$$_BcvbcCopyWith<_$_Bcvbc> get copyWith =>
+  _$$BcvbcImplCopyWith<_$BcvbcImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

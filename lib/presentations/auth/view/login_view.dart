@@ -12,7 +12,7 @@ import '../../../di/injection.dart';
 import '../cubit/auth_cubit.dart';
 
 @RoutePage()
-class LoginView extends StatefulWidget with AutoRouteWrapper {
+class LoginView extends StatefulWidget implements AutoRouteWrapper {
   final Function(String token) onLoggedIn;
   const LoginView({super.key, required this.onLoggedIn});
 

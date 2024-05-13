@@ -67,21 +67,22 @@ class _$AppConfigCopyWithImpl<$Res, $Val extends AppConfig>
 }
 
 /// @nodoc
-abstract class _$$_AppConfigCopyWith<$Res> implements $AppConfigCopyWith<$Res> {
-  factory _$$_AppConfigCopyWith(
-          _$_AppConfig value, $Res Function(_$_AppConfig) then) =
-      __$$_AppConfigCopyWithImpl<$Res>;
+abstract class _$$AppConfigImplCopyWith<$Res>
+    implements $AppConfigCopyWith<$Res> {
+  factory _$$AppConfigImplCopyWith(
+          _$AppConfigImpl value, $Res Function(_$AppConfigImpl) then) =
+      __$$AppConfigImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String appName, String baseUrlApi});
 }
 
 /// @nodoc
-class __$$_AppConfigCopyWithImpl<$Res>
-    extends _$AppConfigCopyWithImpl<$Res, _$_AppConfig>
-    implements _$$_AppConfigCopyWith<$Res> {
-  __$$_AppConfigCopyWithImpl(
-      _$_AppConfig _value, $Res Function(_$_AppConfig) _then)
+class __$$AppConfigImplCopyWithImpl<$Res>
+    extends _$AppConfigCopyWithImpl<$Res, _$AppConfigImpl>
+    implements _$$AppConfigImplCopyWith<$Res> {
+  __$$AppConfigImplCopyWithImpl(
+      _$AppConfigImpl _value, $Res Function(_$AppConfigImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -90,7 +91,7 @@ class __$$_AppConfigCopyWithImpl<$Res>
     Object? appName = null,
     Object? baseUrlApi = null,
   }) {
-    return _then(_$_AppConfig(
+    return _then(_$AppConfigImpl(
       appName: null == appName
           ? _value.appName
           : appName // ignore: cast_nullable_to_non_nullable
@@ -105,12 +106,12 @@ class __$$_AppConfigCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_AppConfig extends _AppConfig {
-  const _$_AppConfig({required this.appName, required this.baseUrlApi})
+class _$AppConfigImpl extends _AppConfig {
+  const _$AppConfigImpl({required this.appName, required this.baseUrlApi})
       : super._();
 
-  factory _$_AppConfig.fromJson(Map<String, dynamic> json) =>
-      _$$_AppConfigFromJson(json);
+  factory _$AppConfigImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AppConfigImplFromJson(json);
 
   @override
   final String appName;
@@ -123,10 +124,10 @@ class _$_AppConfig extends _AppConfig {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AppConfig &&
+            other is _$AppConfigImpl &&
             (identical(other.appName, appName) || other.appName == appName) &&
             (identical(other.baseUrlApi, baseUrlApi) ||
                 other.baseUrlApi == baseUrlApi));
@@ -139,12 +140,12 @@ class _$_AppConfig extends _AppConfig {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>
-      __$$_AppConfigCopyWithImpl<_$_AppConfig>(this, _$identity);
+  _$$AppConfigImplCopyWith<_$AppConfigImpl> get copyWith =>
+      __$$AppConfigImplCopyWithImpl<_$AppConfigImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AppConfigToJson(
+    return _$$AppConfigImplToJson(
       this,
     );
   }
@@ -153,11 +154,11 @@ class _$_AppConfig extends _AppConfig {
 abstract class _AppConfig extends AppConfig {
   const factory _AppConfig(
       {required final String appName,
-      required final String baseUrlApi}) = _$_AppConfig;
+      required final String baseUrlApi}) = _$AppConfigImpl;
   const _AppConfig._() : super._();
 
   factory _AppConfig.fromJson(Map<String, dynamic> json) =
-      _$_AppConfig.fromJson;
+      _$AppConfigImpl.fromJson;
 
   @override
   String get appName;
@@ -165,6 +166,6 @@ abstract class _AppConfig extends AppConfig {
   String get baseUrlApi;
   @override
   @JsonKey(ignore: true)
-  _$$_AppConfigCopyWith<_$_AppConfig> get copyWith =>
+  _$$AppConfigImplCopyWith<_$AppConfigImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

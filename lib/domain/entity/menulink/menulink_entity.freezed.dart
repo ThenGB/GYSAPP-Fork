@@ -79,21 +79,22 @@ class _$MenulinkCopyWithImpl<$Res, $Val extends Menulink>
 }
 
 /// @nodoc
-abstract class _$$_MenulinkCopyWith<$Res> implements $MenulinkCopyWith<$Res> {
-  factory _$$_MenulinkCopyWith(
-          _$_Menulink value, $Res Function(_$_Menulink) then) =
-      __$$_MenulinkCopyWithImpl<$Res>;
+abstract class _$$MenulinkImplCopyWith<$Res>
+    implements $MenulinkCopyWith<$Res> {
+  factory _$$MenulinkImplCopyWith(
+          _$MenulinkImpl value, $Res Function(_$MenulinkImpl) then) =
+      __$$MenulinkImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String label, String icon, String url, bool enabled});
 }
 
 /// @nodoc
-class __$$_MenulinkCopyWithImpl<$Res>
-    extends _$MenulinkCopyWithImpl<$Res, _$_Menulink>
-    implements _$$_MenulinkCopyWith<$Res> {
-  __$$_MenulinkCopyWithImpl(
-      _$_Menulink _value, $Res Function(_$_Menulink) _then)
+class __$$MenulinkImplCopyWithImpl<$Res>
+    extends _$MenulinkCopyWithImpl<$Res, _$MenulinkImpl>
+    implements _$$MenulinkImplCopyWith<$Res> {
+  __$$MenulinkImplCopyWithImpl(
+      _$MenulinkImpl _value, $Res Function(_$MenulinkImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -104,7 +105,7 @@ class __$$_MenulinkCopyWithImpl<$Res>
     Object? url = null,
     Object? enabled = null,
   }) {
-    return _then(_$_Menulink(
+    return _then(_$MenulinkImpl(
       label: null == label
           ? _value.label
           : label // ignore: cast_nullable_to_non_nullable
@@ -127,16 +128,16 @@ class __$$_MenulinkCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Menulink extends _Menulink {
-  const _$_Menulink(
+class _$MenulinkImpl extends _Menulink {
+  const _$MenulinkImpl(
       {required this.label,
       required this.icon,
       required this.url,
       required this.enabled})
       : super._();
 
-  factory _$_Menulink.fromJson(Map<String, dynamic> json) =>
-      _$$_MenulinkFromJson(json);
+  factory _$MenulinkImpl.fromJson(Map<String, dynamic> json) =>
+      _$$MenulinkImplFromJson(json);
 
   @override
   final String label;
@@ -153,10 +154,10 @@ class _$_Menulink extends _Menulink {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Menulink &&
+            other is _$MenulinkImpl &&
             (identical(other.label, label) || other.label == label) &&
             (identical(other.icon, icon) || other.icon == icon) &&
             (identical(other.url, url) || other.url == url) &&
@@ -170,12 +171,12 @@ class _$_Menulink extends _Menulink {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_MenulinkCopyWith<_$_Menulink> get copyWith =>
-      __$$_MenulinkCopyWithImpl<_$_Menulink>(this, _$identity);
+  _$$MenulinkImplCopyWith<_$MenulinkImpl> get copyWith =>
+      __$$MenulinkImplCopyWithImpl<_$MenulinkImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_MenulinkToJson(
+    return _$$MenulinkImplToJson(
       this,
     );
   }
@@ -186,10 +187,11 @@ abstract class _Menulink extends Menulink {
       {required final String label,
       required final String icon,
       required final String url,
-      required final bool enabled}) = _$_Menulink;
+      required final bool enabled}) = _$MenulinkImpl;
   const _Menulink._() : super._();
 
-  factory _Menulink.fromJson(Map<String, dynamic> json) = _$_Menulink.fromJson;
+  factory _Menulink.fromJson(Map<String, dynamic> json) =
+      _$MenulinkImpl.fromJson;
 
   @override
   String get label;
@@ -201,6 +203,6 @@ abstract class _Menulink extends Menulink {
   bool get enabled;
   @override
   @JsonKey(ignore: true)
-  _$$_MenulinkCopyWith<_$_Menulink> get copyWith =>
+  _$$MenulinkImplCopyWith<_$MenulinkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

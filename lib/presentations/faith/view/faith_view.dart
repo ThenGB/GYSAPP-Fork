@@ -9,7 +9,10 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:open_filex/open_filex.dart' as openFilex;
+import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 import 'package:simple_animations/simple_animations.dart';
 
@@ -281,6 +284,17 @@ class _FaithViewState extends State<FaithView> {
                           }
                         }
                       },
+                      onPointerCancel: (event) {
+                        log(event.pointer.toString());
+                        touches.remove(event.pointer);
+                        if (touches.length <= 1) {
+                          if (onScaling) {
+                            setState(() {
+                              onScaling = false;
+                            });
+                          }
+                        }
+                      },
                       child: GestureDetector(
                         onScaleStart: (ScaleStartDetails details) {
                           _baseScale = _currentScale;
@@ -385,9 +399,92 @@ class FaithWidget extends StatelessWidget {
                 : null,
           ),
           padding: const EdgeInsets.all(8.0),
-          child: Text(
-            "${item['number']}. ${item['text']}",
-            textScaleFactor: scale,
+          child: Text.rich(
+            TextSpan(
+              text: "${item['number']}. ${item['text']}",
+              children: [
+                WidgetSpan(
+                  alignment: PlaceholderAlignment.middle,
+                  child: FutureBuilder(
+                    future: context.read<FaithCubit>().getPdfName(index + 1),
+                    builder: (context, snapshot) => snapshot.data == null
+                        ? SizedBox()
+                        : GestureDetector(
+                            onTap: () {
+                              if (!state.pdfLoadingList.contains(index + 1)) {
+                                context
+                                    .read<FaithCubit>()
+                                    .putPdfState(index + 1, isLoading: true);
+                              }
+                            },
+                            child: Container(
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: Colors.amber.shade300,
+                                borderRadius: BorderRadius.circular(100),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    path.basenameWithoutExtension(
+                                        snapshot.data!.split('-').last),
+                                    style: TextStyle(
+                                      height: 1,
+                                      fontSize: 6,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  if (state.pdfLoadingList.contains(index + 1))
+                                    StreamBuilder<FileResponse>(
+                                      stream: context
+                                          .read<FaithCubit>()
+                                          .getPdf(index + 1),
+                                      builder: (context, snapshot) {
+                                        if (snapshot.data is FileInfo) {
+                                          context
+                                              .read<FaithCubit>()
+                                              .putPdfState(index + 1,
+                                                  isLoading: false);
+                                          openFilex.OpenFilex.open(
+                                              (snapshot.data as FileInfo)
+                                                  .file
+                                                  .path);
+                                        }
+                                        return snapshot.data is DownloadProgress
+                                            ? Padding(
+                                                padding: const EdgeInsets.only(
+                                                    left: 8),
+                                                child: SizedBox(
+                                                  width: 6,
+                                                  height: 6,
+                                                  child: Center(
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      valueColor:
+                                                          AlwaysStoppedAnimation(
+                                                              Colors.white),
+                                                      value: (snapshot.data
+                                                              as DownloadProgress)
+                                                          .progress,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : SizedBox();
+                                      },
+                                    ),
+                                ],
+                              ),
+                            ),
+                          ),
+                  ),
+                ),
+              ],
+            ),
+            textScaler: TextScaler.linear(scale),
             style: state.defaultTextTheme.bodyMedium?.copyWith(
               height: fontHeight,
               fontWeight: FontWeight.w500,
@@ -431,12 +528,16 @@ class SelectedFaithMenu extends StatelessWidget {
           Row(
             children: [
               Expanded(
-                  child: Text(
-                (indexes.map((e) => e + 1)).toList().joinToString(),
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
+                child: Text.rich(
+                  TextSpan(
+                      text:
+                          '${(indexes.map((e) => e + 1)).toList().joinToString()}  ',
+                      children: const []),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              )),
+              ),
               IconButton(
                 icon: Icon(Icons.close),
                 visualDensity: VisualDensity.compact,
@@ -533,6 +634,143 @@ class SelectedFaithMenu extends StatelessWidget {
           ),
           SizedBox(height: 8 + 16 + viewPadding),
         ],
+      ),
+    );
+  }
+}
+
+class CustomLoadingWidget extends StatefulWidget {
+  final String text;
+  final double progressValue;
+  final bool isLoading;
+  final bool isLoaded;
+  final GestureTapCallback onOpen;
+
+  const CustomLoadingWidget({
+    super.key,
+    required this.text,
+    required this.progressValue,
+    required this.isLoading,
+    required this.isLoaded,
+    required this.onOpen,
+  });
+
+  @override
+  _CustomLoadingWidgetState createState() => _CustomLoadingWidgetState();
+}
+
+class _CustomLoadingWidgetState extends State<CustomLoadingWidget> {
+  final GlobalKey _textKey = GlobalKey();
+  Size _textSize = Size.zero;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateTextSize());
+  }
+
+  void _calculateTextSize() {
+    final RenderBox renderBox =
+        _textKey.currentContext?.findRenderObject() as RenderBox;
+    setState(() {
+      _textSize = renderBox.size;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.center,
+      children: [
+        if (widget.isLoading) _buildProgressContainer(),
+        _buildTextContainer(),
+      ],
+    );
+  }
+
+  Widget _buildProgressContainer() {
+    double textWidth =
+        _textSize.width; // Assuming _textSize is the size of the container
+    double gradientStop =
+        widget.progressValue; // Proportion of the container's width
+
+    return Container(
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(100),
+      ),
+      height: _textSize.height,
+      width: textWidth,
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          LinearProgressIndicator(value: widget.progressValue),
+          Positioned.fill(
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: ShaderMask(
+                  blendMode: BlendMode.srcIn,
+                  shaderCallback: (Rect bounds) {
+                    return LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: const [Colors.white, Colors.black],
+                      stops: [
+                        gradientStop,
+                        gradientStop + 0.01
+                      ], // Small delta to create a visible transition
+                    ).createShader(bounds);
+                  },
+                  child: Text(
+                    'Loading ${(widget.progressValue * 100).toStringAsFixed(0)}%',
+                    softWrap: false,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontSize: 6,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextContainer() {
+    return Opacity(
+      opacity: widget.isLoading ? 0.0 : 1.0,
+      child: GestureDetector(
+        onTap: widget.isLoaded ? widget.onOpen : null,
+        child: Badge(
+          isLabelVisible: widget.isLoaded,
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+          backgroundColor: Colors.orange.shade700,
+          label: Text('Open'.tr(),
+              style: TextStyle(
+                fontSize: 8,
+                height: 1,
+                fontWeight: FontWeight.bold,
+              )),
+          child: Container(
+            key: _textKey,
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: widget.isLoaded
+                  ? Colors.amber.shade300
+                  : context.theme.highlightColor,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: Text(
+              widget.text + (widget.isLoaded ? '  ' : ''),
+              style: TextStyle(fontSize: 10),
+            ),
+          ),
+        ),
       ),
     );
   }

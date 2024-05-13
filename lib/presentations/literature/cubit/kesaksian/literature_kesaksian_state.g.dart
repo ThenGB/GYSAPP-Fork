@@ -6,9 +6,9 @@ part of 'literature_kesaksian_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_LiteratureKesaksianState _$$_LiteratureKesaksianStateFromJson(
+_$LiteratureKesaksianStateImpl _$$LiteratureKesaksianStateImplFromJson(
         Map<String, dynamic> json) =>
-    _$_LiteratureKesaksianState(
+    _$LiteratureKesaksianStateImpl(
       isLoading: json['isLoading'] as bool? ?? false,
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => Kesaksian.fromJson(e as Map<String, dynamic>))
@@ -16,8 +16,8 @@ _$_LiteratureKesaksianState _$$_LiteratureKesaksianStateFromJson(
           const [],
     );
 
-Map<String, dynamic> _$$_LiteratureKesaksianStateToJson(
-        _$_LiteratureKesaksianState instance) =>
+Map<String, dynamic> _$$LiteratureKesaksianStateImplToJson(
+        _$LiteratureKesaksianStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'items': instance.items,

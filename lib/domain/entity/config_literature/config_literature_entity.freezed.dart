@@ -96,11 +96,11 @@ class _$ConfigLiteratureCopyWithImpl<$Res, $Val extends ConfigLiterature>
 }
 
 /// @nodoc
-abstract class _$$_ConfigLiteratureCopyWith<$Res>
+abstract class _$$ConfigLiteratureImplCopyWith<$Res>
     implements $ConfigLiteratureCopyWith<$Res> {
-  factory _$$_ConfigLiteratureCopyWith(
-          _$_ConfigLiterature value, $Res Function(_$_ConfigLiterature) then) =
-      __$$_ConfigLiteratureCopyWithImpl<$Res>;
+  factory _$$ConfigLiteratureImplCopyWith(_$ConfigLiteratureImpl value,
+          $Res Function(_$ConfigLiteratureImpl) then) =
+      __$$ConfigLiteratureImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -112,11 +112,11 @@ abstract class _$$_ConfigLiteratureCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_ConfigLiteratureCopyWithImpl<$Res>
-    extends _$ConfigLiteratureCopyWithImpl<$Res, _$_ConfigLiterature>
-    implements _$$_ConfigLiteratureCopyWith<$Res> {
-  __$$_ConfigLiteratureCopyWithImpl(
-      _$_ConfigLiterature _value, $Res Function(_$_ConfigLiterature) _then)
+class __$$ConfigLiteratureImplCopyWithImpl<$Res>
+    extends _$ConfigLiteratureCopyWithImpl<$Res, _$ConfigLiteratureImpl>
+    implements _$$ConfigLiteratureImplCopyWith<$Res> {
+  __$$ConfigLiteratureImplCopyWithImpl(_$ConfigLiteratureImpl _value,
+      $Res Function(_$ConfigLiteratureImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -128,7 +128,7 @@ class __$$_ConfigLiteratureCopyWithImpl<$Res>
     Object? renungan = null,
     Object? pelitaKecil = null,
   }) {
-    return _then(_$_ConfigLiterature(
+    return _then(_$ConfigLiteratureImpl(
       kesaksian: null == kesaksian
           ? _value.kesaksian
           : kesaksian // ignore: cast_nullable_to_non_nullable
@@ -155,8 +155,8 @@ class __$$_ConfigLiteratureCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_ConfigLiterature extends _ConfigLiterature {
-  const _$_ConfigLiterature(
+class _$ConfigLiteratureImpl extends _ConfigLiterature {
+  const _$ConfigLiteratureImpl(
       {@JsonKey(name: 'kesaksian')
       this.kesaksian = '#posts-table-1 > tbody > tr > td > a',
       @JsonKey(name: 'wartasejati')
@@ -169,8 +169,8 @@ class _$_ConfigLiterature extends _ConfigLiterature {
       this.pelitaKecil = '#posts-table-3 > tbody > tr > td > a'})
       : super._();
 
-  factory _$_ConfigLiterature.fromJson(Map<String, dynamic> json) =>
-      _$$_ConfigLiteratureFromJson(json);
+  factory _$ConfigLiteratureImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ConfigLiteratureImplFromJson(json);
 
   @override
   @JsonKey(name: 'kesaksian')
@@ -194,10 +194,10 @@ class _$_ConfigLiterature extends _ConfigLiterature {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ConfigLiterature &&
+            other is _$ConfigLiteratureImpl &&
             (identical(other.kesaksian, kesaksian) ||
                 other.kesaksian == kesaksian) &&
             (identical(other.wartaSejati, wartaSejati) ||
@@ -218,12 +218,13 @@ class _$_ConfigLiterature extends _ConfigLiterature {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ConfigLiteratureCopyWith<_$_ConfigLiterature> get copyWith =>
-      __$$_ConfigLiteratureCopyWithImpl<_$_ConfigLiterature>(this, _$identity);
+  _$$ConfigLiteratureImplCopyWith<_$ConfigLiteratureImpl> get copyWith =>
+      __$$ConfigLiteratureImplCopyWithImpl<_$ConfigLiteratureImpl>(
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_ConfigLiteratureToJson(
+    return _$$ConfigLiteratureImplToJson(
       this,
     );
   }
@@ -236,11 +237,11 @@ abstract class _ConfigLiterature extends ConfigLiterature {
           @JsonKey(name: 'panduanalkitab') final String panduanAlkitab,
           @JsonKey(name: 'renungan') final String renungan,
           @JsonKey(name: 'pelitakecil') final String pelitaKecil}) =
-      _$_ConfigLiterature;
+      _$ConfigLiteratureImpl;
   const _ConfigLiterature._() : super._();
 
   factory _ConfigLiterature.fromJson(Map<String, dynamic> json) =
-      _$_ConfigLiterature.fromJson;
+      _$ConfigLiteratureImpl.fromJson;
 
   @override
   @JsonKey(name: 'kesaksian')
@@ -259,6 +260,6 @@ abstract class _ConfigLiterature extends ConfigLiterature {
   String get pelitaKecil;
   @override
   @JsonKey(ignore: true)
-  _$$_ConfigLiteratureCopyWith<_$_ConfigLiterature> get copyWith =>
+  _$$ConfigLiteratureImplCopyWith<_$ConfigLiteratureImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -133,9 +133,10 @@ class _$VerseCopyWithImpl<$Res, $Val extends Verse>
 }
 
 /// @nodoc
-abstract class _$$_VerseCopyWith<$Res> implements $VerseCopyWith<$Res> {
-  factory _$$_VerseCopyWith(_$_Verse value, $Res Function(_$_Verse) then) =
-      __$$_VerseCopyWithImpl<$Res>;
+abstract class _$$VerseImplCopyWith<$Res> implements $VerseCopyWith<$Res> {
+  factory _$$VerseImplCopyWith(
+          _$VerseImpl value, $Res Function(_$VerseImpl) then) =
+      __$$VerseImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -158,9 +159,11 @@ abstract class _$$_VerseCopyWith<$Res> implements $VerseCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_VerseCopyWithImpl<$Res> extends _$VerseCopyWithImpl<$Res, _$_Verse>
-    implements _$$_VerseCopyWith<$Res> {
-  __$$_VerseCopyWithImpl(_$_Verse _value, $Res Function(_$_Verse) _then)
+class __$$VerseImplCopyWithImpl<$Res>
+    extends _$VerseCopyWithImpl<$Res, _$VerseImpl>
+    implements _$$VerseImplCopyWith<$Res> {
+  __$$VerseImplCopyWithImpl(
+      _$VerseImpl _value, $Res Function(_$VerseImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -176,7 +179,7 @@ class __$$_VerseCopyWithImpl<$Res> extends _$VerseCopyWithImpl<$Res, _$_Verse>
     Object? v1 = freezed,
     Object? color = freezed,
   }) {
-    return _then(_$_Verse(
+    return _then(_$VerseImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -219,8 +222,8 @@ class __$$_VerseCopyWithImpl<$Res> extends _$VerseCopyWithImpl<$Res, _$_Verse>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Verse extends _Verse {
-  const _$_Verse(
+class _$VerseImpl extends _Verse {
+  const _$VerseImpl(
       {@JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
       required this.id,
       @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
@@ -239,8 +242,8 @@ class _$_Verse extends _Verse {
       this.color})
       : super._();
 
-  factory _$_Verse.fromJson(Map<String, dynamic> json) =>
-      _$$_VerseFromJson(json);
+  factory _$VerseImpl.fromJson(Map<String, dynamic> json) =>
+      _$$VerseImplFromJson(json);
 
   @override
   @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
@@ -276,10 +279,10 @@ class _$_Verse extends _Verse {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Verse &&
+            other is _$VerseImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.bookId, bookId) || other.bookId == bookId) &&
             (identical(other.chapterId, chapterId) ||
@@ -301,12 +304,12 @@ class _$_Verse extends _Verse {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_VerseCopyWith<_$_Verse> get copyWith =>
-      __$$_VerseCopyWithImpl<_$_Verse>(this, _$identity);
+  _$$VerseImplCopyWith<_$VerseImpl> get copyWith =>
+      __$$VerseImplCopyWithImpl<_$VerseImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_VerseToJson(
+    return _$$VerseImplToJson(
       this,
     );
   }
@@ -329,10 +332,10 @@ abstract class _Verse extends Verse {
       @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
       final String? v1,
       @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
-      final Color? color}) = _$_Verse;
+      final Color? color}) = _$VerseImpl;
   const _Verse._() : super._();
 
-  factory _Verse.fromJson(Map<String, dynamic> json) = _$_Verse.fromJson;
+  factory _Verse.fromJson(Map<String, dynamic> json) = _$VerseImpl.fromJson;
 
   @override
   @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
@@ -363,6 +366,6 @@ abstract class _Verse extends Verse {
   Color? get color;
   @override
   @JsonKey(ignore: true)
-  _$$_VerseCopyWith<_$_Verse> get copyWith =>
+  _$$VerseImplCopyWith<_$VerseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

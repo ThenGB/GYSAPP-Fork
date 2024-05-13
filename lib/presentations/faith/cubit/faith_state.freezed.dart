@@ -22,6 +22,7 @@ FaithState _$FaithStateFromJson(Map<String, dynamic> json) {
 mixin _$FaithState {
   List<int> get selectedFaith => throw _privateConstructorUsedError;
   List<FaithNote> get notes => throw _privateConstructorUsedError;
+  Set<int> get pdfLoadingList => throw _privateConstructorUsedError;
   String get sortNotesBy => throw _privateConstructorUsedError;
   String get language => throw _privateConstructorUsedError;
   String get defaultFont => throw _privateConstructorUsedError;
@@ -43,6 +44,7 @@ abstract class $FaithStateCopyWith<$Res> {
   $Res call(
       {List<int> selectedFaith,
       List<FaithNote> notes,
+      Set<int> pdfLoadingList,
       String sortNotesBy,
       String language,
       String defaultFont,
@@ -65,6 +67,7 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
   $Res call({
     Object? selectedFaith = null,
     Object? notes = null,
+    Object? pdfLoadingList = null,
     Object? sortNotesBy = null,
     Object? language = null,
     Object? defaultFont = null,
@@ -80,6 +83,10 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
           ? _value.notes
           : notes // ignore: cast_nullable_to_non_nullable
               as List<FaithNote>,
+      pdfLoadingList: null == pdfLoadingList
+          ? _value.pdfLoadingList
+          : pdfLoadingList // ignore: cast_nullable_to_non_nullable
+              as Set<int>,
       sortNotesBy: null == sortNotesBy
           ? _value.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
@@ -105,16 +112,17 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
 }
 
 /// @nodoc
-abstract class _$$_FaithStateCopyWith<$Res>
+abstract class _$$FaithStateImplCopyWith<$Res>
     implements $FaithStateCopyWith<$Res> {
-  factory _$$_FaithStateCopyWith(
-          _$_FaithState value, $Res Function(_$_FaithState) then) =
-      __$$_FaithStateCopyWithImpl<$Res>;
+  factory _$$FaithStateImplCopyWith(
+          _$FaithStateImpl value, $Res Function(_$FaithStateImpl) then) =
+      __$$FaithStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
       {List<int> selectedFaith,
       List<FaithNote> notes,
+      Set<int> pdfLoadingList,
       String sortNotesBy,
       String language,
       String defaultFont,
@@ -123,11 +131,11 @@ abstract class _$$_FaithStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_FaithStateCopyWithImpl<$Res>
-    extends _$FaithStateCopyWithImpl<$Res, _$_FaithState>
-    implements _$$_FaithStateCopyWith<$Res> {
-  __$$_FaithStateCopyWithImpl(
-      _$_FaithState _value, $Res Function(_$_FaithState) _then)
+class __$$FaithStateImplCopyWithImpl<$Res>
+    extends _$FaithStateCopyWithImpl<$Res, _$FaithStateImpl>
+    implements _$$FaithStateImplCopyWith<$Res> {
+  __$$FaithStateImplCopyWithImpl(
+      _$FaithStateImpl _value, $Res Function(_$FaithStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -135,13 +143,14 @@ class __$$_FaithStateCopyWithImpl<$Res>
   $Res call({
     Object? selectedFaith = null,
     Object? notes = null,
+    Object? pdfLoadingList = null,
     Object? sortNotesBy = null,
     Object? language = null,
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
   }) {
-    return _then(_$_FaithState(
+    return _then(_$FaithStateImpl(
       selectedFaith: null == selectedFaith
           ? _value._selectedFaith
           : selectedFaith // ignore: cast_nullable_to_non_nullable
@@ -150,6 +159,10 @@ class __$$_FaithStateCopyWithImpl<$Res>
           ? _value._notes
           : notes // ignore: cast_nullable_to_non_nullable
               as List<FaithNote>,
+      pdfLoadingList: null == pdfLoadingList
+          ? _value._pdfLoadingList
+          : pdfLoadingList // ignore: cast_nullable_to_non_nullable
+              as Set<int>,
       sortNotesBy: null == sortNotesBy
           ? _value.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
@@ -176,10 +189,11 @@ class __$$_FaithStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_FaithState extends _FaithState {
-  const _$_FaithState(
+class _$FaithStateImpl extends _FaithState {
+  const _$FaithStateImpl(
       {final List<int> selectedFaith = const [],
       final List<FaithNote> notes = const [],
+      final Set<int> pdfLoadingList = const {},
       this.sortNotesBy = 'Newest',
       this.language = 'id',
       this.defaultFont = 'Roboto',
@@ -187,10 +201,11 @@ class _$_FaithState extends _FaithState {
       this.defaultTextHeight = 1.5})
       : _selectedFaith = selectedFaith,
         _notes = notes,
+        _pdfLoadingList = pdfLoadingList,
         super._();
 
-  factory _$_FaithState.fromJson(Map<String, dynamic> json) =>
-      _$$_FaithStateFromJson(json);
+  factory _$FaithStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$FaithStateImplFromJson(json);
 
   final List<int> _selectedFaith;
   @override
@@ -208,6 +223,15 @@ class _$_FaithState extends _FaithState {
     if (_notes is EqualUnmodifiableListView) return _notes;
     // ignore: implicit_dynamic_type
     return EqualUnmodifiableListView(_notes);
+  }
+
+  final Set<int> _pdfLoadingList;
+  @override
+  @JsonKey()
+  Set<int> get pdfLoadingList {
+    if (_pdfLoadingList is EqualUnmodifiableSetView) return _pdfLoadingList;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableSetView(_pdfLoadingList);
   }
 
   @override
@@ -228,17 +252,19 @@ class _$_FaithState extends _FaithState {
 
   @override
   String toString() {
-    return 'FaithState(selectedFaith: $selectedFaith, notes: $notes, sortNotesBy: $sortNotesBy, language: $language, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
+    return 'FaithState(selectedFaith: $selectedFaith, notes: $notes, pdfLoadingList: $pdfLoadingList, sortNotesBy: $sortNotesBy, language: $language, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight)';
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_FaithState &&
+            other is _$FaithStateImpl &&
             const DeepCollectionEquality()
                 .equals(other._selectedFaith, _selectedFaith) &&
             const DeepCollectionEquality().equals(other._notes, _notes) &&
+            const DeepCollectionEquality()
+                .equals(other._pdfLoadingList, _pdfLoadingList) &&
             (identical(other.sortNotesBy, sortNotesBy) ||
                 other.sortNotesBy == sortNotesBy) &&
             (identical(other.language, language) ||
@@ -257,6 +283,7 @@ class _$_FaithState extends _FaithState {
       runtimeType,
       const DeepCollectionEquality().hash(_selectedFaith),
       const DeepCollectionEquality().hash(_notes),
+      const DeepCollectionEquality().hash(_pdfLoadingList),
       sortNotesBy,
       language,
       defaultFont,
@@ -266,12 +293,12 @@ class _$_FaithState extends _FaithState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_FaithStateCopyWith<_$_FaithState> get copyWith =>
-      __$$_FaithStateCopyWithImpl<_$_FaithState>(this, _$identity);
+  _$$FaithStateImplCopyWith<_$FaithStateImpl> get copyWith =>
+      __$$FaithStateImplCopyWithImpl<_$FaithStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_FaithStateToJson(
+    return _$$FaithStateImplToJson(
       this,
     );
   }
@@ -281,20 +308,23 @@ abstract class _FaithState extends FaithState {
   const factory _FaithState(
       {final List<int> selectedFaith,
       final List<FaithNote> notes,
+      final Set<int> pdfLoadingList,
       final String sortNotesBy,
       final String language,
       final String defaultFont,
       final double defaultTextScale,
-      final double defaultTextHeight}) = _$_FaithState;
+      final double defaultTextHeight}) = _$FaithStateImpl;
   const _FaithState._() : super._();
 
   factory _FaithState.fromJson(Map<String, dynamic> json) =
-      _$_FaithState.fromJson;
+      _$FaithStateImpl.fromJson;
 
   @override
   List<int> get selectedFaith;
   @override
   List<FaithNote> get notes;
+  @override
+  Set<int> get pdfLoadingList;
   @override
   String get sortNotesBy;
   @override
@@ -307,6 +337,6 @@ abstract class _FaithState extends FaithState {
   double get defaultTextHeight;
   @override
   @JsonKey(ignore: true)
-  _$$_FaithStateCopyWith<_$_FaithState> get copyWith =>
+  _$$FaithStateImplCopyWith<_$FaithStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -78,20 +78,21 @@ class _$PanduanCopyWithImpl<$Res, $Val extends Panduan>
 }
 
 /// @nodoc
-abstract class _$$_PanduanCopyWith<$Res> implements $PanduanCopyWith<$Res> {
-  factory _$$_PanduanCopyWith(
-          _$_Panduan value, $Res Function(_$_Panduan) then) =
-      __$$_PanduanCopyWithImpl<$Res>;
+abstract class _$$PanduanImplCopyWith<$Res> implements $PanduanCopyWith<$Res> {
+  factory _$$PanduanImplCopyWith(
+          _$PanduanImpl value, $Res Function(_$PanduanImpl) then) =
+      __$$PanduanImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_PanduanCopyWithImpl<$Res>
-    extends _$PanduanCopyWithImpl<$Res, _$_Panduan>
-    implements _$$_PanduanCopyWith<$Res> {
-  __$$_PanduanCopyWithImpl(_$_Panduan _value, $Res Function(_$_Panduan) _then)
+class __$$PanduanImplCopyWithImpl<$Res>
+    extends _$PanduanCopyWithImpl<$Res, _$PanduanImpl>
+    implements _$$PanduanImplCopyWith<$Res> {
+  __$$PanduanImplCopyWithImpl(
+      _$PanduanImpl _value, $Res Function(_$PanduanImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -102,7 +103,7 @@ class __$$_PanduanCopyWithImpl<$Res>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_Panduan(
+    return _then(_$PanduanImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -125,16 +126,16 @@ class __$$_PanduanCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Panduan extends _Panduan {
-  const _$_Panduan(
+class _$PanduanImpl extends _Panduan {
+  const _$PanduanImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_Panduan.fromJson(Map<String, dynamic> json) =>
-      _$$_PanduanFromJson(json);
+  factory _$PanduanImpl.fromJson(Map<String, dynamic> json) =>
+      _$$PanduanImplFromJson(json);
 
   @override
   final String title;
@@ -151,10 +152,10 @@ class _$_Panduan extends _Panduan {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Panduan &&
+            other is _$PanduanImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -171,12 +172,12 @@ class _$_Panduan extends _Panduan {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_PanduanCopyWith<_$_Panduan> get copyWith =>
-      __$$_PanduanCopyWithImpl<_$_Panduan>(this, _$identity);
+  _$$PanduanImplCopyWith<_$PanduanImpl> get copyWith =>
+      __$$PanduanImplCopyWithImpl<_$PanduanImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_PanduanToJson(
+    return _$$PanduanImplToJson(
       this,
     );
   }
@@ -187,10 +188,10 @@ abstract class _Panduan extends Panduan {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_Panduan;
+      required final String imageUrl}) = _$PanduanImpl;
   const _Panduan._() : super._();
 
-  factory _Panduan.fromJson(Map<String, dynamic> json) = _$_Panduan.fromJson;
+  factory _Panduan.fromJson(Map<String, dynamic> json) = _$PanduanImpl.fromJson;
 
   @override
   String get title;
@@ -202,6 +203,6 @@ abstract class _Panduan extends Panduan {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_PanduanCopyWith<_$_Panduan> get copyWith =>
+  _$$PanduanImplCopyWith<_$PanduanImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

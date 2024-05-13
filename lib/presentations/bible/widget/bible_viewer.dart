@@ -60,9 +60,20 @@ class _BibleViewerState extends State<BibleViewer> {
             ? state.pericopesParalelsSplit
             : state.pericopesParalels;
         return Listener(
+          onPointerCancel: (event) {
+            touches.clear();
+            log(touches.toString());
+            if (touches.length <= 1) {
+              if (onScaling) {
+                setState(() {
+                  onScaling = false;
+                });
+              }
+            }
+          },
           onPointerUp: (event) {
-            log(event.pointer.toString());
             touches.remove(event.pointer);
+            log(touches.toString());
             if (touches.length <= 1) {
               if (onScaling) {
                 setState(() {
@@ -72,8 +83,9 @@ class _BibleViewerState extends State<BibleViewer> {
             }
           },
           onPointerDown: (event) {
-            log(event.pointer.toString());
             touches.add(event.pointer);
+            log(event.pointer.toString(), name: 'Pointer');
+            log(touches.toString());
             if (touches.length > 1) {
               if (!onScaling) {
                 setState(() {

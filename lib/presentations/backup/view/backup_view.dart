@@ -129,10 +129,10 @@ class _BackupViewState extends State<BackupView> {
                                 Share.shareXFiles(
                                   [
                                     XFile(localBackupFile!.path,
-                                        name: 'MY E-GYS Save Data'),
+                                        name: 'MY GYS APP Save Data'),
                                   ],
                                   subject: 'Hey check this out!'.tr(),
-                                  text: 'My E-GYS Save Data, Try this!'.tr(),
+                                  text: 'My GYS APP Save Data, Try this!'.tr(),
                                 );
                               } else {
                                 localBackupFile = await context
@@ -416,7 +416,7 @@ class _BackupViewState extends State<BackupView> {
               Padding(
                 padding: const EdgeInsets.all(24),
                 child: Text(
-                  'E-GYS ${DateTime.now().year}',
+                  'GYS APP ${DateTime.now().year}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,

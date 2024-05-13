@@ -16,6 +16,7 @@ class FaithState with _$FaithState {
   const factory FaithState({
     @Default([]) List<int> selectedFaith,
     @Default([]) List<FaithNote> notes,
+    @Default({}) Set<int> pdfLoadingList,
     @Default('Newest') String sortNotesBy,
     @Default('id') String language,
     @Default('Roboto') String defaultFont,

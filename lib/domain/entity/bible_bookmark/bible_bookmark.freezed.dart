@@ -90,11 +90,11 @@ class _$BibleBookmarkCopyWithImpl<$Res, $Val extends BibleBookmark>
 }
 
 /// @nodoc
-abstract class _$$_BibleBookmarkCopyWith<$Res>
+abstract class _$$BibleBookmarkImplCopyWith<$Res>
     implements $BibleBookmarkCopyWith<$Res> {
-  factory _$$_BibleBookmarkCopyWith(
-          _$_BibleBookmark value, $Res Function(_$_BibleBookmark) then) =
-      __$$_BibleBookmarkCopyWithImpl<$Res>;
+  factory _$$BibleBookmarkImplCopyWith(
+          _$BibleBookmarkImpl value, $Res Function(_$BibleBookmarkImpl) then) =
+      __$$BibleBookmarkImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -107,11 +107,11 @@ abstract class _$$_BibleBookmarkCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_BibleBookmarkCopyWithImpl<$Res>
-    extends _$BibleBookmarkCopyWithImpl<$Res, _$_BibleBookmark>
-    implements _$$_BibleBookmarkCopyWith<$Res> {
-  __$$_BibleBookmarkCopyWithImpl(
-      _$_BibleBookmark _value, $Res Function(_$_BibleBookmark) _then)
+class __$$BibleBookmarkImplCopyWithImpl<$Res>
+    extends _$BibleBookmarkCopyWithImpl<$Res, _$BibleBookmarkImpl>
+    implements _$$BibleBookmarkImplCopyWith<$Res> {
+  __$$BibleBookmarkImplCopyWithImpl(
+      _$BibleBookmarkImpl _value, $Res Function(_$BibleBookmarkImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -121,7 +121,7 @@ class __$$_BibleBookmarkCopyWithImpl<$Res>
     Object? isBookmarkAll = null,
     Object? verse = null,
   }) {
-    return _then(_$_BibleBookmark(
+    return _then(_$BibleBookmarkImpl(
       createdAt: null == createdAt
           ? _value.createdAt
           : createdAt // ignore: cast_nullable_to_non_nullable
@@ -140,15 +140,15 @@ class __$$_BibleBookmarkCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BibleBookmark extends _BibleBookmark {
-  const _$_BibleBookmark(
+class _$BibleBookmarkImpl extends _BibleBookmark {
+  const _$BibleBookmarkImpl(
       {@JsonKey(name: 'created_at') required this.createdAt,
       @JsonKey(name: 'is_bookmark_all') required this.isBookmarkAll,
       @JsonKey(name: 'verse') required this.verse})
       : super._();
 
-  factory _$_BibleBookmark.fromJson(Map<String, dynamic> json) =>
-      _$$_BibleBookmarkFromJson(json);
+  factory _$BibleBookmarkImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BibleBookmarkImplFromJson(json);
 
   @override
   @JsonKey(name: 'created_at')
@@ -166,10 +166,10 @@ class _$_BibleBookmark extends _BibleBookmark {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BibleBookmark &&
+            other is _$BibleBookmarkImpl &&
             (identical(other.createdAt, createdAt) ||
                 other.createdAt == createdAt) &&
             (identical(other.isBookmarkAll, isBookmarkAll) ||
@@ -184,12 +184,12 @@ class _$_BibleBookmark extends _BibleBookmark {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BibleBookmarkCopyWith<_$_BibleBookmark> get copyWith =>
-      __$$_BibleBookmarkCopyWithImpl<_$_BibleBookmark>(this, _$identity);
+  _$$BibleBookmarkImplCopyWith<_$BibleBookmarkImpl> get copyWith =>
+      __$$BibleBookmarkImplCopyWithImpl<_$BibleBookmarkImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BibleBookmarkToJson(
+    return _$$BibleBookmarkImplToJson(
       this,
     );
   }
@@ -197,13 +197,14 @@ class _$_BibleBookmark extends _BibleBookmark {
 
 abstract class _BibleBookmark extends BibleBookmark {
   const factory _BibleBookmark(
-      {@JsonKey(name: 'created_at') required final DateTime createdAt,
-      @JsonKey(name: 'is_bookmark_all') required final bool isBookmarkAll,
-      @JsonKey(name: 'verse') required final Verse verse}) = _$_BibleBookmark;
+          {@JsonKey(name: 'created_at') required final DateTime createdAt,
+          @JsonKey(name: 'is_bookmark_all') required final bool isBookmarkAll,
+          @JsonKey(name: 'verse') required final Verse verse}) =
+      _$BibleBookmarkImpl;
   const _BibleBookmark._() : super._();
 
   factory _BibleBookmark.fromJson(Map<String, dynamic> json) =
-      _$_BibleBookmark.fromJson;
+      _$BibleBookmarkImpl.fromJson;
 
   @override
   @JsonKey(name: 'created_at')
@@ -216,6 +217,6 @@ abstract class _BibleBookmark extends BibleBookmark {
   Verse get verse;
   @override
   @JsonKey(ignore: true)
-  _$$_BibleBookmarkCopyWith<_$_BibleBookmark> get copyWith =>
+  _$$BibleBookmarkImplCopyWith<_$BibleBookmarkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

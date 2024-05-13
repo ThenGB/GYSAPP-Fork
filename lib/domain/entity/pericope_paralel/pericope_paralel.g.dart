@@ -6,15 +6,17 @@ part of 'pericope_paralel.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_PericopeParalel _$$_PericopeParalelFromJson(Map<String, dynamic> json) =>
-    _$_PericopeParalel(
+_$PericopeParalelImpl _$$PericopeParalelImplFromJson(
+        Map<String, dynamic> json) =>
+    _$PericopeParalelImpl(
       id: json['id'] as int?,
       id1: json['id1'] as int?,
       id2: json['id2'] as int?,
       t: json['t'] as String?,
     );
 
-Map<String, dynamic> _$$_PericopeParalelToJson(_$_PericopeParalel instance) =>
+Map<String, dynamic> _$$PericopeParalelImplToJson(
+        _$PericopeParalelImpl instance) =>
     <String, dynamic>{
       'id': instance.id,
       'id1': instance.id1,

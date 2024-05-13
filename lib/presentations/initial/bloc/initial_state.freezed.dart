@@ -126,11 +126,11 @@ class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
 }
 
 /// @nodoc
-abstract class _$$_InitialStateCopyWith<$Res>
+abstract class _$$InitialStateImplCopyWith<$Res>
     implements $InitialStateCopyWith<$Res> {
-  factory _$$_InitialStateCopyWith(
-          _$_InitialState value, $Res Function(_$_InitialState) then) =
-      __$$_InitialStateCopyWithImpl<$Res>;
+  factory _$$InitialStateImplCopyWith(
+          _$InitialStateImpl value, $Res Function(_$InitialStateImpl) then) =
+      __$$InitialStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -147,11 +147,11 @@ abstract class _$$_InitialStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_InitialStateCopyWithImpl<$Res>
-    extends _$InitialStateCopyWithImpl<$Res, _$_InitialState>
-    implements _$$_InitialStateCopyWith<$Res> {
-  __$$_InitialStateCopyWithImpl(
-      _$_InitialState _value, $Res Function(_$_InitialState) _then)
+class __$$InitialStateImplCopyWithImpl<$Res>
+    extends _$InitialStateCopyWithImpl<$Res, _$InitialStateImpl>
+    implements _$$InitialStateImplCopyWith<$Res> {
+  __$$InitialStateImplCopyWithImpl(
+      _$InitialStateImpl _value, $Res Function(_$InitialStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -168,7 +168,7 @@ class __$$_InitialStateCopyWithImpl<$Res>
     Object? defaultTextScale = null,
     Object? defaultFont = null,
   }) {
-    return _then(_$_InitialState(
+    return _then(_$InitialStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -215,8 +215,8 @@ class __$$_InitialStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_InitialState extends _InitialState {
-  const _$_InitialState(
+class _$InitialStateImpl extends _InitialState {
+  const _$InitialStateImpl(
       {this.isLoading = false,
       this.isLoaded = false,
       this.isFailed = false,
@@ -229,8 +229,8 @@ class _$_InitialState extends _InitialState {
       this.defaultFont = 'Roboto'})
       : super._();
 
-  factory _$_InitialState.fromJson(Map<String, dynamic> json) =>
-      _$$_InitialStateFromJson(json);
+  factory _$InitialStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$InitialStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -269,10 +269,10 @@ class _$_InitialState extends _InitialState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_InitialState &&
+            other is _$InitialStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isLoaded, isLoaded) ||
@@ -315,12 +315,12 @@ class _$_InitialState extends _InitialState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_InitialStateCopyWith<_$_InitialState> get copyWith =>
-      __$$_InitialStateCopyWithImpl<_$_InitialState>(this, _$identity);
+  _$$InitialStateImplCopyWith<_$InitialStateImpl> get copyWith =>
+      __$$InitialStateImplCopyWithImpl<_$InitialStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_InitialStateToJson(
+    return _$$InitialStateImplToJson(
       this,
     );
   }
@@ -337,11 +337,11 @@ abstract class _InitialState extends InitialState {
       final int configFetchTimeoutSeconds,
       final int configFetchIntervalSeconds,
       final double defaultTextScale,
-      final String defaultFont}) = _$_InitialState;
+      final String defaultFont}) = _$InitialStateImpl;
   const _InitialState._() : super._();
 
   factory _InitialState.fromJson(Map<String, dynamic> json) =
-      _$_InitialState.fromJson;
+      _$InitialStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -365,6 +365,6 @@ abstract class _InitialState extends InitialState {
   String get defaultFont;
   @override
   @JsonKey(ignore: true)
-  _$$_InitialStateCopyWith<_$_InitialState> get copyWith =>
+  _$$InitialStateImplCopyWith<_$InitialStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

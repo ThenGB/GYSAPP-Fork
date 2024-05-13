@@ -6,7 +6,8 @@ part of 'song_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
+_$SongStateImpl _$$SongStateImplFromJson(Map<String, dynamic> json) =>
+    _$SongStateImpl(
       isLoading: json['isLoading'] as bool? ?? false,
       isAudioLoading: json['isAudioLoading'] as bool? ?? false,
       songBook: (json['songBook'] as List<dynamic>?)
@@ -57,7 +58,7 @@ _$_SongState _$$_SongStateFromJson(Map<String, dynamic> json) => _$_SongState(
               const {},
     );
 
-Map<String, dynamic> _$$_SongStateToJson(_$_SongState instance) =>
+Map<String, dynamic> _$$SongStateImplToJson(_$SongStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'isAudioLoading': instance.isAudioLoading,

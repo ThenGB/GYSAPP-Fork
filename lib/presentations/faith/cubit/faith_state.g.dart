@@ -6,8 +6,8 @@ part of 'faith_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_FaithState _$$_FaithStateFromJson(Map<String, dynamic> json) =>
-    _$_FaithState(
+_$FaithStateImpl _$$FaithStateImplFromJson(Map<String, dynamic> json) =>
+    _$FaithStateImpl(
       selectedFaith: (json['selectedFaith'] as List<dynamic>?)
               ?.map((e) => e as int)
               .toList() ??
@@ -16,6 +16,10 @@ _$_FaithState _$$_FaithStateFromJson(Map<String, dynamic> json) =>
               ?.map((e) => FaithNote.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      pdfLoadingList: (json['pdfLoadingList'] as List<dynamic>?)
+              ?.map((e) => e as int)
+              .toSet() ??
+          const {},
       sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
       language: json['language'] as String? ?? 'id',
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
@@ -23,10 +27,11 @@ _$_FaithState _$$_FaithStateFromJson(Map<String, dynamic> json) =>
       defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
     );
 
-Map<String, dynamic> _$$_FaithStateToJson(_$_FaithState instance) =>
+Map<String, dynamic> _$$FaithStateImplToJson(_$FaithStateImpl instance) =>
     <String, dynamic>{
       'selectedFaith': instance.selectedFaith,
       'notes': instance.notes,
+      'pdfLoadingList': instance.pdfLoadingList.toList(),
       'sortNotesBy': instance.sortNotesBy,
       'language': instance.language,
       'defaultFont': instance.defaultFont,

@@ -1,10 +1,12 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
+import '../../../data/data.dart';
 import '../../../router/router.dart';
 import '../bloc/initial_cubit.dart';
 
@@ -41,37 +43,31 @@ class InitialView extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const SizedBox(
-                  width: 100,
-                  child: LinearProgressIndicator(),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: MirrorAnimationBuilder(
+                    duration: const Duration(milliseconds: 1500),
+                    tween: Tween<double>(
+                        begin: 0.0, end: 1.0), // Keep the original tween
+                    builder: (context, value, child) {
+                      double scale = 1 +
+                          (0.1 *
+                              value); // Interpolate to get scale between 1 and 1.3
+                      double opacity = 1 -
+                          (0.5 *
+                              value); // Interpolate to get scale between 1 and 1.3
+                      return state.isFailed
+                          ? child!
+                          : Transform.scale(
+                              scale: scale, // Apply the interpolated scale
+                              child: Opacity(opacity: opacity, child: child),
+                            );
+                    },
+                    child: Image.asset(Assets.assetsImagesAppicon),
+                  ),
                 ),
                 const SizedBox(height: 16),
-                Text.rich(
-                  TextSpan(children: [
-                    WidgetSpan(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: LoopAnimationBuilder(
-                          duration: const Duration(milliseconds: 500),
-                          tween: Tween<double>(begin: 0.0, end: 1.0),
-                          child: const Icon(
-                            Icons.sync,
-                            size: 16,
-                          ),
-                          builder: (context, value, child) => state.isFailed
-                              ? child!
-                              : Transform.rotate(
-                                  angle: -(value * 2 * 3.1415),
-                                  child: child,
-                                ),
-                        ),
-                      ),
-                    ),
-                    TextSpan(
-                      text: state.message,
-                    ),
-                  ]),
-                )
+                CupertinoActivityIndicator(),
               ],
             ),
           ),

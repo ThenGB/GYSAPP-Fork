@@ -423,11 +423,11 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
 }
 
 /// @nodoc
-abstract class _$$_BibleStateCopyWith<$Res>
+abstract class _$$BibleStateImplCopyWith<$Res>
     implements $BibleStateCopyWith<$Res> {
-  factory _$$_BibleStateCopyWith(
-          _$_BibleState value, $Res Function(_$_BibleState) then) =
-      __$$_BibleStateCopyWithImpl<$Res>;
+  factory _$$BibleStateImplCopyWith(
+          _$BibleStateImpl value, $Res Function(_$BibleStateImpl) then) =
+      __$$BibleStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -488,11 +488,11 @@ abstract class _$$_BibleStateCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_BibleStateCopyWithImpl<$Res>
-    extends _$BibleStateCopyWithImpl<$Res, _$_BibleState>
-    implements _$$_BibleStateCopyWith<$Res> {
-  __$$_BibleStateCopyWithImpl(
-      _$_BibleState _value, $Res Function(_$_BibleState) _then)
+class __$$BibleStateImplCopyWithImpl<$Res>
+    extends _$BibleStateCopyWithImpl<$Res, _$BibleStateImpl>
+    implements _$$BibleStateImplCopyWith<$Res> {
+  __$$BibleStateImplCopyWithImpl(
+      _$BibleStateImpl _value, $Res Function(_$BibleStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -538,7 +538,7 @@ class __$$_BibleStateCopyWithImpl<$Res>
     Object? speedRate = null,
     Object? pitchRate = null,
   }) {
-    return _then(_$_BibleState(
+    return _then(_$BibleStateImpl(
       currentBibleCode: null == currentBibleCode
           ? _value.currentBibleCode
           : currentBibleCode // ignore: cast_nullable_to_non_nullable
@@ -701,8 +701,8 @@ class __$$_BibleStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BibleState extends _BibleState {
-  const _$_BibleState(
+class _$BibleStateImpl extends _BibleState {
+  const _$BibleStateImpl(
       {this.currentBibleCode = 'b_tb',
       this.splitBibleCode = 'b_tb',
       final List<String> bibleCodes = const [],
@@ -740,8 +740,8 @@ class _$_BibleState extends _BibleState {
       this.currentEndWord = 0,
       final List<BibleBook> selectedFilterBooks = const [],
       final Map<String, Map> voices = const {},
-      this.speedRate = .35,
-      this.pitchRate = .90})
+      this.speedRate = 0.35,
+      this.pitchRate = 0.9})
       : _bibleCodes = bibleCodes,
         _books = books,
         _booksSplit = booksSplit,
@@ -762,8 +762,8 @@ class _$_BibleState extends _BibleState {
         _voices = voices,
         super._();
 
-  factory _$_BibleState.fromJson(Map<String, dynamic> json) =>
-      _$$_BibleStateFromJson(json);
+  factory _$BibleStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BibleStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -993,10 +993,10 @@ class _$_BibleState extends _BibleState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BibleState &&
+            other is _$BibleStateImpl &&
             (identical(other.currentBibleCode, currentBibleCode) ||
                 other.currentBibleCode == currentBibleCode) &&
             (identical(other.splitBibleCode, splitBibleCode) ||
@@ -1121,12 +1121,12 @@ class _$_BibleState extends _BibleState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BibleStateCopyWith<_$_BibleState> get copyWith =>
-      __$$_BibleStateCopyWithImpl<_$_BibleState>(this, _$identity);
+  _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
+      __$$BibleStateImplCopyWithImpl<_$BibleStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BibleStateToJson(
+    return _$$BibleStateImplToJson(
       this,
     );
   }
@@ -1172,11 +1172,11 @@ abstract class _BibleState extends BibleState {
       final List<BibleBook> selectedFilterBooks,
       final Map<String, Map> voices,
       final double speedRate,
-      final double pitchRate}) = _$_BibleState;
+      final double pitchRate}) = _$BibleStateImpl;
   const _BibleState._() : super._();
 
   factory _BibleState.fromJson(Map<String, dynamic> json) =
-      _$_BibleState.fromJson;
+      _$BibleStateImpl.fromJson;
 
   @override
   String get currentBibleCode;
@@ -1258,6 +1258,6 @@ abstract class _BibleState extends BibleState {
   double get pitchRate;
   @override
   @JsonKey(ignore: true)
-  _$$_BibleStateCopyWith<_$_BibleState> get copyWith =>
+  _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

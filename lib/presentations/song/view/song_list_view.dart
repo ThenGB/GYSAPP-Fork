@@ -79,26 +79,29 @@ class _SongListViewState extends State<SongListView>
   List<Song> getFilteredItems(List<Song> data) {
     var value = searchController.text;
     List<Song> result = [];
-
     bool isMatch(String text, String query) {
-      // Convert text and query into list of words
-      var textWords = text.split(RegExp(r'\s+'));
-      var queryWords = query.split(RegExp(r'\s+'));
+      // Normalize the text and the query by converting them to lower case
+      var normalizedText = text.toLowerCase();
+      var normalizedQuery = query.toLowerCase();
 
-      // For each word in the query, check if it is contained within any word of the text
+      // Split the query into words
+      var queryWords = normalizedQuery.split(RegExp(r'\s+'));
+
+      int lastIndex = 0; // Start from the beginning of the text
       for (var qWord in queryWords) {
-        bool found = false;
-        for (var tWord in textWords) {
-          if (tWord.contains(qWord)) {
-            found = true;
-            break;
-          }
+        // Find the position of the query word in the text, starting from lastIndex
+        int wordPos = normalizedText.indexOf(qWord, lastIndex);
+
+        // If the word is not found, or is found before lastIndex, return false
+        if (wordPos == -1) {
+          return false;
         }
-        if (!found) {
-          return false; // If a word from the query wasn't found in the text, return false
-        }
+
+        // Update lastIndex to the position after the found word
+        lastIndex = wordPos + qWord.length;
       }
 
+      // All words are found in order with possible other words in between
       return true;
     }
 
@@ -415,6 +418,7 @@ class _SongListViewState extends State<SongListView>
                               onTap: () {
                                 widget.onSearchTermsChanged(
                                     searchController.text);
+                                FocusManager.instance.primaryFocus?.unfocus();
                                 widget.onTapFavorite(item);
                               },
                               leading: Text(item.number ?? ''),
@@ -463,11 +467,11 @@ extension StringLowerSpace on String {
 
 class PageTurnWidget extends StatefulWidget {
   const PageTurnWidget({
-    Key? key,
+    super.key,
     required this.amount,
     this.backgroundColor = const Color(0xFFFFFFCC),
     required this.child,
-  }) : super(key: key);
+  });
 
   final Animation<double> amount;
   final Color backgroundColor;

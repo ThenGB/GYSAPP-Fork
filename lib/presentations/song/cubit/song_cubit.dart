@@ -270,15 +270,22 @@ class SongCubit extends HydratedCubit<SongState> {
         }
       }
       final lyrics = (await getUnsyncedFiles())
-          .where((element) => !element.contains('.db'));
-      for (var file in lyrics) {
+          .where((element) => !element.contains('.db'))
+          .toList();
+      for (int i = 0; i < lyrics.length; i++) {
+        var file = lyrics[i];
         await downloadLyric(file, File('${localDir.songLyricFolder}/$file'),
             (progressInPercent, totalReceived, fileSize) {
-          onProgress('$file ${progressInPercent.toInt()}%');
-          log('$file $progressInPercent%');
+          int progressPercentage = progressInPercent.toInt();
+          String progressMessage =
+              '${'Syncronizing'.tr()} ${i + 1} ${'of'.tr()} ${lyrics.length}: $progressPercentage%';
+          onProgress(progressMessage);
+          log('$file $progressPercentage%');
         });
       }
       onProgress('');
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: 'Update complete!'.tr());
     } catch (e) {
       Fluttertoast.cancel();
       Fluttertoast.showToast(msg: Failure.fromError(e).message);
@@ -435,6 +442,13 @@ class SongCubit extends HydratedCubit<SongState> {
           });
         });
       }
+    } else {
+      emit(
+        state.copyWith(
+          isAudioLoading: false,
+          showAudio: false,
+        ),
+      );
     }
     return result;
   }
@@ -453,7 +467,10 @@ class SongCubit extends HydratedCubit<SongState> {
     try {
       final result = await storage
           .child('/Kidungpujian/song/${song.number}.mp3')
-          .getDownloadURL();
+          .getDownloadURL()
+          .timeout(
+            Duration(seconds: 5),
+          );
       return result;
     } catch (e) {
       return null;
@@ -571,7 +588,7 @@ class SongCubit extends HydratedCubit<SongState> {
     List<SongHistory> data = List.from(state.histories);
 
     if (data.length >= 20) {
-      data = List<SongHistory>.from(data).sublist(0, 20);
+      data = List<SongHistory>.from(data).sublist(1, 20);
     }
     data.add(item);
     emit(state.copyWith(histories: data));

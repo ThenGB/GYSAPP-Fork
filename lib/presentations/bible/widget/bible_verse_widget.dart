@@ -277,67 +277,69 @@ class VerseWidgetState extends State<VerseWidget>
                         textAlign: TextAlign.justify,
                         TextSpan(
                           children: [
-                            if (!(widget.verse.verse ?? '').contains('<t>'))
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: GestureDetector(
-                                  onTap: () {
-                                    if (widget.hasNote) {
-                                      widget.onTapNote(widget.notes);
-                                    }
-                                  },
-                                  child: Container(
-                                    alignment: !widget.hasNote
-                                        ? null
-                                        : Alignment.center,
-                                    decoration: widget.hasNote
-                                        ? BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(4),
-                                            color: context
-                                                .colorScheme.primaryContainer,
-                                          )
-                                        : null,
-                                    width: !widget.hasNote
-                                        ? null
-                                        : 18 +
-                                            ((widget.verse.verseId
-                                                                .toString()
-                                                                .length -
-                                                            1) *
-                                                        4 +
-                                                    (widget.hasBookmark
-                                                        ? 10
-                                                        : 0))
-                                                .toDouble(),
-                                    height: !widget.hasNote ? null : 16,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (widget.hasBookmark)
-                                          Icon(
-                                            Icons.bookmark,
-                                            color: context.colorScheme.primary,
-                                            size: 14,
-                                          ),
-                                        Text(
-                                          '${widget.verse.verseId}  ',
-                                          softWrap: false,
+                            WidgetSpan(
+                              alignment: PlaceholderAlignment.middle,
+                              child: (widget.verse.verse ?? '').contains('<t>')
+                                  ? SizedBox()
+                                  : GestureDetector(
+                                      onTap: () {
+                                        if (widget.hasNote) {
+                                          widget.onTapNote(widget.notes);
+                                        }
+                                      },
+                                      child: Container(
+                                        alignment: !widget.hasNote
+                                            ? null
+                                            : Alignment.center,
+                                        decoration: widget.hasNote
+                                            ? BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                                color: context.colorScheme
+                                                    .primaryContainer,
+                                              )
+                                            : null,
+                                        width: !widget.hasNote
+                                            ? null
+                                            : 18 +
+                                                ((widget.verse.verseId
+                                                                    .toString()
+                                                                    .length -
+                                                                1) *
+                                                            4 +
+                                                        (widget.hasBookmark
+                                                            ? 10
+                                                            : 0))
+                                                    .toDouble(),
+                                        height: !widget.hasNote ? null : 16,
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            if (widget.hasBookmark)
+                                              Icon(
+                                                Icons.bookmark,
+                                                color:
+                                                    context.colorScheme.primary,
+                                                size: 14,
+                                              ),
+                                            Text(
+                                              '${widget.verse.verseId}  ',
+                                              softWrap: false,
 
-                                          maxLines: 1,
-                                          overflow: TextOverflow.visible,
-                                          //superscript is usually smaller in size
-                                          textScaleFactor: 0.7,
-                                          style: TextStyle(
-                                            color: context
-                                                .colorScheme.onPrimaryContainer,
-                                          ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.visible,
+                                              //superscript is usually smaller in size
+                                              textScaleFactor: 0.7,
+                                              style: TextStyle(
+                                                color: context.colorScheme
+                                                    .onPrimaryContainer,
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ),
-                              ),
+                            ),
                             TextSpan(
                               text: '',
                               style: TextStyle(
@@ -448,20 +450,6 @@ class VerseWidgetState extends State<VerseWidget>
                                       ),
                                     ];
                                   },
-                                  // onTap: () {
-                                  //   // showDialog(
-                                  //   //   context: context,
-                                  //   //   builder: (ctx) {
-                                  //   //     return BibleRefDialog(
-                                  //   //         cubit: context.read(),
-                                  //   //         selectedVerse: widget.verse,
-                                  //   //         references: widget.references,
-                                  //   //         scrollFunction: (index) {
-                                  //   //           widget.scrollFunction(index);
-                                  //   //         });
-                                  //   //   },
-                                  //   // );
-                                  // },
                                   child: Container(
                                     padding:
                                         EdgeInsets.symmetric(horizontal: 8),

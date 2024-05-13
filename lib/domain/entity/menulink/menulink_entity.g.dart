@@ -6,14 +6,15 @@ part of 'menulink_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_Menulink _$$_MenulinkFromJson(Map<String, dynamic> json) => _$_Menulink(
+_$MenulinkImpl _$$MenulinkImplFromJson(Map<String, dynamic> json) =>
+    _$MenulinkImpl(
       label: json['label'] as String,
       icon: json['icon'] as String,
       url: json['url'] as String,
       enabled: json['enabled'] as bool,
     );
 
-Map<String, dynamic> _$$_MenulinkToJson(_$_Menulink instance) =>
+Map<String, dynamic> _$$MenulinkImplToJson(_$MenulinkImpl instance) =>
     <String, dynamic>{
       'label': instance.label,
       'icon': instance.icon,

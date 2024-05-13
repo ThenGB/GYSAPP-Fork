@@ -83,10 +83,11 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
 }
 
 /// @nodoc
-abstract class _$$_HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Res> {
-  factory _$$_HomeStateCopyWith(
-          _$_HomeState value, $Res Function(_$_HomeState) then) =
-      __$$_HomeStateCopyWithImpl<$Res>;
+abstract class _$$HomeStateImplCopyWith<$Res>
+    implements $HomeStateCopyWith<$Res> {
+  factory _$$HomeStateImplCopyWith(
+          _$HomeStateImpl value, $Res Function(_$HomeStateImpl) then) =
+      __$$HomeStateImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -97,11 +98,11 @@ abstract class _$$_HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_HomeStateCopyWithImpl<$Res>
-    extends _$HomeStateCopyWithImpl<$Res, _$_HomeState>
-    implements _$$_HomeStateCopyWith<$Res> {
-  __$$_HomeStateCopyWithImpl(
-      _$_HomeState _value, $Res Function(_$_HomeState) _then)
+class __$$HomeStateImplCopyWithImpl<$Res>
+    extends _$HomeStateCopyWithImpl<$Res, _$HomeStateImpl>
+    implements _$$HomeStateImplCopyWith<$Res> {
+  __$$HomeStateImplCopyWithImpl(
+      _$HomeStateImpl _value, $Res Function(_$HomeStateImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -112,7 +113,7 @@ class __$$_HomeStateCopyWithImpl<$Res>
     Object? trueVoices = null,
     Object? menuLinks = null,
   }) {
-    return _then(_$_HomeState(
+    return _then(_$HomeStateImpl(
       isLoading: null == isLoading
           ? _value.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
@@ -135,8 +136,8 @@ class __$$_HomeStateCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_HomeState extends _HomeState {
-  const _$_HomeState(
+class _$HomeStateImpl extends _HomeState {
+  const _$HomeStateImpl(
       {this.isLoading = false,
       final List<Sauh> sauhs = const [],
       final List<TrueVoice> trueVoices = const [],
@@ -146,8 +147,8 @@ class _$_HomeState extends _HomeState {
         _menuLinks = menuLinks,
         super._();
 
-  factory _$_HomeState.fromJson(Map<String, dynamic> json) =>
-      _$$_HomeStateFromJson(json);
+  factory _$HomeStateImpl.fromJson(Map<String, dynamic> json) =>
+      _$$HomeStateImplFromJson(json);
 
   @override
   @JsonKey()
@@ -185,10 +186,10 @@ class _$_HomeState extends _HomeState {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_HomeState &&
+            other is _$HomeStateImpl &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             const DeepCollectionEquality().equals(other._sauhs, _sauhs) &&
@@ -210,12 +211,12 @@ class _$_HomeState extends _HomeState {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_HomeStateCopyWith<_$_HomeState> get copyWith =>
-      __$$_HomeStateCopyWithImpl<_$_HomeState>(this, _$identity);
+  _$$HomeStateImplCopyWith<_$HomeStateImpl> get copyWith =>
+      __$$HomeStateImplCopyWithImpl<_$HomeStateImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_HomeStateToJson(
+    return _$$HomeStateImplToJson(
       this,
     );
   }
@@ -226,11 +227,11 @@ abstract class _HomeState extends HomeState {
       {final bool isLoading,
       final List<Sauh> sauhs,
       final List<TrueVoice> trueVoices,
-      final List<Menulink> menuLinks}) = _$_HomeState;
+      final List<Menulink> menuLinks}) = _$HomeStateImpl;
   const _HomeState._() : super._();
 
   factory _HomeState.fromJson(Map<String, dynamic> json) =
-      _$_HomeState.fromJson;
+      _$HomeStateImpl.fromJson;
 
   @override
   bool get isLoading;
@@ -242,6 +243,6 @@ abstract class _HomeState extends HomeState {
   List<Menulink> get menuLinks;
   @override
   @JsonKey(ignore: true)
-  _$$_HomeStateCopyWith<_$_HomeState> get copyWith =>
+  _$$HomeStateImplCopyWith<_$HomeStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

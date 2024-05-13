@@ -78,18 +78,21 @@ class _$WartaCopyWithImpl<$Res, $Val extends Warta>
 }
 
 /// @nodoc
-abstract class _$$_WartaCopyWith<$Res> implements $WartaCopyWith<$Res> {
-  factory _$$_WartaCopyWith(_$_Warta value, $Res Function(_$_Warta) then) =
-      __$$_WartaCopyWithImpl<$Res>;
+abstract class _$$WartaImplCopyWith<$Res> implements $WartaCopyWith<$Res> {
+  factory _$$WartaImplCopyWith(
+          _$WartaImpl value, $Res Function(_$WartaImpl) then) =
+      __$$WartaImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call({String title, String description, String url, String imageUrl});
 }
 
 /// @nodoc
-class __$$_WartaCopyWithImpl<$Res> extends _$WartaCopyWithImpl<$Res, _$_Warta>
-    implements _$$_WartaCopyWith<$Res> {
-  __$$_WartaCopyWithImpl(_$_Warta _value, $Res Function(_$_Warta) _then)
+class __$$WartaImplCopyWithImpl<$Res>
+    extends _$WartaCopyWithImpl<$Res, _$WartaImpl>
+    implements _$$WartaImplCopyWith<$Res> {
+  __$$WartaImplCopyWithImpl(
+      _$WartaImpl _value, $Res Function(_$WartaImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -100,7 +103,7 @@ class __$$_WartaCopyWithImpl<$Res> extends _$WartaCopyWithImpl<$Res, _$_Warta>
     Object? url = null,
     Object? imageUrl = null,
   }) {
-    return _then(_$_Warta(
+    return _then(_$WartaImpl(
       title: null == title
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
@@ -123,16 +126,16 @@ class __$$_WartaCopyWithImpl<$Res> extends _$WartaCopyWithImpl<$Res, _$_Warta>
 
 /// @nodoc
 @JsonSerializable()
-class _$_Warta extends _Warta {
-  const _$_Warta(
+class _$WartaImpl extends _Warta {
+  const _$WartaImpl(
       {required this.title,
       required this.description,
       required this.url,
       required this.imageUrl})
       : super._();
 
-  factory _$_Warta.fromJson(Map<String, dynamic> json) =>
-      _$$_WartaFromJson(json);
+  factory _$WartaImpl.fromJson(Map<String, dynamic> json) =>
+      _$$WartaImplFromJson(json);
 
   @override
   final String title;
@@ -149,10 +152,10 @@ class _$_Warta extends _Warta {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_Warta &&
+            other is _$WartaImpl &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -169,12 +172,12 @@ class _$_Warta extends _Warta {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_WartaCopyWith<_$_Warta> get copyWith =>
-      __$$_WartaCopyWithImpl<_$_Warta>(this, _$identity);
+  _$$WartaImplCopyWith<_$WartaImpl> get copyWith =>
+      __$$WartaImplCopyWithImpl<_$WartaImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_WartaToJson(
+    return _$$WartaImplToJson(
       this,
     );
   }
@@ -185,10 +188,10 @@ abstract class _Warta extends Warta {
       {required final String title,
       required final String description,
       required final String url,
-      required final String imageUrl}) = _$_Warta;
+      required final String imageUrl}) = _$WartaImpl;
   const _Warta._() : super._();
 
-  factory _Warta.fromJson(Map<String, dynamic> json) = _$_Warta.fromJson;
+  factory _Warta.fromJson(Map<String, dynamic> json) = _$WartaImpl.fromJson;
 
   @override
   String get title;
@@ -200,6 +203,6 @@ abstract class _Warta extends Warta {
   String get imageUrl;
   @override
   @JsonKey(ignore: true)
-  _$$_WartaCopyWith<_$_Warta> get copyWith =>
+  _$$WartaImplCopyWith<_$WartaImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

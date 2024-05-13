@@ -6,9 +6,9 @@ part of 'literature_panduan_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$_LiteraturePanduanState _$$_LiteraturePanduanStateFromJson(
+_$LiteraturePanduanStateImpl _$$LiteraturePanduanStateImplFromJson(
         Map<String, dynamic> json) =>
-    _$_LiteraturePanduanState(
+    _$LiteraturePanduanStateImpl(
       isLoading: json['isLoading'] as bool? ?? false,
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => Panduan.fromJson(e as Map<String, dynamic>))
@@ -16,8 +16,8 @@ _$_LiteraturePanduanState _$$_LiteraturePanduanStateFromJson(
           const [],
     );
 
-Map<String, dynamic> _$$_LiteraturePanduanStateToJson(
-        _$_LiteraturePanduanState instance) =>
+Map<String, dynamic> _$$LiteraturePanduanStateImplToJson(
+        _$LiteraturePanduanStateImpl instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'items': instance.items,

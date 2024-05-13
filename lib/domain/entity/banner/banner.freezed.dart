@@ -96,11 +96,11 @@ class _$ImageBannerCopyWithImpl<$Res, $Val extends ImageBanner>
 }
 
 /// @nodoc
-abstract class _$$_ImageBannerCopyWith<$Res>
+abstract class _$$ImageBannerImplCopyWith<$Res>
     implements $ImageBannerCopyWith<$Res> {
-  factory _$$_ImageBannerCopyWith(
-          _$_ImageBanner value, $Res Function(_$_ImageBanner) then) =
-      __$$_ImageBannerCopyWithImpl<$Res>;
+  factory _$$ImageBannerImplCopyWith(
+          _$ImageBannerImpl value, $Res Function(_$ImageBannerImpl) then) =
+      __$$ImageBannerImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -112,11 +112,11 @@ abstract class _$$_ImageBannerCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_ImageBannerCopyWithImpl<$Res>
-    extends _$ImageBannerCopyWithImpl<$Res, _$_ImageBanner>
-    implements _$$_ImageBannerCopyWith<$Res> {
-  __$$_ImageBannerCopyWithImpl(
-      _$_ImageBanner _value, $Res Function(_$_ImageBanner) _then)
+class __$$ImageBannerImplCopyWithImpl<$Res>
+    extends _$ImageBannerCopyWithImpl<$Res, _$ImageBannerImpl>
+    implements _$$ImageBannerImplCopyWith<$Res> {
+  __$$ImageBannerImplCopyWithImpl(
+      _$ImageBannerImpl _value, $Res Function(_$ImageBannerImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -128,7 +128,7 @@ class __$$_ImageBannerCopyWithImpl<$Res>
     Object? order = freezed,
     Object? title = freezed,
   }) {
-    return _then(_$_ImageBanner(
+    return _then(_$ImageBannerImpl(
       description: freezed == description
           ? _value.description
           : description // ignore: cast_nullable_to_non_nullable
@@ -155,8 +155,8 @@ class __$$_ImageBannerCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_ImageBanner extends _ImageBanner {
-  const _$_ImageBanner(
+class _$ImageBannerImpl extends _ImageBanner {
+  const _$ImageBannerImpl(
       {@JsonKey(name: 'description') this.description,
       @JsonKey(name: 'imageUrl') this.imageUrl,
       @JsonKey(name: 'linkUrl') this.linkUrl,
@@ -164,8 +164,8 @@ class _$_ImageBanner extends _ImageBanner {
       @JsonKey(name: 'title') this.title})
       : super._();
 
-  factory _$_ImageBanner.fromJson(Map<String, dynamic> json) =>
-      _$$_ImageBannerFromJson(json);
+  factory _$ImageBannerImpl.fromJson(Map<String, dynamic> json) =>
+      _$$ImageBannerImplFromJson(json);
 
   @override
   @JsonKey(name: 'description')
@@ -189,10 +189,10 @@ class _$_ImageBanner extends _ImageBanner {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_ImageBanner &&
+            other is _$ImageBannerImpl &&
             (identical(other.description, description) ||
                 other.description == description) &&
             (identical(other.imageUrl, imageUrl) ||
@@ -210,12 +210,12 @@ class _$_ImageBanner extends _ImageBanner {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_ImageBannerCopyWith<_$_ImageBanner> get copyWith =>
-      __$$_ImageBannerCopyWithImpl<_$_ImageBanner>(this, _$identity);
+  _$$ImageBannerImplCopyWith<_$ImageBannerImpl> get copyWith =>
+      __$$ImageBannerImplCopyWithImpl<_$ImageBannerImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_ImageBannerToJson(
+    return _$$ImageBannerImplToJson(
       this,
     );
   }
@@ -227,11 +227,11 @@ abstract class _ImageBanner extends ImageBanner {
       @JsonKey(name: 'imageUrl') final String? imageUrl,
       @JsonKey(name: 'linkUrl') final String? linkUrl,
       @JsonKey(name: 'order') final int? order,
-      @JsonKey(name: 'title') final String? title}) = _$_ImageBanner;
+      @JsonKey(name: 'title') final String? title}) = _$ImageBannerImpl;
   const _ImageBanner._() : super._();
 
   factory _ImageBanner.fromJson(Map<String, dynamic> json) =
-      _$_ImageBanner.fromJson;
+      _$ImageBannerImpl.fromJson;
 
   @override
   @JsonKey(name: 'description')
@@ -250,6 +250,6 @@ abstract class _ImageBanner extends ImageBanner {
   String? get title;
   @override
   @JsonKey(ignore: true)
-  _$$_ImageBannerCopyWith<_$_ImageBanner> get copyWith =>
+  _$$ImageBannerImplCopyWith<_$ImageBannerImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

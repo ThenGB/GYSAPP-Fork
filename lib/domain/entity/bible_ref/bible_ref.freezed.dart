@@ -79,10 +79,11 @@ class _$BibleRefCopyWithImpl<$Res, $Val extends BibleRef>
 }
 
 /// @nodoc
-abstract class _$$_BibleRefCopyWith<$Res> implements $BibleRefCopyWith<$Res> {
-  factory _$$_BibleRefCopyWith(
-          _$_BibleRef value, $Res Function(_$_BibleRef) then) =
-      __$$_BibleRefCopyWithImpl<$Res>;
+abstract class _$$BibleRefImplCopyWith<$Res>
+    implements $BibleRefCopyWith<$Res> {
+  factory _$$BibleRefImplCopyWith(
+          _$BibleRefImpl value, $Res Function(_$BibleRefImpl) then) =
+      __$$BibleRefImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -92,11 +93,11 @@ abstract class _$$_BibleRefCopyWith<$Res> implements $BibleRefCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_BibleRefCopyWithImpl<$Res>
-    extends _$BibleRefCopyWithImpl<$Res, _$_BibleRef>
-    implements _$$_BibleRefCopyWith<$Res> {
-  __$$_BibleRefCopyWithImpl(
-      _$_BibleRef _value, $Res Function(_$_BibleRef) _then)
+class __$$BibleRefImplCopyWithImpl<$Res>
+    extends _$BibleRefCopyWithImpl<$Res, _$BibleRefImpl>
+    implements _$$BibleRefImplCopyWith<$Res> {
+  __$$BibleRefImplCopyWithImpl(
+      _$BibleRefImpl _value, $Res Function(_$BibleRefImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -106,7 +107,7 @@ class __$$_BibleRefCopyWithImpl<$Res>
     Object? sv = freezed,
     Object? ev = freezed,
   }) {
-    return _then(_$_BibleRef(
+    return _then(_$BibleRefImpl(
       id: freezed == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -125,15 +126,15 @@ class __$$_BibleRefCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BibleRef extends _BibleRef {
-  const _$_BibleRef(
+class _$BibleRefImpl extends _BibleRef {
+  const _$BibleRefImpl(
       {@JsonKey(name: 'id') this.id,
       @JsonKey(name: 'sv') this.sv,
       @JsonKey(name: 'ev') this.ev})
       : super._();
 
-  factory _$_BibleRef.fromJson(Map<String, dynamic> json) =>
-      _$$_BibleRefFromJson(json);
+  factory _$BibleRefImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BibleRefImplFromJson(json);
 
   @override
   @JsonKey(name: 'id')
@@ -151,10 +152,10 @@ class _$_BibleRef extends _BibleRef {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BibleRef &&
+            other is _$BibleRefImpl &&
             (identical(other.id, id) || other.id == id) &&
             (identical(other.sv, sv) || other.sv == sv) &&
             (identical(other.ev, ev) || other.ev == ev));
@@ -167,12 +168,12 @@ class _$_BibleRef extends _BibleRef {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BibleRefCopyWith<_$_BibleRef> get copyWith =>
-      __$$_BibleRefCopyWithImpl<_$_BibleRef>(this, _$identity);
+  _$$BibleRefImplCopyWith<_$BibleRefImpl> get copyWith =>
+      __$$BibleRefImplCopyWithImpl<_$BibleRefImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BibleRefToJson(
+    return _$$BibleRefImplToJson(
       this,
     );
   }
@@ -182,10 +183,11 @@ abstract class _BibleRef extends BibleRef {
   const factory _BibleRef(
       {@JsonKey(name: 'id') final int? id,
       @JsonKey(name: 'sv') final int? sv,
-      @JsonKey(name: 'ev') final int? ev}) = _$_BibleRef;
+      @JsonKey(name: 'ev') final int? ev}) = _$BibleRefImpl;
   const _BibleRef._() : super._();
 
-  factory _BibleRef.fromJson(Map<String, dynamic> json) = _$_BibleRef.fromJson;
+  factory _BibleRef.fromJson(Map<String, dynamic> json) =
+      _$BibleRefImpl.fromJson;
 
   @override
   @JsonKey(name: 'id')
@@ -198,6 +200,6 @@ abstract class _BibleRef extends BibleRef {
   int? get ev;
   @override
   @JsonKey(ignore: true)
-  _$$_BibleRefCopyWith<_$_BibleRef> get copyWith =>
+  _$$BibleRefImplCopyWith<_$BibleRefImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

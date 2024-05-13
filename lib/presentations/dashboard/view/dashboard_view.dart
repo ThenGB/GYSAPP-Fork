@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -111,13 +112,49 @@ class _DashboardViewState extends State<DashboardView> {
           if (state.isLoading) {
             return SafeArea(
               child: Scaffold(
-                body: const Center(
+                body: Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      CircularProgressIndicator(),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: MirrorAnimationBuilder(
+                          duration: Duration(milliseconds: 1500),
+                          tween: Tween<double>(
+                              begin: 0.0, end: 1.0), // Keep the original tween
+                          builder: (context, value, child) {
+                            double scale = 1 +
+                                (0.1 *
+                                    value); // Interpolate to get scale between 1 and 1.3
+                            double opacity = 1 -
+                                (0.5 *
+                                    value); // Interpolate to get scale between 1 and 1.3
+                            return Transform.scale(
+                              scale: scale, // Apply the interpolated scale
+                              child: Opacity(opacity: opacity, child: child),
+                            );
+                          },
+                          child: Image.asset(Assets.assetsImagesAppicon),
+                        ),
+                      ),
                       SizedBox(height: 16),
-                      Text('Loading...'),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CupertinoActivityIndicator(),
+                          SizedBox(
+                            width: 8,
+                          ),
+                          Text(
+                            'Preparing dashboard',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontStyle: FontStyle.italic,
+                              color: context.textColor?.withOpacity(.5),
+                            ),
+                          )
+                        ],
+                      ),
                     ],
                   ),
                 ),

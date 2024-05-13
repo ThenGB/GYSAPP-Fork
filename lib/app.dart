@@ -27,7 +27,7 @@ import 'router/router.dart';
 
 Future initApplication() async {
   var appConfig =
-      AppConfig(appName: 'E-GYS', baseUrlApi: 'https://e.gys.or.id/api/v1');
+      AppConfig(appName: 'GYS APP', baseUrlApi: 'https://e.gys.or.id/api/v1');
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   HydratedBloc.storage = await HydratedStorage.build(
@@ -162,8 +162,8 @@ class _AppState extends State<App> {
               return BlocBuilder<InitialCubit, InitialState>(
                 builder: (context, state) => MediaQuery(
                   data: context.mediaQuery.copyWith(
-                    textScaleFactor: state.defaultTextScale,
                     alwaysUse24HourFormat: true,
+                    textScaler: TextScaler.linear(state.defaultTextScale),
                   ),
                   child: child!,
                 ),

@@ -90,10 +90,11 @@ class _$BibleNoteCopyWithImpl<$Res, $Val extends BibleNote>
 }
 
 /// @nodoc
-abstract class _$$_BibleNoteCopyWith<$Res> implements $BibleNoteCopyWith<$Res> {
-  factory _$$_BibleNoteCopyWith(
-          _$_BibleNote value, $Res Function(_$_BibleNote) then) =
-      __$$_BibleNoteCopyWithImpl<$Res>;
+abstract class _$$BibleNoteImplCopyWith<$Res>
+    implements $BibleNoteCopyWith<$Res> {
+  factory _$$BibleNoteImplCopyWith(
+          _$BibleNoteImpl value, $Res Function(_$BibleNoteImpl) then) =
+      __$$BibleNoteImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -105,11 +106,11 @@ abstract class _$$_BibleNoteCopyWith<$Res> implements $BibleNoteCopyWith<$Res> {
 }
 
 /// @nodoc
-class __$$_BibleNoteCopyWithImpl<$Res>
-    extends _$BibleNoteCopyWithImpl<$Res, _$_BibleNote>
-    implements _$$_BibleNoteCopyWith<$Res> {
-  __$$_BibleNoteCopyWithImpl(
-      _$_BibleNote _value, $Res Function(_$_BibleNote) _then)
+class __$$BibleNoteImplCopyWithImpl<$Res>
+    extends _$BibleNoteCopyWithImpl<$Res, _$BibleNoteImpl>
+    implements _$$BibleNoteImplCopyWith<$Res> {
+  __$$BibleNoteImplCopyWithImpl(
+      _$BibleNoteImpl _value, $Res Function(_$BibleNoteImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -121,7 +122,7 @@ class __$$_BibleNoteCopyWithImpl<$Res>
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
-    return _then(_$_BibleNote(
+    return _then(_$BibleNoteImpl(
       id: null == id
           ? _value.id
           : id // ignore: cast_nullable_to_non_nullable
@@ -148,8 +149,8 @@ class __$$_BibleNoteCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_BibleNote extends _BibleNote {
-  const _$_BibleNote(
+class _$BibleNoteImpl extends _BibleNote {
+  const _$BibleNoteImpl(
       {required this.id,
       required final List<Verse> verses,
       this.text,
@@ -158,8 +159,8 @@ class _$_BibleNote extends _BibleNote {
       : _verses = verses,
         super._();
 
-  factory _$_BibleNote.fromJson(Map<String, dynamic> json) =>
-      _$$_BibleNoteFromJson(json);
+  factory _$BibleNoteImpl.fromJson(Map<String, dynamic> json) =>
+      _$$BibleNoteImplFromJson(json);
 
   @override
   final int id;
@@ -184,10 +185,10 @@ class _$_BibleNote extends _BibleNote {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_BibleNote &&
+            other is _$BibleNoteImpl &&
             (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
             (identical(other.text, text) || other.text == text) &&
@@ -210,12 +211,12 @@ class _$_BibleNote extends _BibleNote {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_BibleNoteCopyWith<_$_BibleNote> get copyWith =>
-      __$$_BibleNoteCopyWithImpl<_$_BibleNote>(this, _$identity);
+  _$$BibleNoteImplCopyWith<_$BibleNoteImpl> get copyWith =>
+      __$$BibleNoteImplCopyWithImpl<_$BibleNoteImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_BibleNoteToJson(
+    return _$$BibleNoteImplToJson(
       this,
     );
   }
@@ -227,11 +228,11 @@ abstract class _BibleNote extends BibleNote {
       required final List<Verse> verses,
       final String? text,
       required final DateTime createdDate,
-      required final DateTime updatedDate}) = _$_BibleNote;
+      required final DateTime updatedDate}) = _$BibleNoteImpl;
   const _BibleNote._() : super._();
 
   factory _BibleNote.fromJson(Map<String, dynamic> json) =
-      _$_BibleNote.fromJson;
+      _$BibleNoteImpl.fromJson;
 
   @override
   int get id;
@@ -245,6 +246,6 @@ abstract class _BibleNote extends BibleNote {
   DateTime get updatedDate;
   @override
   @JsonKey(ignore: true)
-  _$$_BibleNoteCopyWith<_$_BibleNote> get copyWith =>
+  _$$BibleNoteImplCopyWith<_$BibleNoteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

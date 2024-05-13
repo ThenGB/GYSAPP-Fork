@@ -141,11 +141,11 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
 }
 
 /// @nodoc
-abstract class _$$_AppBackupDataCopyWith<$Res>
+abstract class _$$AppBackupDataImplCopyWith<$Res>
     implements $AppBackupDataCopyWith<$Res> {
-  factory _$$_AppBackupDataCopyWith(
-          _$_AppBackupData value, $Res Function(_$_AppBackupData) then) =
-      __$$_AppBackupDataCopyWithImpl<$Res>;
+  factory _$$AppBackupDataImplCopyWith(
+          _$AppBackupDataImpl value, $Res Function(_$AppBackupDataImpl) then) =
+      __$$AppBackupDataImplCopyWithImpl<$Res>;
   @override
   @useResult
   $Res call(
@@ -165,11 +165,11 @@ abstract class _$$_AppBackupDataCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$_AppBackupDataCopyWithImpl<$Res>
-    extends _$AppBackupDataCopyWithImpl<$Res, _$_AppBackupData>
-    implements _$$_AppBackupDataCopyWith<$Res> {
-  __$$_AppBackupDataCopyWithImpl(
-      _$_AppBackupData _value, $Res Function(_$_AppBackupData) _then)
+class __$$AppBackupDataImplCopyWithImpl<$Res>
+    extends _$AppBackupDataCopyWithImpl<$Res, _$AppBackupDataImpl>
+    implements _$$AppBackupDataImplCopyWith<$Res> {
+  __$$AppBackupDataImplCopyWithImpl(
+      _$AppBackupDataImpl _value, $Res Function(_$AppBackupDataImpl) _then)
       : super(_value, _then);
 
   @pragma('vm:prefer-inline')
@@ -180,7 +180,7 @@ class __$$_AppBackupDataCopyWithImpl<$Res>
     Object? faithState = freezed,
     Object? settingsState = freezed,
   }) {
-    return _then(_$_AppBackupData(
+    return _then(_$AppBackupDataImpl(
       bibleState: freezed == bibleState
           ? _value.bibleState
           : bibleState // ignore: cast_nullable_to_non_nullable
@@ -203,16 +203,16 @@ class __$$_AppBackupDataCopyWithImpl<$Res>
 
 /// @nodoc
 @JsonSerializable()
-class _$_AppBackupData extends _AppBackupData {
-  const _$_AppBackupData(
+class _$AppBackupDataImpl extends _AppBackupData {
+  const _$AppBackupDataImpl(
       {@JsonKey(name: 'bible_state') this.bibleState,
       @JsonKey(name: 'song_state') this.songState,
       @JsonKey(name: 'faith_state') this.faithState,
       @JsonKey(name: 'settings_state') this.settingsState})
       : super._();
 
-  factory _$_AppBackupData.fromJson(Map<String, dynamic> json) =>
-      _$$_AppBackupDataFromJson(json);
+  factory _$AppBackupDataImpl.fromJson(Map<String, dynamic> json) =>
+      _$$AppBackupDataImplFromJson(json);
 
   @override
   @JsonKey(name: 'bible_state')
@@ -233,10 +233,10 @@ class _$_AppBackupData extends _AppBackupData {
   }
 
   @override
-  bool operator ==(dynamic other) {
+  bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$_AppBackupData &&
+            other is _$AppBackupDataImpl &&
             (identical(other.bibleState, bibleState) ||
                 other.bibleState == bibleState) &&
             (identical(other.songState, songState) ||
@@ -255,12 +255,12 @@ class _$_AppBackupData extends _AppBackupData {
   @JsonKey(ignore: true)
   @override
   @pragma('vm:prefer-inline')
-  _$$_AppBackupDataCopyWith<_$_AppBackupData> get copyWith =>
-      __$$_AppBackupDataCopyWithImpl<_$_AppBackupData>(this, _$identity);
+  _$$AppBackupDataImplCopyWith<_$AppBackupDataImpl> get copyWith =>
+      __$$AppBackupDataImplCopyWithImpl<_$AppBackupDataImpl>(this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$_AppBackupDataToJson(
+    return _$$AppBackupDataImplToJson(
       this,
     );
   }
@@ -272,11 +272,11 @@ abstract class _AppBackupData extends AppBackupData {
       @JsonKey(name: 'song_state') final SongState? songState,
       @JsonKey(name: 'faith_state') final FaithState? faithState,
       @JsonKey(name: 'settings_state')
-      final SettingsState? settingsState}) = _$_AppBackupData;
+      final SettingsState? settingsState}) = _$AppBackupDataImpl;
   const _AppBackupData._() : super._();
 
   factory _AppBackupData.fromJson(Map<String, dynamic> json) =
-      _$_AppBackupData.fromJson;
+      _$AppBackupDataImpl.fromJson;
 
   @override
   @JsonKey(name: 'bible_state')
@@ -292,6 +292,6 @@ abstract class _AppBackupData extends AppBackupData {
   SettingsState? get settingsState;
   @override
   @JsonKey(ignore: true)
-  _$$_AppBackupDataCopyWith<_$_AppBackupData> get copyWith =>
+  _$$AppBackupDataImplCopyWith<_$AppBackupDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }
