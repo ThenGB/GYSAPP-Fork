@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 2.0.1+103
 
 environment:
-  sdk: ">=3.0.0 <=3.2.3"
+  sdk: ">=3.0.0 <=3.3.4"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -104,6 +104,7 @@ dependencies:
   app_links: ^3.4.3
   audio_service: ^0.18.12
   open_filex: ^4.3.4
+  connectivity_plus: ^2.3.9
   
 dev_dependencies:
   flutter_test:
@@ -121,16 +122,16 @@ dev_dependencies:
 dependency_overrides:
 # Wakelock ga jalan di versi terbaru
 #  25 septermber 2023
-  wakelock_windows:
-    git:
-      url: https://github.com/formigas/wakelock.git
-      path: wakelock_windows/
-      ref: main
-  wakelock:
-    git:
-      url: https://github.com/formigas/wakelock.git
-      path: wakelock/
-      ref: main
+  # wakelock_windows:
+  #   git:
+  #     url: https://github.com/formigas/wakelock.git
+  #     path: wakelock_windows/
+  #     ref: main
+  # wakelock:
+  #   git:
+  #     url: https://github.com/formigas/wakelock.git
+  #     path: wakelock/
+  #     ref: main
   flutter_pdfview: 1.2.9
   # Update flutter 3.16 21 dec
   intl: 0.19.0
