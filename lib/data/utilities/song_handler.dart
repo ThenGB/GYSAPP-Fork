@@ -19,6 +19,13 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     player.eventStream.map(_transformEvent).listen((event) {
       playbackState.add(event);
     });
+    player.onPositionChanged.listen((event) {
+      playbackState.add(
+        playbackState.value.copyWith(
+          updatePosition: event,
+        ),
+      );
+    });
     player.onPlayerStateChanged
         .map(
       (event) =>
@@ -114,10 +121,10 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
         PlayerState.disposed: AudioProcessingState.idle,
       }[player.state]!,
       playing: player.state == PlayerState.playing,
-      updatePosition: event.position ??
-          event.duration ??
-          playbackState.value.updatePosition,
-      bufferedPosition: event.position ?? event.duration ?? Duration.zero,
+      // updatePosition: event.position ??
+      //     event.duration ??
+      //     playbackState.value.updatePosition,
+      // bufferedPosition: event.position ?? event.duration ?? Duration.zero,
       speed: 1,
       queueIndex: 0,
     );

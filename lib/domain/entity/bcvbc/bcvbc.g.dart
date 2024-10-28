@@ -10,7 +10,7 @@ _$BcvbcImpl _$$BcvbcImplFromJson(Map<String, dynamic> json) => _$BcvbcImpl(
       b: json['b'] as String?,
       c: json['c'] as String?,
       v: json['v'] as String?,
-      bc: json['bc'] as int?,
+      bc: (json['bc'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$BcvbcImplToJson(_$BcvbcImpl instance) =>

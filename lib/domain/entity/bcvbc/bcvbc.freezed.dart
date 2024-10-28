@@ -12,7 +12,7 @@ part of 'bcvbc.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Bcvbc _$BcvbcFromJson(Map<String, dynamic> json) {
   return _Bcvbc.fromJson(json);
@@ -29,8 +29,12 @@ mixin _$Bcvbc {
   @JsonKey(name: 'bc')
   int? get bc => throw _privateConstructorUsedError;
 
+  /// Serializes this Bcvbc to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Bcvbc
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BcvbcCopyWith<Bcvbc> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -56,6 +60,8 @@ class _$BcvbcCopyWithImpl<$Res, $Val extends Bcvbc>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Bcvbc
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -107,6 +113,8 @@ class __$$BcvbcImplCopyWithImpl<$Res>
       _$BcvbcImpl _value, $Res Function(_$BcvbcImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Bcvbc
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -178,11 +186,13 @@ class _$BcvbcImpl extends _Bcvbc {
             (identical(other.bc, bc) || other.bc == bc));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, b, c, v, bc);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Bcvbc
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BcvbcImplCopyWith<_$BcvbcImpl> get copyWith =>
@@ -218,8 +228,11 @@ abstract class _Bcvbc extends Bcvbc {
   @override
   @JsonKey(name: 'bc')
   int? get bc;
+
+  /// Create a copy of Bcvbc
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BcvbcImplCopyWith<_$BcvbcImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

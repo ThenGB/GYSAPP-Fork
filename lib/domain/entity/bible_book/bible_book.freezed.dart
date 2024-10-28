@@ -12,7 +12,7 @@ part of 'bible_book.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 BibleBook _$BibleBookFromJson(Map<String, dynamic> json) {
   return _BibleBook.fromJson(json);
@@ -28,8 +28,12 @@ mixin _$BibleBook {
   @JsonKey(name: 'c')
   int? get chapterCount => throw _privateConstructorUsedError;
 
+  /// Serializes this BibleBook to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of BibleBook
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BibleBookCopyWith<BibleBook> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -56,6 +60,8 @@ class _$BibleBookCopyWithImpl<$Res, $Val extends BibleBook>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BibleBook
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -108,6 +114,8 @@ class __$$BibleBookImplCopyWithImpl<$Res>
       _$BibleBookImpl _value, $Res Function(_$BibleBookImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BibleBook
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -181,12 +189,14 @@ class _$BibleBookImpl extends _BibleBook {
                 other.chapterCount == chapterCount));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, shortName, longName, chapterCount);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BibleBook
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BibleBookImplCopyWith<_$BibleBookImpl> get copyWith =>
@@ -222,8 +232,11 @@ abstract class _BibleBook extends BibleBook {
   @override
   @JsonKey(name: 'c')
   int? get chapterCount;
+
+  /// Create a copy of BibleBook
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BibleBookImplCopyWith<_$BibleBookImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

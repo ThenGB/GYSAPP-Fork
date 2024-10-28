@@ -12,7 +12,7 @@ part of 'bible_ref.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 BibleRef _$BibleRefFromJson(Map<String, dynamic> json) {
   return _BibleRef.fromJson(json);
@@ -27,8 +27,12 @@ mixin _$BibleRef {
   @JsonKey(name: 'ev')
   int? get ev => throw _privateConstructorUsedError;
 
+  /// Serializes this BibleRef to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of BibleRef
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BibleRefCopyWith<BibleRef> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -54,6 +58,8 @@ class _$BibleRefCopyWithImpl<$Res, $Val extends BibleRef>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BibleRef
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -100,6 +106,8 @@ class __$$BibleRefImplCopyWithImpl<$Res>
       _$BibleRefImpl _value, $Res Function(_$BibleRefImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BibleRef
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -161,11 +169,13 @@ class _$BibleRefImpl extends _BibleRef {
             (identical(other.ev, ev) || other.ev == ev));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, sv, ev);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BibleRef
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BibleRefImplCopyWith<_$BibleRefImpl> get copyWith =>
@@ -198,8 +208,11 @@ abstract class _BibleRef extends BibleRef {
   @override
   @JsonKey(name: 'ev')
   int? get ev;
+
+  /// Create a copy of BibleRef
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BibleRefImplCopyWith<_$BibleRefImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

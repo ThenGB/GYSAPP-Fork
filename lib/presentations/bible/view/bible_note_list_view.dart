@@ -174,7 +174,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                     foregroundColor: context.colorScheme.onPrimary,
                   ),
                   onPressed: () {
-                    router.pop();
+                    router.maybePop();
                   },
                   child: Text('Back'.tr()),
                 ),
@@ -227,7 +227,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                         context
                                             .read<BibleCubit>()
                                             .saveNote(data);
-                                        router.pop();
+                                        router.maybePop();
                                         // router.push(BibleNoteListRoute(cubit: context.read()));
                                       },
                                     ));

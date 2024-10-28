@@ -12,7 +12,7 @@ part of 'renungan_entity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Renungan _$RenunganFromJson(Map<String, dynamic> json) {
   return _Renungan.fromJson(json);
@@ -25,8 +25,12 @@ mixin _$Renungan {
   String get url => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
 
+  /// Serializes this Renungan to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Renungan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $RenunganCopyWith<Renungan> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$RenunganCopyWithImpl<$Res, $Val extends Renungan>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Renungan
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -97,6 +103,8 @@ class __$$RenunganImplCopyWithImpl<$Res>
       _$RenunganImpl _value, $Res Function(_$RenunganImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Renungan
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,12 +174,14 @@ class _$RenunganImpl extends _Renungan {
                 other.imageUrl == imageUrl));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, title, description, url, imageUrl);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Renungan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$RenunganImplCopyWith<_$RenunganImpl> get copyWith =>
@@ -204,8 +214,11 @@ abstract class _Renungan extends Renungan {
   String get url;
   @override
   String get imageUrl;
+
+  /// Create a copy of Renungan
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$RenunganImplCopyWith<_$RenunganImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -53,7 +53,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                         .changeFontStyle(defaultFontStyle);
                     Fluttertoast.cancel();
                     Fluttertoast.showToast(msg: 'Settings saved'.tr());
-                    router.pop();
+                    router.maybePop();
                   }
                 });
               },

@@ -12,7 +12,7 @@ part of 'pericope.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Pericope _$PericopeFromJson(Map<String, dynamic> json) {
   return _Pericope.fromJson(json);
@@ -32,8 +32,12 @@ mixin _$Pericope {
   @JsonKey(name: 't')
   String? get title => throw _privateConstructorUsedError;
 
+  /// Serializes this Pericope to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Pericope
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $PericopeCopyWith<Pericope> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,6 +66,8 @@ class _$PericopeCopyWithImpl<$Res, $Val extends Pericope>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Pericope
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -126,6 +132,8 @@ class __$$PericopeImplCopyWithImpl<$Res>
       _$PericopeImpl _value, $Res Function(_$PericopeImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Pericope
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -217,12 +225,14 @@ class _$PericopeImpl extends _Pericope {
             (identical(other.title, title) || other.title == title));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, s, bookId, chapterId, verseId, title);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Pericope
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$PericopeImplCopyWith<_$PericopeImpl> get copyWith =>
@@ -266,8 +276,11 @@ abstract class _Pericope extends Pericope {
   @override
   @JsonKey(name: 't')
   String? get title;
+
+  /// Create a copy of Pericope
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PericopeImplCopyWith<_$PericopeImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

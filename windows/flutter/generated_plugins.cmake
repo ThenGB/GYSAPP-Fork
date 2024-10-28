@@ -7,15 +7,14 @@ list(APPEND FLUTTER_PLUGIN_LIST
   audioplayers_windows
   awesome_notifications
   cloud_firestore
-  connectivity_plus_windows
+  connectivity_plus
   firebase_auth
   firebase_core
   firebase_storage
+  flutter_inappwebview_windows
   flutter_tts
-  irondash_engine_context
   permission_handler_windows
   share_plus
-  super_native_extensions
   url_launcher_windows
 )
 

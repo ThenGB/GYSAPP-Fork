@@ -8,10 +8,10 @@ part of 'bible_book.dart';
 
 _$BibleBookImpl _$$BibleBookImplFromJson(Map<String, dynamic> json) =>
     _$BibleBookImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       shortName: json['bs'] as String?,
       longName: json['bl'] as String?,
-      chapterCount: json['c'] as int?,
+      chapterCount: (json['c'] as num?)?.toInt(),
     );
 
 Map<String, dynamic> _$$BibleBookImplToJson(_$BibleBookImpl instance) =>

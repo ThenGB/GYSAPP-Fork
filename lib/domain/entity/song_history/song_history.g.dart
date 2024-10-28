@@ -8,7 +8,7 @@ part of 'song_history.dart';
 
 _$SongHistoryImpl _$$SongHistoryImplFromJson(Map<String, dynamic> json) =>
     _$SongHistoryImpl(
-      index: json['index'] as int,
+      index: (json['index'] as num).toInt(),
       bookCode: json['bookCode'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
     );

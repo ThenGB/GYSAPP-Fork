@@ -8,7 +8,7 @@ part of 'song_note.dart';
 
 _$SongNoteImpl _$$SongNoteImplFromJson(Map<String, dynamic> json) =>
     _$SongNoteImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       song: Song.fromJson(json['song'] as Map<String, dynamic>),
       text: json['text'] as String?,
       createdDate: DateTime.parse(json['createdDate'] as String),

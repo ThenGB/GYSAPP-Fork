@@ -122,7 +122,7 @@ class BibleState with _$BibleState {
         result = GoogleFonts.openSansTextTheme();
         break;
       case 'Gentium Basic':
-        result = GoogleFonts.gentiumBookBasicTextTheme();
+        result = GoogleFonts.gentiumBookPlusTextTheme();
         break;
       case 'Arial':
         result = GoogleFonts.ptSansTextTheme();
@@ -191,7 +191,7 @@ class BibleState with _$BibleState {
       case 'Open Sans':
         return GoogleFonts.openSansTextTheme(textTheme);
       case 'Gentium Basic':
-        return GoogleFonts.gentiumBookBasicTextTheme(textTheme);
+        return GoogleFonts.gentiumBookPlusTextTheme(textTheme);
       case 'Arial':
         return GoogleFonts.ptSansTextTheme(textTheme);
       default:

@@ -12,7 +12,7 @@ part of 'faith_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 FaithState _$FaithStateFromJson(Map<String, dynamic> json) {
   return _FaithState.fromJson(json);
@@ -29,8 +29,12 @@ mixin _$FaithState {
   double get defaultTextScale => throw _privateConstructorUsedError;
   double get defaultTextHeight => throw _privateConstructorUsedError;
 
+  /// Serializes this FaithState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of FaithState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $FaithStateCopyWith<FaithState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,6 +66,8 @@ class _$FaithStateCopyWithImpl<$Res, $Val extends FaithState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of FaithState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -138,6 +144,8 @@ class __$$FaithStateImplCopyWithImpl<$Res>
       _$FaithStateImpl _value, $Res Function(_$FaithStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of FaithState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -277,7 +285,7 @@ class _$FaithStateImpl extends _FaithState {
                 other.defaultTextHeight == defaultTextHeight));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -290,7 +298,9 @@ class _$FaithStateImpl extends _FaithState {
       defaultTextScale,
       defaultTextHeight);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of FaithState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$FaithStateImplCopyWith<_$FaithStateImpl> get copyWith =>
@@ -335,8 +345,11 @@ abstract class _FaithState extends FaithState {
   double get defaultTextScale;
   @override
   double get defaultTextHeight;
+
+  /// Create a copy of FaithState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$FaithStateImplCopyWith<_$FaithStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

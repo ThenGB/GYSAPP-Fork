@@ -46,7 +46,7 @@ class _DashboardViewState extends State<DashboardView> {
   Future<void> initUniLinks() async {
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
-      _appLinks.allUriLinkStream.listen((uri) {
+      _appLinks.uriLinkStream.listen((uri) {
         log(uri.toString());
         router.push(WebpageRoute(url: uri.toString()));
         // Do something (navigation, ...)
@@ -194,7 +194,7 @@ class _DashboardViewState extends State<DashboardView> {
                 return true;
               },
               child: AutoTabsScaffold(
-                backgroundColor: context.colorScheme.background,
+                backgroundColor: context.colorScheme.surface,
                 routes: pages.map((e) => e['page'] as PageRouteInfo).toList(),
                 transitionBuilder: (context, child, animation) {
                   return Column(
@@ -264,7 +264,7 @@ class _DashboardViewState extends State<DashboardView> {
                                     child: BottomNavigationBar(
                                       elevation: 8,
                                       backgroundColor:
-                                          context.colorScheme.background,
+                                          context.colorScheme.surface,
                                       currentIndex: tabsRouter.activeIndex,
                                       selectedItemColor: context
                                           .primaryTextTheme.bodyMedium!.color,

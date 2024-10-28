@@ -141,7 +141,7 @@ class _BibleViewerState extends State<BibleViewer> {
                             //   mode: NoteMode.viewOnly,
                             //   onSave: (data) {
                             //     cubit.saveNote(data);
-                            //     router.pop();
+                            //     router.maybePop();
                             //     // router.push(BibleNoteListRoute(cubit: context.read()));
                             //   },
                             // ));

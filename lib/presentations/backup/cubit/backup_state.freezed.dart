@@ -12,7 +12,7 @@ part of 'backup_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 BackupState _$BackupStateFromJson(Map<String, dynamic> json) {
   return _BackupState.fromJson(json);
@@ -28,8 +28,12 @@ mixin _$BackupState {
   List<String> get localDataSummary => throw _privateConstructorUsedError;
   AppBackupData? get appBackupData => throw _privateConstructorUsedError;
 
+  /// Serializes this BackupState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BackupStateCopyWith<BackupState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -62,6 +66,8 @@ class _$BackupStateCopyWithImpl<$Res, $Val extends BackupState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -105,6 +111,8 @@ class _$BackupStateCopyWithImpl<$Res, $Val extends BackupState>
     ) as $Val);
   }
 
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AppBackupDataCopyWith<$Res>? get appBackupData {
@@ -147,6 +155,8 @@ class __$$BackupStateImplCopyWithImpl<$Res>
       _$BackupStateImpl _value, $Res Function(_$BackupStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -260,7 +270,7 @@ class _$BackupStateImpl extends _BackupState {
                 other.appBackupData == appBackupData));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -272,7 +282,9 @@ class _$BackupStateImpl extends _BackupState {
       const DeepCollectionEquality().hash(_localDataSummary),
       appBackupData);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BackupStateImplCopyWith<_$BackupStateImpl> get copyWith =>
@@ -314,8 +326,11 @@ abstract class _BackupState extends BackupState {
   List<String> get localDataSummary;
   @override
   AppBackupData? get appBackupData;
+
+  /// Create a copy of BackupState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BackupStateImplCopyWith<_$BackupStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

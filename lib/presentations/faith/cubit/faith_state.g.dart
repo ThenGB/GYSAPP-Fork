@@ -9,7 +9,7 @@ part of 'faith_state.dart';
 _$FaithStateImpl _$$FaithStateImplFromJson(Map<String, dynamic> json) =>
     _$FaithStateImpl(
       selectedFaith: (json['selectedFaith'] as List<dynamic>?)
-              ?.map((e) => e as int)
+              ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
       notes: (json['notes'] as List<dynamic>?)
@@ -17,7 +17,7 @@ _$FaithStateImpl _$$FaithStateImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       pdfLoadingList: (json['pdfLoadingList'] as List<dynamic>?)
-              ?.map((e) => e as int)
+              ?.map((e) => (e as num).toInt())
               .toSet() ??
           const {},
       sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',

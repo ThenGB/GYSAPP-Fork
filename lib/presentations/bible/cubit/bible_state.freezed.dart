@@ -12,7 +12,7 @@ part of 'bible_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 BibleState _$BibleStateFromJson(Map<String, dynamic> json) {
   return _BibleState.fromJson(json);
@@ -62,8 +62,12 @@ mixin _$BibleState {
   double get speedRate => throw _privateConstructorUsedError;
   double get pitchRate => throw _privateConstructorUsedError;
 
+  /// Serializes this BibleState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $BibleStateCopyWith<BibleState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -134,6 +138,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -337,6 +343,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     ) as $Val);
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get currentBible {
@@ -349,6 +357,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get prevBible {
@@ -361,6 +371,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get currentBibleSplit {
@@ -373,6 +385,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get prevBibleSplit {
@@ -385,6 +399,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $BibleBookCopyWith<$Res>? get currentBook {
@@ -397,6 +413,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $BibleBookCopyWith<$Res>? get currentBookSplit {
@@ -409,6 +427,8 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     });
   }
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get todayReading {
@@ -495,6 +515,8 @@ class __$$BibleStateImplCopyWithImpl<$Res>
       _$BibleStateImpl _value, $Res Function(_$BibleStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -740,8 +762,8 @@ class _$BibleStateImpl extends _BibleState {
       this.currentEndWord = 0,
       final List<BibleBook> selectedFilterBooks = const [],
       final Map<String, Map> voices = const {},
-      this.speedRate = 0.35,
-      this.pitchRate = 0.9})
+      this.speedRate = .35,
+      this.pitchRate = .90})
       : _bibleCodes = bibleCodes,
         _books = books,
         _booksSplit = booksSplit,
@@ -1073,7 +1095,7 @@ class _$BibleStateImpl extends _BibleState {
                 other.pitchRate == pitchRate));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hashAll([
         runtimeType,
@@ -1118,7 +1140,9 @@ class _$BibleStateImpl extends _BibleState {
         pitchRate
       ]);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
@@ -1256,8 +1280,11 @@ abstract class _BibleState extends BibleState {
   double get speedRate;
   @override
   double get pitchRate;
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

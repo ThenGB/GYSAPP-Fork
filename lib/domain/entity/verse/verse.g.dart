@@ -12,7 +12,7 @@ _$VerseImpl _$$VerseImplFromJson(Map<String, dynamic> json) => _$VerseImpl(
       chapterId: dynamicToInt(json['c']),
       verseId: dynamicToInt(json['v']),
       verse: json['t'] as String?,
-      revisionId: json['r'] as int?,
+      revisionId: (json['r'] as num?)?.toInt(),
       c1: dynamicToString(json['c1']),
       v1: dynamicToString(json['v1']),
       color: _colorFromJson(json['color']),

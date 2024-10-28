@@ -11,7 +11,7 @@ _$ImageBannerImpl _$$ImageBannerImplFromJson(Map<String, dynamic> json) =>
       description: json['description'] as String?,
       imageUrl: json['imageUrl'] as String?,
       linkUrl: json['linkUrl'] as String?,
-      order: json['order'] as int?,
+      order: (json['order'] as num?)?.toInt(),
       title: json['title'] as String?,
     );
 

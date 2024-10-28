@@ -8,14 +8,14 @@ part of 'account_entity.dart';
 
 _$AccountImpl _$$AccountImplFromJson(Map<String, dynamic> json) =>
     _$AccountImpl(
-      id: json['id'] as int? ?? 0,
+      id: (json['id'] as num?)?.toInt() ?? 0,
       email: json['email'] as String?,
       name: json['name'] as String?,
       type: json['type'] as String?,
       mobilePhone: json['mobilephone'] as String?,
       profilePicture: json['profilepicture'] as String?,
       status: json['status'] as String?,
-      branchId: json['branchid'] as int? ?? 0,
+      branchId: (json['branchid'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$AccountImplToJson(_$AccountImpl instance) =>

@@ -12,7 +12,7 @@ part of 'app_backup_data.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 AppBackupData _$AppBackupDataFromJson(Map<String, dynamic> json) {
   return _AppBackupData.fromJson(json);
@@ -29,8 +29,12 @@ mixin _$AppBackupData {
   @JsonKey(name: 'settings_state')
   SettingsState? get settingsState => throw _privateConstructorUsedError;
 
+  /// Serializes this AppBackupData to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $AppBackupDataCopyWith<AppBackupData> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -63,6 +67,8 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -91,6 +97,8 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
     ) as $Val);
   }
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $BibleStateCopyWith<$Res>? get bibleState {
@@ -103,6 +111,8 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
     });
   }
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $SongStateCopyWith<$Res>? get songState {
@@ -115,6 +125,8 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
     });
   }
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $FaithStateCopyWith<$Res>? get faithState {
@@ -127,6 +139,8 @@ class _$AppBackupDataCopyWithImpl<$Res, $Val extends AppBackupData>
     });
   }
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $SettingsStateCopyWith<$Res>? get settingsState {
@@ -172,6 +186,8 @@ class __$$AppBackupDataImplCopyWithImpl<$Res>
       _$AppBackupDataImpl _value, $Res Function(_$AppBackupDataImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -247,12 +263,14 @@ class _$AppBackupDataImpl extends _AppBackupData {
                 other.settingsState == settingsState));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, bibleState, songState, faithState, settingsState);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$AppBackupDataImplCopyWith<_$AppBackupDataImpl> get copyWith =>
@@ -290,8 +308,11 @@ abstract class _AppBackupData extends AppBackupData {
   @override
   @JsonKey(name: 'settings_state')
   SettingsState? get settingsState;
+
+  /// Create a copy of AppBackupData
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$AppBackupDataImplCopyWith<_$AppBackupDataImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

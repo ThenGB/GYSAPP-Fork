@@ -10,7 +10,7 @@ _$AuthStateImpl _$$AuthStateImplFromJson(Map<String, dynamic> json) =>
     _$AuthStateImpl(
       idToken: json['idToken'] as String?,
       isLoading: json['isLoading'] as bool? ?? false,
-      progress: json['progress'] as int? ?? 0,
+      progress: (json['progress'] as num?)?.toInt() ?? 0,
     );
 
 Map<String, dynamic> _$$AuthStateImplToJson(_$AuthStateImpl instance) =>

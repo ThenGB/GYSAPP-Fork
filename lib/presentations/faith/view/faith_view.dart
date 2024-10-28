@@ -565,7 +565,7 @@ class SelectedFaithMenu extends StatelessWidget {
                         mode: NoteMode.write,
                         onSave: (data) {
                           context.read<FaithCubit>().saveNote(data);
-                          router.pop();
+                          router.maybePop();
                           router
                               .push(FaithNoteListRoute(cubit: context.read()));
                         },

@@ -12,7 +12,7 @@ part of 'truevoice_entity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 TrueVoice _$TrueVoiceFromJson(Map<String, dynamic> json) {
   return _TrueVoice.fromJson(json);
@@ -25,8 +25,12 @@ mixin _$TrueVoice {
   String get url => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
 
+  /// Serializes this TrueVoice to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of TrueVoice
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $TrueVoiceCopyWith<TrueVoice> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$TrueVoiceCopyWithImpl<$Res, $Val extends TrueVoice>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of TrueVoice
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -97,6 +103,8 @@ class __$$TrueVoiceImplCopyWithImpl<$Res>
       _$TrueVoiceImpl _value, $Res Function(_$TrueVoiceImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of TrueVoice
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,12 +174,14 @@ class _$TrueVoiceImpl extends _TrueVoice {
                 other.imageUrl == imageUrl));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, title, description, url, imageUrl);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of TrueVoice
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$TrueVoiceImplCopyWith<_$TrueVoiceImpl> get copyWith =>
@@ -204,8 +214,11 @@ abstract class _TrueVoice extends TrueVoice {
   String get url;
   @override
   String get imageUrl;
+
+  /// Create a copy of TrueVoice
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$TrueVoiceImplCopyWith<_$TrueVoiceImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

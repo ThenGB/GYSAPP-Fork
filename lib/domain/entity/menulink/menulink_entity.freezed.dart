@@ -12,7 +12,7 @@ part of 'menulink_entity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Menulink _$MenulinkFromJson(Map<String, dynamic> json) {
   return _Menulink.fromJson(json);
@@ -25,8 +25,12 @@ mixin _$Menulink {
   String get url => throw _privateConstructorUsedError;
   bool get enabled => throw _privateConstructorUsedError;
 
+  /// Serializes this Menulink to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Menulink
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $MenulinkCopyWith<Menulink> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$MenulinkCopyWithImpl<$Res, $Val extends Menulink>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Menulink
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -97,6 +103,8 @@ class __$$MenulinkImplCopyWithImpl<$Res>
       _$MenulinkImpl _value, $Res Function(_$MenulinkImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Menulink
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -164,11 +172,13 @@ class _$MenulinkImpl extends _Menulink {
             (identical(other.enabled, enabled) || other.enabled == enabled));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, label, icon, url, enabled);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Menulink
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$MenulinkImplCopyWith<_$MenulinkImpl> get copyWith =>
@@ -201,8 +211,11 @@ abstract class _Menulink extends Menulink {
   String get url;
   @override
   bool get enabled;
+
+  /// Create a copy of Menulink
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$MenulinkImplCopyWith<_$MenulinkImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -41,7 +41,7 @@ class FaithState with _$FaithState {
         result = GoogleFonts.openSansTextTheme();
         break;
       case 'Gentium Basic':
-        result = GoogleFonts.gentiumBookBasicTextTheme();
+        result = GoogleFonts.gentiumBookPlusTextTheme();
         break;
       case 'Arial':
         result = GoogleFonts.ptSansTextTheme();
@@ -103,7 +103,7 @@ class FaithState with _$FaithState {
       case 'Open Sans':
         return GoogleFonts.openSansTextTheme();
       case 'Gentium Basic':
-        return GoogleFonts.gentiumBookBasicTextTheme();
+        return GoogleFonts.gentiumBookPlusTextTheme();
       case 'Arial':
         return GoogleFonts.ptSansTextTheme();
       default:

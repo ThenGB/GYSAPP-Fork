@@ -586,7 +586,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                           () {
                             router.push(LoginRoute(
                               onLoggedIn: (token) {
-                                router.pop();
+                                router.maybePop();
                                 context
                                     .read<DashboardCubit>()
                                     .loginSuccessCallback(token);

@@ -9,296 +9,6 @@
 
 part of 'router.dart';
 
-abstract class _$AppRouter extends RootStackRouter {
-  // ignore: unused_element
-  _$AppRouter({super.navigatorKey});
-
-  @override
-  final Map<String, PageFactory> pagesMap = {
-    BackupRoute.name: (routeData) {
-      final args = routeData.argsAs<BackupRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BackupView(
-          key: args.key,
-          data: args.data,
-          onSynced: args.onSynced,
-        ),
-      );
-    },
-    BibleAudioSettingRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleAudioSettingRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleAudioSettingView(
-          key: args.key,
-          initialVoices: args.initialVoices,
-          initialPitchRate: args.initialPitchRate,
-          initialSpeedRate: args.initialSpeedRate,
-          onSave: args.onSave,
-        ),
-      );
-    },
-    BibleListRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleListView(
-          key: args.key,
-          books: args.books,
-          getBibles: args.getBibles,
-          onSelected: args.onSelected,
-          textScale: args.textScale,
-          bibleCode: args.bibleCode,
-        ),
-      );
-    },
-    BibleNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleNoteListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleNoteListView(
-          key: args.key,
-          cubit: args.cubit,
-          initialSearch: args.initialSearch,
-        ),
-      );
-    },
-    BibleNoteRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleNoteRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleNoteView(
-          key: args.key,
-          initialData: args.initialData,
-          cubit: args.cubit,
-          mode: args.mode,
-          onSave: args.onSave,
-        ),
-      );
-    },
-    BibleSearchFilterRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleSearchFilterRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleSearchFilterView(
-          key: args.key,
-          allBooks: args.allBooks,
-          initialValues: args.initialValues,
-          onFiltered: args.onFiltered,
-          textScale: args.textScale,
-          bibleCode: args.bibleCode,
-        ),
-      );
-    },
-    BibleSearchRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleSearchRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleSearchView(
-          key: args.key,
-          cubit: args.cubit,
-          onTap: args.onTap,
-        ),
-      );
-    },
-    BibleVersionRoute.name: (routeData) {
-      final args = routeData.argsAs<BibleVersionRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: BibleVersionView(
-          key: args.key,
-          dashboardCubit: args.dashboardCubit,
-        ),
-      );
-    },
-    BibleRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const BibleView(),
-      );
-    },
-    DashboardRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const DashboardView(),
-      );
-    },
-    FaithNoteListRoute.name: (routeData) {
-      final args = routeData.argsAs<FaithNoteListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: FaithNoteListView(
-          key: args.key,
-          cubit: args.cubit,
-        ),
-      );
-    },
-    FaithNoteRoute.name: (routeData) {
-      final args = routeData.argsAs<FaithNoteRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: FaithNoteView(
-          key: args.key,
-          initialData: args.initialData,
-          cubit: args.cubit,
-          mode: args.mode,
-          onSave: args.onSave,
-        ),
-      );
-    },
-    FaithRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const FaithView(),
-      );
-    },
-    FontSettingRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const FontSettingView(),
-      );
-    },
-    HomeRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const HomeView(),
-      );
-    },
-    InitialRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const InitialView(),
-      );
-    },
-    LiteratureKesaksianRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureKesaksianView(),
-      );
-    },
-    LiteraturePanduanKitabRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteraturePanduanKitabView(),
-      );
-    },
-    LiteratureRenunganRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureRenunganView(),
-      );
-    },
-    LiteratureRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureView(),
-      );
-    },
-    LiteratureWartaRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const LiteratureWartaView(),
-      );
-    },
-    LoginRoute.name: (routeData) {
-      final args = routeData.argsAs<LoginRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: WrappedRoute(
-            child: LoginView(
-          key: args.key,
-          onLoggedIn: args.onLoggedIn,
-        )),
-      );
-    },
-    ReportRoute.name: (routeData) {
-      final args = routeData.argsAs<ReportRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: ReportView(
-          key: args.key,
-          account: args.account,
-          onLoggedIn: args.onLoggedIn,
-        ),
-      );
-    },
-    SettingsRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SettingsView(),
-      );
-    },
-    SongListRoute.name: (routeData) {
-      final args = routeData.argsAs<SongListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: SongListView(
-          key: args.key,
-          books: args.books,
-          currentBook: args.currentBook,
-          onTapPageNumber: args.onTapPageNumber,
-          onChangeBookCode: args.onChangeBookCode,
-          isFavorite: args.isFavorite,
-          onFavorite: args.onFavorite,
-          favoriteBooks: args.favoriteBooks,
-          onTapFavorite: args.onTapFavorite,
-          initialSearchText: args.initialSearchText,
-          onSearchTermsChanged: args.onSearchTermsChanged,
-          onBack: args.onBack,
-          onPlayFavorite: args.onPlayFavorite,
-        ),
-      );
-    },
-    SongNoteRoute.name: (routeData) {
-      final args = routeData.argsAs<SongNoteRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: SongNoteView(
-          key: args.key,
-          initialData: args.initialData,
-          cubit: args.cubit,
-          mode: args.mode,
-          onSave: args.onSave,
-        ),
-      );
-    },
-    SongNotesListRoute.name: (routeData) {
-      final args = routeData.argsAs<SongNotesListRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: SongNotesListView(
-          key: args.key,
-          cubit: args.cubit,
-        ),
-      );
-    },
-    SongSyncRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SongSyncView(),
-      );
-    },
-    SongRoute.name: (routeData) {
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: const SongView(),
-      );
-    },
-    WebpageRoute.name: (routeData) {
-      final args = routeData.argsAs<WebpageRouteArgs>();
-      return AutoRoutePage<dynamic>(
-        routeData: routeData,
-        child: WebpageView(
-          key: args.key,
-          url: args.url,
-          getNavColor: args.getNavColor,
-        ),
-      );
-    },
-  };
-}
-
 /// generated route for
 /// [BackupView]
 class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
@@ -319,7 +29,17 @@ class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
 
   static const String name = 'BackupRoute';
 
-  static const PageInfo<BackupRouteArgs> page = PageInfo<BackupRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BackupRouteArgs>();
+      return BackupView(
+        key: args.key,
+        data: args.data,
+        onSynced: args.onSynced,
+      );
+    },
+  );
 }
 
 class BackupRouteArgs {
@@ -369,8 +89,19 @@ class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
 
   static const String name = 'BibleAudioSettingRoute';
 
-  static const PageInfo<BibleAudioSettingRouteArgs> page =
-      PageInfo<BibleAudioSettingRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleAudioSettingRouteArgs>();
+      return BibleAudioSettingView(
+        key: args.key,
+        initialVoices: args.initialVoices,
+        initialPitchRate: args.initialPitchRate,
+        initialSpeedRate: args.initialSpeedRate,
+        onSave: args.onSave,
+      );
+    },
+  );
 }
 
 class BibleAudioSettingRouteArgs {
@@ -431,8 +162,20 @@ class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
 
   static const String name = 'BibleListRoute';
 
-  static const PageInfo<BibleListRouteArgs> page =
-      PageInfo<BibleListRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleListRouteArgs>();
+      return BibleListView(
+        key: args.key,
+        books: args.books,
+        getBibles: args.getBibles,
+        onSelected: args.onSelected,
+        textScale: args.textScale,
+        bibleCode: args.bibleCode,
+      );
+    },
+  );
 }
 
 class BibleListRouteArgs {
@@ -486,8 +229,17 @@ class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
 
   static const String name = 'BibleNoteListRoute';
 
-  static const PageInfo<BibleNoteListRouteArgs> page =
-      PageInfo<BibleNoteListRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleNoteListRouteArgs>();
+      return BibleNoteListView(
+        key: args.key,
+        cubit: args.cubit,
+        initialSearch: args.initialSearch,
+      );
+    },
+  );
 }
 
 class BibleNoteListRouteArgs {
@@ -533,8 +285,19 @@ class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
 
   static const String name = 'BibleNoteRoute';
 
-  static const PageInfo<BibleNoteRouteArgs> page =
-      PageInfo<BibleNoteRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleNoteRouteArgs>();
+      return BibleNoteView(
+        key: args.key,
+        initialData: args.initialData,
+        cubit: args.cubit,
+        mode: args.mode,
+        onSave: args.onSave,
+      );
+    },
+  );
 }
 
 class BibleNoteRouteArgs {
@@ -588,8 +351,20 @@ class BibleSearchFilterRoute extends PageRouteInfo<BibleSearchFilterRouteArgs> {
 
   static const String name = 'BibleSearchFilterRoute';
 
-  static const PageInfo<BibleSearchFilterRouteArgs> page =
-      PageInfo<BibleSearchFilterRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleSearchFilterRouteArgs>();
+      return BibleSearchFilterView(
+        key: args.key,
+        allBooks: args.allBooks,
+        initialValues: args.initialValues,
+        onFiltered: args.onFiltered,
+        textScale: args.textScale,
+        bibleCode: args.bibleCode,
+      );
+    },
+  );
 }
 
 class BibleSearchFilterRouteArgs {
@@ -640,8 +415,17 @@ class BibleSearchRoute extends PageRouteInfo<BibleSearchRouteArgs> {
 
   static const String name = 'BibleSearchRoute';
 
-  static const PageInfo<BibleSearchRouteArgs> page =
-      PageInfo<BibleSearchRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleSearchRouteArgs>();
+      return BibleSearchView(
+        key: args.key,
+        cubit: args.cubit,
+        onTap: args.onTap,
+      );
+    },
+  );
 }
 
 class BibleSearchRouteArgs {
@@ -681,8 +465,16 @@ class BibleVersionRoute extends PageRouteInfo<BibleVersionRouteArgs> {
 
   static const String name = 'BibleVersionRoute';
 
-  static const PageInfo<BibleVersionRouteArgs> page =
-      PageInfo<BibleVersionRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<BibleVersionRouteArgs>();
+      return BibleVersionView(
+        key: args.key,
+        dashboardCubit: args.dashboardCubit,
+      );
+    },
+  );
 }
 
 class BibleVersionRouteArgs {
@@ -712,7 +504,12 @@ class BibleRoute extends PageRouteInfo<void> {
 
   static const String name = 'BibleRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const BibleView();
+    },
+  );
 }
 
 /// generated route for
@@ -726,7 +523,12 @@ class DashboardRoute extends PageRouteInfo<void> {
 
   static const String name = 'DashboardRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const DashboardView();
+    },
+  );
 }
 
 /// generated route for
@@ -747,8 +549,16 @@ class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
 
   static const String name = 'FaithNoteListRoute';
 
-  static const PageInfo<FaithNoteListRouteArgs> page =
-      PageInfo<FaithNoteListRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<FaithNoteListRouteArgs>();
+      return FaithNoteListView(
+        key: args.key,
+        cubit: args.cubit,
+      );
+    },
+  );
 }
 
 class FaithNoteListRouteArgs {
@@ -791,8 +601,19 @@ class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
 
   static const String name = 'FaithNoteRoute';
 
-  static const PageInfo<FaithNoteRouteArgs> page =
-      PageInfo<FaithNoteRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<FaithNoteRouteArgs>();
+      return FaithNoteView(
+        key: args.key,
+        initialData: args.initialData,
+        cubit: args.cubit,
+        mode: args.mode,
+        onSave: args.onSave,
+      );
+    },
+  );
 }
 
 class FaithNoteRouteArgs {
@@ -831,7 +652,12 @@ class FaithRoute extends PageRouteInfo<void> {
 
   static const String name = 'FaithRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const FaithView();
+    },
+  );
 }
 
 /// generated route for
@@ -845,7 +671,12 @@ class FontSettingRoute extends PageRouteInfo<void> {
 
   static const String name = 'FontSettingRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const FontSettingView();
+    },
+  );
 }
 
 /// generated route for
@@ -859,7 +690,12 @@ class HomeRoute extends PageRouteInfo<void> {
 
   static const String name = 'HomeRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const HomeView();
+    },
+  );
 }
 
 /// generated route for
@@ -873,7 +709,12 @@ class InitialRoute extends PageRouteInfo<void> {
 
   static const String name = 'InitialRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const InitialView();
+    },
+  );
 }
 
 /// generated route for
@@ -887,7 +728,12 @@ class LiteratureKesaksianRoute extends PageRouteInfo<void> {
 
   static const String name = 'LiteratureKesaksianRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LiteratureKesaksianView();
+    },
+  );
 }
 
 /// generated route for
@@ -901,7 +747,12 @@ class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
 
   static const String name = 'LiteraturePanduanKitabRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LiteraturePanduanKitabView();
+    },
+  );
 }
 
 /// generated route for
@@ -915,7 +766,12 @@ class LiteratureRenunganRoute extends PageRouteInfo<void> {
 
   static const String name = 'LiteratureRenunganRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LiteratureRenunganView();
+    },
+  );
 }
 
 /// generated route for
@@ -929,7 +785,12 @@ class LiteratureRoute extends PageRouteInfo<void> {
 
   static const String name = 'LiteratureRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LiteratureView();
+    },
+  );
 }
 
 /// generated route for
@@ -943,7 +804,12 @@ class LiteratureWartaRoute extends PageRouteInfo<void> {
 
   static const String name = 'LiteratureWartaRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const LiteratureWartaView();
+    },
+  );
 }
 
 /// generated route for
@@ -964,7 +830,17 @@ class LoginRoute extends PageRouteInfo<LoginRouteArgs> {
 
   static const String name = 'LoginRoute';
 
-  static const PageInfo<LoginRouteArgs> page = PageInfo<LoginRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LoginRouteArgs>();
+      return WrappedRoute(
+          child: LoginView(
+        key: args.key,
+        onLoggedIn: args.onLoggedIn,
+      ));
+    },
+  );
 }
 
 class LoginRouteArgs {
@@ -1003,7 +879,17 @@ class ReportRoute extends PageRouteInfo<ReportRouteArgs> {
 
   static const String name = 'ReportRoute';
 
-  static const PageInfo<ReportRouteArgs> page = PageInfo<ReportRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<ReportRouteArgs>();
+      return ReportView(
+        key: args.key,
+        account: args.account,
+        onLoggedIn: args.onLoggedIn,
+      );
+    },
+  );
 }
 
 class ReportRouteArgs {
@@ -1036,7 +922,12 @@ class SettingsRoute extends PageRouteInfo<void> {
 
   static const String name = 'SettingsRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SettingsView();
+    },
+  );
 }
 
 /// generated route for
@@ -1079,8 +970,27 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
 
   static const String name = 'SongListRoute';
 
-  static const PageInfo<SongListRouteArgs> page =
-      PageInfo<SongListRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SongListRouteArgs>();
+      return SongListView(
+        key: args.key,
+        books: args.books,
+        currentBook: args.currentBook,
+        onTapPageNumber: args.onTapPageNumber,
+        onChangeBookCode: args.onChangeBookCode,
+        isFavorite: args.isFavorite,
+        onFavorite: args.onFavorite,
+        favoriteBooks: args.favoriteBooks,
+        onTapFavorite: args.onTapFavorite,
+        initialSearchText: args.initialSearchText,
+        onSearchTermsChanged: args.onSearchTermsChanged,
+        onBack: args.onBack,
+        onPlayFavorite: args.onPlayFavorite,
+      );
+    },
+  );
 }
 
 class SongListRouteArgs {
@@ -1156,8 +1066,19 @@ class SongNoteRoute extends PageRouteInfo<SongNoteRouteArgs> {
 
   static const String name = 'SongNoteRoute';
 
-  static const PageInfo<SongNoteRouteArgs> page =
-      PageInfo<SongNoteRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SongNoteRouteArgs>();
+      return SongNoteView(
+        key: args.key,
+        initialData: args.initialData,
+        cubit: args.cubit,
+        mode: args.mode,
+        onSave: args.onSave,
+      );
+    },
+  );
 }
 
 class SongNoteRouteArgs {
@@ -1203,8 +1124,16 @@ class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
 
   static const String name = 'SongNotesListRoute';
 
-  static const PageInfo<SongNotesListRouteArgs> page =
-      PageInfo<SongNotesListRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<SongNotesListRouteArgs>();
+      return SongNotesListView(
+        key: args.key,
+        cubit: args.cubit,
+      );
+    },
+  );
 }
 
 class SongNotesListRouteArgs {
@@ -1234,7 +1163,12 @@ class SongSyncRoute extends PageRouteInfo<void> {
 
   static const String name = 'SongSyncRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SongSyncView();
+    },
+  );
 }
 
 /// generated route for
@@ -1248,7 +1182,12 @@ class SongRoute extends PageRouteInfo<void> {
 
   static const String name = 'SongRoute';
 
-  static const PageInfo<void> page = PageInfo<void>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SongView();
+    },
+  );
 }
 
 /// generated route for
@@ -1271,8 +1210,17 @@ class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
 
   static const String name = 'WebpageRoute';
 
-  static const PageInfo<WebpageRouteArgs> page =
-      PageInfo<WebpageRouteArgs>(name);
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<WebpageRouteArgs>();
+      return WebpageView(
+        key: args.key,
+        url: args.url,
+        getNavColor: args.getNavColor,
+      );
+    },
+  );
 }
 
 class WebpageRouteArgs {

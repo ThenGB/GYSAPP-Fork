@@ -99,13 +99,13 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
                     leading: Icon(Icons.insert_drive_file_rounded),
                     title: Text('From local'.tr()),
                     onTap: () {
-                      router.pop();
+                      router.maybePop();
                       widget.fromLocal();
                     },
                   ),
                   ListTile(
                     onTap: () {
-                      router.pop();
+                      router.maybePop();
                       widget.fromNetwork();
                     },
                     leading: Icon(Icons.filter_drama_rounded),

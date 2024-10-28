@@ -12,7 +12,7 @@ part of 'verse.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Verse _$VerseFromJson(Map<String, dynamic> json) {
   return _Verse.fromJson(json);
@@ -39,8 +39,12 @@ mixin _$Verse {
   @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
   Color? get color => throw _privateConstructorUsedError;
 
+  /// Serializes this Verse to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Verse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $VerseCopyWith<Verse> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -78,6 +82,8 @@ class _$VerseCopyWithImpl<$Res, $Val extends Verse>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Verse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,6 +172,8 @@ class __$$VerseImplCopyWithImpl<$Res>
       _$VerseImpl _value, $Res Function(_$VerseImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Verse
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -296,12 +304,14 @@ class _$VerseImpl extends _Verse {
             (identical(other.color, color) || other.color == color));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, bookId, chapterId, verseId,
       verse, revisionId, c1, v1, color);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Verse
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$VerseImplCopyWith<_$VerseImpl> get copyWith =>
@@ -364,8 +374,11 @@ abstract class _Verse extends Verse {
   @override
   @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
   Color? get color;
+
+  /// Create a copy of Verse
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$VerseImplCopyWith<_$VerseImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

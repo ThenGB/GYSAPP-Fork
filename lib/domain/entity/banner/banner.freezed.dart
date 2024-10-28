@@ -12,7 +12,7 @@ part of 'banner.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ImageBanner _$ImageBannerFromJson(Map<String, dynamic> json) {
   return _ImageBanner.fromJson(json);
@@ -31,8 +31,12 @@ mixin _$ImageBanner {
   @JsonKey(name: 'title')
   String? get title => throw _privateConstructorUsedError;
 
+  /// Serializes this ImageBanner to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ImageBanner
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ImageBannerCopyWith<ImageBanner> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -61,6 +65,8 @@ class _$ImageBannerCopyWithImpl<$Res, $Val extends ImageBanner>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ImageBanner
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -119,6 +125,8 @@ class __$$ImageBannerImplCopyWithImpl<$Res>
       _$ImageBannerImpl _value, $Res Function(_$ImageBannerImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ImageBanner
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -202,12 +210,14 @@ class _$ImageBannerImpl extends _ImageBanner {
             (identical(other.title, title) || other.title == title));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, description, imageUrl, linkUrl, order, title);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ImageBanner
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ImageBannerImplCopyWith<_$ImageBannerImpl> get copyWith =>
@@ -248,8 +258,11 @@ abstract class _ImageBanner extends ImageBanner {
   @override
   @JsonKey(name: 'title')
   String? get title;
+
+  /// Create a copy of ImageBanner
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ImageBannerImplCopyWith<_$ImageBannerImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

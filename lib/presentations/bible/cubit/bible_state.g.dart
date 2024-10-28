@@ -107,8 +107,8 @@ _$BibleStateImpl _$$BibleStateImplFromJson(Map<String, dynamic> json) =>
       enableAudio: json['enableAudio'] as bool? ?? false,
       isSpeaking: json['isSpeaking'] as bool? ?? false,
       currentWord: json['currentWord'] as String? ?? '',
-      currentStartWord: json['currentStartWord'] as int? ?? 0,
-      currentEndWord: json['currentEndWord'] as int? ?? 0,
+      currentStartWord: (json['currentStartWord'] as num?)?.toInt() ?? 0,
+      currentEndWord: (json['currentEndWord'] as num?)?.toInt() ?? 0,
       selectedFilterBooks: (json['selectedFilterBooks'] as List<dynamic>?)
               ?.map((e) => BibleBook.fromJson(e as Map<String, dynamic>))
               .toList() ??
@@ -117,8 +117,8 @@ _$BibleStateImpl _$$BibleStateImplFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as Map<String, dynamic>),
           ) ??
           const {},
-      speedRate: (json['speedRate'] as num?)?.toDouble() ?? 0.35,
-      pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? 0.9,
+      speedRate: (json['speedRate'] as num?)?.toDouble() ?? .35,
+      pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? .90,
     );
 
 Map<String, dynamic> _$$BibleStateImplToJson(_$BibleStateImpl instance) =>

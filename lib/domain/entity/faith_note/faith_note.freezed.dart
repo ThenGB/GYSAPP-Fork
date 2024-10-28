@@ -12,7 +12,7 @@ part of 'faith_note.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 FaithNote _$FaithNoteFromJson(Map<String, dynamic> json) {
   return _FaithNote.fromJson(json);
@@ -26,8 +26,12 @@ mixin _$FaithNote {
   DateTime get createdDate => throw _privateConstructorUsedError;
   DateTime get updatedDate => throw _privateConstructorUsedError;
 
+  /// Serializes this FaithNote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of FaithNote
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $FaithNoteCopyWith<FaithNote> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -55,6 +59,8 @@ class _$FaithNoteCopyWithImpl<$Res, $Val extends FaithNote>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of FaithNote
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -113,6 +119,8 @@ class __$$FaithNoteImplCopyWithImpl<$Res>
       _$FaithNoteImpl _value, $Res Function(_$FaithNoteImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of FaithNote
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -198,7 +206,7 @@ class _$FaithNoteImpl extends _FaithNote {
                 other.updatedDate == updatedDate));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -208,7 +216,9 @@ class _$FaithNoteImpl extends _FaithNote {
       createdDate,
       updatedDate);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of FaithNote
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$FaithNoteImplCopyWith<_$FaithNoteImpl> get copyWith =>
@@ -244,8 +254,11 @@ abstract class _FaithNote extends FaithNote {
   DateTime get createdDate;
   @override
   DateTime get updatedDate;
+
+  /// Create a copy of FaithNote
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$FaithNoteImplCopyWith<_$FaithNoteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

@@ -92,7 +92,7 @@ class SettingsView extends StatelessWidget {
                               null) {
                             router.push(LoginRoute(
                               onLoggedIn: (token) {
-                                router.pop();
+                                router.maybePop();
                                 context
                                     .read<DashboardCubit>()
                                     .loginSuccessCallback(token);
@@ -174,7 +174,7 @@ class SettingsView extends StatelessWidget {
                                             await context
                                                 .read<BibleCubit>()
                                                 .selectBibleCode(index);
-                                            router.pop();
+                                            router.maybePop();
                                           },
                                         ),
                                       );
@@ -202,7 +202,7 @@ class SettingsView extends StatelessWidget {
                                       context
                                           .read<BibleCubit>()
                                           .setTodayReading(newBible);
-                                      router.pop();
+                                      router.maybePop();
                                     },
                                     getBibles: (bookId, chapterId) async {
                                       if (bookId == null || chapterId == null) {
@@ -471,7 +471,7 @@ class SettingsView extends StatelessWidget {
                                   await context
                                       .read<DashboardCubit>()
                                       .loginSuccessCallback(token);
-                                  router.pop();
+                                  router.maybePop();
                                   Fluttertoast.cancel();
                                   Fluttertoast.showToast(
                                       msg: 'BERHASIL LOGIN!');
@@ -607,7 +607,7 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                                             }
                                             timeago.setLocaleMessages(
                                                 e.languageCode, message);
-                                            router.pop();
+                                            router.maybePop();
                                             Fluttertoast.cancel();
                                             Fluttertoast.showToast(
                                               msg: 'Language switched'.tr(),

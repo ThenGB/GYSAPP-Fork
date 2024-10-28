@@ -77,14 +77,14 @@ class _WebpageViewState extends State<WebpageView> {
                   : Colors.white,
           leading: BackButton(
             onPressed: () {
-              router.pop();
+              router.maybePop();
             },
           ),
           actions: [
             CloseButton(
               onPressed: () {
                 forceClose = true;
-                router.pop();
+                router.maybePop();
               },
             )
           ],
@@ -112,14 +112,12 @@ class _WebpageViewState extends State<WebpageView> {
           children: [
             InAppWebView(
               key: key,
-              initialUrlRequest: URLRequest(url: Uri.parse(widget.url)),
-              initialOptions: InAppWebViewGroupOptions(
-                crossPlatform: InAppWebViewOptions(
+              initialUrlRequest:
+                  URLRequest(url: WebUri.uri(Uri.parse(widget.url))),
+              initialSettings: InAppWebViewSettings(
                   mediaPlaybackRequiresUserGesture: false,
                   useShouldOverrideUrlLoading: true,
-                ),
-                ios: IOSInAppWebViewOptions(allowsInlineMediaPlayback: true),
-              ),
+                  allowsInlineMediaPlayback: true),
               onWebViewCreated: (c) {
                 controller = c;
               },

@@ -12,7 +12,7 @@ part of 'literature_warta_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 LiteratureWartaState _$LiteratureWartaStateFromJson(Map<String, dynamic> json) {
   return _LiteratureWartaState.fromJson(json);
@@ -23,8 +23,12 @@ mixin _$LiteratureWartaState {
   bool get isLoading => throw _privateConstructorUsedError;
   List<Warta> get items => throw _privateConstructorUsedError;
 
+  /// Serializes this LiteratureWartaState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of LiteratureWartaState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $LiteratureWartaStateCopyWith<LiteratureWartaState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$LiteratureWartaStateCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of LiteratureWartaState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -87,6 +93,8 @@ class __$$LiteratureWartaStateImplCopyWithImpl<$Res>
       $Res Function(_$LiteratureWartaStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of LiteratureWartaState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -144,12 +152,14 @@ class _$LiteratureWartaStateImpl extends _LiteratureWartaState {
             const DeepCollectionEquality().equals(other._items, _items));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, isLoading, const DeepCollectionEquality().hash(_items));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LiteratureWartaState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$LiteratureWartaStateImplCopyWith<_$LiteratureWartaStateImpl>
@@ -178,8 +188,11 @@ abstract class _LiteratureWartaState extends LiteratureWartaState {
   bool get isLoading;
   @override
   List<Warta> get items;
+
+  /// Create a copy of LiteratureWartaState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LiteratureWartaStateImplCopyWith<_$LiteratureWartaStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

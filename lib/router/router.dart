@@ -15,7 +15,7 @@ var router = AppRouter();
 @AutoRouterConfig(
   replaceInRouteName: 'View,Route',
 )
-class AppRouter extends _$AppRouter {
+class AppRouter extends RootStackRouter {
   @override
   List<AutoRoute> get routes => [
         CupertinoRoute(path: '/', page: InitialRoute.page),

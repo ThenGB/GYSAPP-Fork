@@ -175,7 +175,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                     foregroundColor: context.colorScheme.onPrimary,
                   ),
                   onPressed: () {
-                    router.pop();
+                    router.maybePop();
                   },
                   child: Text('Back'.tr()),
                 ),
@@ -223,7 +223,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                         context
                                             .read<SongCubit>()
                                             .saveNote(data);
-                                        router.pop();
+                                        router.maybePop();
                                         // router.push(SongNoteListRoute(cubit: context.read()));
                                       },
                                     ));

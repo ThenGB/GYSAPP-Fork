@@ -84,7 +84,7 @@ class _SongNoteViewState extends State<SongNoteView> {
             return true;
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
               title: Text(data.song.title ?? ''),
               actions: [
@@ -112,7 +112,7 @@ class _SongNoteViewState extends State<SongNoteView> {
                       var isConfirmed = await context.showConfirmation(
                           'Are you sure want to delete?'.tr());
                       if (isConfirmed) {
-                        router.pop();
+                        router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
                       }
                     },
@@ -128,7 +128,7 @@ class _SongNoteViewState extends State<SongNoteView> {
                       setState(() {
                         mode = NoteMode.write;
                       });
-                      // router.pop();
+                      // router.maybePop();
                       // router.push(
                       //   SongNoteRoute(
                       //     initialData: widget.initialData,
@@ -150,14 +150,16 @@ class _SongNoteViewState extends State<SongNoteView> {
             body: Container(
               padding: EdgeInsets.all(16),
               child: quill.QuillEditor(
+                controller: controller,
                 configurations: quill.QuillEditorConfigurations(
                   showCursor: mode == NoteMode.write,
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
                   autoFocus: true,
-                  controller: controller,
-                  readOnly: mode == NoteMode.viewOnly,
+
+                  /// TODO: Uncomment this line
+                  // readOnly: mode == NoteMode.viewOnly,
                 ),
                 focusNode: focusNode,
                 scrollController: scrollController,

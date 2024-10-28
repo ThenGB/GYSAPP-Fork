@@ -134,7 +134,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                 .showConfirmation(
                     'Are you sure want to save this preferences?'.tr())
                 .then((confirmed) {
-              router.pop();
+              router.maybePop();
               Fluttertoast.cancel();
               Fluttertoast.showToast(msg: 'Saved'.tr());
               widget.onSave(voices, pitch, speed);

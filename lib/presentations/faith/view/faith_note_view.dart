@@ -85,7 +85,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
             return true;
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
               title:
                   Text((data.verses.map((e) => e + 1)).toList().joinToString()),
@@ -114,7 +114,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
                       var isConfirmed = await context.showConfirmation(
                           'Are you sure want to delete?'.tr());
                       if (isConfirmed) {
-                        router.pop();
+                        router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
                       }
                     },
@@ -130,7 +130,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
                       setState(() {
                         mode = NoteMode.write;
                       });
-                      // router.pop();
+                      // router.maybePop();
                       // router.push(
                       //   FaithNoteRoute(
                       //     initialData: widget.initialData,
@@ -154,14 +154,16 @@ class FaithNoteViewState extends State<FaithNoteView> {
               child: quill.QuillEditor(
                 focusNode: focusNode,
                 scrollController: scrollController,
+                controller: controller,
                 configurations: quill.QuillEditorConfigurations(
                   showCursor: mode == NoteMode.write,
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
                   autoFocus: true,
-                  controller: controller,
-                  readOnly: mode == NoteMode.viewOnly,
+
+                  /// TODO: Uncomment this line
+                  // readOnly: mode == NoteMode.viewOnly,
                 ),
               ),
             ),

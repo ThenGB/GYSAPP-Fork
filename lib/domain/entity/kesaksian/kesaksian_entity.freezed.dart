@@ -12,7 +12,7 @@ part of 'kesaksian_entity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Kesaksian _$KesaksianFromJson(Map<String, dynamic> json) {
   return _Kesaksian.fromJson(json);
@@ -25,8 +25,12 @@ mixin _$Kesaksian {
   String get url => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
 
+  /// Serializes this Kesaksian to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $KesaksianCopyWith<Kesaksian> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$KesaksianCopyWithImpl<$Res, $Val extends Kesaksian>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -97,6 +103,8 @@ class __$$KesaksianImplCopyWithImpl<$Res>
       _$KesaksianImpl _value, $Res Function(_$KesaksianImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -166,12 +174,14 @@ class _$KesaksianImpl extends _Kesaksian {
                 other.imageUrl == imageUrl));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, title, description, url, imageUrl);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
@@ -204,8 +214,11 @@ abstract class _Kesaksian extends Kesaksian {
   String get url;
   @override
   String get imageUrl;
+
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

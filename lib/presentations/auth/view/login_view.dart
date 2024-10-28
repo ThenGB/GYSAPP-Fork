@@ -62,7 +62,7 @@ class _LoginViewState extends State<LoginView> {
           fit: StackFit.passthrough,
           children: [
             Container(
-              color: context.colorScheme.background,
+              color: context.colorScheme.surface,
               child: InAppWebView(
                 onLoadStop: (controller, url) {
                   context.read<AuthCubit>().toggleLoading(false);
@@ -134,8 +134,9 @@ class _LoginViewState extends State<LoginView> {
                   );
                 },
                 initialUrlRequest: URLRequest(
-                  url: Uri.parse(
-                    'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}',
+                  url: WebUri.uri(
+                    Uri.parse(
+                        'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}'),
                   ),
                 ),
               ),
@@ -156,7 +157,7 @@ class _LoginViewState extends State<LoginView> {
                       child: topChild);
                 },
                 firstChild: Container(
-                  color: context.colorScheme.background,
+                  color: context.colorScheme.surface,
                   child: Center(
                     child: Column(
                       mainAxisSize: MainAxisSize.min,

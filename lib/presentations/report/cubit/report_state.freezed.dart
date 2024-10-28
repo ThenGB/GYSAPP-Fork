@@ -12,7 +12,7 @@ part of 'report_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ReportState _$ReportStateFromJson(Map<String, dynamic> json) {
   return _ReportState.fromJson(json);
@@ -22,8 +22,12 @@ ReportState _$ReportStateFromJson(Map<String, dynamic> json) {
 mixin _$ReportState {
   bool get isLoading => throw _privateConstructorUsedError;
 
+  /// Serializes this ReportState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of ReportState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $ReportStateCopyWith<ReportState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -47,6 +51,8 @@ class _$ReportStateCopyWithImpl<$Res, $Val extends ReportState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of ReportState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -80,6 +86,8 @@ class __$$ReportStateImplCopyWithImpl<$Res>
       _$ReportStateImpl _value, $Res Function(_$ReportStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of ReportState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -120,11 +128,13 @@ class _$ReportStateImpl extends _ReportState {
                 other.isLoading == isLoading));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, isLoading);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of ReportState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$ReportStateImplCopyWith<_$ReportStateImpl> get copyWith =>
@@ -147,8 +157,11 @@ abstract class _ReportState extends ReportState {
 
   @override
   bool get isLoading;
+
+  /// Create a copy of ReportState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$ReportStateImplCopyWith<_$ReportStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

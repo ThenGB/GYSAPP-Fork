@@ -19,7 +19,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 2.0.1+103
 
 environment:
-  sdk: ">=3.0.0 <=3.3.4"
+  sdk: ">=3.0.0 <=3.5.3"
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,23 +34,23 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
-  auto_route: ^7.8.4
+  auto_route: ^9.2.2
   freezed_annotation: ^2.2.0
   bloc: ^8.1.1
   flutter_bloc: ^8.1.2
-  get_it: ^7.2.0
-  carousel_slider: ^4.2.1
+  get_it: ^8.0.1
+  carousel_slider: ^5.0.0
   chaleno: ^0.0.6
   simple_animations: ^5.0.0+3
   hydrated_bloc: ^9.1.0
   path: ^1.8.2
   path_provider: ^2.0.14
   easy_localization: ^3.0.1
-  awesome_notifications: ^0.8.3
+  awesome_notifications: ^0.10.0
   json_annotation: ^4.8.0
   internet_connection_checker: ^1.0.0+1
-  firebase_remote_config: ^4.0.0
-  firebase_analytics: ^10.2.0
+  firebase_remote_config: ^5.1.3
+  firebase_analytics: ^11.3.3
   ftpconnect: ^2.0.2
   sqflite: ^2.2.6
   dartz: ^0.10.1
@@ -58,53 +58,53 @@ dependencies:
   webview_flutter: ^4.0.7
   cached_network_image: ^3.2.3
   scrollable_positioned_list: ^0.3.5
-  cloud_firestore: ^4.5.1
-  firebase_auth: ^4.4.1
-  rxdart: ^0.27.7
-  flutter_web_browser: ^0.17.1
+  cloud_firestore: ^5.4.4
+  firebase_auth: ^5.3.1
+  rxdart: ^0.28.0
+  # flutter_web_browser: ^0.17.1
   url_launcher: ^6.1.10
-  flutter_inappwebview: ^5.8.0
-  google_fonts: ^4.0.3
+  flutter_inappwebview: ^6.1.5
+  google_fonts: ^6.2.1
   fluttertoast: ^8.2.2
   flutter_cached_pdfview: ^0.4.1
   pdf_render: ^1.3.8
   image: ^4.0.16
-  share_plus: ^7.2.1
-  firebase_storage: ^11.1.1
-  audioplayers: ^5.2.1
+  share_plus: ^10.1.1
+  firebase_storage: ^12.3.4
+  audioplayers: ^6.1.0
   flutter_cache_manager: ^3.3.0
   animations: ^2.0.7
-  flutter_appauth: ^6.0.0
-  firebase_core: ^2.13.0
+  flutter_appauth: ^7.0.1
+  firebase_core: ^3.6.0
   intl: ^0.19.0
   dio: ^5.1.2
-  flutter_quill: ^9.1.0
-  multi_split_view: ^2.4.0
+  flutter_quill: ^10.8.5
+  multi_split_view: ^3.5.0
   flutter_native_splash: ^2.3.1
   permission_handler: ^11.1.0
   wakelock_plus: ^1.1.1
-  flutter_tts: ^3.7.0
-  easy_localization_loader: ^1.0.1+1
+  flutter_tts: ^4.0.2
+  easy_localization_loader: ^2.0.2
   auto_size_text: ^3.0.0
   visibility_detector: ^0.4.0+2
   timeago: ^3.5.0 
   keframe: ^3.0.0
-  file_picker: ^6.1.1
+  file_picker: ^8.1.3
   encrypt: ^5.0.1
   cross_file: ^0.3.3+4
   mailer: ^6.0.1
-  device_info_plus: ^9.0.3
-  package_info_plus: ^5.0.1
-  cross_fade: ^0.3.1
+  device_info_plus: ^11.1.0
+  package_info_plus: ^8.1.0
+  cross_fade: ^0.4.0
   shimmer: ^3.0.0
-  googleapis: ^12.0.0
+  googleapis: ^13.2.0
   google_sign_in: ^6.1.4
-  http: ^0.13.6
-  firebase_crashlytics: ^3.3.5
-  app_links: ^3.4.3
+  http: ^1.2.2
+  firebase_crashlytics: ^4.1.3
+  app_links: ^6.3.2
   audio_service: ^0.18.12
   open_filex: ^4.3.4
-  connectivity_plus: ^2.3.9
+  connectivity_plus: ^6.1.0
   
 dev_dependencies:
   flutter_test:
@@ -114,8 +114,8 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^3.0.1
-  auto_route_generator: ^7.3.2
+  flutter_lints: ^5.0.0
+  auto_route_generator: ^9.0.0
   build_runner: ^2.3.3
   freezed: ^2.3.2
   json_serializable: ^6.6.1
@@ -132,9 +132,9 @@ dependency_overrides:
   #     url: https://github.com/formigas/wakelock.git
   #     path: wakelock/
   #     ref: main
-  flutter_pdfview: 1.2.9
+  flutter_pdfview: 1.3.4
   # Update flutter 3.16 21 dec
-  intl: 0.19.0
+  # intl: 0.19.0
   
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

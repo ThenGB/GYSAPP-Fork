@@ -12,7 +12,7 @@ part of 'song_history.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 SongHistory _$SongHistoryFromJson(Map<String, dynamic> json) {
   return _SongHistory.fromJson(json);
@@ -24,8 +24,12 @@ mixin _$SongHistory {
   String get bookCode => throw _privateConstructorUsedError;
   DateTime get createdAt => throw _privateConstructorUsedError;
 
+  /// Serializes this SongHistory to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of SongHistory
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SongHistoryCopyWith<SongHistory> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -49,6 +53,8 @@ class _$SongHistoryCopyWithImpl<$Res, $Val extends SongHistory>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SongHistory
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -92,6 +98,8 @@ class __$$SongHistoryImplCopyWithImpl<$Res>
       _$SongHistoryImpl _value, $Res Function(_$SongHistoryImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SongHistory
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -150,11 +158,13 @@ class _$SongHistoryImpl extends _SongHistory {
                 other.createdAt == createdAt));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, index, bookCode, createdAt);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SongHistory
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SongHistoryImplCopyWith<_$SongHistoryImpl> get copyWith =>
@@ -184,8 +194,11 @@ abstract class _SongHistory extends SongHistory {
   String get bookCode;
   @override
   DateTime get createdAt;
+
+  /// Create a copy of SongHistory
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SongHistoryImplCopyWith<_$SongHistoryImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

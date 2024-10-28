@@ -109,7 +109,7 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                     ),
                     IconButton(
                         onPressed: () {
-                          router.pop();
+                          router.maybePop();
                           widget.cubit.getContent(currentVerses.first);
                           widget
                               .scrollFunction(currentVerses.first.verseId - 1);
@@ -214,7 +214,7 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                                     padding: const EdgeInsets.only(bottom: 8),
                                     child: InkWell(
                                       onTap: () {
-                                        router.pop();
+                                        router.maybePop();
                                         widget.cubit.getContent(e);
                                         widget.scrollFunction(e.verseId - 1);
                                       },

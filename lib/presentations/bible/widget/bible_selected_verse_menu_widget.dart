@@ -94,7 +94,7 @@ class SelectedVerseMenu extends StatelessWidget {
                         mode: NoteMode.write,
                         onSave: (data) {
                           context.read<BibleCubit>().saveNote(data);
-                          router.pop();
+                          router.maybePop();
                           router
                               .push(BibleNoteListRoute(cubit: context.read()));
                         },

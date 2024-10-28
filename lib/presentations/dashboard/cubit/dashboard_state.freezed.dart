@@ -12,7 +12,7 @@ part of 'dashboard_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 DashboardState _$DashboardStateFromJson(Map<String, dynamic> json) {
   return _DashboardState.fromJson(json);
@@ -34,8 +34,12 @@ mixin _$DashboardState {
   String? get idToken => throw _privateConstructorUsedError;
   Account? get account => throw _privateConstructorUsedError;
 
+  /// Serializes this DashboardState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $DashboardStateCopyWith<DashboardState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -75,6 +79,8 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -148,6 +154,8 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
     ) as $Val);
   }
 
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $ConfigLiteratureCopyWith<$Res> get configLiterature {
@@ -156,6 +164,8 @@ class _$DashboardStateCopyWithImpl<$Res, $Val extends DashboardState>
     });
   }
 
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $AccountCopyWith<$Res>? get account {
@@ -206,6 +216,8 @@ class __$$DashboardStateImplCopyWithImpl<$Res>
       _$DashboardStateImpl _value, $Res Function(_$DashboardStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -372,7 +384,7 @@ class _$DashboardStateImpl extends _DashboardState {
             (identical(other.account, account) || other.account == account));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType,
@@ -390,7 +402,9 @@ class _$DashboardStateImpl extends _DashboardState {
       idToken,
       account);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$DashboardStateImplCopyWith<_$DashboardStateImpl> get copyWith =>
@@ -451,8 +465,11 @@ abstract class _DashboardState extends DashboardState {
   String? get idToken;
   @override
   Account? get account;
+
+  /// Create a copy of DashboardState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$DashboardStateImplCopyWith<_$DashboardStateImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

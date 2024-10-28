@@ -633,7 +633,7 @@ class _SongViewState extends State<SongView> {
                                                                                           ),
                                                                                         );
                                                                                     pageController.animateToPage(index, duration: kThemeAnimationDuration, curve: Curves.ease);
-                                                                                    router.pop();
+                                                                                    router.maybePop();
                                                                                   });
                                                                                 },
                                                                                 subtitle: Text(() {
@@ -821,7 +821,7 @@ class _SongViewState extends State<SongView> {
                                                       .modifyFavorite(state
                                                               .songs[
                                                           currentPageIndex]);
-                                                  router.pop();
+                                                  router.maybePop();
                                                 },
                                                 visualDensity:
                                                     VisualDensity.compact,
@@ -842,7 +842,7 @@ class _SongViewState extends State<SongView> {
                                                   context
                                                       .read<SongCubit>()
                                                       .toggleAudio();
-                                                  router.pop();
+                                                  router.maybePop();
                                                 },
                                                 visualDensity:
                                                     VisualDensity.compact,
@@ -1824,7 +1824,7 @@ class SelectedSongMenu extends StatelessWidget {
                         mode: NoteMode.write,
                         onSave: (data) {
                           context.read<SongCubit>().saveNote(data);
-                          router.pop();
+                          router.maybePop();
                           router
                               .push(SongNotesListRoute(cubit: context.read()));
                         },

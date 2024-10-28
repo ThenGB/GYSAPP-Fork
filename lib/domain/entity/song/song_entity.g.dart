@@ -27,8 +27,8 @@ _$SongImpl _$$SongImplFromJson(Map<String, dynamic> json) => _$SongImpl(
       number2: json['number2'] as String?,
       title: json['lyric'] as String?,
       soundfilePath: json['song'] as String?,
-      pageLength: json['pages'] as int?,
-      pageStart: json['page'] as int?,
+      pageLength: (json['pages'] as num?)?.toInt(),
+      pageStart: (json['page'] as num?)?.toInt(),
       verses: (json['verses'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??

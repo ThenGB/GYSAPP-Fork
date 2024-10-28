@@ -12,7 +12,7 @@ part of 'panduan_entity.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 Panduan _$PanduanFromJson(Map<String, dynamic> json) {
   return _Panduan.fromJson(json);
@@ -25,8 +25,12 @@ mixin _$Panduan {
   String get url => throw _privateConstructorUsedError;
   String get imageUrl => throw _privateConstructorUsedError;
 
+  /// Serializes this Panduan to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of Panduan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $PanduanCopyWith<Panduan> get copyWith => throw _privateConstructorUsedError;
 }
 
@@ -48,6 +52,8 @@ class _$PanduanCopyWithImpl<$Res, $Val extends Panduan>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of Panduan
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -95,6 +101,8 @@ class __$$PanduanImplCopyWithImpl<$Res>
       _$PanduanImpl _value, $Res Function(_$PanduanImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of Panduan
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -164,12 +172,14 @@ class _$PanduanImpl extends _Panduan {
                 other.imageUrl == imageUrl));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, title, description, url, imageUrl);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of Panduan
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$PanduanImplCopyWith<_$PanduanImpl> get copyWith =>
@@ -201,8 +211,11 @@ abstract class _Panduan extends Panduan {
   String get url;
   @override
   String get imageUrl;
+
+  /// Create a copy of Panduan
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PanduanImplCopyWith<_$PanduanImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

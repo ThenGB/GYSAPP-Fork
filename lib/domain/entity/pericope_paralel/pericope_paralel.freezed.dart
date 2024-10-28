@@ -12,7 +12,7 @@ part of 'pericope_paralel.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 PericopeParalel _$PericopeParalelFromJson(Map<String, dynamic> json) {
   return _PericopeParalel.fromJson(json);
@@ -29,8 +29,12 @@ mixin _$PericopeParalel {
   @JsonKey(name: 't')
   String? get t => throw _privateConstructorUsedError;
 
+  /// Serializes this PericopeParalel to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of PericopeParalel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $PericopeParalelCopyWith<PericopeParalel> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -58,6 +62,8 @@ class _$PericopeParalelCopyWithImpl<$Res, $Val extends PericopeParalel>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of PericopeParalel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -110,6 +116,8 @@ class __$$PericopeParalelImplCopyWithImpl<$Res>
       _$PericopeParalelImpl _value, $Res Function(_$PericopeParalelImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of PericopeParalel
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -181,11 +189,13 @@ class _$PericopeParalelImpl extends _PericopeParalel {
             (identical(other.t, t) || other.t == t));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(runtimeType, id, id1, id2, t);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of PericopeParalel
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$PericopeParalelImplCopyWith<_$PericopeParalelImpl> get copyWith =>
@@ -223,8 +233,11 @@ abstract class _PericopeParalel extends PericopeParalel {
   @override
   @JsonKey(name: 't')
   String? get t;
+
+  /// Create a copy of PericopeParalel
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$PericopeParalelImplCopyWith<_$PericopeParalelImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

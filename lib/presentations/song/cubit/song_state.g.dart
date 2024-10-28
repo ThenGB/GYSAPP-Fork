@@ -19,8 +19,8 @@ _$SongStateImpl _$$SongStateImplFromJson(Map<String, dynamic> json) =>
               .toList() ??
           const [],
       bookCode: json['bookCode'] as String? ?? 'KR',
-      pageIndex: json['pageIndex'] as int? ?? 0,
-      verseIndex: json['verseIndex'] as int? ?? 0,
+      pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
+      verseIndex: (json['verseIndex'] as num?)?.toInt() ?? 0,
       isImageMode: json['isImageMode'] ?? false,
       showSizer: json['showSizer'] as bool? ?? false,
       defaultAudioFormat: json['defaultAudioFormat'] as String? ?? 'mid',
@@ -39,7 +39,7 @@ _$SongStateImpl _$$SongStateImplFromJson(Map<String, dynamic> json) =>
       playOnlyFavorite: json['playOnlyFavorite'] as bool? ?? false,
       shuffleMode: json['shuffleMode'] as bool? ?? false,
       shuffleIndex: (json['shuffleIndex'] as List<dynamic>?)
-              ?.map((e) => e as int)
+              ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
       showAudio: json['showAudio'] as bool? ?? false,

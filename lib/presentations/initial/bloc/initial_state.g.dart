@@ -14,9 +14,10 @@ _$InitialStateImpl _$$InitialStateImplFromJson(Map<String, dynamic> json) =>
       message: json['message'] as String? ?? '',
       isFreshInstall: json['isFreshInstall'] as bool? ?? true,
       themeMode: json['themeMode'] as String? ?? 'light',
-      configFetchTimeoutSeconds: json['configFetchTimeoutSeconds'] as int? ?? 5,
+      configFetchTimeoutSeconds:
+          (json['configFetchTimeoutSeconds'] as num?)?.toInt() ?? 5,
       configFetchIntervalSeconds:
-          json['configFetchIntervalSeconds'] as int? ?? 10,
+          (json['configFetchIntervalSeconds'] as num?)?.toInt() ?? 10,
       defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
     );

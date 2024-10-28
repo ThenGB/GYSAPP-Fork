@@ -8,11 +8,11 @@ part of 'pericope.dart';
 
 _$PericopeImpl _$$PericopeImplFromJson(Map<String, dynamic> json) =>
     _$PericopeImpl(
-      id: json['id'] as int,
-      s: json['s'] as int?,
-      bookId: json['b'] as int?,
-      chapterId: json['c'] as int?,
-      verseId: json['v'] as int?,
+      id: (json['id'] as num).toInt(),
+      s: (json['s'] as num?)?.toInt(),
+      bookId: (json['b'] as num?)?.toInt(),
+      chapterId: (json['c'] as num?)?.toInt(),
+      verseId: (json['v'] as num?)?.toInt(),
       title: json['t'] as String?,
     );
 

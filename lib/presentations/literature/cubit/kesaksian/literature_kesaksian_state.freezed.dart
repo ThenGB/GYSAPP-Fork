@@ -12,7 +12,7 @@ part of 'literature_kesaksian_state.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 LiteratureKesaksianState _$LiteratureKesaksianStateFromJson(
     Map<String, dynamic> json) {
@@ -24,8 +24,12 @@ mixin _$LiteratureKesaksianState {
   bool get isLoading => throw _privateConstructorUsedError;
   List<Kesaksian> get items => throw _privateConstructorUsedError;
 
+  /// Serializes this LiteratureKesaksianState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of LiteratureKesaksianState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $LiteratureKesaksianStateCopyWith<LiteratureKesaksianState> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -50,6 +54,8 @@ class _$LiteratureKesaksianStateCopyWithImpl<$Res,
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of LiteratureKesaksianState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -91,6 +97,8 @@ class __$$LiteratureKesaksianStateImplCopyWithImpl<$Res>
       $Res Function(_$LiteratureKesaksianStateImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of LiteratureKesaksianState
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -148,12 +156,14 @@ class _$LiteratureKesaksianStateImpl extends _LiteratureKesaksianState {
             const DeepCollectionEquality().equals(other._items, _items));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
       runtimeType, isLoading, const DeepCollectionEquality().hash(_items));
 
-  @JsonKey(ignore: true)
+  /// Create a copy of LiteratureKesaksianState
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$LiteratureKesaksianStateImplCopyWith<_$LiteratureKesaksianStateImpl>
@@ -181,8 +191,11 @@ abstract class _LiteratureKesaksianState extends LiteratureKesaksianState {
   bool get isLoading;
   @override
   List<Kesaksian> get items;
+
+  /// Create a copy of LiteratureKesaksianState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$LiteratureKesaksianStateImplCopyWith<_$LiteratureKesaksianStateImpl>
       get copyWith => throw _privateConstructorUsedError;
 }

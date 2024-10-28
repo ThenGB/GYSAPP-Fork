@@ -85,7 +85,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
             return true;
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
               title: FutureBuilder(
                 future:
@@ -110,7 +110,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                       var isConfirmed = await context.showConfirmation(
                           'Are you sure want to delete?'.tr());
                       if (isConfirmed) {
-                        router.pop();
+                        router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
                       }
                     },
@@ -126,7 +126,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                       setState(() {
                         mode = NoteMode.write;
                       });
-                      // router.pop();
+                      // router.maybePop();
                       // router.push(
                       //   BibleNoteRoute(
                       //     initialData: widget.initialData,
@@ -148,14 +148,16 @@ class _BibleNoteViewState extends State<BibleNoteView> {
             body: Container(
               padding: EdgeInsets.all(16),
               child: quill.QuillEditor(
+                controller: controller,
                 configurations: quill.QuillEditorConfigurations(
                   showCursor: mode == NoteMode.write,
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
                   autoFocus: true,
-                  controller: controller,
-                  readOnly: mode == NoteMode.viewOnly,
+
+                  ///TODO(kei): check this
+                  // readOnly: mode == NoteMode.viewOnly,
                 ),
                 focusNode: focusNode,
                 scrollController: scrollController,

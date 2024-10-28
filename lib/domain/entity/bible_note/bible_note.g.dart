@@ -8,7 +8,7 @@ part of 'bible_note.dart';
 
 _$BibleNoteImpl _$$BibleNoteImplFromJson(Map<String, dynamic> json) =>
     _$BibleNoteImpl(
-      id: json['id'] as int,
+      id: (json['id'] as num).toInt(),
       verses: (json['verses'] as List<dynamic>)
           .map((e) => Verse.fromJson(e as Map<String, dynamic>))
           .toList(),

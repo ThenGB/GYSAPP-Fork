@@ -108,7 +108,7 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
                       foregroundColor: Colors.white,
                     ),
                     onPressed: () {
-                      router.pop();
+                      router.maybePop();
                       widget.onConfirmed();
                     },
                     child: Text(

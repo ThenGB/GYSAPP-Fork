@@ -12,7 +12,7 @@ part of 'song_note.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#custom-getters-and-methods');
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 SongNote _$SongNoteFromJson(Map<String, dynamic> json) {
   return _SongNote.fromJson(json);
@@ -26,8 +26,12 @@ mixin _$SongNote {
   DateTime get createdDate => throw _privateConstructorUsedError;
   DateTime get updatedDate => throw _privateConstructorUsedError;
 
+  /// Serializes this SongNote to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
-  @JsonKey(ignore: true)
+
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   $SongNoteCopyWith<SongNote> get copyWith =>
       throw _privateConstructorUsedError;
 }
@@ -57,6 +61,8 @@ class _$SongNoteCopyWithImpl<$Res, $Val extends SongNote>
   // ignore: unused_field
   final $Res Function($Val) _then;
 
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -90,6 +96,8 @@ class _$SongNoteCopyWithImpl<$Res, $Val extends SongNote>
     ) as $Val);
   }
 
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
   @override
   @pragma('vm:prefer-inline')
   $SongCopyWith<$Res> get song {
@@ -126,6 +134,8 @@ class __$$SongNoteImplCopyWithImpl<$Res>
       _$SongNoteImpl _value, $Res Function(_$SongNoteImpl) _then)
       : super(_value, _then);
 
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
   @override
   $Res call({
@@ -204,12 +214,14 @@ class _$SongNoteImpl extends _SongNote {
                 other.updatedDate == updatedDate));
   }
 
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode =>
       Object.hash(runtimeType, id, song, text, createdDate, updatedDate);
 
-  @JsonKey(ignore: true)
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
+  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   @pragma('vm:prefer-inline')
   _$$SongNoteImplCopyWith<_$SongNoteImpl> get copyWith =>
@@ -245,8 +257,11 @@ abstract class _SongNote extends SongNote {
   DateTime get createdDate;
   @override
   DateTime get updatedDate;
+
+  /// Create a copy of SongNote
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(ignore: true)
+  @JsonKey(includeFromJson: false, includeToJson: false)
   _$$SongNoteImplCopyWith<_$SongNoteImpl> get copyWith =>
       throw _privateConstructorUsedError;
 }

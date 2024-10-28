@@ -173,7 +173,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                     foregroundColor: context.colorScheme.onPrimary,
                   ),
                   onPressed: () {
-                    router.pop();
+                    router.maybePop();
                   },
                   child: Text('Back'.tr()),
                 ),
@@ -221,7 +221,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                         context
                                             .read<FaithCubit>()
                                             .saveNote(data);
-                                        router.pop();
+                                        router.maybePop();
                                         router.push(FaithNoteListRoute(
                                             cubit: context.read()));
                                       },

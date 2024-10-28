@@ -148,7 +148,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                               initialValues: state.selectedFilterBooks,
                               onFiltered: (filter) {
                                 widget.cubit.updateFilterBook(filter);
-                                router.pop();
+                                router.maybePop();
                               },
                             ),
                           );

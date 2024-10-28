@@ -9,9 +9,9 @@ part of 'pericope_paralel.dart';
 _$PericopeParalelImpl _$$PericopeParalelImplFromJson(
         Map<String, dynamic> json) =>
     _$PericopeParalelImpl(
-      id: json['id'] as int?,
-      id1: json['id1'] as int?,
-      id2: json['id2'] as int?,
+      id: (json['id'] as num?)?.toInt(),
+      id1: (json['id1'] as num?)?.toInt(),
+      id2: (json['id2'] as num?)?.toInt(),
       t: json['t'] as String?,
     );
 
