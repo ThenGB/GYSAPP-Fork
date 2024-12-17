@@ -32,7 +32,7 @@ class HomeView extends StatelessWidget {
           children: [
             Container(
                 padding: EdgeInsets.only(top: context.mediaQuery.padding.top),
-                color: context.colorScheme.background,
+                color: context.colorScheme.surface,
                 child: const HomeHeader()),
             Expanded(
               child: SingleChildScrollView(
@@ -86,11 +86,12 @@ class HomeView extends StatelessWidget {
                         );
                       },
                     ),
-                    if (state.sauhs.isNotEmpty)
+                    if (state.sauhs.isNotEmpty && state.isSauhEnabled)
                       SauhBagiJiwa(item: state.sauhs.first),
-                    SuaraSejati(
-                      trueVoices: state.trueVoices,
-                    ),
+                    if (state.isSuaraSejatiEnabled)
+                      SuaraSejati(
+                        trueVoices: state.trueVoices,
+                      ),
                     LinkLainnya(
                       menuLinks: state.menuLinks,
                     ),
@@ -288,7 +289,7 @@ class _IbadahPopupState extends State<IbadahPopup> {
           padding: context.mediaQuery.viewInsets,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
-            color: context.colorScheme.background,
+            color: context.colorScheme.surface,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(12),
             ),
@@ -536,7 +537,7 @@ class _HomeHeaderState extends State<HomeHeader> {
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) => Container(
-        color: context.colorScheme.background,
+        color: context.colorScheme.surface,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,

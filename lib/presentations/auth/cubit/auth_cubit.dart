@@ -48,11 +48,11 @@ class AuthCubit extends HydratedCubit<AuthState> {
             'https://www.googleapis.com/auth/userinfo.profile'
           ]),
     );
-    emit(state.copyWith(idToken: response?.idToken));
-    if (response?.idToken?.isNotEmpty == true) {
+    emit(state.copyWith(idToken: response.idToken));
+    if (response.idToken?.isNotEmpty == true) {
       var data = jsonEncode({
         '__action': cmd,
-        'credential': response!.idToken,
+        'credential': response.idToken,
       });
       controller.evaluateJavascript(source: 'onCallbackGIS($data)');
     }

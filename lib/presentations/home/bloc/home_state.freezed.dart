@@ -24,6 +24,8 @@ mixin _$HomeState {
   List<Sauh> get sauhs => throw _privateConstructorUsedError;
   List<TrueVoice> get trueVoices => throw _privateConstructorUsedError;
   List<Menulink> get menuLinks => throw _privateConstructorUsedError;
+  bool get isSuaraSejatiEnabled => throw _privateConstructorUsedError;
+  bool get isSauhEnabled => throw _privateConstructorUsedError;
 
   /// Serializes this HomeState to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -44,7 +46,9 @@ abstract class $HomeStateCopyWith<$Res> {
       {bool isLoading,
       List<Sauh> sauhs,
       List<TrueVoice> trueVoices,
-      List<Menulink> menuLinks});
+      List<Menulink> menuLinks,
+      bool isSuaraSejatiEnabled,
+      bool isSauhEnabled});
 }
 
 /// @nodoc
@@ -66,6 +70,8 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
     Object? sauhs = null,
     Object? trueVoices = null,
     Object? menuLinks = null,
+    Object? isSuaraSejatiEnabled = null,
+    Object? isSauhEnabled = null,
   }) {
     return _then(_value.copyWith(
       isLoading: null == isLoading
@@ -84,6 +90,14 @@ class _$HomeStateCopyWithImpl<$Res, $Val extends HomeState>
           ? _value.menuLinks
           : menuLinks // ignore: cast_nullable_to_non_nullable
               as List<Menulink>,
+      isSuaraSejatiEnabled: null == isSuaraSejatiEnabled
+          ? _value.isSuaraSejatiEnabled
+          : isSuaraSejatiEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSauhEnabled: null == isSauhEnabled
+          ? _value.isSauhEnabled
+          : isSauhEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ) as $Val);
   }
 }
@@ -100,7 +114,9 @@ abstract class _$$HomeStateImplCopyWith<$Res>
       {bool isLoading,
       List<Sauh> sauhs,
       List<TrueVoice> trueVoices,
-      List<Menulink> menuLinks});
+      List<Menulink> menuLinks,
+      bool isSuaraSejatiEnabled,
+      bool isSauhEnabled});
 }
 
 /// @nodoc
@@ -120,6 +136,8 @@ class __$$HomeStateImplCopyWithImpl<$Res>
     Object? sauhs = null,
     Object? trueVoices = null,
     Object? menuLinks = null,
+    Object? isSuaraSejatiEnabled = null,
+    Object? isSauhEnabled = null,
   }) {
     return _then(_$HomeStateImpl(
       isLoading: null == isLoading
@@ -138,6 +156,14 @@ class __$$HomeStateImplCopyWithImpl<$Res>
           ? _value._menuLinks
           : menuLinks // ignore: cast_nullable_to_non_nullable
               as List<Menulink>,
+      isSuaraSejatiEnabled: null == isSuaraSejatiEnabled
+          ? _value.isSuaraSejatiEnabled
+          : isSuaraSejatiEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSauhEnabled: null == isSauhEnabled
+          ? _value.isSauhEnabled
+          : isSauhEnabled // ignore: cast_nullable_to_non_nullable
+              as bool,
     ));
   }
 }
@@ -149,7 +175,9 @@ class _$HomeStateImpl extends _HomeState {
       {this.isLoading = false,
       final List<Sauh> sauhs = const [],
       final List<TrueVoice> trueVoices = const [],
-      final List<Menulink> menuLinks = const []})
+      final List<Menulink> menuLinks = const [],
+      this.isSuaraSejatiEnabled = false,
+      this.isSauhEnabled = false})
       : _sauhs = sauhs,
         _trueVoices = trueVoices,
         _menuLinks = menuLinks,
@@ -189,8 +217,15 @@ class _$HomeStateImpl extends _HomeState {
   }
 
   @override
+  @JsonKey()
+  final bool isSuaraSejatiEnabled;
+  @override
+  @JsonKey()
+  final bool isSauhEnabled;
+
+  @override
   String toString() {
-    return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks)';
+    return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks, isSuaraSejatiEnabled: $isSuaraSejatiEnabled, isSauhEnabled: $isSauhEnabled)';
   }
 
   @override
@@ -204,7 +239,11 @@ class _$HomeStateImpl extends _HomeState {
             const DeepCollectionEquality()
                 .equals(other._trueVoices, _trueVoices) &&
             const DeepCollectionEquality()
-                .equals(other._menuLinks, _menuLinks));
+                .equals(other._menuLinks, _menuLinks) &&
+            (identical(other.isSuaraSejatiEnabled, isSuaraSejatiEnabled) ||
+                other.isSuaraSejatiEnabled == isSuaraSejatiEnabled) &&
+            (identical(other.isSauhEnabled, isSauhEnabled) ||
+                other.isSauhEnabled == isSauhEnabled));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -214,7 +253,9 @@ class _$HomeStateImpl extends _HomeState {
       isLoading,
       const DeepCollectionEquality().hash(_sauhs),
       const DeepCollectionEquality().hash(_trueVoices),
-      const DeepCollectionEquality().hash(_menuLinks));
+      const DeepCollectionEquality().hash(_menuLinks),
+      isSuaraSejatiEnabled,
+      isSauhEnabled);
 
   /// Create a copy of HomeState
   /// with the given fields replaced by the non-null parameter values.
@@ -237,7 +278,9 @@ abstract class _HomeState extends HomeState {
       {final bool isLoading,
       final List<Sauh> sauhs,
       final List<TrueVoice> trueVoices,
-      final List<Menulink> menuLinks}) = _$HomeStateImpl;
+      final List<Menulink> menuLinks,
+      final bool isSuaraSejatiEnabled,
+      final bool isSauhEnabled}) = _$HomeStateImpl;
   const _HomeState._() : super._();
 
   factory _HomeState.fromJson(Map<String, dynamic> json) =
@@ -251,6 +294,10 @@ abstract class _HomeState extends HomeState {
   List<TrueVoice> get trueVoices;
   @override
   List<Menulink> get menuLinks;
+  @override
+  bool get isSuaraSejatiEnabled;
+  @override
+  bool get isSauhEnabled;
 
   /// Create a copy of HomeState
   /// with the given fields replaced by the non-null parameter values.

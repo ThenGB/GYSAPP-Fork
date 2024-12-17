@@ -33,6 +33,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
           .toList();
       rxBanner.add(banners);
     });
+    getPrimaryMenuStatus();
   }
 
   getMenu() async {
@@ -41,6 +42,16 @@ class HomeCubit extends HydratedCubit<HomeState> {
         appMenuJson.map<Menulink>((e) => Menulink.fromJson(e)).toList();
 
     emit(state.copyWith(menuLinks: menuLinks));
+  }
+
+  getPrimaryMenuStatus() async {
+    var appMenuJson = await FirebaseUtils.jsonConfig('primary_menu');
+    final bool isSuaraSejatiEnabled = appMenuJson['suara_sejati'];
+    final bool isSauhEnabled = appMenuJson['sauh_bagi_jiwa'];
+    emit(state.copyWith(
+      isSuaraSejatiEnabled: isSuaraSejatiEnabled,
+      isSauhEnabled: isSauhEnabled,
+    ));
   }
 
   scrappSauhBagiJiwa() async {

@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -47,6 +48,12 @@ Future initApplication() async {
     );
   }).sendPort);
   await FirebaseRemoteConfig.instance.ensureInitialized();
+  await FirebaseAppCheck.instance.activate(
+    androidProvider: AndroidProvider.playIntegrity,
+    appleProvider: kDebugMode
+        ? AppleProvider.debug
+        : AppleProvider.appAttestWithDeviceCheckFallback,
+  );
 
   await _setupLocalData();
   FlutterNativeSplash.remove();
@@ -91,19 +98,18 @@ Future _setupNotification() async {
   );
 }
 
-var defaultAddress = AddressCheckOptions(
-  address: InternetAddress(
-    '8.8.8.8',
-    type: InternetAddressType.IPv4,
-  ),
-  port: 853,
+var defaultAddress = AddressCheckOption(
+  ////8.8.8.8 and 8.8.4.4 are Google's public DNS servers
+  uri: Uri.parse('https://dummyapi.online'),
   timeout: const Duration(seconds: 3),
 );
 
 var internetChecker = InternetConnectionChecker.createInstance(
   checkInterval: const Duration(seconds: 1),
   checkTimeout: const Duration(seconds: 5),
-  addresses: [defaultAddress, ...InternetConnectionChecker.DEFAULT_ADDRESSES],
+  addresses: [
+    defaultAddress,
+  ],
 );
 
 class App extends StatefulWidget {

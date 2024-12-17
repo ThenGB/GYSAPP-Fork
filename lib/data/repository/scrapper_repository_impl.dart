@@ -205,25 +205,17 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     List<Panduan> data = [];
     late Failure failure;
     try {
-      var parser = await chaleno.load('https://tjc.org/id/literatur/');
-      if (parser == null) throw "Can't get data online";
-
-      var articles = parser.querySelectorAll(selector);
+      var articles =
+          await FirebaseUtils.listMapConfig('literature_panduan_alkitab');
       for (var article in articles) {
-        var title = article.text ?? '';
-        var description = (article.querySelector('p')?.text ?? '').trim();
-        var url = article.attr('href') ?? '';
-        var imageUrl = article.querySelector('img')?.src ?? '';
-        if (title.isNotEmpty) {
-          data.add(
-            Panduan(
-              title: title,
-              description: description,
-              url: url,
-              imageUrl: imageUrl,
-            ),
-          );
-        }
+        data.add(
+          Panduan(
+            title: article['title'],
+            description: '',
+            url: article['link'],
+            imageUrl: article['img'],
+          ),
+        );
       }
     } catch (e) {
       hasError = true;

@@ -21,6 +21,8 @@ _$HomeStateImpl _$$HomeStateImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Menulink.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      isSuaraSejatiEnabled: json['isSuaraSejatiEnabled'] as bool? ?? false,
+      isSauhEnabled: json['isSauhEnabled'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$HomeStateImplToJson(_$HomeStateImpl instance) =>
@@ -29,4 +31,6 @@ Map<String, dynamic> _$$HomeStateImplToJson(_$HomeStateImpl instance) =>
       'sauhs': instance.sauhs,
       'trueVoices': instance.trueVoices,
       'menuLinks': instance.menuLinks,
+      'isSuaraSejatiEnabled': instance.isSuaraSejatiEnabled,
+      'isSauhEnabled': instance.isSauhEnabled,
     };
