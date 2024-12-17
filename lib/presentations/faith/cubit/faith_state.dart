@@ -51,8 +51,7 @@ class FaithState with _$FaithState {
         break;
     }
     return result.apply(
-        bodyColor:
-            router.navigatorKey.currentContext?.textTheme.bodyMedium?.color);
+        bodyColor: router.navigatorKey.currentContext?.textColor);
   }
 
   Locale get locale {

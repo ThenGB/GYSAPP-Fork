@@ -126,7 +126,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
             boxShadow: [
               BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
             ],
-            color: context.colorScheme.background,
+            color: context.colorScheme.surface,
           ),
           child: Scaffold(
             backgroundColor: Colors.transparent,
@@ -158,7 +158,21 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                         Divider(),
                         ...widget.availableFonts.map(
                           (e) => ListTile(
-                            title: Text(e, style: widget.getTextStyle(e)),
+                            title: Text(
+                              e,
+                              style: widget
+                                  .getTextStyle(e)
+                                  .apply(
+                                    color: e == widget.selectedFont
+                                        ? context.colorScheme.primary
+                                        : context.theme.disabledColor,
+                                  )
+                                  .copyWith(
+                                    fontWeight: e == widget.selectedFont
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
+                            ),
                             onTap: () {
                               widget.onFontSelected(e);
                               setState(() {

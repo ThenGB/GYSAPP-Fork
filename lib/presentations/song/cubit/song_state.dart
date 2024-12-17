@@ -92,8 +92,7 @@ class SongState with _$SongState {
         break;
     }
     return result.apply(
-        bodyColor:
-            router.navigatorKey.currentContext?.textTheme.bodyMedium?.color);
+        bodyColor: router.navigatorKey.currentContext?.textColor);
   }
 
   List<String> get availableFonts {

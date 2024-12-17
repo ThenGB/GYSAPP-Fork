@@ -104,10 +104,10 @@ class _FaithViewState extends State<FaithView> {
     }
     return BlocBuilder<FaithCubit, FaithState>(
       builder: (context, state) => Scaffold(
-        backgroundColor: context.colorScheme.background,
+        backgroundColor: context.colorScheme.surface,
         bottomSheet: Container(
           key: selectedFaithMenuKey,
-          color: context.colorScheme.background,
+          color: context.colorScheme.surface,
           child: AnimatedSize(
             curve: Curves.easeOut,
             alignment: Alignment.bottomCenter,
@@ -311,7 +311,7 @@ class _FaithViewState extends State<FaithView> {
                               .changeTextScale(_currentScale);
                         },
                         child: Container(
-                          color: context.colorScheme.background,
+                          color: context.colorScheme.surface,
                           child: IgnorePointer(
                             ignoring: onScaling,
                             child: ListView.builder(
@@ -519,7 +519,7 @@ class SelectedFaithMenu extends StatelessWidget {
         boxShadow: [
           BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
         ],
-        color: context.colorScheme.background,
+        color: context.colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

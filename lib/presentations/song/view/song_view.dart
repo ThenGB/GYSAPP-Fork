@@ -751,7 +751,8 @@ class _SongViewState extends State<SongView> {
                                         builder: (context, state) =>
                                             FontSettingWidget(
                                           getTextStyle: (font) => state
-                                              .getTextThemeByFontName(font)
+                                              .getTextThemeByFontName(
+                                                  font, context.textTheme)
                                               .bodyMedium!,
                                           selectedFont: state.defaultFont,
                                           availableFonts: state.availableFonts,
