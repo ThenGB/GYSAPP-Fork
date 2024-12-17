@@ -207,6 +207,22 @@
       },
       "oauth_client": [
         {
+          "client_id": "4071878363-akhh0btbf0d2ojp8cqt3nvmid1eqf02f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "id.sch.kanaan.egys",
+            "certificate_hash": "4f419859ed7b877315a793e3d4c22da2e6c6eb3c"
+          }
+        },
+        {
+          "client_id": "4071878363-dsjjhqll04i2k19324iat8u83o2j498h.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "id.sch.kanaan.egys",
+            "certificate_hash": "9c6251db4ec9b28e7fceaad0d0d3d4bf53840d61"
+          }
+        },
+        {
           "client_id": "4071878363-k4fv7b10es82gfnl58evliqq2hju5081.apps.googleusercontent.com",
           "client_type": 3
         }

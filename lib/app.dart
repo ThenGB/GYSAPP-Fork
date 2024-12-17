@@ -49,10 +49,9 @@ Future initApplication() async {
   }).sendPort);
   await FirebaseRemoteConfig.instance.ensureInitialized();
   await FirebaseAppCheck.instance.activate(
-    androidProvider: AndroidProvider.playIntegrity,
-    appleProvider: kDebugMode
-        ? AppleProvider.debug
-        : AppleProvider.appAttestWithDeviceCheckFallback,
+    androidProvider:
+        kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+    appleProvider: AppleProvider.appAttest,
   );
 
   await _setupLocalData();
