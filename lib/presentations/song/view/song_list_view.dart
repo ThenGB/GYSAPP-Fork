@@ -134,7 +134,7 @@ class _SongListViewState extends State<SongListView>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: context.colorScheme.background,
+      backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
         leadingWidth: 56,
         titleSpacing: 0,
@@ -248,7 +248,7 @@ class _SongListViewState extends State<SongListView>
         controller: tabController,
         children: [
           Container(
-            color: context.colorScheme.background,
+            color: context.colorScheme.surface,
             child: Column(children: [
               const Divider(
                 height: 1,

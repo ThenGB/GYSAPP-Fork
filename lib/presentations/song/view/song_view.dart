@@ -30,9 +30,15 @@ class SongView extends StatefulWidget {
 }
 
 class _SongViewState extends State<SongView> {
+  late final cubit = context.read<SongCubit>();
   late final PageController pageController = PageController(initialPage: () {
     try {
-      return context.read<SongCubit>().state.histories.last.index;
+      final index = cubit.state.histories.last.index;
+      if (cubit.state.songs.length > index) {
+        return index;
+      } else {
+        return 0;
+      }
     } catch (e) {
       return 0;
     }
@@ -40,20 +46,20 @@ class _SongViewState extends State<SongView> {
     ..addListener(pageListener);
 
   PageController? verseController;
-  late double _baseScale = context.read<SongCubit>().state.defaultTextScale;
-  late double _currentScale = context.read<SongCubit>().state.defaultTextScale;
+  late double _baseScale = cubit.state.defaultTextScale;
+  late double _currentScale = cubit.state.defaultTextScale;
 
   late int currentPageIndex = pageController.initialPage;
   int currentVerseIndex = 0;
 
-  late ValueNotifier<String> songTitle = ValueNotifier(
-      context.read<SongCubit>().state.songs[currentPageIndex].title!);
+  late ValueNotifier<String> songTitle =
+      ValueNotifier(cubit.state.songs[currentPageIndex].title!);
 
   pageListener() {
     currentPageIndex = pageController.page?.toInt() ?? 0;
     if (int.parse(pageController.page.toString().split('.').last) == 0) {
       currentVerseIndex = 0;
-      context.read<SongCubit>().changePage(currentPageIndex, currentVerseIndex);
+      cubit.changePage(currentPageIndex, currentVerseIndex);
       Future.microtask(() {
         setState(() {});
       });
@@ -86,9 +92,9 @@ class _SongViewState extends State<SongView> {
 
   @override
   void initState() {
-    context.read<SongCubit>().songHandler.initNextFunction(
+    cubit.songHandler.initNextFunction(
       nextFunction: () async {
-        var songs = context.read<SongCubit>().state.songs;
+        var songs = cubit.state.songs;
         if (currentPageIndex != (songs.length - 1)) {
           if (SchedulerBinding.instance.lifecycleState ==
               AppLifecycleState.resumed) {
@@ -98,7 +104,7 @@ class _SongViewState extends State<SongView> {
             pageController.jumpToPage(currentPageIndex + 1);
           }
           await Future.delayed(Duration(seconds: 1));
-          context.read<SongCubit>().play();
+          cubit.play();
         }
       },
     );
@@ -116,7 +122,7 @@ class _SongViewState extends State<SongView> {
     return BlocBuilder<SongCubit, SongState>(
       builder: (context, state) => Scaffold(
           bottomSheet: Container(
-            color: context.colorScheme.background,
+            color: context.colorScheme.surface,
             key: selectedSongMenuKey,
             child: AnimatedSize(
               curve: Curves.ease,
@@ -141,7 +147,7 @@ class _SongViewState extends State<SongView> {
                     ),
             ),
           ),
-          backgroundColor: context.colorScheme.background,
+          backgroundColor: context.colorScheme.surface,
           bottomNavigationBar: AnimatedSize(
             duration: kThemeAnimationDuration,
             alignment: Alignment.bottomCenter,
@@ -153,10 +159,9 @@ class _SongViewState extends State<SongView> {
                 : SizedBox(
                     height: 48,
                     child: ListTile(
-                      tileColor: context.colorScheme.background,
+                      tileColor: context.colorScheme.surface,
                       leading: StreamBuilder<PlayerState>(
-                        initialData:
-                            context.read<SongCubit>().audioPlayer.state,
+                        initialData: cubit.audioPlayer.state,
                         stream: context
                             .read<SongCubit>()
                             .audioPlayer
@@ -165,11 +170,11 @@ class _SongViewState extends State<SongView> {
                           onPressed: () {
                             // if (state.isAudioLoading) return;
                             if (snapshot.data == PlayerState.playing) {
-                              context.read<SongCubit>().pause();
+                              cubit.pause();
                             } else if (snapshot.data == PlayerState.paused) {
-                              context.read<SongCubit>().play();
+                              cubit.play();
                             } else {
-                              context.read<SongCubit>().play();
+                              cubit.play();
                             }
                           },
                           icon: !snapshot.hasData
@@ -191,8 +196,7 @@ class _SongViewState extends State<SongView> {
                       dense: true,
                       horizontalTitleGap: 0,
                       title: FutureBuilder(
-                        future:
-                            context.read<SongCubit>().audioPlayer.getDuration(),
+                        future: cubit.audioPlayer.getDuration(),
                         builder: (context, futureSnapshot) =>
                             StreamBuilder<Duration>(
                           stream: context
@@ -414,7 +418,7 @@ class _SongViewState extends State<SongView> {
                                       )),
                                   onPressed: () {
                                     isOnListNotifier.value = true;
-                                    context.read<SongCubit>().removeSelection();
+                                    cubit.removeSelection();
                                   },
                                   child: Text(
                                     state.songs[currentPageIndex].number
@@ -610,28 +614,33 @@ class _SongViewState extends State<SongView> {
                                                                                     IconButton(
                                                                                         onPressed: () async {
                                                                                           if (await context.showConfirmation('Are you sure want to delete this?'.tr())) {
-                                                                                            context.read<SongCubit>().deleteHistory(e.value);
+                                                                                            cubit.deleteHistory(e.value);
                                                                                           }
                                                                                         },
                                                                                         icon: Icon(Icons.delete)),
                                                                                   ],
                                                                                 ),
                                                                                 onTap: () async {
-                                                                                  context.read<SongCubit>().changeBookcode(e.value.bookCode);
-                                                                                  var song = context.read<SongCubit>().state.currentSong?.songs[e.value.index];
+                                                                                  int index = e.value.index;
+                                                                                  var book = cubit.state.songBook.firstWhereOrNull((element) => element.code == e.value.bookCode);
+                                                                                  if ((book?.songs.length ?? 0) <= index) {
+                                                                                    index = 0;
+                                                                                  }
+                                                                                  cubit.changeBookcode(e.value.bookCode);
+                                                                                  var song = cubit.state.currentSong?.songs[index];
                                                                                   Future.delayed(const Duration(milliseconds: 100)).then((value) {
                                                                                     /// change the page number
                                                                                     var index = state.currentSong?.songs.indexWhere((element) => element.number == song?.number);
                                                                                     if (index == null) {
                                                                                       return;
                                                                                     }
-                                                                                    context.read<SongCubit>().addToHistory(
-                                                                                          SongHistory(
-                                                                                            index: index,
-                                                                                            bookCode: song?.code ?? '',
-                                                                                            createdAt: DateTime.now(),
-                                                                                          ),
-                                                                                        );
+                                                                                    cubit.addToHistory(
+                                                                                      SongHistory(
+                                                                                        index: index,
+                                                                                        bookCode: song?.code ?? '',
+                                                                                        createdAt: DateTime.now(),
+                                                                                      ),
+                                                                                    );
                                                                                     pageController.animateToPage(index, duration: kThemeAnimationDuration, curve: Curves.ease);
                                                                                     router.maybePop();
                                                                                   });
@@ -680,7 +689,7 @@ class _SongViewState extends State<SongView> {
                             IconButton(
                               onPressed: () {
                                 currentVerseIndex = 0;
-                                context.read<SongCubit>().changeMode();
+                                cubit.changeMode();
                               },
                               visualDensity: VisualDensity.compact,
                               icon: ColorFiltered(
@@ -700,7 +709,7 @@ class _SongViewState extends State<SongView> {
                               offset: Offset(0, 48),
                               onSelected: (value) async {
                                 if (value == 'fav') {
-                                  context.read<SongCubit>().modifyFavorite(
+                                  cubit.modifyFavorite(
                                       state.songs[currentPageIndex]);
                                 } else if (value == 'copy') {
                                   var number =
@@ -717,7 +726,7 @@ class _SongViewState extends State<SongView> {
                                   Fluttertoast.showToast(
                                       msg: 'Copied to clipboard'.tr());
                                 } else if (value == 'size') {
-                                  context.read<SongCubit>().toggleSizer();
+                                  cubit.toggleSizer();
                                 } else if (value == 'share') {
                                   var number =
                                       state.songs[currentPageIndex].number;
@@ -770,7 +779,7 @@ class _SongViewState extends State<SongView> {
                                     ),
                                   );
                                 } else if (value == 'audio') {
-                                  context.read<SongCubit>().toggleAudio();
+                                  cubit.toggleAudio();
                                 } else if (value == 'sync') {
                                   context
                                       .read<SongCubit>()
@@ -905,7 +914,7 @@ class _SongViewState extends State<SongView> {
                                 log(touches.toString());
                               },
                               child: Container(
-                                color: context.colorScheme.background,
+                                color: context.colorScheme.surface,
                                 child: Stack(
                                   fit: StackFit.passthrough,
                                   children: [
@@ -1261,7 +1270,7 @@ class _SongViewState extends State<SongView> {
                               ),
                             ),
                             FutureBuilder(
-                              future: context.read<SongCubit>().isSynced(),
+                              future: cubit.isSynced(),
                               builder: (context, snapshot) {
                                 if (!snapshot.hasData) {
                                   return SizedBox();
@@ -1394,12 +1403,12 @@ class _SongViewState extends State<SongView> {
                                                                   MaterialTapTargetSize
                                                                       .shrinkWrap,
                                                               fixedSize:
-                                                                  MaterialStateProperty
+                                                                  WidgetStateProperty
                                                                       .all(Size(
                                                                           24,
                                                                           24)),
                                                               iconSize:
-                                                                  MaterialStateProperty
+                                                                  WidgetStateProperty
                                                                       .all(10),
                                                             ),
                                                             color: context
@@ -1433,7 +1442,6 @@ class _SongViewState extends State<SongView> {
                             isOnListNotifier.value = false;
                           },
                           onPlayFavorite: () async {
-                            var cubit = context.read<SongCubit>();
                             if (cubit.audioPlayer.state ==
                                 PlayerState.playing) {
                               cubit.pause();
@@ -1457,13 +1465,13 @@ class _SongViewState extends State<SongView> {
                             var index = cubit.state.songs.indexWhere(
                                 (element) => element.number == song.number);
                             // if (index == null) return;
-                            context.read<SongCubit>().addToHistory(
-                                  SongHistory(
-                                    index: index,
-                                    bookCode: song.code!,
-                                    createdAt: DateTime.now(),
-                                  ),
-                                );
+                            cubit.addToHistory(
+                              SongHistory(
+                                index: index,
+                                bookCode: song.code!,
+                                createdAt: DateTime.now(),
+                              ),
+                            );
                             try {
                               // await pageController.animateToPage(index,
                               //     duration: kThemeAnimationDuration,
@@ -1474,7 +1482,7 @@ class _SongViewState extends State<SongView> {
                               log('$e');
                             }
                             // await Future.delayed(Duration(milliseconds: 200));
-                            // var cubit = context.read<SongCubit>();
+                            //
                             // cubit.removeSelection();
 
                             // /// change the book
@@ -1484,7 +1492,7 @@ class _SongViewState extends State<SongView> {
                             // var index = cubit.state.songs.indexWhere(
                             //     (element) => element.number == song.number);
                             // // if (index == null) return;
-                            // context.read<SongCubit>().addToHistory(
+                            // cubit.addToHistory(
                             //       SongHistory(
                             //         index: index,
                             //         bookCode: song.code!,
@@ -1500,12 +1508,11 @@ class _SongViewState extends State<SongView> {
                             // }
                           },
                           initialSearchText: state.searchTerms,
-                          onSearchTermsChanged:
-                              context.read<SongCubit>().onSearchTermsChanged,
+                          onSearchTermsChanged: cubit.onSearchTermsChanged,
                           onTapFavorite: (song) async {
                             pageController.jumpToPage(0);
                             await Future.delayed(Duration(milliseconds: 200));
-                            var cubit = context.read<SongCubit>();
+
                             cubit.removeSelection();
 
                             /// change the book
@@ -1515,13 +1522,13 @@ class _SongViewState extends State<SongView> {
                             var index = cubit.state.songs.indexWhere(
                                 (element) => element.number == song.number);
                             // if (index == null) return;
-                            context.read<SongCubit>().addToHistory(
-                                  SongHistory(
-                                    index: index,
-                                    bookCode: song.code!,
-                                    createdAt: DateTime.now(),
-                                  ),
-                                );
+                            cubit.addToHistory(
+                              SongHistory(
+                                index: index,
+                                bookCode: song.code!,
+                                createdAt: DateTime.now(),
+                              ),
+                            );
                             try {
                               pageController.animateToPage(index,
                                   duration: kThemeAnimationDuration,
@@ -1533,37 +1540,38 @@ class _SongViewState extends State<SongView> {
                             }
                             isOnListNotifier.value = false;
                           },
-                          favoriteBooks: () =>
-                              context.read<SongCubit>().state.favoriteSongBook,
+                          favoriteBooks: () => cubit.state.favoriteSongBook,
                           onFavorite: (song) {
-                            context.read<SongCubit>().modifyFavorite(song);
+                            cubit.modifyFavorite(song);
                           },
-                          isFavorite: (song) =>
-                              context.read<SongCubit>().isSongFavorite(song),
-                          currentBook: () =>
-                              context.read<SongCubit>().state.currentSong!,
-                          books: () => context.read<SongCubit>().state.songBook,
+                          isFavorite: (song) => cubit.isSongFavorite(song),
+                          currentBook: () => cubit.state.currentSong!,
+                          books: () => cubit.state.songBook,
                           onChangeBookCode: (bookCode) {
-                            context.read<SongCubit>().changeBookcode(bookCode);
+                            var book = cubit.state.songBook.firstWhereOrNull(
+                                (element) => element.code == bookCode);
+                            if ((book?.songs.length ?? 0) <= currentPageIndex) {
+                              pageController.jumpToPage(0);
+                            }
+                            cubit.changeBookcode(bookCode);
                           },
                           onTapPageNumber: (pageNumber) async {
                             pageController.jumpToPage(0);
                             await Future.delayed(Duration(milliseconds: 200));
-                            var cubit = context.read<SongCubit>();
-
                             cubit.removeSelection();
                             cubit.changeBookcode(
                                 cubit.state.currentSong?.code ?? '');
                             var index = cubit.state.songs.indexWhere(
                                 (element) => element.number == pageNumber);
                             // if (index == null) return;
-                            context.read<SongCubit>().addToHistory(
-                                  SongHistory(
-                                    index: index,
-                                    bookCode: cubit.state.bookCode,
-                                    createdAt: DateTime.now(),
-                                  ),
-                                );
+
+                            cubit.addToHistory(
+                              SongHistory(
+                                index: index,
+                                bookCode: cubit.state.bookCode,
+                                createdAt: DateTime.now(),
+                              ),
+                            );
                             if (index == 0) {
                               cubit
                                   .fetchAvailableSong(cubit.state.songs[index]);
@@ -1753,13 +1761,14 @@ class SelectedSongMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cubit = context.read<SongCubit>();
     return Container(
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
         ],
-        color: context.colorScheme.background,
+        color: context.colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1784,7 +1793,7 @@ class SelectedSongMenu extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.close),
                       visualDensity: VisualDensity.compact,
-                      onPressed: context.read<SongCubit>().removeSelection,
+                      onPressed: cubit.removeSelection,
                     ),
                   ],
                 ),
@@ -1818,12 +1827,11 @@ class SelectedSongMenu extends StatelessWidget {
                                   ?.title);
                       router.push(SongNoteRoute(
                         initialData: existing ??
-                            SongNote.empty(
-                                context.read<SongCubit>().state.selectedSong!),
-                        cubit: context.read<SongCubit>(),
+                            SongNote.empty(cubit.state.selectedSong!),
+                        cubit: cubit,
                         mode: NoteMode.write,
                         onSave: (data) {
-                          context.read<SongCubit>().saveNote(data);
+                          cubit.saveNote(data);
                           router.maybePop();
                           router
                               .push(SongNotesListRoute(cubit: context.read()));
@@ -1894,10 +1902,10 @@ class SelectedSongMenu extends StatelessWidget {
                 //       foregroundColor: context.colorScheme.onPrimaryContainer,
                 //     ),
                 //     onPressed: () async {
-                //       context.read<SongCubit>().modifyFavorite(item);
-                //       context.read<SongCubit>().removeSelection();
+                //       cubit.modifyFavorite(item);
+                //       cubit.removeSelection();
                 //     },
-                //     icon: context.read<SongCubit>().isSongFavorite(item)
+                //     icon: cubit.isSongFavorite(item)
                 //         ? Icon(
                 //             Icons.check,
                 //             size: 12,
@@ -1913,10 +1921,10 @@ class SelectedSongMenu extends StatelessWidget {
                 //       foregroundColor: context.colorScheme.onPrimaryContainer,
                 //     ),
                 //     onPressed: () async {
-                //       context.read<SongCubit>().toggleAudio();
-                //       context.read<SongCubit>().removeSelection();
+                //       cubit.toggleAudio();
+                //       cubit.removeSelection();
                 //     },
-                //     icon: context.read<SongCubit>().state.showAudio
+                //     icon: cubit.state.showAudio
                 //         ? Icon(
                 //             Icons.check,
                 //             size: 12,
