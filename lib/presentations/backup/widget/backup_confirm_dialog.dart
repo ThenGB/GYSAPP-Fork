@@ -76,7 +76,7 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
             child: Container(
               key: widgetKey,
               padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(color: context.colorScheme.background),
+              decoration: BoxDecoration(color: context.colorScheme.surface),
               margin: context.mediaQuery.viewInsets,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

@@ -84,13 +84,13 @@ class _BibleListViewState extends State<BibleListView> {
               SharedAxisTransition(
             animation: primaryAnimation,
             secondaryAnimation: secondaryAnimation,
-            fillColor: context.colorScheme.background,
+            fillColor: context.colorScheme.surface,
             transitionType: SharedAxisTransitionType.vertical,
             child: child,
           ),
           child: MediaQuery(
             data: context.mediaQuery.copyWith(
-              textScaleFactor: widget.textScale,
+              textScaler: TextScaler.linear(widget.textScale),
             ),
             child: IndexedStack(
               index: pageIndex,
@@ -98,7 +98,7 @@ class _BibleListViewState extends State<BibleListView> {
               alignment: Alignment.topCenter,
               children: [
                 Container(
-                  color: context.colorScheme.background,
+                  color: context.colorScheme.surface,
                   child: FutureBuilder(
                     future: FirebaseUtils.jsonConfig('bible_name'),
                     builder: (context, snapshot) {

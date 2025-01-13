@@ -73,14 +73,10 @@ class _LoginViewState extends State<LoginView> {
                 onProgressChanged: (controller, progress) {
                   context.read<AuthCubit>().onProgress(progress);
                 },
-                initialOptions: InAppWebViewGroupOptions(
-                  crossPlatform: InAppWebViewOptions(
-                    transparentBackground: true,
-                    cacheEnabled: false,
-                  ),
-                  android: AndroidInAppWebViewOptions(
-                    supportMultipleWindows: true,
-                  ),
+                initialSettings: InAppWebViewSettings(
+                  transparentBackground: true,
+                  cacheEnabled: false,
+                  supportMultipleWindows: true,
                 ),
                 onConsoleMessage: (controller, consoleMessage) {
                   log(consoleMessage.message);
@@ -102,7 +98,6 @@ class _LoginViewState extends State<LoginView> {
                           key: windowKey,
                           // Setting the windowId property is important here!
                           windowId: createWindowAction.windowId,
-                          initialOptions: InAppWebViewGroupOptions(),
                           onWebViewCreated:
                               (InAppWebViewController controller) {
                             _webViewPopupController = controller;

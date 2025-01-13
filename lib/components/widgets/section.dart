@@ -16,7 +16,7 @@ class Section extends StatelessWidget {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 8),
-      color: context.colorScheme.background,
+      color: context.colorScheme.surface,
       padding: const EdgeInsets.symmetric(vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

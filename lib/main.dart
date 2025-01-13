@@ -70,7 +70,7 @@ class SmartNetworkAssetLoader extends AssetLoader {
       this.localCacheDuration = const Duration(days: 1)});
 
   @override
-  Future<Map<String, dynamic>> load(String localePath, Locale locale) async {
+  Future<Map<String, dynamic>> load(String path, Locale locale) async {
     var string = '';
 
     // try loading local previously-saved localization file
@@ -103,7 +103,7 @@ class SmartNetworkAssetLoader extends AssetLoader {
 
   Future<bool> isInternetConnectionAvailable() async {
     final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult == ConnectivityResult.none) {
+    if (connectivityResult.contains(ConnectivityResult.none)) {
       return false;
     } else {
       try {

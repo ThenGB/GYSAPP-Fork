@@ -41,7 +41,7 @@ extension ContextExt on BuildContext {
             return BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
               child: AlertDialog(
-                backgroundColor: colorScheme.background,
+                backgroundColor: colorScheme.surface,
                 contentPadding: EdgeInsets.all(8),
                 titleTextStyle: TextStyle(
                     fontWeight: FontWeight.bold,

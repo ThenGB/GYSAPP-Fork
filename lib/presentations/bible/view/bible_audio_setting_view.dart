@@ -122,7 +122,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
         ),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: context.colorScheme.background,
+        color: context.colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
@@ -172,10 +172,10 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                   SizedBox(
                                     height: 4,
                                   ),
-                                  ButtonBar(
-                                    buttonAlignedDropdown: true,
-                                    layoutBehavior:
-                                        ButtonBarLayoutBehavior.constrained,
+                                  OverflowBar(
+                                    // buttonAlignedDropdown: true,
+                                    // layoutBehavior:
+                                    //     ButtonBarLayoutBehavior.constrained,
                                     alignment: MainAxisAlignment.start,
                                     children: [
                                       PopupMenuButton(
@@ -279,9 +279,9 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                           SizedBox(
                             height: 4,
                           ),
-                          ButtonBar(
-                            buttonAlignedDropdown: true,
-                            layoutBehavior: ButtonBarLayoutBehavior.constrained,
+                          OverflowBar(
+                            // buttonAlignedDropdown: true,
+                            // layoutBehavior: ButtonBarLayoutBehavior.constrained,
                             alignment: MainAxisAlignment.start,
                             children: [
                               PopupMenuButton(
@@ -362,9 +362,9 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                           SizedBox(
                             height: 4,
                           ),
-                          ButtonBar(
-                            buttonAlignedDropdown: true,
-                            layoutBehavior: ButtonBarLayoutBehavior.constrained,
+                          OverflowBar(
+                            // buttonAlignedDropdown: true,
+                            // layoutBehavior: ButtonBarLayoutBehavior.constrained,
                             alignment: MainAxisAlignment.start,
                             children: [
                               PopupMenuButton(

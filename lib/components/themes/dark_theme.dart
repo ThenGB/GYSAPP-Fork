@@ -11,7 +11,7 @@ ThemeData darkTheme(String defaultFont) {
     appBarTheme: AppBarTheme(
       systemOverlayStyle: SystemUiOverlayStyle.light.copyWith(
         statusBarColor: Colors.transparent,
-        systemNavigationBarColor: colorScheme.background,
+        systemNavigationBarColor: colorScheme.surface,
         systemNavigationBarIconBrightness: Brightness.light,
       ),
       titleTextStyle: TextStyle(
@@ -22,7 +22,7 @@ ThemeData darkTheme(String defaultFont) {
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ButtonStyle(
-        textStyle: MaterialStateProperty.resolveWith(
+        textStyle: WidgetStateProperty.resolveWith(
           (states) {
             return TextStyle(
               fontFamily: defaultFont,
@@ -37,7 +37,7 @@ ThemeData darkTheme(String defaultFont) {
     ),
     textButtonTheme: TextButtonThemeData(
       style: ButtonStyle(
-        textStyle: MaterialStateProperty.resolveWith(
+        textStyle: WidgetStateProperty.resolveWith(
           (states) {
             return TextStyle(
               fontFamily: defaultFont,
