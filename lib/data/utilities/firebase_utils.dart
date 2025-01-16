@@ -44,4 +44,9 @@ class FirebaseUtils {
     log(jsonString.toString(), name: 'Get $key from Remote Config');
     return jsonString;
   }
+
+  static Future<Map> getAllConfigs() async {
+    var config = await initialization.future;
+    return config.getAll();
+  }
 }

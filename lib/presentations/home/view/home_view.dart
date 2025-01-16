@@ -49,7 +49,11 @@ class HomeView extends StatelessWidget {
                         if (snapshot.hasError) {
                           return const SizedBox.shrink();
                         }
-                        final banners = snapshot.data as List<ImageBanner>;
+                        final banners = (snapshot.data as List<ImageBanner>)
+                            .where(
+                              (element) => !element.isExpired,
+                            )
+                            .toList();
                         if (banners.isEmpty) {
                           return const SizedBox.shrink();
                         }
@@ -58,27 +62,66 @@ class HomeView extends StatelessWidget {
                             itemCount: banners.length,
                             itemBuilder: (context, index, realIndex) {
                               var banner = banners[index];
-                              return Container(
-                                width: double.infinity,
-                                clipBehavior: Clip.hardEdge,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(4),
-                                  color: Colors.transparent,
-                                ),
-                                child: CachedNetworkImage(
-                                  imageUrl: banner.imageUrl ?? '',
-                                  fit: BoxFit.cover,
-                                  placeholder: (context, url) => const Center(
-                                    child: CircularProgressIndicator(),
+                              return GestureDetector(
+                                onTap: banner.linkUrl == null
+                                    ? null
+                                    : () {
+                                        if (banner.linkUrl!.contains('http')) {
+                                          launchUrl(
+                                            Uri.parse(banner.linkUrl!),
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          );
+                                        } else {
+                                          router.pushNamed(banner.linkUrl!);
+                                        }
+                                      },
+                                child: Container(
+                                  width: double.infinity,
+                                  clipBehavior: Clip.hardEdge,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(4),
+                                    color: Colors.transparent,
                                   ),
-                                  errorWidget: (context, url, error) =>
-                                      const Icon(Icons.error),
+                                  child: Stack(
+                                    children: [
+                                      Positioned.fill(
+                                        child: CachedNetworkImage(
+                                          imageUrl: banner.imageUrl ?? '',
+                                          fit: BoxFit.cover,
+                                          placeholder: (context, url) =>
+                                              const Center(
+                                            child: CircularProgressIndicator(),
+                                          ),
+                                          errorWidget: (context, url, error) =>
+                                              const Icon(Icons.error),
+                                        ),
+                                      ),
+                                      if (banner.linkUrl != null)
+
+                                        /// add link icon on topRight
+                                        Positioned.fill(
+                                          child: Align(
+                                            alignment: Alignment.topRight,
+                                            child: Padding(
+                                              padding:
+                                                  const EdgeInsets.all(8.0),
+                                              child: Icon(
+                                                Icons.link,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
                                 ),
                               );
                             },
                             options: CarouselOptions(
                               height: 110,
                               enlargeFactor: 1,
+                              autoPlay: true,
                               enlargeStrategy: CenterPageEnlargeStrategy.scale,
                               viewportFraction: 1,
                             ),

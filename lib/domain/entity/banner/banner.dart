@@ -12,8 +12,12 @@ class ImageBanner with _$ImageBanner {
     @JsonKey(name: 'linkUrl') String? linkUrl,
     @JsonKey(name: 'order') int? order,
     @JsonKey(name: 'title') String? title,
+    @JsonKey(name: 'expiredDate') DateTime? expiredDate,
   }) = _ImageBanner;
 
   factory ImageBanner.fromJson(Map<String, dynamic> json) =>
       _$ImageBannerFromJson(json);
+
+  bool get isExpired =>
+      expiredDate != null && expiredDate!.isBefore(DateTime.now());
 }

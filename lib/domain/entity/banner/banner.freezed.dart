@@ -30,6 +30,8 @@ mixin _$ImageBanner {
   int? get order => throw _privateConstructorUsedError;
   @JsonKey(name: 'title')
   String? get title => throw _privateConstructorUsedError;
+  @JsonKey(name: 'expiredDate')
+  DateTime? get expiredDate => throw _privateConstructorUsedError;
 
   /// Serializes this ImageBanner to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,7 +54,8 @@ abstract class $ImageBannerCopyWith<$Res> {
       @JsonKey(name: 'imageUrl') String? imageUrl,
       @JsonKey(name: 'linkUrl') String? linkUrl,
       @JsonKey(name: 'order') int? order,
-      @JsonKey(name: 'title') String? title});
+      @JsonKey(name: 'title') String? title,
+      @JsonKey(name: 'expiredDate') DateTime? expiredDate});
 }
 
 /// @nodoc
@@ -75,6 +78,7 @@ class _$ImageBannerCopyWithImpl<$Res, $Val extends ImageBanner>
     Object? linkUrl = freezed,
     Object? order = freezed,
     Object? title = freezed,
+    Object? expiredDate = freezed,
   }) {
     return _then(_value.copyWith(
       description: freezed == description
@@ -97,6 +101,10 @@ class _$ImageBannerCopyWithImpl<$Res, $Val extends ImageBanner>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String?,
+      expiredDate: freezed == expiredDate
+          ? _value.expiredDate
+          : expiredDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ) as $Val);
   }
 }
@@ -114,7 +122,8 @@ abstract class _$$ImageBannerImplCopyWith<$Res>
       @JsonKey(name: 'imageUrl') String? imageUrl,
       @JsonKey(name: 'linkUrl') String? linkUrl,
       @JsonKey(name: 'order') int? order,
-      @JsonKey(name: 'title') String? title});
+      @JsonKey(name: 'title') String? title,
+      @JsonKey(name: 'expiredDate') DateTime? expiredDate});
 }
 
 /// @nodoc
@@ -135,6 +144,7 @@ class __$$ImageBannerImplCopyWithImpl<$Res>
     Object? linkUrl = freezed,
     Object? order = freezed,
     Object? title = freezed,
+    Object? expiredDate = freezed,
   }) {
     return _then(_$ImageBannerImpl(
       description: freezed == description
@@ -157,6 +167,10 @@ class __$$ImageBannerImplCopyWithImpl<$Res>
           ? _value.title
           : title // ignore: cast_nullable_to_non_nullable
               as String?,
+      expiredDate: freezed == expiredDate
+          ? _value.expiredDate
+          : expiredDate // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
     ));
   }
 }
@@ -169,7 +183,8 @@ class _$ImageBannerImpl extends _ImageBanner {
       @JsonKey(name: 'imageUrl') this.imageUrl,
       @JsonKey(name: 'linkUrl') this.linkUrl,
       @JsonKey(name: 'order') this.order,
-      @JsonKey(name: 'title') this.title})
+      @JsonKey(name: 'title') this.title,
+      @JsonKey(name: 'expiredDate') this.expiredDate})
       : super._();
 
   factory _$ImageBannerImpl.fromJson(Map<String, dynamic> json) =>
@@ -190,10 +205,13 @@ class _$ImageBannerImpl extends _ImageBanner {
   @override
   @JsonKey(name: 'title')
   final String? title;
+  @override
+  @JsonKey(name: 'expiredDate')
+  final DateTime? expiredDate;
 
   @override
   String toString() {
-    return 'ImageBanner(description: $description, imageUrl: $imageUrl, linkUrl: $linkUrl, order: $order, title: $title)';
+    return 'ImageBanner(description: $description, imageUrl: $imageUrl, linkUrl: $linkUrl, order: $order, title: $title, expiredDate: $expiredDate)';
   }
 
   @override
@@ -207,13 +225,15 @@ class _$ImageBannerImpl extends _ImageBanner {
                 other.imageUrl == imageUrl) &&
             (identical(other.linkUrl, linkUrl) || other.linkUrl == linkUrl) &&
             (identical(other.order, order) || other.order == order) &&
-            (identical(other.title, title) || other.title == title));
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.expiredDate, expiredDate) ||
+                other.expiredDate == expiredDate));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, description, imageUrl, linkUrl, order, title);
+  int get hashCode => Object.hash(
+      runtimeType, description, imageUrl, linkUrl, order, title, expiredDate);
 
   /// Create a copy of ImageBanner
   /// with the given fields replaced by the non-null parameter values.
@@ -233,11 +253,13 @@ class _$ImageBannerImpl extends _ImageBanner {
 
 abstract class _ImageBanner extends ImageBanner {
   const factory _ImageBanner(
-      {@JsonKey(name: 'description') final String? description,
-      @JsonKey(name: 'imageUrl') final String? imageUrl,
-      @JsonKey(name: 'linkUrl') final String? linkUrl,
-      @JsonKey(name: 'order') final int? order,
-      @JsonKey(name: 'title') final String? title}) = _$ImageBannerImpl;
+          {@JsonKey(name: 'description') final String? description,
+          @JsonKey(name: 'imageUrl') final String? imageUrl,
+          @JsonKey(name: 'linkUrl') final String? linkUrl,
+          @JsonKey(name: 'order') final int? order,
+          @JsonKey(name: 'title') final String? title,
+          @JsonKey(name: 'expiredDate') final DateTime? expiredDate}) =
+      _$ImageBannerImpl;
   const _ImageBanner._() : super._();
 
   factory _ImageBanner.fromJson(Map<String, dynamic> json) =
@@ -258,6 +280,9 @@ abstract class _ImageBanner extends ImageBanner {
   @override
   @JsonKey(name: 'title')
   String? get title;
+  @override
+  @JsonKey(name: 'expiredDate')
+  DateTime? get expiredDate;
 
   /// Create a copy of ImageBanner
   /// with the given fields replaced by the non-null parameter values.

@@ -13,6 +13,9 @@ _$ImageBannerImpl _$$ImageBannerImplFromJson(Map<String, dynamic> json) =>
       linkUrl: json['linkUrl'] as String?,
       order: (json['order'] as num?)?.toInt(),
       title: json['title'] as String?,
+      expiredDate: json['expiredDate'] == null
+          ? null
+          : DateTime.parse(json['expiredDate'] as String),
     );
 
 Map<String, dynamic> _$$ImageBannerImplToJson(_$ImageBannerImpl instance) =>
@@ -22,4 +25,5 @@ Map<String, dynamic> _$$ImageBannerImplToJson(_$ImageBannerImpl instance) =>
       'linkUrl': instance.linkUrl,
       'order': instance.order,
       'title': instance.title,
+      'expiredDate': instance.expiredDate?.toIso8601String(),
     };

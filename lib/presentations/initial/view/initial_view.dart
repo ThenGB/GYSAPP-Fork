@@ -68,6 +68,14 @@ class InitialView extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 CupertinoActivityIndicator(),
+                const SizedBox(height: 16),
+                Text(
+                  state.message,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.primary,
+                    fontSize: 12,
+                  ),
+                ),
               ],
             ),
           ),

@@ -42,29 +42,15 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   initState() async {
-    await di.allReady();
-    log('Initiating application state');
-    await getRemoteConfig();
-    var firebaseRemoteConfig =
-        await FirebaseUtils.jsonConfig('firebase_remote_config');
     emit(
       state.copyWith(
-        configFetchTimeoutSeconds: firebaseRemoteConfig['fetch_timeout'] ??
-            state.configFetchTimeoutSeconds,
-        configFetchIntervalSeconds: firebaseRemoteConfig['fetch_interval'] ??
-            state.configFetchIntervalSeconds,
+        message: 'Initiating...',
       ),
     );
+    await di.allReady();
+    log('Initiating application state');
     var result =
         (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
-    try {
-      await FirebaseAuth.instance
-          .signInAnonymously()
-          .timeout(Duration(seconds: 5));
-    } catch (e) {
-      log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
-    }
-
     if (!result && state.isFreshInstall) {
       emit(
         state.copyWith(
@@ -85,6 +71,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
           isLoaded: true,
         ),
       );
+    }
+    await getRemoteConfig();
+    var firebaseRemoteConfig =
+        await FirebaseUtils.jsonConfig('firebase_remote_config');
+    emit(
+      state.copyWith(
+        configFetchTimeoutSeconds: firebaseRemoteConfig['fetch_timeout'] ??
+            state.configFetchTimeoutSeconds,
+        configFetchIntervalSeconds: firebaseRemoteConfig['fetch_interval'] ??
+            state.configFetchIntervalSeconds,
+      ),
+    );
+
+    try {
+      await FirebaseAuth.instance
+          .signInAnonymously()
+          .timeout(Duration(seconds: 5));
+    } catch (e) {
+      log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
     }
   }
 

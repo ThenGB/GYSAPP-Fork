@@ -121,9 +121,18 @@ class _WebpageViewState extends State<WebpageView> {
               onWebViewCreated: (c) {
                 controller = c;
               },
+              shouldOverrideUrlLoading: (controller, navigationAction) async {
+                // var uri = navigationAction.request.url;
+                // if (uri != null) {
+                //   if (uri.host == 'gys.or.id') {
+                return NavigationActionPolicy.ALLOW;
+                //   }
+                // }
+                // return NavigationActionPolicy.CANCEL;
+              },
               onLoadStop: (controller, url) async {
                 navColor = await widget.getNavColor?.call(controller);
-                var luminance = navColor!.computeLuminance();
+                var luminance = navColor?.computeLuminance() ?? 1;
                 currentBrightness =
                     luminance > 0.5 ? Brightness.light : Brightness.dark;
                 setState(() {});

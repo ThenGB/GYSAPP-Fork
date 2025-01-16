@@ -1172,7 +1172,7 @@ PODS:
   - BoringSSL-GRPC/Implementation (0.0.36):
     - BoringSSL-GRPC/Interface (= 0.0.36)
   - BoringSSL-GRPC/Interface (0.0.36)
-  - cloud_firestore (5.5.1):
+  - cloud_firestore (5.6.0):
     - Firebase/Firestore (= 11.4.0)
     - firebase_core
     - Flutter
@@ -1250,7 +1250,7 @@ PODS:
     - Firebase/Auth (= 11.4.0)
     - firebase_core
     - Flutter
-  - firebase_core (3.8.1):
+  - firebase_core (3.9.0):
     - Firebase/CoreOnly (= 11.4.0)
     - Flutter
   - firebase_crashlytics (4.2.0):
@@ -1767,7 +1767,7 @@ SPEC CHECKSUMS:
   audioplayers_darwin: 877d9a4d06331c5c374595e46e16453ac7eafa40
   awesome_notifications: dd5518ff1c80be03d4f1c40f04da9d9cc2a37af5
   BoringSSL-GRPC: ca6a8e5d04812fce8ffd6437810c2d46f925eaeb
-  cloud_firestore: 3fafe78d755b01fe1fd267a87bb52e80b7dacacc
+  cloud_firestore: 56bca083ecf07f16188ace1d5b57123bcb1b3465
   connectivity_plus: 18382e7311ba19efcaee94442b23b32507b20695
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
@@ -1777,7 +1777,7 @@ SPEC CHECKSUMS:
   firebase_analytics: 2815af29d49c1a994652abd37a5b001a88bc7b75
   firebase_app_check: c0ad775ed31fcc50b859cf6a0fd6329599f27dd4
   firebase_auth: c4bdd9d7b338ac004008cb5024a643584e0ec03f
-  firebase_core: 418aed674e9a0b8b6088aec16cde82a811f6261f
+  firebase_core: b62a5080210edad3f2934314a8b2c6f5124e8e10
   firebase_crashlytics: 757e252772ed3dd37c07638f9fcd4dceb5f101c8
   firebase_remote_config: 015a36be218a38943c2273d63b33bc983b3d7bb6
   firebase_storage: 8826dc971e5029b48826613f7265952e55191585
@@ -1803,7 +1803,7 @@ SPEC CHECKSUMS:
   flutter_appauth: aff60f61e4a80b8b5c051615f00bf8f3b54fc5e8
   flutter_inappwebview_ios: 6f63631e2c62a7c350263b13fa5427aedefe81d4
   flutter_keyboard_visibility_temp_fork: 8a8809c4129e31d25fca77446e0f3fd548122ced
-  flutter_native_splash: e8a1e01082d97a8099d973f919f57904c925008a
+  flutter_native_splash: f71420956eb811e6d310720fee915f1d42852e7a
   flutter_pdfview: 25f53dd6097661e6395b17de506e6060585946bd
   flutter_tts: 0f492aab6accf87059b72354fcb4ba934304771d
   fluttertoast: e9a18c7be5413da53898f660530c56f35edfba9c
@@ -1836,7 +1836,7 @@ SPEC CHECKSUMS:
   SwiftyGif: 706c60cf65fa2bc5ee0313beece843c8eb8194d4
   Toast: 1f5ea13423a1e6674c4abdac5be53587ae481c4e
   url_launcher_ios: 5334b05cef931de560670eeae103fd3e431ac3fe
-  wakelock_plus: 78ec7c5b202cab7761af8e2b2b3d0671be6c4ae1
+  wakelock_plus: 373cfe59b235a6dd5837d0fb88791d2f13a90d56
   webview_flutter_wkwebview: 0982481e3d9c78fd5c6f62a002fcd24fc791f1e4
 
 PODFILE CHECKSUM: 86cef3689c67a0fc91302bbcfcbe35e9cc4f8832

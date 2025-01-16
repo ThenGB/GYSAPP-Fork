@@ -99,7 +99,7 @@ Future _setupNotification() async {
 
 var defaultAddress = AddressCheckOption(
   ////8.8.8.8 and 8.8.4.4 are Google's public DNS servers
-  uri: Uri.parse('https://dummyapi.online'),
+  uri: Uri.parse('https://e.gys.or.id/api/v1/users/profile'),
   timeout: const Duration(seconds: 3),
 );
 
