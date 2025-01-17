@@ -1,12 +1,14 @@
 import 'dart:io';
 
 import 'package:easy_localization/easy_localization.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/services.dart';
 
 class Failure {
   final String message;
   Failure(this.message);
   factory Failure.fromError(Object e, [StackTrace? stackTrace]) {
+    FirebaseCrashlytics.instance.recordError(e, stackTrace);
     String errorMessage = e.toString();
 
     if (e is FileSystemException) {
