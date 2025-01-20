@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
@@ -215,10 +216,11 @@ class LinkLainnya extends StatelessWidget {
                           return;
                         }
                         if (e.value.url.contains('http')) {
-                          launchUrl(
+                          final res = await launchUrl(
                             Uri.parse(e.value.url),
-                            mode: LaunchMode.externalNonBrowserApplication,
+                            mode: LaunchMode.externalApplication,
                           );
+                          log(res.toString());
                           // router.push(WebpageRoute(url: e.value.url));
                         } else {
                           if (e.value.url == 'khotbah') {
@@ -328,7 +330,6 @@ class _IbadahPopupState extends State<IbadahPopup> {
         minChildSize: (childHeight - .2).clamp(0.001, 1),
         snap: true,
         builder: (context, scrollController) => Container(
-          key: widgetKey,
           padding: context.mediaQuery.viewInsets,
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
