@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
+import 'package:device_preview/device_preview.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -158,19 +159,23 @@ class _AppState extends State<App> {
             locale: context.locale,
             routerConfig: router.config(),
             theme: defaultTheme(state.defaultFont),
+            debugShowCheckedModeBanner: false,
             darkTheme: darkTheme(state.defaultFont),
             themeMode: state.themeMode.toThemeMode,
             builder: (context, child) {
               // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
               // });
-              return BlocBuilder<InitialCubit, InitialState>(
-                builder: (context, state) => MediaQuery(
-                  data: context.mediaQuery.copyWith(
-                    alwaysUse24HourFormat: true,
-                    textScaler: TextScaler.linear(state.defaultTextScale),
+              return DevicePreview.appBuilder(
+                context,
+                BlocBuilder<InitialCubit, InitialState>(
+                  builder: (context, state) => MediaQuery(
+                    data: context.mediaQuery.copyWith(
+                      alwaysUse24HourFormat: true,
+                      textScaler: TextScaler.linear(state.defaultTextScale),
+                    ),
+                    child: child!,
                   ),
-                  child: child!,
                 ),
               );
             },

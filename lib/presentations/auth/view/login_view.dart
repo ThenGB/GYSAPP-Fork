@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -104,7 +103,7 @@ class _LoginViewState extends State<LoginView> {
                             _webViewPopupController?.addJavaScriptHandler(
                               handlerName: 'mobile',
                               callback: (arguments) {
-                                var json = arguments.firstOrNull
+                                var json = (arguments as List).firstOrNull
                                     as Map<String, dynamic>;
 
                                 channelListener(json);
@@ -122,7 +121,9 @@ class _LoginViewState extends State<LoginView> {
                   _webViewController?.addJavaScriptHandler(
                     handlerName: 'mobile',
                     callback: (arguments) {
-                      var json = arguments.firstOrNull as Map<String, dynamic>;
+                      log(arguments.toString());
+                      var json = (arguments as List).firstOrNull
+                          as Map<String, dynamic>;
 
                       channelListener(json);
                     },

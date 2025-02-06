@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_preview_screenshot/device_preview_screenshot.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +37,22 @@ void main() async {
             localCacheDuration: Duration(seconds: 1),
           ),
           useOnlyLangCode: true,
-          child: const App(),
+          child: DevicePreview(
+            enabled: false,
+            tools: [
+              ...DevicePreview.defaultTools,
+              DevicePreviewScreenshot(
+                onScreenshot: (context, screenshot) async {
+                  var result = base64.encode(screenshot.bytes);
+                  await Clipboard.setData(
+                    ClipboardData(text: result),
+                  );
+                  log('Screenshot ${screenshot.device.identifier}');
+                },
+              ),
+            ],
+            builder: (context) => const App(),
+          ),
         ),
       );
     },

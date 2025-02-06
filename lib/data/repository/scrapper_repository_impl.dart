@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:dartz/dartz.dart';
@@ -25,7 +26,10 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
         }
       },
     ))
-    ..setJavaScriptMode(JavaScriptMode.unrestricted);
+    ..setJavaScriptMode(JavaScriptMode.unrestricted)
+
+    /// Platform apple = Ipod, Ipad, Iphone, Macintosh
+    ..setUserAgent('$Platform.operatingSystem; $Platform.localHostname');
 
   ScrapperRepositoryImpl(this.chaleno);
 
