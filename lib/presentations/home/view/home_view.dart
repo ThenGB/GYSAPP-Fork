@@ -660,7 +660,7 @@ class _HomeHeaderState extends State<HomeHeader> {
                           ),
                           onPressed: () {
                             var url =
-                                'https://e.gys.or.id/home?token=${context.read<DashboardCubit>().state.idToken}';
+                                'https://e.gys.or.id/u/home?token=${context.read<DashboardCubit>().state.idToken}';
                             router.push(WebpageRoute(
                                 url: url,
                                 getNavColor: (controller) async {
