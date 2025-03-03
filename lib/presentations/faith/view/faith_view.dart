@@ -336,11 +336,23 @@ class _FaithViewState extends State<FaithView> {
                                   );
                                 }
                                 var item = currentData[index];
-                                return FaithWidget(
-                                  fontHeight: state.defaultTextHeight,
-                                  index: index,
-                                  item: item,
-                                  scale: scale,
+                                return DefaultTextStyle.merge(
+                                  style: TextStyle(
+                                    fontWeight: context
+                                            .read<FaithCubit>()
+                                            .state
+                                            .locale
+                                            .languageCode
+                                            .contains('zh')
+                                        ? FontWeight.w700
+                                        : null,
+                                  ),
+                                  child: FaithWidget(
+                                    fontHeight: state.defaultTextHeight,
+                                    index: index,
+                                    item: item,
+                                    scale: scale,
+                                  ),
                                 );
                               },
                             ),

@@ -1126,8 +1126,11 @@ class _SongViewState extends State<SongView> {
                                                                 ?.copyWith(
                                                               height: state
                                                                   .defaultTextHeight,
-                                                              fontWeight:
-                                                                  FontWeight
+                                                              fontWeight: state
+                                                                      .fontBold
+                                                                  ? FontWeight
+                                                                      .w700
+                                                                  : FontWeight
                                                                       .w500,
                                                               fontSize: 16,
                                                             ),
@@ -1275,7 +1278,7 @@ class _SongViewState extends State<SongView> {
                                 if (!snapshot.hasData) {
                                   return SizedBox();
                                 }
-                                if (snapshot.data == false &&
+                                if (snapshot.data == false ||
                                     allowShowUpdateDialog) {
                                   return Positioned.fill(
                                     child: Align(

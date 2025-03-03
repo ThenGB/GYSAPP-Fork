@@ -143,29 +143,12 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Future<bool> isSynced() async {
-    bool synced = true; // assuming all files are synced by default
+    await checkingSyncCompleter.future;
 
-    await checkingSyncCompleter.future.then((connectionSuccess) {
-      if (connectionSuccess) {
-        Map<String, DateTime> remoteLyricsUpdateAt =
-            Map.from(state.remoteLyricsUpdateAt);
-        Map<String, DateTime> lastSync = Map.from(state.lastSync);
-
-        // Check if any of the remote files have been updated since the last sync
-        for (var filename in remoteLyricsUpdateAt.keys) {
-          if (!lastSync.containsKey(filename) ||
-              remoteLyricsUpdateAt[filename]!
-                  .isAfter(lastSync[filename] ?? DateTime(2022))) {
-            /// why 2022? bisa semua tahun yang penting dibelakang terkahir kali update
-            synced = false; // found a file that is not synced
-            break; // exit the loop since we found a non-synced file
-          }
-        }
-      }
-      // If connection is unsuccessful, synced remains true.
-    });
-
-    return synced;
+    return !state.remoteLyricsUpdateAt.keys.any((filename) =>
+        !state.lastSync.containsKey(filename) ||
+        state.remoteLyricsUpdateAt[filename]!
+            .isAfter(state.lastSync[filename] ?? DateTime(2022)));
   }
 
   Future<List<String>> getUnsyncedFiles() async {
@@ -191,7 +174,6 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Completer<bool> checkingSyncCompleter = Completer();
-
   Future checkIsSynced() async {
     checkingSyncCompleter = Completer();
     AppDirectory localDir = di();
@@ -200,11 +182,13 @@ class SongCubit extends HydratedCubit<SongState> {
           Map.from(state.remoteLyricsUpdateAt);
       final storage = FirebaseStorage.instance;
       final songDbRef = storage.ref('v2/song/song.db');
-      FullMetadata db = await songDbRef.getMetadata();
+
+      final db = await songDbRef.getMetadata();
       if (db.updated != null || db.timeCreated != null) {
         remoteLyricsUpdateAt[basename(db.name)] = db.updated ?? db.timeCreated!;
       }
-      var difference = db.updated
+
+      final difference = db.updated
               ?.difference(
                 state.lastSync[basename(db.name)] ??
                     db.updated ??
@@ -212,27 +196,30 @@ class SongCubit extends HydratedCubit<SongState> {
               )
               .inMinutes ??
           0;
-      var localFile = File(localDir.songDbPath);
-      bool isExist = localFile.existsSync();
-      bool isSyncronized =
-          (difference.isNegative || difference == 0) && isExist;
+
+      final localFile = File(localDir.songDbPath);
+      final isSyncronized =
+          (difference.isNegative || difference == 0) && localFile.existsSync();
+
       if (isSyncronized) {
-        Map<String, DateTime> lastSync = Map.from(state.lastSync);
-        lastSync[basename(db.name)] = DateTime.now();
+        final Map<String, DateTime> lastSync = Map.from(state.lastSync)
+          ..[basename(db.name)] = DateTime.now();
         emit(state.copyWith(lastSync: lastSync));
       }
+
       final lyricFolderRef = await storage.ref('v2/song/lyrics').listAll();
 
       for (var book in state.songBook) {
-        // lyricFolderRef.
-        var remoteBook = lyricFolderRef.items
+        final remoteBook = lyricFolderRef.items
             .firstWhereOrNull((element) => element.name == '${book.code}.pdf');
+
         if (remoteBook != null) {
           final meta = await remoteBook.getMetadata();
           remoteLyricsUpdateAt[remoteBook.name] =
               meta.updated ?? meta.timeCreated ?? DateTime.now();
         }
       }
+
       emit(state.copyWith(remoteLyricsUpdateAt: remoteLyricsUpdateAt));
       checkingSyncCompleter.complete(true);
     } catch (e) {

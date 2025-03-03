@@ -69,6 +69,10 @@ class SongState with _$SongState {
     }
   }
 
+  bool get fontBold {
+    return bookCode.contains('MDR');
+  }
+
   TextTheme get defaultTextTheme {
     var result = GoogleFonts.robotoTextTheme();
     switch (defaultFont) {
