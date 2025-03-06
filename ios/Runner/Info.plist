@@ -50,6 +50,8 @@
 			<string>UIInterfaceOrientationLandscapeLeft</string>
 			<string>UIInterfaceOrientationLandscapeRight</string>
 		</array>
+			<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>GYS APP require your permission to work</string>
 		<key>NSAppTransportSecurity</key>
