@@ -106,7 +106,7 @@ class _BackupViewState extends State<BackupView> {
                                               (snapshot.data == true
                                                       ? 'Change account'
                                                       : 'Login')
-                                                  .tr()))))
+                                                  .tr(),),),),)
                             ]),
                       ),
                       SizedBox(height: 8),

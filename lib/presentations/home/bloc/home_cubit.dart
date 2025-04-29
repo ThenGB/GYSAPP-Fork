@@ -28,11 +28,22 @@ class HomeCubit extends HydratedCubit<HomeState> {
     scrappTrueVoice();
     getMenu();
     bannersCollection.snapshots().listen((event) {
-      final banners = event.docs
-          .map((e) => ImageBanner.fromJson(e.data() as Map<String, dynamic>))
-          .toList();
+      final banners = event.docs.map((e) {
+        final map = (e.data() as Map<String, dynamic>).map(
+          (key, value) => MapEntry(key,
+              value is Timestamp ? value.toDate().toIso8601String() : value),
+        );
+        return ImageBanner.fromJson(map);
+      }).toList();
       rxBanner.add(banners);
     });
+    getPrimaryMenuStatus();
+  }
+
+  refresh() {
+    scrappSauhBagiJiwa();
+    scrappTrueVoice();
+    getMenu();
     getPrimaryMenuStatus();
   }
 

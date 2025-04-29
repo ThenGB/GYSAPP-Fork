@@ -45,7 +45,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
               '[{"label":"eRhema","icon":"https://play-lh.googleusercontent.com/nxpU2jVSvYA4JnGWPHzw-l5j23DIgIqumkdR_aiOndyhjNB2fEkS9Tp296G-p6VX8E8","url":"https://Bible.tjc.org","enabled":true},{"label":"PelitaKecil","icon":"assets/icons/rhema.png","url":"https://pelitakecil.com/","enabled":true},{"label":"Literatur","icon":"assets/icons/literatur.png","url":"/literature","enabled":true},{"label":"Podcast","icon":"assets/icons/podcast.png","url":"https://www.youtube.com/channel/UCnKhYlQA5iJJvobPF4IYJFQ","enabled":true},{"label":"Khotbah","icon":"assets/icons/khotbah.png","url":"khotbah","enabled":true},{"label":"Facebook","icon":"assets/icons/facebook.png","url":"https://www.facebook.com/gerejayesussejati/","enabled":true},{"label":"Instagram","icon":"assets/icons/instagram.png","url":"https://www.instagram.com/gerejayesussejati/","enabled":true},{"label":"Youtube","icon":"assets/icons/youtube.png","url":"https://www.youtube.com/channel/UCAHSLvPBcg2M-_N1VQfhxrg","enabled":true},{"label":"Spotify","icon":"assets/icons/spotify.png","url":"https://open.spotify.com/show/4edDo52t3IlkgiWhBnk1GK","enabled":true}]',
           'biblepath': '/Project/Hatiku/v2/alkitab',
           'config_literature':
-              '{"kesaksian":"#posts-table-1 \u003e tbody \u003e tr \u003e td \u003e a","wartasejati":"#posts-table-2 \u003e tbody \u003e tr \u003e td \u003e a","panduanalkitab":"article","renungan":"div.module.module-accordion.tb_1uum169 \u003e ul \u003e li \u003e div \u003e div \u003e div \u003e table \u003e tbody \u003e tr \u003e td \u003e a","pelitakecil":"#posts-table-3 \u003e tbody \u003e tr \u003e td \u003e a","notifikasi_sabat":{"title":"Notifikasi Sabat","body":"Ingat dan Kudukanlah Hari Sabat ... ","image":"https://tjc.org/wp-content/uploads/2016/05/tjclogo_english_680x88.png"}}',
+              '{"kesaksian":"#posts-table-1 \u003e tbody \u003e tr \u003e td \u003e a","wartasejati":"#posts-table-2 \u003e tbody \u003e tr \u003e td \u003e a","panduanalkitab":"article","renungan":"div.module.module-accordion.tb_1uum169 \u003e ul \u003e li \u003e div \u003e div \u003e div \u003e table \u003e tbody \u003e tr \u003e td \u003e a","pelitakecil":"#posts-table-3 \u003e tbody \u003e tr \u003e td \u003e a","notifikasi_sabat":{"title":"Notifikasi Sabat","body":"Ingat dan Kuduskanlah Hari Sabat ... ","image":"https://tjc.org/wp-content/uploads/2016/05/tjclogo_english_680x88.png"}}',
           'mailer_recipients':
               '[{"address":"harley@itmandiri.com","name":"Pak Harley"}]',
           'ftp_server':
@@ -57,7 +57,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
           'bible_codename':
               '{"KJV":"King James Version","CUV":"Chinese Union Version","TB":"Terjemahan Baru"}',
           'notifikasi_sabat':
-              '{"title":"Notifikasi Sabat","body":"Ingat dan Kudukanlah Hari Sabat  ...  ","imageUrl":"https://tjc.org/wp-content/uploads/2016/05/tjclogo_english_680x88.png"}',
+              '{"title":"Notifikasi Sabat","body":"Ingat dan Kuduskanlah Hari Sabat  ...  ","imageUrl":"https://tjc.org/wp-content/uploads/2016/05/tjclogo_english_680x88.png"}',
           'mailer_credentials':
               '{"username":"hatiku.app@gmail.com","password":"rjnsfeygekniyfil"}',
           'firebase_remote_config':

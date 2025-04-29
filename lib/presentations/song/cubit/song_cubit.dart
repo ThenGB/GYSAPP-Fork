@@ -35,6 +35,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
   SongCubit(this.songRepository, this.songHandler) : super(const SongState()) {
     initDb().then((value) {
+      if (Platform.isIOS) {
+        changeAudioFormat('mp3', false);
+      }
       getData().then(
         (value) => fetchAvailableSong(
           state.songs[state.pageIndex],
@@ -383,7 +386,7 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<String?> fetchAvailableSong(Song? song, [bool? reload]) async {
     if (song == null) return null;
     emit(state.copyWith(isAudioLoading: true));
-    String? midi = await isMidiAvailable(song);
+    String? midi = Platform.isIOS ? null : await isMidiAvailable(song);
     String? mp3 = await isMp3Available(song);
     List<String> data = [];
     if (midi != null) data.add(midi);
@@ -447,17 +450,23 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
+  Map<String, String> downloadUrls = {};
+
   Future<String?> isMp3Available(Song song) async {
     List<String> enableMusicCode =
         (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
     if (enableMusicCode.contains(song.code)) return null;
     try {
+      if (downloadUrls.containsKey(song.number)) {
+        return downloadUrls[song.number];
+      }
       final result = await storage
           .child('/Kidungpujian/song/${song.number}.mp3')
           .getDownloadURL()
           .timeout(
-            Duration(seconds: 5),
+            Duration(seconds: 30),
           );
+      downloadUrls[song.number!] = result;
       return result;
     } catch (e) {
       return null;
@@ -487,7 +496,7 @@ class SongCubit extends HydratedCubit<SongState> {
   changePage(int index, int verseIndex) async {
     await songHandler.seek(Duration.zero);
     songHandler.stop();
-    debounce(() => fetchAvailableSong(state.songs[index]));
+    fetchAvailableSong(state.songs[index]);
     emit(state.copyWith(pageIndex: index, verseIndex: verseIndex));
   }
 

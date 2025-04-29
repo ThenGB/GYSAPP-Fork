@@ -36,111 +36,122 @@ class HomeView extends StatelessWidget {
                 color: context.colorScheme.surface,
                 child: const HomeHeader()),
             Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    StreamBuilder(
-                      stream: context.read<HomeCubit>().bannerObservable,
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return const SizedBox.shrink();
-                        }
-                        if (snapshot.hasError) {
-                          return const SizedBox.shrink();
-                        }
-                        final banners = (snapshot.data as List<ImageBanner>)
-                            .where(
-                              (element) => !element.isExpired,
-                            )
-                            .toList();
-                        if (banners.isEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        return Section(
-                          child: (gap) => CarouselSlider.builder(
-                            itemCount: banners.length,
-                            itemBuilder: (context, index, realIndex) {
-                              var banner = banners[index];
-                              return GestureDetector(
-                                onTap: banner.linkUrl == null
-                                    ? null
-                                    : () {
-                                        if (banner.linkUrl!.contains('http')) {
-                                          launchUrl(
-                                            Uri.parse(banner.linkUrl!),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        } else {
-                                          router.pushNamed(banner.linkUrl!);
-                                        }
-                                      },
-                                child: Container(
-                                  width: double.infinity,
-                                  clipBehavior: Clip.hardEdge,
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color: Colors.transparent,
-                                  ),
-                                  child: Stack(
-                                    children: [
-                                      Positioned.fill(
-                                        child: CachedNetworkImage(
-                                          imageUrl: banner.imageUrl ?? '',
-                                          fit: BoxFit.cover,
-                                          placeholder: (context, url) =>
-                                              const Center(
-                                            child: CircularProgressIndicator(),
-                                          ),
-                                          errorWidget: (context, url, error) =>
-                                              const Icon(Icons.error),
-                                        ),
-                                      ),
-                                      if (banner.linkUrl != null)
-
-                                        /// add link icon on topRight
+              child: RefreshIndicator(
+                onRefresh: () {
+                  context.read<HomeCubit>().refresh();
+                  return Future.value();
+                },
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      StreamBuilder(
+                        stream: context.read<HomeCubit>().bannerObservable,
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const SizedBox.shrink();
+                          }
+                          if (snapshot.hasError) {
+                            return const SizedBox.shrink();
+                          }
+                          final banners = (snapshot.data as List<ImageBanner>)
+                              .where(
+                                (element) => !element.isExpired,
+                              )
+                              .toList();
+                          if (banners.isEmpty) {
+                            return const SizedBox.shrink();
+                          }
+                          return Section(
+                            child: (gap) => CarouselSlider.builder(
+                              itemCount: banners.length,
+                              itemBuilder: (context, index, realIndex) {
+                                var banner = banners[index];
+                                return GestureDetector(
+                                  onTap: banner.linkUrl == null
+                                      ? null
+                                      : () {
+                                          if (banner.linkUrl!
+                                              .contains('http')) {
+                                            launchUrl(
+                                              Uri.parse(banner.linkUrl!),
+                                              mode: LaunchMode
+                                                  .externalApplication,
+                                            );
+                                          } else {
+                                            router.pushNamed(banner.linkUrl!);
+                                          }
+                                        },
+                                  child: Container(
+                                    width: double.infinity,
+                                    clipBehavior: Clip.hardEdge,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(4),
+                                      color: Colors.transparent,
+                                    ),
+                                    child: Stack(
+                                      children: [
                                         Positioned.fill(
-                                          child: Align(
-                                            alignment: Alignment.topRight,
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(8.0),
-                                              child: Icon(
-                                                Icons.link,
-                                                color: Colors.white,
+                                          child: CachedNetworkImage(
+                                            imageUrl: banner.imageUrl ?? '',
+                                            fit: BoxFit.cover,
+                                            placeholder: (context, url) =>
+                                                const Center(
+                                              child:
+                                                  CircularProgressIndicator(),
+                                            ),
+                                            errorWidget:
+                                                (context, url, error) =>
+                                                    const Icon(Icons.error),
+                                          ),
+                                        ),
+                                        if (banner.linkUrl != null)
+
+                                          /// add link icon on topRight
+                                          Positioned.fill(
+                                            child: Align(
+                                              alignment: Alignment.topRight,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(8.0),
+                                                child: Icon(
+                                                  Icons.link,
+                                                  color: Colors.white,
+                                                ),
                                               ),
                                             ),
                                           ),
-                                        ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                            options: CarouselOptions(
-                              height: 110,
-                              enlargeFactor: 1,
-                              autoPlay: true,
-                              enlargeStrategy: CenterPageEnlargeStrategy.scale,
-                              viewportFraction: 1,
+                                );
+                              },
+                              options: CarouselOptions(
+                                height: 110,
+                                enlargeFactor: 1,
+                                autoPlay: true,
+                                enlargeStrategy:
+                                    CenterPageEnlargeStrategy.scale,
+                                viewportFraction: 1,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-                    if (state.sauhs.isNotEmpty && state.isSauhEnabled)
-                      SauhBagiJiwa(item: state.sauhs.first),
-                    if (state.isSuaraSejatiEnabled)
-                      SuaraSejati(
-                        trueVoices: state.trueVoices,
+                          );
+                        },
                       ),
-                    LinkLainnya(
-                      menuLinks: state.menuLinks,
-                    ),
-                    SizedBox(height: 12)
-                  ],
+                      if (state.sauhs.isNotEmpty && state.isSauhEnabled)
+                        SauhBagiJiwa(item: state.sauhs.first),
+                      if (state.isSuaraSejatiEnabled)
+                        SuaraSejati(
+                          trueVoices: state.trueVoices,
+                        ),
+                      LinkLainnya(
+                        menuLinks: state.menuLinks,
+                      ),
+                      SizedBox(height: 12)
+                    ],
+                  ),
                 ),
               ),
             )

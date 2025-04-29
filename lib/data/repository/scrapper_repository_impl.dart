@@ -25,6 +25,9 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
           scrapperCompleter.complete(true);
         }
       },
+      onUrlChange: (change) {
+        log(change.url ?? '', name: 'URL Changed');
+      },
     ))
     ..setJavaScriptMode(JavaScriptMode.unrestricted)
 

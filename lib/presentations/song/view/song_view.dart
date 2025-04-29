@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:animations/animations.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -42,8 +43,7 @@ class _SongViewState extends State<SongView> {
     } catch (e) {
       return 0;
     }
-  }())
-    ..addListener(pageListener);
+  }());
 
   PageController? verseController;
   late double _baseScale = cubit.state.defaultTextScale;
@@ -55,8 +55,8 @@ class _SongViewState extends State<SongView> {
   late ValueNotifier<String> songTitle =
       ValueNotifier(cubit.state.songs[currentPageIndex].title!);
 
-  pageListener() {
-    currentPageIndex = pageController.page?.toInt() ?? 0;
+  pageListener(int currentPage) {
+    currentPageIndex = currentPage;
     if (int.parse(pageController.page.toString().split('.').last) == 0) {
       currentVerseIndex = 0;
       cubit.changePage(currentPageIndex, currentVerseIndex);
@@ -103,11 +103,15 @@ class _SongViewState extends State<SongView> {
           } else {
             pageController.jumpToPage(currentPageIndex + 1);
           }
+          pageListener(currentPageIndex + 1);
           await Future.delayed(Duration(seconds: 1));
           cubit.play();
         }
       },
     );
+    cubit.checkIsSynced().then((value) => setState(() {
+          allowShowUpdateDialog = true;
+        }));
     super.initState();
   }
 
@@ -315,6 +319,7 @@ class _SongViewState extends State<SongView> {
                             width: 8,
                           ),
                           PopupMenuButton(
+                            enabled: !Platform.isIOS,
                             offset: Offset(0, 48),
                             initialValue: state.defaultAudioFormat,
                             onSelected: (value) {
@@ -642,6 +647,7 @@ class _SongViewState extends State<SongView> {
                                                                                       ),
                                                                                     );
                                                                                     pageController.animateToPage(index, duration: kThemeAnimationDuration, curve: Curves.ease);
+                                                                                    pageListener(index);
                                                                                     router.maybePop();
                                                                                   });
                                                                                 },
@@ -1272,167 +1278,154 @@ class _SongViewState extends State<SongView> {
                                 ),
                               ),
                             ),
-                            FutureBuilder(
-                              future: cubit.isSynced(),
-                              builder: (context, snapshot) {
-                                if (!snapshot.hasData) {
-                                  return SizedBox();
-                                }
-                                if (snapshot.data == false ||
-                                    allowShowUpdateDialog) {
-                                  return Positioned.fill(
-                                    child: Align(
-                                      alignment: Alignment.bottomCenter,
-                                      child: Container(
-                                          padding: EdgeInsets.all(8),
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.vertical(
-                                              top: Radius.circular(10),
-                                            ),
-                                            color: context
-                                                .colorScheme.errorContainer,
-                                          ),
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    SizedBox(
-                                                      width: 32,
-                                                    ),
-                                                    Expanded(
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        children: [
-                                                          SizedBox(
-                                                            height: 12,
-                                                          ),
-                                                          ValueListenableBuilder(
-                                                            valueListenable:
-                                                                downloadProgressNotifier,
-                                                            builder: (context,
-                                                                    value,
-                                                                    child) =>
-                                                                Text(
-                                                              value.isNotEmpty
-                                                                  ? 'Please wait, downloading.'
-                                                                      .tr()
-                                                                  : "Hey there! We need your help to update and include some new data. Please tap 'Sync now'."
-                                                                      .tr(),
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .center,
-                                                              style: TextStyle(
-                                                                  color: context
-                                                                      .colorScheme
-                                                                      .onErrorContainer,
-                                                                  fontSize: 10),
-                                                            ),
-                                                          ),
-                                                          SizedBox(
-                                                            height: 12,
-                                                          ),
-                                                          ValueListenableBuilder(
-                                                            valueListenable:
-                                                                downloadProgressNotifier,
-                                                            builder: (context,
-                                                                    value,
-                                                                    child) =>
-                                                                value.isNotEmpty
-                                                                    ? Text(
-                                                                        value,
-                                                                        style:
-                                                                            TextStyle(
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          fontSize:
-                                                                              12,
-                                                                        ),
-                                                                      )
-                                                                    : ElevatedButton(
-                                                                        style: ElevatedButton.styleFrom(
-                                                                            elevation: 0,
-                                                                            backgroundColor: Colors.green,
-                                                                            foregroundColor: Colors.white,
-                                                                            textStyle: TextStyle(
-                                                                              fontSize: 10,
-                                                                              fontWeight: FontWeight.normal,
-                                                                            )),
-                                                                        onPressed:
-                                                                            () async {
-                                                                          context
-                                                                              .read<SongCubit>()
-                                                                              .syncDbAndLyric(
-                                                                            onProgress:
-                                                                                (status) {
-                                                                              downloadProgressNotifier.value = status;
-                                                                            },
-                                                                          );
-                                                                        },
-                                                                        child:
-                                                                            Text(
-                                                                          'Sync now'
-                                                                              .tr(),
-                                                                        ),
-                                                                      ),
-                                                          )
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
+                            if (allowShowUpdateDialog)
+                              Positioned.fill(
+                                child: Align(
+                                  alignment: Alignment.bottomCenter,
+                                  child: Container(
+                                      padding: EdgeInsets.all(8),
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.vertical(
+                                          top: Radius.circular(10),
+                                        ),
+                                        color:
+                                            context.colorScheme.errorContainer,
+                                      ),
+                                      child: Row(
+                                        children: [
+                                          Expanded(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SizedBox(
+                                                  width: 32,
                                                 ),
-                                              ),
-                                              ValueListenableBuilder(
-                                                valueListenable:
-                                                    downloadProgressNotifier,
-                                                builder: (context, value,
-                                                        child) =>
-                                                    value.isNotEmpty
-                                                        ? SizedBox(
-                                                            width: 32,
-                                                          )
-                                                        : CloseButton(
-                                                            style: ButtonStyle(
-                                                              visualDensity:
-                                                                  VisualDensity
-                                                                      .compact,
-                                                              tapTargetSize:
-                                                                  MaterialTapTargetSize
-                                                                      .shrinkWrap,
-                                                              fixedSize:
-                                                                  WidgetStateProperty
-                                                                      .all(Size(
-                                                                          24,
-                                                                          24)),
-                                                              iconSize:
-                                                                  WidgetStateProperty
-                                                                      .all(10),
-                                                            ),
-                                                            color: context
-                                                                .colorScheme
-                                                                .onErrorContainer,
-                                                            onPressed: () {
-                                                              setState(() {
-                                                                allowShowUpdateDialog =
-                                                                    false;
-                                                              });
-                                                            },
-                                                          ),
-                                              ),
-                                            ],
-                                          )),
-                                    ),
-                                  );
-                                }
-                                return SizedBox();
-                              },
-                            )
+                                                Expanded(
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    children: [
+                                                      SizedBox(
+                                                        height: 12,
+                                                      ),
+                                                      ValueListenableBuilder(
+                                                        valueListenable:
+                                                            downloadProgressNotifier,
+                                                        builder: (context,
+                                                                value, child) =>
+                                                            Text(
+                                                          value.isNotEmpty
+                                                              ? 'Please wait, downloading.'
+                                                                  .tr()
+                                                              : "Hey there! We need your help to update and include some new data. Please tap 'Sync now'."
+                                                                  .tr(),
+                                                          textAlign:
+                                                              TextAlign.center,
+                                                          style: TextStyle(
+                                                              color: context
+                                                                  .colorScheme
+                                                                  .onErrorContainer,
+                                                              fontSize: 10),
+                                                        ),
+                                                      ),
+                                                      SizedBox(
+                                                        height: 12,
+                                                      ),
+                                                      ValueListenableBuilder(
+                                                        valueListenable:
+                                                            downloadProgressNotifier,
+                                                        builder: (context,
+                                                                value, child) =>
+                                                            value.isNotEmpty
+                                                                ? Text(
+                                                                    value,
+                                                                    style:
+                                                                        TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          12,
+                                                                    ),
+                                                                  )
+                                                                : ElevatedButton(
+                                                                    style: ElevatedButton.styleFrom(
+                                                                        elevation: 0,
+                                                                        backgroundColor: Colors.green,
+                                                                        foregroundColor: Colors.white,
+                                                                        textStyle: TextStyle(
+                                                                          fontSize:
+                                                                              10,
+                                                                          fontWeight:
+                                                                              FontWeight.normal,
+                                                                        )),
+                                                                    onPressed:
+                                                                        () async {
+                                                                      context
+                                                                          .read<
+                                                                              SongCubit>()
+                                                                          .syncDbAndLyric(
+                                                                        onProgress:
+                                                                            (status) {
+                                                                          downloadProgressNotifier.value =
+                                                                              status;
+                                                                        },
+                                                                      );
+                                                                    },
+                                                                    child: Text(
+                                                                      'Sync now'
+                                                                          .tr(),
+                                                                    ),
+                                                                  ),
+                                                      )
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          ValueListenableBuilder(
+                                            valueListenable:
+                                                downloadProgressNotifier,
+                                            builder: (context, value, child) =>
+                                                value.isNotEmpty
+                                                    ? SizedBox(
+                                                        width: 32,
+                                                      )
+                                                    : CloseButton(
+                                                        style: ButtonStyle(
+                                                          visualDensity:
+                                                              VisualDensity
+                                                                  .compact,
+                                                          tapTargetSize:
+                                                              MaterialTapTargetSize
+                                                                  .shrinkWrap,
+                                                          fixedSize:
+                                                              WidgetStateProperty
+                                                                  .all(Size(
+                                                                      24, 24)),
+                                                          iconSize:
+                                                              WidgetStateProperty
+                                                                  .all(10),
+                                                        ),
+                                                        color: context
+                                                            .colorScheme
+                                                            .onErrorContainer,
+                                                        onPressed: () {
+                                                          setState(() {
+                                                            allowShowUpdateDialog =
+                                                                false;
+                                                          });
+                                                        },
+                                                      ),
+                                          ),
+                                        ],
+                                      )),
+                                ),
+                              )
                           ],
                         ),
                       ),
@@ -1536,6 +1529,7 @@ class _SongViewState extends State<SongView> {
                               pageController.animateToPage(index,
                                   duration: kThemeAnimationDuration,
                                   curve: Curves.ease);
+                              pageListener(index);
                               await Future.delayed(
                                   kThemeAnimationDuration * .5);
                             } catch (e) {
@@ -1555,11 +1549,13 @@ class _SongViewState extends State<SongView> {
                                 (element) => element.code == bookCode);
                             if ((book?.songs.length ?? 0) <= currentPageIndex) {
                               pageController.jumpToPage(0);
+                              pageListener(0);
                             }
                             cubit.changeBookcode(bookCode);
                           },
                           onTapPageNumber: (pageNumber) async {
                             pageController.jumpToPage(0);
+                            pageListener(0);
                             await Future.delayed(Duration(milliseconds: 200));
                             cubit.removeSelection();
                             cubit.changeBookcode(
@@ -1582,6 +1578,7 @@ class _SongViewState extends State<SongView> {
 
                             try {
                               pageController.jumpToPage(index);
+                              pageListener(index);
                             } catch (e) {
                               log('$e');
                             }
