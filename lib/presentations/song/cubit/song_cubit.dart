@@ -177,7 +177,7 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Completer<bool> checkingSyncCompleter = Completer();
-  Future checkIsSynced() async {
+  Future<bool> checkIsSynced() async {
     checkingSyncCompleter = Completer();
     AppDirectory localDir = di();
     try {
@@ -225,10 +225,12 @@ class SongCubit extends HydratedCubit<SongState> {
 
       emit(state.copyWith(remoteLyricsUpdateAt: remoteLyricsUpdateAt));
       checkingSyncCompleter.complete(true);
+      return isSyncronized;
     } catch (e) {
       checkingSyncCompleter.complete(false);
       log(e.toString());
     }
+    return true;
   }
 
   sync(SongState songState) {

@@ -43,7 +43,8 @@ class _SongViewState extends State<SongView> {
     } catch (e) {
       return 0;
     }
-  }());
+  }())
+    ..addListener(pageListener);
 
   PageController? verseController;
   late double _baseScale = cubit.state.defaultTextScale;
@@ -55,15 +56,16 @@ class _SongViewState extends State<SongView> {
   late ValueNotifier<String> songTitle =
       ValueNotifier(cubit.state.songs[currentPageIndex].title!);
 
-  pageListener(int currentPage) {
-    currentPageIndex = currentPage;
+  pageListener([int? currentPage]) {
+    currentPageIndex =
+        currentPage ?? pageController.page?.toInt() ?? currentPageIndex;
     if (int.parse(pageController.page.toString().split('.').last) == 0) {
       currentVerseIndex = 0;
       cubit.changePage(currentPageIndex, currentVerseIndex);
-      Future.microtask(() {
-        setState(() {});
-      });
     }
+    Future.microtask(() {
+      setState(() {});
+    });
   }
 
   @override
@@ -109,8 +111,8 @@ class _SongViewState extends State<SongView> {
         }
       },
     );
-    cubit.checkIsSynced().then((value) => setState(() {
-          allowShowUpdateDialog = true;
+    cubit.checkIsSynced().then((isSynced) => setState(() {
+          allowShowUpdateDialog = !isSynced;
         }));
     super.initState();
   }
@@ -790,8 +792,8 @@ class _SongViewState extends State<SongView> {
                                   context
                                       .read<SongCubit>()
                                       .checkIsSynced()
-                                      .then((value) => setState(() {
-                                            allowShowUpdateDialog = true;
+                                      .then((isSynced) => setState(() {
+                                            allowShowUpdateDialog = !isSynced;
                                           }));
                                 }
                               },
