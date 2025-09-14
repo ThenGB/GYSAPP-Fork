@@ -53,8 +53,11 @@ class _SongViewState extends State<SongView> {
   late int currentPageIndex = pageController.initialPage;
   int currentVerseIndex = 0;
 
-  late ValueNotifier<String> songTitle =
-      ValueNotifier(cubit.state.songs[currentPageIndex].title!);
+  late ValueNotifier<String> songTitle = ValueNotifier(
+      cubit.state.songs.isNotEmpty &&
+              currentPageIndex < cubit.state.songs.length
+          ? (cubit.state.songs[currentPageIndex].title ?? '')
+          : '');
 
   pageListener([int? currentPage]) {
     currentPageIndex =
@@ -412,10 +415,12 @@ class _SongViewState extends State<SongView> {
                                         width: 1,
                                         color: context.theme.disabledColor,
                                       ),
-                                      backgroundColor: context
-                                              .read<SongCubit>()
-                                              .isSongFavorite(
-                                                  state.songs[currentPageIndex])
+                                      backgroundColor: (currentPageIndex <
+                                                  state.songs.length &&
+                                              context
+                                                  .read<SongCubit>()
+                                                  .isSongFavorite(state
+                                                      .songs[currentPageIndex]))
                                           ? context.colorScheme.primaryContainer
                                           : Colors.transparent,
                                       shape: const RoundedRectangleBorder(
@@ -428,13 +433,15 @@ class _SongViewState extends State<SongView> {
                                     cubit.removeSelection();
                                   },
                                   child: Text(
-                                    state.songs[currentPageIndex].number
-                                        .toString(),
+                                    state.getSongNumberAt(currentPageIndex) ??
+                                        '',
                                     style: TextStyle(
-                                      color: context
-                                              .read<SongCubit>()
-                                              .isSongFavorite(
-                                                  state.songs[currentPageIndex])
+                                      color: (state.isValidSongIndex(
+                                                  currentPageIndex) &&
+                                              context
+                                                  .read<SongCubit>()
+                                                  .isSongFavorite(state
+                                                      .songs[currentPageIndex]))
                                           ? context
                                               .colorScheme.onPrimaryContainer
                                           : null,
@@ -456,7 +463,7 @@ class _SongViewState extends State<SongView> {
                                       )),
                                   onPressed: () {},
                                   child: Text(
-                                      state.songs[currentPageIndex].code ?? ''),
+                                      state.getSongCodeAt(currentPageIndex)),
                                 ),
                                 SizedBox(width: 12),
                                 Expanded(
@@ -717,35 +724,47 @@ class _SongViewState extends State<SongView> {
                               offset: Offset(0, 48),
                               onSelected: (value) async {
                                 if (value == 'fav') {
-                                  cubit.modifyFavorite(
-                                      state.songs[currentPageIndex]);
+                                  if (currentPageIndex < state.songs.length) {
+                                    cubit.modifyFavorite(
+                                        state.songs[currentPageIndex]);
+                                  }
                                 } else if (value == 'copy') {
-                                  var number =
-                                      state.songs[currentPageIndex].number;
-                                  var title =
-                                      state.songs[currentPageIndex].title;
-                                  var verse = state.songs[currentPageIndex]
-                                      .verses[currentVerseIndex];
-                                  var text =
-                                      '$number - $title\n\n${currentVerseIndex + 1}. $verse';
-                                  await Clipboard.setData(
-                                      ClipboardData(text: text));
-                                  Fluttertoast.cancel();
-                                  Fluttertoast.showToast(
-                                      msg: 'Copied to clipboard'.tr());
+                                  if (currentPageIndex < state.songs.length &&
+                                      currentVerseIndex <
+                                          state.songs[currentPageIndex].verses
+                                              .length) {
+                                    var number =
+                                        state.songs[currentPageIndex].number;
+                                    var title =
+                                        state.songs[currentPageIndex].title;
+                                    var verse = state.songs[currentPageIndex]
+                                        .verses[currentVerseIndex];
+                                    var text =
+                                        '$number - $title\n\n${currentVerseIndex + 1}. $verse';
+                                    await Clipboard.setData(
+                                        ClipboardData(text: text));
+                                    Fluttertoast.cancel();
+                                    Fluttertoast.showToast(
+                                        msg: 'Copied to clipboard'.tr());
+                                  }
                                 } else if (value == 'size') {
                                   cubit.toggleSizer();
                                 } else if (value == 'share') {
-                                  var number =
-                                      state.songs[currentPageIndex].number;
-                                  var title =
-                                      state.songs[currentPageIndex].title;
-                                  var verse = state.songs[currentPageIndex]
-                                      .verses[currentVerseIndex];
-                                  var text =
-                                      '$number - $title\n\n${currentVerseIndex + 1}. $verse';
-                                  Share.share(text,
-                                      subject: '$number - $title');
+                                  if (currentPageIndex < state.songs.length &&
+                                      currentVerseIndex <
+                                          state.songs[currentPageIndex].verses
+                                              .length) {
+                                    var number =
+                                        state.songs[currentPageIndex].number;
+                                    var title =
+                                        state.songs[currentPageIndex].title;
+                                    var verse = state.songs[currentPageIndex]
+                                        .verses[currentVerseIndex];
+                                    var text =
+                                        '$number - $title\n\n${currentVerseIndex + 1}. $verse';
+                                    Share.share(text,
+                                        subject: '$number - $title');
+                                  }
                                 } else if (value == 'notes') {
                                   router.push(SongNotesListRoute(
                                       cubit: context.read()));
@@ -828,17 +847,23 @@ class _SongViewState extends State<SongView> {
                                                 materialTapTargetSize:
                                                     MaterialTapTargetSize
                                                         .shrinkWrap,
-                                                value: context
-                                                    .read<SongCubit>()
-                                                    .isSongFavorite(state.songs[
-                                                        currentPageIndex]),
+                                                value: currentPageIndex <
+                                                        state.songs.length &&
+                                                    context
+                                                        .read<SongCubit>()
+                                                        .isSongFavorite(state
+                                                                .songs[
+                                                            currentPageIndex]),
                                                 onChanged: (v) {
-                                                  context
-                                                      .read<SongCubit>()
-                                                      .modifyFavorite(state
-                                                              .songs[
-                                                          currentPageIndex]);
-                                                  router.maybePop();
+                                                  if (currentPageIndex <
+                                                      state.songs.length) {
+                                                    context
+                                                        .read<SongCubit>()
+                                                        .modifyFavorite(state
+                                                                .songs[
+                                                            currentPageIndex]);
+                                                    router.maybePop();
+                                                  }
                                                 },
                                                 visualDensity:
                                                     VisualDensity.compact,
@@ -1228,7 +1253,7 @@ class _SongViewState extends State<SongView> {
                                                     .keyboard_arrow_up_rounded),
                                               ),
                                               Text(
-                                                  '${currentVerseIndex + 1}/${state.isImageMode ? (state.songs[currentPageIndex].pageLength ?? 0) : (state.songs[currentPageIndex].verses.length)}'),
+                                                  '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}'),
                                               IconButton(
                                                 onPressed: () {
                                                   verseController?.nextPage(

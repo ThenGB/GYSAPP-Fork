@@ -104,18 +104,32 @@ class SongState with _$SongState {
   }
 
   List<Song> get songs {
-    // return (currentSong?.songs ?? []);
-
+    // If not playing only favorites, return current song book
     if (!playOnlyFavorite) {
       return (currentSong?.songs ?? []);
     }
+
+    // If playing only favorites but no favorite books exist, fallback to current song
+    if (favoriteSongBook.isEmpty) {
+      return (currentSong?.songs ?? []);
+    }
+
+    // Collect songs from all favorite books
     List<Song> songs = [];
     for (var book in favoriteSongBook) {
       songs.addAll(book.songs);
     }
+
+    // If no songs found in favorite books, fallback to current song
+    if (songs.isEmpty) {
+      return (currentSong?.songs ?? []);
+    }
+
+    // Apply shuffle if enabled
     if (shuffleMode) {
       songs = songs.rearrangeList(shuffleIndex);
     }
+
     return songs;
   }
 
@@ -192,4 +206,58 @@ class SongState with _$SongState {
 
   factory SongState.fromJson(Map<String, dynamic> json) =>
       _$SongStateFromJson(json);
+}
+
+extension SongStateSafeAccess on SongState {
+  /// Safely get a song by index, returns null if index is out of bounds
+  Song? getSongAt(int index) {
+    if (index < 0 || index >= songs.length) {
+      return null;
+    }
+    return songs[index];
+  }
+
+  /// Safely get song title by index, returns empty string if index is out of bounds
+  String getSongTitleAt(int index) {
+    final song = getSongAt(index);
+    return song?.title ?? '';
+  }
+
+  /// Safely get song number by index, returns null if index is out of bounds
+  String? getSongNumberAt(int index) {
+    final song = getSongAt(index);
+    return song?.number;
+  }
+
+  /// Safely get song code by index, returns empty string if index is out of bounds
+  String getSongCodeAt(int index) {
+    final song = getSongAt(index);
+    return song?.code ?? '';
+  }
+
+  /// Safely get verse at specific song index and verse index
+  String? getVerseAt(int songIndex, int verseIndex) {
+    final song = getSongAt(songIndex);
+    if (song == null || verseIndex < 0 || verseIndex >= song.verses.length) {
+      return null;
+    }
+    return song.verses[verseIndex];
+  }
+
+  /// Safely get verse count for a song at index
+  int getVerseCountAt(int index) {
+    final song = getSongAt(index);
+    return song?.verses.length ?? 0;
+  }
+
+  /// Safely get page length for a song at index
+  int getPageLengthAt(int index) {
+    final song = getSongAt(index);
+    return song?.pageLength ?? 0;
+  }
+
+  /// Check if index is valid for songs list
+  bool isValidSongIndex(int index) {
+    return index >= 0 && index < songs.length;
+  }
 }
