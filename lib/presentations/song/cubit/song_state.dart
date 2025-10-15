@@ -6,8 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:pdf_render/pdf_render.dart';
-
+// import 'package:pdf_render/pdf_render.dart';
+import 'package:pdfx/pdfx.dart';
 import '../../../data/utilities/extensions/extensions.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
@@ -134,6 +134,32 @@ class SongState with _$SongState {
   }
 
   Future<List<Uint8List>> getImageLyricPath(
+    BuildContext context, int pageStart, int pageLength) async {
+    final result = <Uint8List>[];
+    var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
+    if (!file.existsSync()) {
+      var data = await rootBundle.load('assets/data/$bookCode.pdf');
+      List<int> bytes =
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+      await file.writeAsBytes(bytes, flush: true);
+    }
+
+    final document = await PdfDocument.openFile(file.path);
+    for (var i = 0; i < pageLength; i++) {
+      final page = await document.getPage(pageStart + i);
+      final pageImage = await page.render(
+        width: (page.width * 2).toDouble(),
+        height: (page.height * 2).toDouble(),
+        format: PdfPageImageFormat.png,
+      );
+      result.add(pageImage!.bytes);
+      await page.close();
+    }
+    await document.close();
+    return result;
+  }
+/*
+  Future<List<Uint8List>> getImageLyricPath(
       BuildContext context, int pageStart, int pageLength) async {
     final result = <Uint8List>[];
     var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
@@ -159,7 +185,7 @@ class SongState with _$SongState {
     }
     return result;
   }
-
+*/
   Future<List<SongNote>> filteredNote(String filter) async {
     Map<String, SongNote> mapped = {};
     Map<String, SongNote> filtered = {};

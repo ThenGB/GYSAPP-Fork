@@ -53,6 +53,12 @@ subprojects {
                         jvmTarget = javaVersion.toString()
                     }
                 }
+                // ===== Fix 16 KB rule =====
+                packagingOptions {
+                    jniLibs {
+                        useLegacyPackaging = true
+                    }
+                }
                 println("Setting java version to ${javaVersion.toString()} which is $javaVersion")
                 println("Setting compileSdkVersion and targetSdkVersion to $androidApiVersion")
             }
