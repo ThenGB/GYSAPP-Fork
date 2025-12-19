@@ -345,7 +345,8 @@ class _SongViewState extends State<SongView> {
                               ),
                             ),
                             itemBuilder: (context) {
-                              return ['mp3', 'mid']
+                              // return ['mp3', 'mid']
+                              return ['mid'] //.apm:20251219:ref hy:hanya allow midi;
                                   .map(
                                     (e) => PopupMenuItem(
                                       value: e,
@@ -726,7 +727,7 @@ class _SongViewState extends State<SongView> {
                                 if (value == 'fav') {
                                   if (currentPageIndex < state.songs.length) {
                                     cubit.modifyFavorite(
-                                        state.songs[currentPageIndex]);
+                                        state.songs[currentPageIndex], playOnlyFav: false);
                                   }
                                 } else if (value == 'copy') {
                                   if (currentPageIndex < state.songs.length &&
@@ -1077,11 +1078,14 @@ class _SongViewState extends State<SongView> {
                                                           (context, index) {
                                                         if (state.isImageMode) {
                                                           return FutureBuilder(
-                                                            initialData:
-                                                                currentImage,
-                                                            future: state
+                                                            key: ValueKey('img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
+                                                            //initialData:
+                                                            //    currentImage,
+                                                            future: //state
+                                                                cubit
                                                                 .getImageLyricPath(
-                                                                    context,
+                                                                    //context,
+                                                                    state.bookCode,
                                                                     song.pageStart ??
                                                                         0,
                                                                     song.pageLength ??
@@ -1253,7 +1257,11 @@ class _SongViewState extends State<SongView> {
                                                     .keyboard_arrow_up_rounded),
                                               ),
                                               Text(
-                                                  '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}'),
+                                                  '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}'
+                                                  , style: const TextStyle(
+                                                      color: Colors.grey, // Warna teks hitam
+                                                  ),
+                                                ),
                                               IconButton(
                                                 onPressed: () {
                                                   verseController?.nextPage(
@@ -1655,7 +1663,7 @@ class _ImageLyricState extends State<ImageLyric> {
           double correctScaleValue =
               _transformationController.value.getMaxScaleOnAxis();
           widget.onScaled(correctScaleValue != 1);
-          log('asasd');
+          //log('asasd');
           // details.
         },
         child: widget.child,

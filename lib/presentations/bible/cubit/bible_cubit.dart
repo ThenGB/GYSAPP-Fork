@@ -829,6 +829,85 @@ Future<String?> convertIDtoNameAlkitab(int? id1, int? id2,
   }
 }
 
+Future<String?> convertIDsToNameAlkitab(
+  List<int> verseIds, {
+  bool isLong = false,
+  bool withVerse = true,
+  required Database bibleDb,
+}) async {
+  if (verseIds.isEmpty) {
+    return '-';
+  }
+
+  verseIds.sort();
+
+  final firstId = verseIds.first;
+
+  // Cek panjang ID minimal 7 digit
+  final s = firstId.toString();
+  if (s.length < 7) {
+    return '-';
+  }
+
+  // Ambil ID kitab
+  final bookId = firstId ~/ 1000000;
+
+  // Query
+  final data = await bibleDb.rawQuery(
+    'SELECT bs, bl FROM book WHERE id = $bookId',
+  );
+
+  if (data.isEmpty) {
+    // Tidak ada record
+    return '-';
+  }
+
+  // Ambil nama kitab
+  String bookName =
+      isLong ? StringUtil.castToString(data.first['bl']) : StringUtil.castToString(data.first['bs']);
+
+  // Ambil pasal
+  String chapter = int.parse(s.substring(s.length - 6, s.length - 3)).toString();
+
+  // Konstruksi daftar ayat
+  int? prevVerseNumber;
+  List<int> tempVerseNumbers = [];
+  List<List<int>> verseNumbers = [];
+
+  for (var verseId in verseIds) {
+    final ss = verseId.toString();
+    // Jika format ID tidak valid, skip
+    if (ss.length < 3) continue;
+
+    int verseNumber = int.tryParse(ss.substring(ss.length - 3)) ?? 0;
+
+    if (prevVerseNumber == null || prevVerseNumber + 1 == verseNumber) {
+      tempVerseNumbers.add(verseNumber);
+    } else {
+      verseNumbers.add(List.from(tempVerseNumbers));
+      tempVerseNumbers.clear();
+      tempVerseNumbers.add(verseNumber);
+    }
+
+    prevVerseNumber = verseNumber;
+  }
+
+  if (tempVerseNumbers.isNotEmpty) {
+    verseNumbers.add(List.from(tempVerseNumbers));
+  }
+
+  if (withVerse) {
+    final parsedVerse = verseNumbers
+        .map((e) => '${e.first}${e.last == e.first ? '' : '-${e.last}'}')
+        .join(', ');
+
+    return '$bookName $chapter:$parsedVerse';
+  } else {
+    return '$bookName $chapter';
+  }
+}
+
+/*
 Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
     {bool isLong = false,
     bool withVerse = true,
@@ -882,7 +961,7 @@ Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
     return '$bookName $chapter';
   }
 }
-
+*/
 String? convertZeroNumber(String? number) {
   if (number != null) {
     if (number.isNotEmpty) {

@@ -15,6 +15,8 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import 'package:pdfx/pdfx.dart';
+
 import '../../../data/data.dart';
 import '../../../data/utilities/song_handler.dart';
 import '../../../di/injection.dart';
@@ -45,7 +47,8 @@ class SongCubit extends HydratedCubit<SongState> {
       );
       Map<String, DateTime> lastSync = Map.from(state.lastSync);
       if (!lastSync.containsKey('song.db')) {
-        lastSync['song.db'] = DateTime(2023, 9, 15);
+        //lastSync['song.db'] = DateTime(2023, 9, 15);
+        lastSync['song.db'] = DateTime(2025, 12, 18);
         emit(state.copyWith(lastSync: lastSync));
       }
       checkIsSynced();
@@ -144,6 +147,128 @@ class SongCubit extends HydratedCubit<SongState> {
       return false;
     }
   }
+/*
+  int imageLyricRequestId = 0;
+  Future<List<Uint8List>> getImageLyricPath(
+      String bookCode,
+      int pageStart, int pageLength) async {
+    final result = <Uint8List>[];
+    final int requestId = ++imageLyricRequestId;
+    try {
+      var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
+      if (!file.existsSync()) {
+        var data = await rootBundle.load('assets/data/$bookCode.pdf');
+        List<int> bytes =
+            data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
+        await file.writeAsBytes(bytes, flush: true);
+      }
+
+      final document = await PdfDocument.openFile(file.path);
+      for (var i = 0; i < pageLength; i++) {
+        // cek apakah request masih valid 
+        if (requestId != imageLyricRequestId) { 
+          await document.close(); 
+          return []; // future lama dibatalkan 
+        }
+        final page = await document.getPage(pageStart + i);
+        // cek sebelum render (render paling berat)
+        if (requestId != imageLyricRequestId) {
+          await page.close();
+          await document.close();
+          return [];
+        }
+        final pageImage = await page.render(
+          width: (page.width * 2).toDouble(),
+          height: (page.height * 2).toDouble(),
+          format: PdfPageImageFormat.png,
+          backgroundColor: '#FFFAFAFA', // tetap putih
+        );
+        result.add(pageImage!.bytes);
+        await page.close();
+      }
+      await document.close();
+
+      print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+    } catch (e) {
+      print(e.toString());
+    }
+    return result;
+  }
+*/
+
+  int imageLyricRequestId = 0;
+
+  // cache terakhir untuk reuse Future
+  Future<List<Uint8List>>? imageLyricLastFuture;
+  String? imageLyricLastKey;
+
+  Future<List<Uint8List>> getImageLyricPath(
+      String bookCode,
+      int pageStart,
+      int pageLength) async {
+
+    final key = '$bookCode-$pageStart-$pageLength';
+
+    // kalau request sama dengan yang terakhir, pakai Future sebelumnya
+    if (imageLyricLastFuture != null && imageLyricLastKey == key) {
+      return imageLyricLastFuture!;
+    }
+
+    final int requestId = ++imageLyricRequestId;
+    imageLyricLastKey = key;
+
+    // async function yang benar
+    Future<List<Uint8List>> loader() async {
+      final result = <Uint8List>[];
+      try {
+        var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
+        if (!file.existsSync()) {
+          var data = await rootBundle.load('assets/data/$bookCode.pdf');
+          List<int> bytes = data.buffer.asUint8List(
+              data.offsetInBytes, data.lengthInBytes);
+          await file.writeAsBytes(bytes, flush: true);
+        }
+
+        final document = await PdfDocument.openFile(file.path);
+
+        for (var i = 0; i < pageLength; i++) {
+          if (requestId != imageLyricRequestId) {
+            await document.close();
+            return []; // cancel future lama
+          }
+
+          final page = await document.getPage(pageStart + i);
+
+          if (requestId != imageLyricRequestId) {
+            await page.close();
+            await document.close();
+            return [];
+          }
+
+          final pageImage = await page.render(
+            width: (page.width * 2).toDouble(),
+            height: (page.height * 2).toDouble(),
+            format: PdfPageImageFormat.png,
+            backgroundColor: '#FFFAFAFA',
+          );
+
+          result.add(pageImage!.bytes);
+          await page.close();
+        }
+
+        await document.close();
+
+        print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+      } catch (e) {
+        print('Error getImageLyricPath: $e');
+      }
+      return result;
+    }
+
+    imageLyricLastFuture = loader();
+    return imageLyricLastFuture!;
+  }
+
 
   Future<bool> isSynced() async {
     await checkingSyncCompleter.future;
@@ -224,10 +349,14 @@ class SongCubit extends HydratedCubit<SongState> {
       }
 
       emit(state.copyWith(remoteLyricsUpdateAt: remoteLyricsUpdateAt));
-      checkingSyncCompleter.complete(true);
+      if (!checkingSyncCompleter.isCompleted) {
+        checkingSyncCompleter.complete(true);
+      }
       return isSyncronized;
     } catch (e) {
-      checkingSyncCompleter.complete(false);
+      if (!checkingSyncCompleter.isCompleted) {
+        checkingSyncCompleter.complete(false);
+      }
       log(e.toString());
     }
     return true;
@@ -367,6 +496,10 @@ class SongCubit extends HydratedCubit<SongState> {
         (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
     if (enableMusicCode.contains(song.code)) return null;
     try {
+      final upperCode = song.code?.toUpperCase() ?? '';
+      if (!['KR', 'HYMNE', 'MDR'].any(upperCode.contains)) {
+        return null;
+      }
       var asset = 'assets/data/sounds/${song.number}.MID';
       await rootBundle.load(asset);
       return asset;
@@ -389,10 +522,10 @@ class SongCubit extends HydratedCubit<SongState> {
     if (song == null) return null;
     emit(state.copyWith(isAudioLoading: true));
     String? midi = Platform.isIOS ? null : await isMidiAvailable(song);
-    String? mp3 = await isMp3Available(song);
+    // String? mp3 = await isMp3Available(song); //.apm:20251219:ref hy:hanya allow midi;
     List<String> data = [];
     if (midi != null) data.add(midi);
-    if (mp3 != null) data.add(mp3);
+    // if (mp3 != null) data.add(mp3); //.apm:20251219:ref hy:hanya allow midi;
     var result = data.firstWhereOrNull(
         (element) => element.toLowerCase().contains(state.defaultAudioFormat));
     if (result == null && data.isNotEmpty) {
@@ -412,7 +545,11 @@ class SongCubit extends HydratedCubit<SongState> {
       var source = result;
       if (result.startsWith('assets')) {
         url = AssetSource(source.replaceAll('assets/', ''));
-        await audioPlayer.audioCache.clearAll();
+        try {
+          await audioPlayer.audioCache.clearAll();
+        } catch (_) {
+          // abaikan karena cache mungkin memang kosong atau belum dibuat
+        }
 
         songHandler.setSource(url, song).then((value) async {
           emit(state.copyWith(isAudioLoading: false));
@@ -528,7 +665,7 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  modifyFavorite(Song song) {
+  modifyFavorite(Song song, { bool playOnlyFav = true }) {
     List<SongBook> modifiedSongBook = [];
     if (state.favoriteSongBook.isEmpty) {
       modifiedSongBook =
@@ -551,7 +688,7 @@ class SongCubit extends HydratedCubit<SongState> {
     }).toList();
     emit(state.copyWith(
         favoriteSongBook: modifiedSongBook,
-        playOnlyFavorite: modifiedSongBook.isNotEmpty));
+        playOnlyFavorite: playOnlyFav && modifiedSongBook.isNotEmpty));
   }
 
   bool isSongFavorite(Song? song) {

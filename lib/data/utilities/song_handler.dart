@@ -19,6 +19,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     player.eventStream.map(_transformEvent).listen((event) {
       playbackState.add(event);
     });
+
     player.onPositionChanged.listen((event) {
       playbackState.add(
         playbackState.value.copyWith(
@@ -26,42 +27,63 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
         ),
       );
     });
+
     player.onPlayerStateChanged
         .map(
-      (event) =>
-          playbackState.value.copyWith(playing: event == PlayerState.playing),
-    )
+          (event) =>
+              playbackState.value.copyWith(playing: event == PlayerState.playing),
+        )
         .listen((event) {
       playbackState.add(event);
+
+      // Tambahan: fallback jika "complete" tidak muncul di eventStream
+      if (player.state == PlayerState.completed) {
+        debouncer.run(() {
+          if (onNext == null) log('onNext not set!');
+          onNext?.call();
+        });
+      }
     });
   }
 
   clearQueue() {
     if (queue.value.isNotEmpty) {
-      queue.value.removeLast();
+      final newList = [...queue.value];
+      newList.removeLast();
+      queue.add(newList); // perbaikan: update Notifier dengan benar
     }
   }
 
   @override
   Future<void> play() async {
-    await player.play(player.source!);
+    // perbaikan: hindari player.source! yang bisa null
+    await player.resume();
   }
 
   Future setSource(Source source, Song song) async {
     try {
       await player.setSource(source);
+
       String mediaItemId = song.title ?? '';
+      
+      // perbaikan: ganti UniqueKey() dengan ID unik tanpa import tambahan
+      if (mediaItemId.isEmpty) {
+        mediaItemId = 'id_${DateTime.now().microsecondsSinceEpoch}';
+      }
+
       if (source is AssetSource) {
         mediaItemId = source.path;
       } else if (source is DeviceFileSource) {
         mediaItemId = source.path;
       }
 
+      final dur = await player.getDuration();
+
       mediaItem.add(
         MediaItem(
           id: mediaItemId,
           title: song.title ?? 'Unknown',
-          duration: await player.getDuration(),
+          duration: dur ?? Duration.zero,
         ),
       );
     } catch (e) {
@@ -72,8 +94,6 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
   @override
   Future<void> pause() async {
     await player.pause();
-    // var currentPosition = await player.getCurrentPosition();
-    // await Future.delayed(Duration(milliseconds: 500));
   }
 
   @override
@@ -83,19 +103,23 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> seek(Duration position) async {
-    // playbackState.add(
-    //   playbackState.value.copyWith(
-    //     bufferedPosition: position,
-    //   ),
-    // );
-    await player.seek(position);
+    try {
+      await player.seek(position).timeout(const Duration(seconds: 1));
+    } catch (e) {
+      log('seek timeout: $e');
+    }
   }
-
+  
   PlaybackState _transformEvent(AudioEvent event) {
     log(player.state.name);
+
     if (event.eventType == AudioEventType.complete) {
-      debouncer.run(() => onNext?.call());
+      debouncer.run(() {
+        if (onNext == null) log('onNext not set!');
+        onNext?.call();
+      });
     }
+
     return PlaybackState(
       controls: [
         if (player.state == PlayerState.playing)
@@ -112,19 +136,15 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
         MediaAction.pause,
         MediaAction.stop,
       },
-      // androidCompactActionIndices: const [0, 1],
       processingState: const {
-        PlayerState.playing: AudioProcessingState.ready,
-        PlayerState.stopped: AudioProcessingState.idle,
-        PlayerState.paused: AudioProcessingState.ready,
-        PlayerState.completed: AudioProcessingState.completed,
-        PlayerState.disposed: AudioProcessingState.idle,
-      }[player.state]!,
+            PlayerState.playing: AudioProcessingState.ready,
+            PlayerState.stopped: AudioProcessingState.idle,
+            PlayerState.paused: AudioProcessingState.ready,
+            PlayerState.completed: AudioProcessingState.completed,
+            PlayerState.disposed: AudioProcessingState.idle,
+          }[player.state] ??
+          AudioProcessingState.idle, // perbaikan: fallback
       playing: player.state == PlayerState.playing,
-      // updatePosition: event.position ??
-      //     event.duration ??
-      //     playbackState.value.updatePosition,
-      // bufferedPosition: event.position ?? event.duration ?? Duration.zero,
       speed: 1,
       queueIndex: 0,
     );
