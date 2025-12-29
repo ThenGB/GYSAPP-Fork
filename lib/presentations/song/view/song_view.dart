@@ -862,7 +862,7 @@ class _SongViewState extends State<SongView> {
                                                         .read<SongCubit>()
                                                         .modifyFavorite(state
                                                                 .songs[
-                                                            currentPageIndex]);
+                                                            currentPageIndex], playOnlyFav: false);
                                                     router.maybePop();
                                                   }
                                                 },

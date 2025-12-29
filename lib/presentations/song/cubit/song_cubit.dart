@@ -686,9 +686,11 @@ class SongCubit extends HydratedCubit<SongState> {
       }
       return temp;
     }).toList();
+    final hasFavoriteSongs = modifiedSongBook
+    .any((sb) => sb.songs.isNotEmpty);
     emit(state.copyWith(
         favoriteSongBook: modifiedSongBook,
-        playOnlyFavorite: playOnlyFav && modifiedSongBook.isNotEmpty));
+        playOnlyFavorite: playOnlyFav && hasFavoriteSongs));
   }
 
   bool isSongFavorite(Song? song) {
