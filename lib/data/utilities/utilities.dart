@@ -1,5 +1,6 @@
 export 'enums.dart';
 export 'extensions/extensions.dart';
+export 'firebase_storage_helper.dart';
 export 'firebase_utils.dart';
 export 'mailer.dart';
 export 'platform_utils.dart';

@@ -160,7 +160,7 @@ class _SongListViewState extends State<SongListView>
           if (tabController.index == 1) ...[
             StreamBuilder(
               stream:
-                  context.read<SongCubit>().audioPlayer.onPlayerStateChanged,
+                  context.read<SongCubit>().playerStateStream,
               builder: (context, snapshot) => IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: widget.onPlayFavorite,

@@ -1,11 +1,18 @@
 class WindowsMidiPlayer {
   bool get hasSource => false;
+  bool get isReady => false;
 
-  Future<void> setAsset(String assetPath) async {}
+  Future<bool> setAsset(String assetPath) async => false;
 
-  Future<void> play() async {}
+  Future<bool> play() async => false;
 
   Future<void> pause() async {}
 
   Future<void> stop() async {}
+
+  String? getMode() => null;
+
+  int? getPositionMs() => null;
+
+  int? getLengthMs() => null;
 }

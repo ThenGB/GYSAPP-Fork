@@ -58,9 +58,9 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> play() async {
-    if (windowsMidiPlayer.hasSource) {
-      await windowsMidiPlayer.play();
-      playbackState.add(playbackState.value.copyWith(playing: true));
+    if (windowsMidiPlayer.isReady) {
+      final ok = await windowsMidiPlayer.play();
+      playbackState.add(playbackState.value.copyWith(playing: ok));
       return;
     }
     // perbaikan: hindari player.source! yang bisa null
@@ -99,10 +99,14 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
-  Future setWindowsMidiAsset(String assetPath, Song song) async {
+  Future<bool> setWindowsMidiAsset(String assetPath, Song song) async {
     try {
       await player.stop();
-      await windowsMidiPlayer.setAsset(assetPath);
+      final ok = await windowsMidiPlayer.setAsset(assetPath);
+      if (!ok) {
+        log('Windows MIDI setAsset returned false', name: 'SongHandler');
+        return false;
+      }
 
       mediaItem.add(
         MediaItem(
@@ -118,14 +122,16 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
           playing: false,
         ),
       );
+      return true;
     } catch (e) {
       log('Windows MIDI source failed: $e', name: 'SongHandler');
+      return false;
     }
   }
 
   @override
   Future<void> pause() async {
-    if (windowsMidiPlayer.hasSource) {
+    if (windowsMidiPlayer.isReady) {
       await windowsMidiPlayer.pause();
       playbackState.add(playbackState.value.copyWith(playing: false));
       return;
@@ -135,7 +141,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> stop() async {
-    if (windowsMidiPlayer.hasSource) {
+    if (windowsMidiPlayer.isReady) {
       await windowsMidiPlayer.stop();
       playbackState.add(
         playbackState.value.copyWith(

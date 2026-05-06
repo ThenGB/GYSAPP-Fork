@@ -35,7 +35,27 @@ class SongCubit extends HydratedCubit<SongState> {
 
   bool get isSelectingSong => state.selectedSong != null;
 
+  final _playerStateController = StreamController<PlayerState>.broadcast();
+  final _positionController = StreamController<Duration>.broadcast();
+  final _durationController = StreamController<Duration>.broadcast();
+
+  Stream<PlayerState> get playerStateStream => _playerStateController.stream;
+  Stream<Duration> get positionStream => _positionController.stream;
+  Stream<Duration> get durationStream => _durationController.stream;
+
+  StreamSubscription<PlayerState>? _playerStateSub;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+  Timer? _midiPollTimer;
+  DateTime _midiStartedAt = DateTime.now();
+  Duration _midiAccumulated = Duration.zero;
+  Duration _midiDuration = Duration.zero;
+
+  bool get _isMidiActive =>
+      Platform.isWindows && songHandler.windowsMidiPlayer.isReady;
+
   SongCubit(this.songRepository, this.songHandler) : super(const SongState()) {
+    _setupAudioStreams();
     initDb().then((value) {
       if (Platform.isIOS) {
         changeAudioFormat('mp3', false);
@@ -47,11 +67,25 @@ class SongCubit extends HydratedCubit<SongState> {
       );
       Map<String, DateTime> lastSync = Map.from(state.lastSync);
       if (!lastSync.containsKey('song.db')) {
-        //lastSync['song.db'] = DateTime(2023, 9, 15);
         lastSync['song.db'] = DateTime(2025, 12, 18);
         emit(state.copyWith(lastSync: lastSync));
       }
       checkIsSynced();
+    });
+  }
+
+  void _setupAudioStreams() {
+    _playerStateSub = audioPlayer.onPlayerStateChanged.listen((state) {
+      if (!_isMidiActive) _playerStateController.add(state);
+    });
+    _positionSub = audioPlayer.onPositionChanged.listen((pos) {
+      if (!_isMidiActive) _positionController.add(pos);
+    });
+    _durationSub = audioPlayer.onDurationChanged.listen((dur) {
+      if (!_isMidiActive) _durationController.add(dur);
+    });
+    audioPlayer.onPlayerComplete.listen((_) {
+      if (!_isMidiActive) _playerStateController.add(PlayerState.completed);
     });
   }
   Future<bool> downloadLyric(
@@ -518,15 +552,73 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void pause() {
+    if (_isMidiActive) {
+      songHandler.pause();
+      _stopMidiPolling();
+      _midiAccumulated = _midiAccumulated +
+          (DateTime.now().difference(_midiStartedAt));
+      _playerStateController.add(PlayerState.paused);
+      return;
+    }
     songHandler.pause().catchError(
           (e) => log('Song pause failed: $e', name: 'SongCubit'),
         );
   }
 
   void play() {
+    if (_isMidiActive) {
+      songHandler.play();
+      _midiStartedAt = DateTime.now();
+      _startMidiPolling();
+      _playerStateController.add(PlayerState.playing);
+      return;
+    }
     songHandler.play().catchError(
           (e) => log('Song play failed: $e', name: 'SongCubit'),
         );
+  }
+
+  void _startMidiPolling() {
+    _stopMidiPolling();
+    _midiPollTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      if (!_isMidiActive) {
+        _stopMidiPolling();
+        return;
+      }
+      final mode = songHandler.windowsMidiPlayer.getMode();
+      if (mode == null || mode == 'stopped') {
+        _stopMidiPolling();
+        _playerStateController.add(PlayerState.completed);
+        return;
+      }
+      final posMs = songHandler.windowsMidiPlayer.getPositionMs();
+      if (posMs != null) {
+        _positionController.add(Duration(milliseconds: posMs));
+      } else {
+        final elapsed = DateTime.now().difference(_midiStartedAt) + _midiAccumulated;
+        _positionController.add(elapsed);
+      }
+      final lenMs = songHandler.windowsMidiPlayer.getLengthMs();
+      if (lenMs != null && lenMs > 0) {
+        _midiDuration = Duration(milliseconds: lenMs);
+      } else if (_midiDuration == Duration.zero) {
+        _midiDuration = const Duration(seconds: 300);
+      }
+      _durationController.add(_midiDuration);
+    });
+  }
+
+  void _stopMidiPolling() {
+    _midiPollTimer?.cancel();
+    _midiPollTimer = null;
+  }
+
+  void _resetMidiState() {
+    _stopMidiPolling();
+    _midiAccumulated = Duration.zero;
+    _midiStartedAt = DateTime.now();
+    _midiDuration = Duration.zero;
+    _playerStateController.add(PlayerState.stopped);
   }
 
   Reference get storage => FirebaseStorage.instance.ref();
@@ -546,10 +638,12 @@ class SongCubit extends HydratedCubit<SongState> {
       if (result != null) {
         changeAudioFormat(result.startsWith('assets') ? 'midi' : 'mp3', false);
         if (reload == true) {
-          Fluttertoast.cancel();
-          Fluttertoast.showToast(
-              msg: '${!result.startsWith('assets') ? 'MIDI' : 'MP3'} not found'
-                  .tr());
+          try { Fluttertoast.cancel(); } catch (_) {}
+          try {
+            Fluttertoast.showToast(
+                msg: '${!result.startsWith('assets') ? 'MIDI' : 'MP3'} not found'
+                    .tr());
+          } catch (_) {}
         }
       }
     }
@@ -558,7 +652,16 @@ class SongCubit extends HydratedCubit<SongState> {
       var source = result;
       if (result.startsWith('assets')) {
         if (Platform.isWindows && result.toLowerCase().endsWith('.mid')) {
-          await songHandler.setWindowsMidiAsset(source, song);
+          final midiOk = await songHandler.setWindowsMidiAsset(source, song);
+          if (!midiOk) {
+            try { Fluttertoast.cancel(); } catch (_) {}
+            try { Fluttertoast.showToast(msg: 'MIDI playback not available'.tr()); } catch (_) {}
+            emit(state.copyWith(isAudioLoading: false, showAudio: false));
+            return null;
+          }
+          _resetMidiState();
+          _positionController.add(Duration.zero);
+          _durationController.add(Duration.zero);
           emit(state.copyWith(isAudioLoading: false));
           return result;
         }
@@ -656,6 +759,7 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> changePage(int index, int verseIndex) async {
     await songHandler.seek(Duration.zero);
     songHandler.stop();
+    if (_isMidiActive) _resetMidiState();
     fetchAvailableSong(state.songs[index]);
     emit(state.copyWith(pageIndex: index, verseIndex: verseIndex));
   }
@@ -767,6 +871,13 @@ class SongCubit extends HydratedCubit<SongState> {
 
   @override
   Future<void> close() {
+    _stopMidiPolling();
+    _playerStateSub?.cancel();
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    _playerStateController.close();
+    _positionController.close();
+    _durationController.close();
     audioPlayer.dispose();
     debouncer?.cancel();
     return super.close();

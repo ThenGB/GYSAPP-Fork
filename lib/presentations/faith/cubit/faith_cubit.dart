@@ -8,6 +8,7 @@ import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../data/utilities/firebase_storage_helper.dart';
 import '../../../data/utilities/platform_utils.dart';
 import '../../../domain/entity/faith_note/faith_note.dart';
 import 'faith_state.dart';
@@ -127,13 +128,23 @@ class FaithCubit extends HydratedCubit<FaithState> {
         return null;
       }
 
+      if (FirebaseStorageHelper.isQuotaExceeded) {
+        return null;
+      }
+
       // If not in cache or cache is outdated, fetch from Firebase
       try {
         final storage = FirebaseStorage.instance;
         final folderRef = storage.ref('10dasar');
         final list = await folderRef.listAll();
+        FirebaseStorageHelper.resetQuotaState();
         await cachePdfNameList(list.items.map((e) => e.name).toList());
         return _findPdfName(list.items.map((e) => e.name).toList(), index);
+      } on FirebaseException catch (e) {
+        FirebaseStorageHelper.handleError(e);
+        final names = await _getPdfNamesFromRest();
+        await cachePdfNameList(names);
+        return _findPdfName(names, index);
       } catch (_) {
         final names = await _getPdfNamesFromRest();
         await cachePdfNameList(names);
@@ -162,18 +173,30 @@ class FaithCubit extends HydratedCubit<FaithState> {
       yield* Stream.empty();
       return;
     }
+    if (FirebaseStorageHelper.isQuotaExceeded) {
+      yield* Stream.empty();
+      return;
+    }
     String? url;
     try {
       final storage = FirebaseStorage.instance;
       final folderRef = storage.ref('10dasar');
       final list = await folderRef.listAll();
+      FirebaseStorageHelper.resetQuotaState();
       final remoteFile = list.items.firstWhereOrNull((element) =>
           (int.tryParse(element.name.split('-').first) ?? -1) == index);
       url = await remoteFile?.getDownloadURL();
+    } on FirebaseException catch (e) {
+      FirebaseStorageHelper.handleError(e);
+      final names = await _getPdfNamesFromRest();
+      final name = _findPdfName(names, index);
+      url =
+          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
     } catch (_) {
       final names = await _getPdfNamesFromRest();
       final name = _findPdfName(names, index);
-      url = name == null ? null : _firebaseStorageRestMediaUrl('10dasar/$name');
+      url =
+          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
     }
     if (url == null) {
       yield* Stream.empty();
@@ -195,11 +218,5 @@ class FaithCubit extends HydratedCubit<FaithState> {
         .map((name) => name.replaceFirst('10dasar/', ''))
         .where((name) => name.isNotEmpty)
         .toList();
-  }
-
-  String _firebaseStorageRestMediaUrl(String objectName) {
-    return 'https://firebasestorage.googleapis.com/v0/b/'
-        'hatiku-4c1de.appspot.com/o/'
-        '${Uri.encodeComponent(objectName)}?alt=media';
   }
 }

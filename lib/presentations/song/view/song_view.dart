@@ -173,8 +173,7 @@ class _SongViewState extends State<SongView> {
                         initialData: cubit.audioPlayer.state,
                         stream: context
                             .read<SongCubit>()
-                            .audioPlayer
-                            .onPlayerStateChanged,
+                            .playerStateStream,
                         builder: (context, snapshot) => IconButton(
                           onPressed: () {
                             // if (state.isAudioLoading) return;
@@ -210,14 +209,12 @@ class _SongViewState extends State<SongView> {
                             StreamBuilder<Duration>(
                           stream: context
                               .read<SongCubit>()
-                              .audioPlayer
-                              .onPositionChanged,
+                              .positionStream,
                           builder: (context, positionSnapshot) =>
                               StreamBuilder<Duration>(
                             stream: context
                                 .read<SongCubit>()
-                                .audioPlayer
-                                .onDurationChanged,
+                                .durationStream,
                             builder: (context, durationSnapshot) => state
                                     .isAudioLoading
                                 ? SizedBox(
@@ -275,14 +272,12 @@ class _SongViewState extends State<SongView> {
                                 StreamBuilder<Duration>(
                               stream: context
                                   .read<SongCubit>()
-                                  .audioPlayer
-                                  .onPositionChanged,
+                                  .positionStream,
                               builder: (context, positionSnapshot) =>
                                   StreamBuilder<Duration>(
                                 stream: context
                                     .read<SongCubit>()
-                                    .audioPlayer
-                                    .onDurationChanged,
+                                    .durationStream,
                                 builder: (context, durationSnapshot) {
                                   String durationToString(Duration duration) {
                                     if (duration.inHours >= 1) {
@@ -747,9 +742,9 @@ class _SongViewState extends State<SongView> {
                                         '$number - $title\n\n${currentVerseIndex + 1}. $verse';
                                     await Clipboard.setData(
                                         ClipboardData(text: text));
-                                    Fluttertoast.cancel();
-                                    Fluttertoast.showToast(
-                                        msg: 'Copied to clipboard'.tr());
+                                    try { Fluttertoast.cancel(); } catch (_) {}
+                                    try { Fluttertoast.showToast(
+                                        msg: 'Copied to clipboard'.tr()); } catch (_) {}
                                   }
                                 } else if (value == 'size') {
                                   cubit.toggleSizer();
@@ -1928,8 +1923,8 @@ class SelectedSongMenu extends StatelessWidget {
                       }
                       text += '\n\n$footer';
                       await Clipboard.setData(ClipboardData(text: text));
-                      Fluttertoast.cancel();
-                      Fluttertoast.showToast(msg: 'Copied!'.tr());
+                      try { Fluttertoast.cancel(); } catch (_) {}
+                      try { Fluttertoast.showToast(msg: 'Copied!'.tr()); } catch (_) {}
                     },
                     child: Text('Copy'.tr())),
                 SizedBox(

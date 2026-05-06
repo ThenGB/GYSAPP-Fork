@@ -264,8 +264,17 @@ class BibleCubit extends HydratedCubit<BibleState> {
               e.map((key, value) => MapEntry(key.toString(), value.toString())))
           .toList();
       var currentLang = state.currentBibleLanguage;
+      var langPrefix = currentLang.split('-').first;
       Map<String, String>? voice = (voices
               .firstWhereOrNull((element) => element['locale'] == currentLang))
+          ?.map((key, value) => MapEntry(key.toString(), value.toString()));
+      voice ??= (voices
+              .firstWhereOrNull(
+                  (element) => element['locale'] == langPrefix))
+          ?.map((key, value) => MapEntry(key.toString(), value.toString()));
+      voice ??= (voices
+              .firstWhereOrNull((element) =>
+                  element['locale'].toString().startsWith('$langPrefix-')))
           ?.map((key, value) => MapEntry(key.toString(), value.toString()));
       if (voice != null) {
         var savedVoice = state.voices[currentLang];

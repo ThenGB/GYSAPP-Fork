@@ -17,6 +17,14 @@ class Failure {
     }
     String errorMessage = e.toString();
 
+    if (e is FirebaseException) {
+      if (e.code == 'quota-exceeded') {
+        errorMessage =
+            'Kuota penyimpanan Firebase telah terlampaui. '
+            'Coba lagi nanti.';
+      }
+    }
+
     if (e is FileSystemException) {
       errorMessage =
           '(${e.osError?.errorCode ?? '0mf'}) ${e.osError?.message ?? 'File not found'}';

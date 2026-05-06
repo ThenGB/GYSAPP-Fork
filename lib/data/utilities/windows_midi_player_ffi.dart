@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ffi';
 import 'dart:io';
 
@@ -24,35 +25,92 @@ class WindowsMidiPlayer {
   DynamicLibrary? _winmm;
   _MciSendStringDart? _mciSendString;
   String? _alias;
+  bool _openFailed = false;
 
   bool get hasSource => _alias != null;
+  bool get isReady => hasSource && !_openFailed;
 
-  Future<void> setAsset(String assetPath) async {
-    if (!Platform.isWindows) return;
+  Future<bool> setAsset(String assetPath) async {
+    if (!Platform.isWindows) return false;
     await stop();
-    final file = await _copyAssetToFile(assetPath);
-    _alias = 'gys_midi_${DateTime.now().microsecondsSinceEpoch}';
-    _send('open "${file.path}" type sequencer alias $_alias');
+    _openFailed = false;
+    try {
+      final file = await _copyAssetToFile(assetPath);
+      _alias = 'gys_midi_${DateTime.now().microsecondsSinceEpoch}';
+      _send('open "${file.path}" type sequencer alias $_alias');
+      return true;
+    } catch (e) {
+      _openFailed = true;
+      _alias = null;
+      log('Windows MIDI setAsset failed: $e', name: 'WindowsMidiPlayer');
+      return false;
+    }
   }
 
-  Future<void> play() async {
+  Future<bool> play() async {
     final alias = _alias;
-    if (!Platform.isWindows || alias == null) return;
-    _send('play $alias');
+    if (!Platform.isWindows || alias == null || _openFailed) return false;
+    try {
+      _send('play $alias');
+      return true;
+    } catch (e) {
+      log('Windows MIDI play failed: $e', name: 'WindowsMidiPlayer');
+      return false;
+    }
   }
 
   Future<void> pause() async {
     final alias = _alias;
-    if (!Platform.isWindows || alias == null) return;
-    _send('pause $alias');
+    if (!Platform.isWindows || alias == null || _openFailed) return;
+    try {
+      _send('pause $alias');
+    } catch (e) {
+      log('Windows MIDI pause failed: $e', name: 'WindowsMidiPlayer');
+    }
   }
 
   Future<void> stop() async {
     final alias = _alias;
     if (!Platform.isWindows || alias == null) return;
-    _send('stop $alias');
-    _send('close $alias');
-    _alias = null;
+    try {
+      _send('stop $alias');
+      _send('close $alias');
+    } catch (e) {
+      log('Windows MIDI stop failed: $e', name: 'WindowsMidiPlayer');
+    } finally {
+      _alias = null;
+      _openFailed = false;
+    }
+  }
+
+  String? getMode() {
+    final alias = _alias;
+    if (!Platform.isWindows || alias == null || _openFailed) return null;
+    try {
+      return _send('status $alias mode').trim().toLowerCase();
+    } catch (e) {
+      return null;
+    }
+  }
+
+  int? getPositionMs() {
+    final alias = _alias;
+    if (!Platform.isWindows || alias == null || _openFailed) return null;
+    try {
+      return int.tryParse(_send('status $alias position').trim());
+    } catch (e) {
+      return null;
+    }
+  }
+
+  int? getLengthMs() {
+    final alias = _alias;
+    if (!Platform.isWindows || alias == null || _openFailed) return null;
+    try {
+      return int.tryParse(_send('status $alias length').trim());
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<File> _copyAssetToFile(String assetPath) async {
@@ -78,13 +136,25 @@ class WindowsMidiPlayer {
     return true;
   }
 
+  _MciSendStringDart? get _mciFunction {
+    if (_mciSendString != null) return _mciSendString;
+    try {
+      _winmm = DynamicLibrary.open('winmm.dll');
+      _mciSendString = _winmm!
+          .lookupFunction<_MciSendStringNative, _MciSendStringDart>(
+              'mciSendStringW');
+      return _mciSendString;
+    } catch (e) {
+      log('Failed to load winmm.dll: $e', name: 'WindowsMidiPlayer');
+      return null;
+    }
+  }
+
   String _send(String command) {
-    final function = _mciSendString ??= (_winmm ??= DynamicLibrary.open(
-      'winmm.dll',
-    ))
-        .lookupFunction<_MciSendStringNative, _MciSendStringDart>(
-      'mciSendStringW',
-    );
+    final function = _mciFunction;
+    if (function == null) {
+      throw StateError('winmm.dll not available');
+    }
     final commandPointer = command.toNativeUtf16();
     final returnPointer = calloc<Uint16>(256);
     try {
@@ -92,7 +162,8 @@ class WindowsMidiPlayer {
           function(commandPointer, returnPointer.cast<Utf16>(), 256, 0);
       final message = returnPointer.cast<Utf16>().toDartString();
       if (result != 0) {
-        throw StateError('MCI command failed ($result): $command $message');
+        throw StateError(
+            'MCI command failed ($result): $command — $message');
       }
       return message;
     } finally {

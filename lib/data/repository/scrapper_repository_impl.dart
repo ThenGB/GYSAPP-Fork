@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
+
 
 import '../../domain/entity/kesaksian/kesaksian_entity.dart';
 import '../../domain/entity/panduan/panduan_entity.dart';
@@ -19,57 +19,11 @@ import '../data.dart';
 
 class ScrapperRepositoryImpl implements ScrapperRepository {
   final Chaleno chaleno;
-  late final WebViewController webViewController = WebViewController()
-    ..setNavigationDelegate(NavigationDelegate(
-      onProgress: (progress) {
-        if (progress == 100 && !scrapperCompleter.isCompleted) {
-          scrapperCompleter.complete(true);
-        }
-      },
-      onUrlChange: (change) {
-        log(change.url ?? '', name: 'URL Changed');
-      },
-    ))
-    ..setJavaScriptMode(JavaScriptMode.unrestricted)
-
-    /// Platform apple = Ipod, Ipad, Iphone, Macintosh
-    ..setUserAgent('$Platform.operatingSystem; $Platform.localHostname');
 
   ScrapperRepositoryImpl(this.chaleno);
-
-  Completer<bool> scrapperCompleter = Completer();
   @override
   Future<Either<Failure, List<Sauh>>> getSauh() async {
-    if (!isWebViewConfiguredForCurrentPlatform) {
-      return _getSauhFromHtml();
-    }
-    List<Sauh> data = [];
-    try {
-      scrapperCompleter = Completer();
-      await webViewController
-          .loadRequest(Uri.parse('https://tjc.org/id/sauhbagijiwa/'));
-      final config = await FirebaseUtils.stringConfig('sauhconfig');
-      final req = await scrapperCompleter.future;
-      if (!req) throw 'Tidak dapat mengambil data dari internet';
-      final jsR = await webViewController.runJavaScriptReturningResult(config);
-      final List res = jsonDecode(jsR as String);
-      for (final map in res) {
-        data.add(
-          Sauh(
-            title: map['title'],
-            description: '---',
-            url: map['linkUrl'],
-            imageUrl: _preferOriginalWordPressImage(map['imageUrl'] ?? ''),
-          ),
-        );
-      }
-      if (data.isEmpty) {
-        return _getSauhFromHtml();
-      }
-    } catch (e) {
-      return _getSauhFromHtml();
-    }
-    return Right(data);
+    return _getSauhFromHtml();
   }
 
   Future<Either<Failure, List<Sauh>>> _getSauhFromHtml() async {
@@ -77,23 +31,33 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     List<Sauh> data = [];
     late Failure failure;
     try {
-      final parser = await chaleno.load('https://tjc.org/id/sauhbagijiwa/');
-      if (parser == null) throw "Can't get data online";
-
-      final slides = parser.querySelectorAll('.tf_swiper-slide');
+      final response = await http.get(
+        Uri.parse(
+          'https://tjc.org/id/wp-json/wp/v2/posts'
+          '?categories=229'
+          '&per_page=6'
+          '&orderby=date'
+          '&order=desc'
+          '&_embed=wp:featuredmedia',
+        ),
+      );
+      if (response.statusCode != 200) {
+        throw 'HTTP ${response.statusCode}';
+      }
+      final List posts = jsonDecode(response.body);
       final seenUrls = <String>{};
-      for (final slide in slides) {
-        final title = (slide.querySelector('.slide-title a')?.text ??
-                slide.querySelector('img')?.attr('title') ??
-                slide.querySelector('img')?.attr('alt') ??
-                '')
-            .trim();
-        final url = _absoluteTjcUrl(
-          slide.querySelector('.slide-image a')?.attr('href') ??
-              slide.querySelector('.slide-title a')?.attr('href') ??
-              '#',
-        );
-        final imageUrl = _preferOriginalWordPressImage(_bestImageUrl(slide));
+      for (final post in posts) {
+        final title = (post['title']?['rendered'] ?? '').trim();
+        final url = _absoluteTjcUrl(post['link'] ?? '#');
+        String imageUrl = '';
+        final embedded = post['_embedded'];
+        if (embedded != null && embedded is Map) {
+          final media = embedded['wp:featuredmedia'];
+          if (media is List && media.isNotEmpty) {
+            imageUrl = media[0]['source_url'] ?? '';
+          }
+        }
+        log('SBJ API: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
         if (title.isEmpty || url == '#' || seenUrls.contains(url)) {
           continue;
         }
@@ -103,7 +67,7 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
             title: title,
             description: '---',
             url: url,
-            imageUrl: imageUrl,
+            imageUrl: _absoluteTjcUrl(imageUrl),
           ),
         );
       }
@@ -115,9 +79,10 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     return hasError ? Left(failure) : Right(data);
   }
 
-  String _bestImageUrl(dynamic parent) {
-    final img = parent.querySelector('img');
+  String _extractImageUrl(dynamic element) {
+    final img = element.tagName == 'img' ? element : element.querySelector('img');
     if (img == null) return '';
+
     final bestFromSrcSet = _bestSrcSetUrl(
       img.attr('data-tf-srcset') ??
           img.attr('data-srcset') ??
@@ -130,9 +95,21 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
       img.attr('data-src'),
       img.attr('src'),
     ];
-    return candidates.whereType<String>().firstWhereOrNull(
+    final result = candidates.whereType<String>().firstWhereOrNull(
             (value) => value.isNotEmpty && !value.startsWith('data:image')) ??
         '';
+    if (result.isNotEmpty) return result;
+
+    final noscriptImg = element.querySelector('noscript img');
+    if (noscriptImg != null) {
+      final nsSrc = noscriptImg.attr('src') ?? '';
+      if (nsSrc.isNotEmpty && !nsSrc.startsWith('data:image')) return nsSrc;
+      final nsSrcSet = noscriptImg.attr('srcset') ?? '';
+      if (nsSrcSet.isNotEmpty) {
+        return _bestSrcSetUrl(nsSrcSet);
+      }
+    }
+    return '';
   }
 
   String _bestSrcSetUrl(String srcSet) {
@@ -157,8 +134,8 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
   String _preferOriginalWordPressImage(String url) {
     if (url.isEmpty || url.startsWith('data:image')) return '';
     return url.replaceFirst(
-      RegExp(r'-\d+x\d+(\.(?:jpe?g|png|webp))$', caseSensitive: false),
-      r'$1',
+      RegExp(r'(-\d+x\d+)+\.(jpe?g|png|webp)$', caseSensitive: false),
+      r'.$2',
     );
   }
 
@@ -184,7 +161,10 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
           var title = article.querySelector('.post-title')?.text ?? '';
           var description = (article.querySelector('p')?.text ?? '').trim();
           var url = article.querySelector('a')?.href ?? '#';
-          var imageUrl = _bestImageUrl(article);
+          var imageUrl = _absoluteTjcUrl(
+            _preferOriginalWordPressImage(_extractImageUrl(article)),
+          );
+          log('SS: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
 
           data.add(
             TrueVoice(
