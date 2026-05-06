@@ -31,7 +31,7 @@ class LiteratureWartaCubit extends HydratedCubit<LiteratureWartaState> {
     return state.toJson();
   }
 
-  getData() async {
+  Future<void> getData() async {
     emit(state.copyWith(isLoading: true));
     var response = await repository.getWarta(selector);
     emit(state.copyWith(isLoading: false));

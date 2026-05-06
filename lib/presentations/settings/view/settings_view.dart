@@ -32,7 +32,7 @@ class SettingsView extends StatelessWidget {
                   vertical: 8,
                 ).add(EdgeInsets.only(top: context.mediaQuery.padding.top)),
                 decoration: BoxDecoration(
-                  color: context.colorScheme.background,
+                  color: context.colorScheme.surface,
                 ),
                 child: Row(
                   children: [
@@ -87,7 +87,7 @@ class SettingsView extends StatelessWidget {
                               ? context.colorScheme.onPrimaryContainer
                               : context.colorScheme.onErrorContainer,
                         ),
-                        onPressed: () {
+                        onPressed: () async {
                           if (context.read<DashboardCubit>().state.idToken ==
                               null) {
                             router.push(LoginRoute(
@@ -101,16 +101,14 @@ class SettingsView extends StatelessWidget {
                               },
                             ));
                           } else {
+                            final yes = await context.showConfirmation(
+                                'Are you sure want to logout?'.tr());
+                            if (!context.mounted || !yes) {
+                              return;
+                            }
                             context
-                                .showConfirmation(
-                                    'Are you sure want to logout?'.tr())
-                                .then((yes) {
-                              if (yes) {
-                                context
-                                    .read<DashboardCubit>()
-                                    .loginSuccessCallback(null);
-                              }
-                            });
+                                .read<DashboardCubit>()
+                                .loginSuccessCallback(null);
                           }
                         },
                         child: Text(
@@ -564,7 +562,7 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
         return Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: context.colorScheme.background,
+            color: context.colorScheme.surface,
             borderRadius: const BorderRadius.vertical(
               top: Radius.circular(12),
             ),
@@ -582,56 +580,50 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                     label: 'Select Language'.tr(),
                     child: (gap) => Column(
                       children: [
-                        ...context.supportedLocales
-                            .map((e) => Material(
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    children: [
-                                      ListTile(
-                                        onTap: () async {
-                                          await context
-                                              .setLocale(e)
-                                              .then((value) {
-                                            timeago.LookupMessages message =
-                                                timeago.EnShortMessages();
-                                            switch (e.languageCode) {
-                                              case 'id':
-                                                message =
-                                                    timeago.IdShortMessages();
-                                                break;
-                                              case 'zh':
-                                                message =
-                                                    timeago.ZhCnMessages();
-                                                break;
-                                              default:
-                                            }
-                                            timeago.setLocaleMessages(
-                                                e.languageCode, message);
-                                            router.maybePop();
-                                            Fluttertoast.cancel();
-                                            Fluttertoast.showToast(
-                                              msg: 'Language switched'.tr(),
-                                            );
-                                          });
-                                        },
-                                        title: Row(
-                                          children: [
-                                            Image.asset(
-                                                'assets/images/${e.languageCode}_flag.png',
-                                                width: 20,
-                                                fit: BoxFit.cover,
-                                                height: 14),
-                                            SizedBox(
-                                              width: 8,
-                                            ),
-                                            Text(e.languageName),
-                                          ],
+                        ...context.supportedLocales.map((e) => Material(
+                              color: Colors.transparent,
+                              child: Column(
+                                children: [
+                                  ListTile(
+                                    onTap: () async {
+                                      await context.setLocale(e).then((value) {
+                                        timeago.LookupMessages message =
+                                            timeago.EnShortMessages();
+                                        switch (e.languageCode) {
+                                          case 'id':
+                                            message = timeago.IdShortMessages();
+                                            break;
+                                          case 'zh':
+                                            message = timeago.ZhCnMessages();
+                                            break;
+                                          default:
+                                        }
+                                        timeago.setLocaleMessages(
+                                            e.languageCode, message);
+                                        router.maybePop();
+                                        Fluttertoast.cancel();
+                                        Fluttertoast.showToast(
+                                          msg: 'Language switched'.tr(),
+                                        );
+                                      });
+                                    },
+                                    title: Row(
+                                      children: [
+                                        Image.asset(
+                                            'assets/images/${e.languageCode}_flag.png',
+                                            width: 20,
+                                            fit: BoxFit.cover,
+                                            height: 14),
+                                        SizedBox(
+                                          width: 8,
                                         ),
-                                      ),
-                                    ],
+                                        Text(e.languageName),
+                                      ],
+                                    ),
                                   ),
-                                ))
-                            .toList(),
+                                ],
+                              ),
+                            )),
                         // SizedBox(height: 24),
                       ],
                     ),
@@ -692,7 +684,7 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
         snap: true,
         snapSizes: [childHeight],
         builder: (context, scrollController) => Material(
-          color: context.colorScheme.background,
+          color: context.colorScheme.surface,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(20),
           ),
@@ -721,7 +713,9 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                                 return;
                               }
                             }
-                            // ignore: use_build_context_synchronously
+                            if (!context.mounted) {
+                              return;
+                            }
                             var time = await showTimePicker(
                               context: context,
                               initialTime: TimeOfDay.fromDateTime(
@@ -788,7 +782,7 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                       }),
                       Container(
                         width: double.infinity,
-                        color: context.colorScheme.background,
+                        color: context.colorScheme.surface,
                         padding: const EdgeInsets.all(16),
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
@@ -799,10 +793,13 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                               borderRadius: BorderRadius.circular(12),
                             ),
                           ),
-                          onPressed: () {
-                            widget.settingCubit
-                                .setBibleReminderDailyNotification(data)
-                                .then((value) => Navigator.pop(context));
+                          onPressed: () async {
+                            await widget.settingCubit
+                                .setBibleReminderDailyNotification(data);
+                            if (!context.mounted) {
+                              return;
+                            }
+                            Navigator.pop(context);
                           },
                           child: Text(
                             'Set Reminder'.tr(),

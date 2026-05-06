@@ -34,13 +34,14 @@ class _BibleSearchViewState extends State<BibleSearchView> {
       value: widget.cubit,
       child: BlocBuilder<BibleCubit, BibleState>(
         builder: (context, state) => Scaffold(
-          backgroundColor: context.colorScheme.background,
+          backgroundColor: context.colorScheme.surface,
           appBar: AppBar(
             title: Text('Search verses'.tr()),
           ),
           body: MediaQuery(
             data: context.mediaQuery.copyWith(
-              textScaleFactor: widget.cubit.state.defaultTextScale,
+              textScaler:
+                  TextScaler.linear(widget.cubit.state.defaultTextScale),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

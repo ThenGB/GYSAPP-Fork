@@ -5,13 +5,15 @@ import 'package:audioplayers/audioplayers.dart';
 
 import '../../domain/domain.dart';
 import '../data.dart';
+import 'windows_midi_player.dart';
 
 class SongHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer player;
+  final WindowsMidiPlayer windowsMidiPlayer = WindowsMidiPlayer();
   Function()? onNext;
   final Debouncer debouncer = Debouncer(Duration(milliseconds: 500));
 
-  initNextFunction({required Function() nextFunction}) {
+  void initNextFunction({required Function() nextFunction}) {
     onNext = nextFunction;
   }
 
@@ -30,9 +32,9 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
     player.onPlayerStateChanged
         .map(
-          (event) =>
-              playbackState.value.copyWith(playing: event == PlayerState.playing),
-        )
+      (event) =>
+          playbackState.value.copyWith(playing: event == PlayerState.playing),
+    )
         .listen((event) {
       playbackState.add(event);
 
@@ -46,7 +48,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
-  clearQueue() {
+  void clearQueue() {
     if (queue.value.isNotEmpty) {
       final newList = [...queue.value];
       newList.removeLast();
@@ -56,16 +58,22 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> play() async {
+    if (windowsMidiPlayer.isReady) {
+      final ok = await windowsMidiPlayer.play();
+      playbackState.add(playbackState.value.copyWith(playing: ok));
+      return;
+    }
     // perbaikan: hindari player.source! yang bisa null
     await player.resume();
   }
 
   Future setSource(Source source, Song song) async {
     try {
+      await windowsMidiPlayer.stop();
       await player.setSource(source);
 
       String mediaItemId = song.title ?? '';
-      
+
       // perbaikan: ganti UniqueKey() dengan ID unik tanpa import tambahan
       if (mediaItemId.isEmpty) {
         mediaItemId = 'id_${DateTime.now().microsecondsSinceEpoch}';
@@ -91,13 +99,58 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  Future<bool> setWindowsMidiAsset(String assetPath, Song song) async {
+    try {
+      await player.stop();
+      final ok = await windowsMidiPlayer.setAsset(assetPath);
+      if (!ok) {
+        log('Windows MIDI setAsset returned false', name: 'SongHandler');
+        return false;
+      }
+
+      mediaItem.add(
+        MediaItem(
+          id: assetPath,
+          title: song.title ?? 'Unknown',
+          duration: Duration.zero,
+        ),
+      );
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: const [MediaControl.play, MediaControl.stop],
+          processingState: AudioProcessingState.ready,
+          playing: false,
+        ),
+      );
+      return true;
+    } catch (e) {
+      log('Windows MIDI source failed: $e', name: 'SongHandler');
+      return false;
+    }
+  }
+
   @override
   Future<void> pause() async {
+    if (windowsMidiPlayer.isReady) {
+      await windowsMidiPlayer.pause();
+      playbackState.add(playbackState.value.copyWith(playing: false));
+      return;
+    }
     await player.pause();
   }
 
   @override
   Future<void> stop() async {
+    if (windowsMidiPlayer.isReady) {
+      await windowsMidiPlayer.stop();
+      playbackState.add(
+        playbackState.value.copyWith(
+          processingState: AudioProcessingState.idle,
+          playing: false,
+        ),
+      );
+      return;
+    }
     await player.stop();
   }
 
@@ -109,7 +162,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
       log('seek timeout: $e');
     }
   }
-  
+
   PlaybackState _transformEvent(AudioEvent event) {
     log(player.state.name);
 

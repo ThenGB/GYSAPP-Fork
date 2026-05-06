@@ -6,7 +6,7 @@ import '../../data/utilities/extensions/context_ext.dart';
 import '../../data/utilities/functions/measurewidgetsize.dart';
 import '../../data/utilities/variables/assets.dart';
 
-openDefaultBottomSheet(BuildContext context,
+Future<void> openDefaultBottomSheet(BuildContext context,
     {required Widget Function(BuildContext context) builder}) async {
   showModalBottomSheet(
     context: context,
@@ -53,7 +53,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
     super.initState();
   }
 
-  measure() {
+  void measure() {
     measureWidgetSize(
       context,
       keys: [widgetKey],
@@ -70,14 +70,14 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
 
   Timer? timerSlider1;
   Timer? timerSlider2;
-  debouncer1(Function() callback) async {
+  Future<void> debouncer1(Function() callback) async {
     if (timerSlider1?.isActive == true) {
       timerSlider1!.cancel();
     }
     timerSlider1 = Timer(Duration(milliseconds: 300), callback);
   }
 
-  debouncer2(Function() callback) async {
+  Future<void> debouncer2(Function() callback) async {
     if (timerSlider2?.isActive == true) {
       timerSlider2!.cancel();
     }
@@ -124,7 +124,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             boxShadow: [
-              BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+              BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
             ],
             color: context.colorScheme.surface,
           ),

@@ -32,7 +32,7 @@ class _LoginViewState extends State<LoginView> {
   InAppWebViewController? _webViewPopupController;
   final GlobalKey windowKey = GlobalKey();
 
-  channelListener(Map<String, dynamic> msg) {
+  void channelListener(Map<String, dynamic> msg) {
     log(msg.toString(), name: 'JS Channel webview');
     var cmd = msg['cmd'];
     if (cmd == 'googlelogged' || cmd == 'applelogged') {

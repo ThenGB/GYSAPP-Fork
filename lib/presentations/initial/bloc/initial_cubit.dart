@@ -10,6 +10,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import '../../../app.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../data/utilities/variables/failure.dart';
 import '../../../di/injection.dart';
 import 'initial_state.dart';
@@ -19,7 +20,11 @@ export 'initial_state.dart';
 class InitialCubit extends HydratedCubit<InitialState> {
   InitialCubit() : super(const InitialState());
 
-  getRemoteConfig() async {
+  Future<void> getRemoteConfig() async {
+    if (!isFirebaseConfiguredForCurrentPlatform) {
+      FirebaseUtils.useFallbackConfig();
+      return;
+    }
     try {
       FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
@@ -71,10 +76,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
     } catch (e) {
       log(Failure.fromError(e).message, name: 'getRemoteConfig', error: e);
     }
-    FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
+    FirebaseUtils.complete(FirebaseRemoteConfig.instance);
   }
 
-  initState() async {
+  Future<void> initState() async {
     emit(
       state.copyWith(
         message: 'Initiating...',
@@ -117,16 +122,18 @@ class InitialCubit extends HydratedCubit<InitialState> {
       ),
     );
 
-    try {
-      await FirebaseAuth.instance
-          .signInAnonymously()
-          .timeout(Duration(seconds: 5));
-    } catch (e) {
-      log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
+    if (isFirebaseConfiguredForCurrentPlatform) {
+      try {
+        await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(Duration(seconds: 5));
+      } catch (e) {
+        log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
+      }
     }
   }
 
-  toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
+  void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
     emit(state.copyWith(themeMode: themeMode.toThemeString));
     Future.delayed(
       kThemeChangeDuration,
@@ -139,11 +146,11 @@ class InitialCubit extends HydratedCubit<InitialState> {
     );
   }
 
-  changeTextScale(double newScale) {
+  void changeTextScale(double newScale) {
     emit(state.copyWith(defaultTextScale: newScale));
   }
 
-  changeFontStyle(String newValue) {
+  void changeFontStyle(String newValue) {
     emit(state.copyWith(defaultFont: newValue));
   }
 

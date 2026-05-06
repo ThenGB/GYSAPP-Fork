@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../data.dart';
 
-measureWidgetSize(BuildContext context,
+Future<void> measureWidgetSize(BuildContext context,
     {required List<GlobalKey> keys,
     required Function(double result) callback}) async {
   WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

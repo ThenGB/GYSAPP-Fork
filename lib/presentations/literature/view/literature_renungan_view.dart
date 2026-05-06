@@ -41,7 +41,7 @@ class LiteratureRenunganView extends StatelessWidget {
                           colors: [
                             context.theme.scaffoldBackgroundColor,
                             context.theme.scaffoldBackgroundColor
-                                .withOpacity(0),
+                                .withValues(alpha: 0),
                           ],
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
@@ -85,11 +85,11 @@ class LiteratureRenunganView extends StatelessWidget {
                                     boxShadow: [
                                       BoxShadow(
                                         blurRadius: 2,
-                                        color: Colors.black.withOpacity(.2),
+                                        color: Colors.black.withValues(alpha: .2),
                                         offset: const Offset(0, 1),
                                       ),
                                     ],
-                                    color: context.colorScheme.background,
+                                    color: context.colorScheme.surface,
                                     borderRadius: BorderRadius.circular(8)),
                                 margin: const EdgeInsets.symmetric(
                                     horizontal: 8, vertical: 4),

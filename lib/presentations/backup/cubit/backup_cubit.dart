@@ -37,11 +37,12 @@ class BackupCubit extends HydratedCubit<BackupState> {
     return state.toJson();
   }
 
-  getDataSummary() async {
+  Future<void> getDataSummary() async {
     // final response = await repository.getDataSummary();
   }
 
-  startBackup({required Future<bool> Function() promptSaveToLocal}) async {
+  Future<void> startBackup(
+      {required Future<bool> Function() promptSaveToLocal}) async {
     Map<String, dynamic> data = state.appBackupData!.toJson();
     String folder = appDirectory.backupFolder;
     File backupJson =
@@ -63,60 +64,84 @@ class BackupCubit extends HydratedCubit<BackupState> {
     }
   }
 
-  backupToCloud() async {
+  Future<void> backupToCloud() async {
+    if (!isGoogleSignInConfiguredForCurrentPlatform) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(
+          msg: 'Cloud backup is not available on Windows yet'.tr());
+      return;
+    }
+
     emit(state.copyWith(isBackuping: true));
-    Map<String, dynamic> data = state.appBackupData!.toJson();
-    String folder = appDirectory.backupFolder;
+    try {
+      Map<String, dynamic> data = state.appBackupData!.toJson();
+      String folder = appDirectory.backupFolder;
 
-    File backupJson =
-        File('$folder/${DateTime.now().millisecondsSinceEpoch ~/ 100}.gysbk')
-          ..createSync(recursive: true);
-    await backupJson.writeAsString(jsonEncode(data));
-    var tempEncrypted = await encryptData.encryptFile(backupJson);
-    await backupJson.writeAsBytes(await tempEncrypted.readAsBytes());
+      File backupJson =
+          File('$folder/${DateTime.now().millisecondsSinceEpoch ~/ 100}.gysbk')
+            ..createSync(recursive: true);
+      await backupJson.writeAsString(jsonEncode(data));
+      var tempEncrypted = await encryptData.encryptFile(backupJson);
+      await backupJson.writeAsBytes(await tempEncrypted.readAsBytes());
 
-    final responseLogin = await googleRepository.signIn();
-    if (responseLogin != null) {
-      final response = await repository.backupToDrive(
-          googleUser: responseLogin, file: backupJson);
-      response.fold(
-        (l) {
-          Fluttertoast.cancel();
-          Fluttertoast.showToast(msg: l.message);
-        },
-        (r) {
-          Fluttertoast.cancel();
-          Fluttertoast.showToast(msg: 'Backup success'.tr());
-          log(r.toString());
-        },
-      );
+      final responseLogin = await googleRepository.signIn();
+      if (responseLogin != null) {
+        final response = await repository.backupToDrive(
+            googleUser: responseLogin, file: backupJson);
+        response.fold(
+          (l) {
+            Fluttertoast.cancel();
+            Fluttertoast.showToast(msg: l.message);
+          },
+          (r) {
+            Fluttertoast.cancel();
+            Fluttertoast.showToast(msg: 'Backup success'.tr());
+            log(r.toString());
+          },
+        );
+      }
+    } finally {
       emit(state.copyWith(isBackuping: false));
     }
   }
 
-  syncFromCloud({required Function(AppBackupData data) onLoaded}) async {
+  Future<void> syncFromCloud(
+      {required Function(AppBackupData data) onLoaded}) async {
+    if (!isGoogleSignInConfiguredForCurrentPlatform) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(
+          msg: 'Cloud sync is not available on Windows yet'.tr());
+      return;
+    }
+
     emit(state.copyWith(isSyncing: true));
-    final responseLogin = await googleRepository.signIn();
-    if (responseLogin != null) {
-      final response =
-          await repository.syncFromDrive(googleUser: responseLogin);
-      response.fold(
-        (l) {
-          Fluttertoast.cancel();
-          Fluttertoast.showToast(msg: l.message);
-        },
-        (r) async {
-          if (r == null) {
+    try {
+      final responseLogin = await googleRepository.signIn();
+      if (responseLogin != null) {
+        final response =
+            await repository.syncFromDrive(googleUser: responseLogin);
+        response.fold(
+          (l) {
             Fluttertoast.cancel();
-            Fluttertoast.showToast(msg: 'Failed'.tr());
-            return;
-          }
-          File decryptedFile = await encryptData.decryptFile(r);
-          var data = await decryptedFile.readAsString();
-          AppBackupData backupData = AppBackupData.fromJson(jsonDecode(data));
-          onLoaded(backupData);
-        },
-      );
+            Fluttertoast.showToast(msg: l.message);
+          },
+          (r) async {
+            if (r == null) {
+              Fluttertoast.cancel();
+              Fluttertoast.showToast(msg: 'Failed'.tr());
+              return;
+            }
+            File decryptedFile = await encryptData.decryptFile(r);
+            var data = await decryptedFile.readAsString();
+            AppBackupData backupData = AppBackupData.fromJson(jsonDecode(data));
+            onLoaded(backupData);
+          },
+        );
+      }
+    } catch (e) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: Failure.fromError(e).message);
+    } finally {
       emit(state.copyWith(isSyncing: false));
     }
   }
@@ -144,7 +169,8 @@ class BackupCubit extends HydratedCubit<BackupState> {
     return null;
   }
 
-  syncFromFile({required Function(AppBackupData data) onLoaded}) async {
+  Future<void> syncFromFile(
+      {required Function(AppBackupData data) onLoaded}) async {
     try {
       FilePickerResult? pickedFile =
           (await FilePicker.platform.pickFiles(allowMultiple: false));
@@ -160,7 +186,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     }
   }
 
-  initLocalData(AppBackupData data) {
+  void initLocalData(AppBackupData data) {
     String bibleNotesSummary =
         '${data.bibleState?.notes.length ?? 0} notes on bible';
     String bibleBookmarks =

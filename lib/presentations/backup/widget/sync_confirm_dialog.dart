@@ -26,7 +26,7 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
     super.initState();
   }
 
-  measure([String? logt]) {
+  void measure([String? logt]) {
     if (logt != null) {
       log(logt);
     }

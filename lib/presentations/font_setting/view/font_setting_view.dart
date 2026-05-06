@@ -24,7 +24,7 @@ class _FontSettingViewState extends State<FontSettingView> {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data: context.mediaQuery.copyWith(textScaleFactor: 1),
+      data: context.mediaQuery.copyWith(textScaler: TextScaler.linear(1)),
       child: Scaffold(
         appBar: AppBar(
           title: Text(
@@ -40,22 +40,16 @@ class _FontSettingViewState extends State<FontSettingView> {
                 foregroundColor: context.colorScheme.onPrimary,
               ),
               onPressed: () async {
-                await context
-                    .showConfirmation(
-                        'Are you sure want to change this preference?'.tr())
-                    .then((value) {
-                  if (value) {
-                    context
-                        .read<InitialCubit>()
-                        .changeTextScale(defaultTextScale);
-                    context
-                        .read<InitialCubit>()
-                        .changeFontStyle(defaultFontStyle);
-                    Fluttertoast.cancel();
-                    Fluttertoast.showToast(msg: 'Settings saved'.tr());
-                    router.maybePop();
-                  }
-                });
+                final value = await context.showConfirmation(
+                    'Are you sure want to change this preference?'.tr());
+                if (!context.mounted || !value) {
+                  return;
+                }
+                context.read<InitialCubit>().changeTextScale(defaultTextScale);
+                context.read<InitialCubit>().changeFontStyle(defaultFontStyle);
+                Fluttertoast.cancel();
+                Fluttertoast.showToast(msg: 'Settings saved'.tr());
+                router.maybePop();
               },
               child: Text('Apply'.tr())),
         ),
@@ -76,7 +70,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                             child: SingleChildScrollView(
                               child: Text(
                                 'font_size_placeholder'.tr(),
-                                textScaleFactor: defaultTextScale,
+                                textScaler: TextScaler.linear(defaultTextScale),
                                 style: TextStyle(
                                   fontFamily: defaultFontStyle,
                                 ),

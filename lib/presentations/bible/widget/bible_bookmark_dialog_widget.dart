@@ -30,6 +30,7 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
   late List<BibleBookmark> modifiedBookmarks = List.from(bookmarks);
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (bookmarks.length == modifiedBookmarks.length) {
@@ -43,7 +44,7 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
         child: BlocBuilder<BibleCubit, BibleState>(
           builder: (context, state) => MediaQuery(
             data: context.mediaQuery.copyWith(
-              textScaleFactor: state.defaultTextScale,
+              textScaler: TextScaler.linear(state.defaultTextScale),
             ),
             child: Dialog(
               shape: RoundedRectangleBorder(

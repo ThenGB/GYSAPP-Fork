@@ -6,7 +6,10 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:http/http.dart' as http;
 
+import '../../../data/utilities/firebase_storage_helper.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../domain/entity/faith_note/faith_note.dart';
 import 'faith_state.dart';
 
@@ -27,31 +30,31 @@ class FaithCubit extends HydratedCubit<FaithState> {
     return state.copyWith(selectedFaith: []).toJson();
   }
 
-  changeFont(String font) {
+  void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
   }
 
-  sync(FaithState faithState) {
+  void sync(FaithState faithState) {
     emit(faithState);
   }
 
-  changeTextScale(double value) {
+  void changeTextScale(double value) {
     emit(state.copyWith(defaultTextScale: value));
   }
 
-  changeTextHeight(double value) {
+  void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
-  setLanguage(Locale locale) {
+  void setLanguage(Locale locale) {
     emit(state.copyWith(language: locale.languageCode));
   }
 
-  removeSelection() {
+  void removeSelection() {
     emit(state.copyWith(selectedFaith: []));
   }
 
-  saveNote(FaithNote data) {
+  void saveNote(FaithNote data) {
     var notes = List<FaithNote>.from(state.notes);
     int index = notes.indexWhere((note) => note.id == data.id);
 
@@ -64,18 +67,18 @@ class FaithCubit extends HydratedCubit<FaithState> {
     emit(state.copyWith(notes: notes));
   }
 
-  changeSortNote(String sortBy) {
+  void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
-  deleteNote(FaithNote data) {
+  void deleteNote(FaithNote data) {
     var notes = List<FaithNote>.from(state.notes);
     notes.remove(data);
 
     emit(state.copyWith(notes: notes));
   }
 
-  selectVerse(int index) {
+  void selectVerse(int index) {
     List<int> temp = List.from(state.selectedFaith);
     if (temp.contains(index)) {
       temp.remove(index);
@@ -97,7 +100,7 @@ class FaithCubit extends HydratedCubit<FaithState> {
     ),
   );
 
-  putPdfState(int index, {bool isLoading = true}) {
+  void putPdfState(int index, {bool isLoading = true}) {
     Set<int> loadingList = Set.from(state.pdfLoadingList);
     if (isLoading) {
       loadingList.add(index);
@@ -121,12 +124,32 @@ class FaithCubit extends HydratedCubit<FaithState> {
         }
       }
 
+      if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+        return null;
+      }
+
+      if (FirebaseStorageHelper.isQuotaExceeded) {
+        return null;
+      }
+
       // If not in cache or cache is outdated, fetch from Firebase
-      final storage = FirebaseStorage.instance;
-      final folderRef = storage.ref('10dasar');
-      final list = await folderRef.listAll();
-      await cachePdfNameList(list); // Update the cache
-      return _findPdfName(list.items.map((e) => e.name).toList(), index);
+      try {
+        final storage = FirebaseStorage.instance;
+        final folderRef = storage.ref('10dasar');
+        final list = await folderRef.listAll();
+        FirebaseStorageHelper.resetQuotaState();
+        await cachePdfNameList(list.items.map((e) => e.name).toList());
+        return _findPdfName(list.items.map((e) => e.name).toList(), index);
+      } on FirebaseException catch (e) {
+        FirebaseStorageHelper.handleError(e);
+        final names = await _getPdfNamesFromRest();
+        await cachePdfNameList(names);
+        return _findPdfName(names, index);
+      } catch (_) {
+        final names = await _getPdfNamesFromRest();
+        await cachePdfNameList(names);
+        return _findPdfName(names, index);
+      }
     } catch (e) {
       // Handle any errors here
       return null;
@@ -140,23 +163,60 @@ class FaithCubit extends HydratedCubit<FaithState> {
   }
 
 // Cache the PDF name list
-  Future<void> cachePdfNameList(ListResult list) async {
-    final dataToCache = Uint8List.fromList(
-        jsonEncode(list.items.map((e) => e.name).toList()).codeUnits);
+  Future<void> cachePdfNameList(List<String> list) async {
+    final dataToCache = Uint8List.fromList(jsonEncode(list).codeUnits);
     await pdfNameCacheManager.putFile('cached_pdf_names', dataToCache);
   }
 
   Stream<FileResponse> getPdf(int index) async* {
-    final storage = FirebaseStorage.instance;
-    final folderRef = storage.ref('10dasar');
-    final list = await folderRef.listAll();
-    final remoteFile = list.items.firstWhereOrNull((element) =>
-        (int.tryParse(element.name.split('-').first) ?? -1) == index);
-    if (remoteFile == null) {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
       yield* Stream.empty();
       return;
     }
-    String url = await remoteFile.getDownloadURL();
+    if (FirebaseStorageHelper.isQuotaExceeded) {
+      yield* Stream.empty();
+      return;
+    }
+    String? url;
+    try {
+      final storage = FirebaseStorage.instance;
+      final folderRef = storage.ref('10dasar');
+      final list = await folderRef.listAll();
+      FirebaseStorageHelper.resetQuotaState();
+      final remoteFile = list.items.firstWhereOrNull((element) =>
+          (int.tryParse(element.name.split('-').first) ?? -1) == index);
+      url = await remoteFile?.getDownloadURL();
+    } on FirebaseException catch (e) {
+      FirebaseStorageHelper.handleError(e);
+      final names = await _getPdfNamesFromRest();
+      final name = _findPdfName(names, index);
+      url =
+          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
+    } catch (_) {
+      final names = await _getPdfNamesFromRest();
+      final name = _findPdfName(names, index);
+      url =
+          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
+    }
+    if (url == null) {
+      yield* Stream.empty();
+      return;
+    }
     yield* DefaultCacheManager().getFileStream(url, withProgress: true);
+  }
+
+  Future<List<String>> _getPdfNamesFromRest() async {
+    final response = await http.get(Uri.parse(
+      'https://firebasestorage.googleapis.com/v0/b/hatiku-4c1de.appspot.com/o?prefix=10dasar%2F',
+    ));
+    if (response.statusCode != 200) return [];
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = (decoded['items'] as List<dynamic>? ?? []);
+    return items
+        .map((item) => (item as Map<String, dynamic>)['name'] as String? ?? '')
+        .where((name) => name.startsWith('10dasar/'))
+        .map((name) => name.replaceFirst('10dasar/', ''))
+        .where((name) => name.isNotEmpty)
+        .toList();
   }
 }

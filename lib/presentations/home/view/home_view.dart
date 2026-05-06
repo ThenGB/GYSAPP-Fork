@@ -20,6 +20,44 @@ import '../../../domain/entity/truevoice/truevoice_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
+bool _isHttpImageUrl(String? imageUrl) {
+  final uri = Uri.tryParse(imageUrl ?? '');
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+}
+
+Widget _safeNetworkImage(
+  String? imageUrl, {
+  BoxFit fit = BoxFit.cover,
+  double? height,
+  double? width,
+  Widget? fallback,
+}) {
+  final fallbackWidget = SizedBox(
+    height: height,
+    width: width,
+    child: fallback ??
+        ColoredBox(
+          color: Colors.grey.shade300,
+          child: const SizedBox.expand(),
+        ),
+  );
+  if (!_isHttpImageUrl(imageUrl)) {
+    return fallbackWidget;
+  }
+  return CachedNetworkImage(
+    imageUrl: imageUrl!,
+    fit: fit,
+    height: height,
+    width: width,
+    placeholder: (context, url) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+    errorWidget: (context, url, error) => fallbackWidget,
+  );
+}
+
 @RoutePage()
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -81,7 +119,7 @@ class HomeView extends StatelessWidget {
                                                   .externalApplication,
                                             );
                                           } else {
-                                            router.pushNamed(banner.linkUrl!);
+                                            router.pushPath(banner.linkUrl!);
                                           }
                                         },
                                   child: Container(
@@ -94,17 +132,9 @@ class HomeView extends StatelessWidget {
                                     child: Stack(
                                       children: [
                                         Positioned.fill(
-                                          child: CachedNetworkImage(
-                                            imageUrl: banner.imageUrl ?? '',
+                                          child: _safeNetworkImage(
+                                            banner.imageUrl,
                                             fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error),
                                           ),
                                         ),
                                         if (banner.linkUrl != null)
@@ -244,7 +274,7 @@ class LinkLainnya extends StatelessWidget {
                             );
                             return;
                           }
-                          router.pushNamed(e.value.url);
+                          router.pushPath(e.value.url);
                         }
                         // await launchUrl(
                         //   Uri.parse(e.value.url),
@@ -259,8 +289,8 @@ class LinkLainnya extends StatelessWidget {
                         child: ColorFiltered(
                           colorFilter: ColorFilter.mode(
                             e.value.enabled
-                                ? Colors.black.withOpacity(1)
-                                : Colors.black.withOpacity(.3),
+                                ? Colors.black.withValues(alpha: 1)
+                                : Colors.black.withValues(alpha: .3),
                             BlendMode.dstIn,
                           ),
                           child: Column(
@@ -426,8 +456,8 @@ class SauhBagiJiwa extends StatelessWidget {
             margin: EdgeInsets.symmetric(horizontal: gap),
             child: Stack(
               children: [
-                CachedNetworkImage(
-                  imageUrl: item.imageUrl,
+                _safeNetworkImage(
+                  item.imageUrl,
                   height: 111,
                   fit: BoxFit.cover,
                   width: double.infinity,
@@ -494,9 +524,9 @@ class SuaraSejati extends StatelessWidget {
                           router.push(WebpageRoute(url: e.url));
                         },
                         child: Container(
-                          width: 165 * context.mediaQuery.textScaleFactor,
+                          width: 165 * context.mediaQuery.textScaler.scale(1),
                           margin: const EdgeInsets.only(right: 4),
-                          height: 143 * context.mediaQuery.textScaleFactor,
+                          height: 143 * context.mediaQuery.textScaler.scale(1),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
@@ -510,21 +540,21 @@ class SuaraSejati extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                                 child: Container(
                                   color: Colors.grey,
-                                  height:
-                                      95 * context.mediaQuery.textScaleFactor,
+                                  height: 95 *
+                                      context.mediaQuery.textScaler.scale(1),
                                   width: double.infinity,
-                                  child: CachedNetworkImage(
-                                    imageUrl: e.imageUrl,
+                                  child: _safeNetworkImage(
+                                    e.imageUrl,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
                               ),
                               Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal:
-                                        8 * context.mediaQuery.textScaleFactor,
-                                    vertical:
-                                        4 * context.mediaQuery.textScaleFactor),
+                                    horizontal: 8 *
+                                        context.mediaQuery.textScaler.scale(1),
+                                    vertical: 4 *
+                                        context.mediaQuery.textScaler.scale(1)),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -535,8 +565,8 @@ class SuaraSejati extends StatelessWidget {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 12,
-                                        color:
-                                            context.textColor?.withOpacity(.87),
+                                        color: context.textColor
+                                            ?.withValues(alpha: .87),
                                       ),
                                     ),
                                     const SizedBox(
@@ -549,7 +579,7 @@ class SuaraSejati extends StatelessWidget {
                                       style: TextStyle(
                                           fontSize: 10,
                                           color: context.textColor
-                                              ?.withOpacity(.65)),
+                                              ?.withValues(alpha: .65)),
                                     ),
                                   ],
                                 ),
@@ -603,8 +633,12 @@ class _HomeHeaderState extends State<HomeHeader> {
                 child: state.account == null
                     ? Image.asset(Assets.assetsImagesAppicon, width: 32)
                     : ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: state.account?.profilePicture ?? '',
+                        child: _safeNetworkImage(
+                          state.account?.profilePicture,
+                          fallback: Image.asset(
+                            Assets.assetsImagesAppicon,
+                            width: 32,
+                          ),
                         ),
                       ),
               ),

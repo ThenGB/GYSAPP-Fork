@@ -35,7 +35,27 @@ class SongCubit extends HydratedCubit<SongState> {
 
   bool get isSelectingSong => state.selectedSong != null;
 
+  final _playerStateController = StreamController<PlayerState>.broadcast();
+  final _positionController = StreamController<Duration>.broadcast();
+  final _durationController = StreamController<Duration>.broadcast();
+
+  Stream<PlayerState> get playerStateStream => _playerStateController.stream;
+  Stream<Duration> get positionStream => _positionController.stream;
+  Stream<Duration> get durationStream => _durationController.stream;
+
+  StreamSubscription<PlayerState>? _playerStateSub;
+  StreamSubscription<Duration>? _positionSub;
+  StreamSubscription<Duration>? _durationSub;
+  Timer? _midiPollTimer;
+  DateTime _midiStartedAt = DateTime.now();
+  Duration _midiAccumulated = Duration.zero;
+  Duration _midiDuration = Duration.zero;
+
+  bool get _isMidiActive =>
+      Platform.isWindows && songHandler.windowsMidiPlayer.isReady;
+
   SongCubit(this.songRepository, this.songHandler) : super(const SongState()) {
+    _setupAudioStreams();
     initDb().then((value) {
       if (Platform.isIOS) {
         changeAudioFormat('mp3', false);
@@ -47,11 +67,25 @@ class SongCubit extends HydratedCubit<SongState> {
       );
       Map<String, DateTime> lastSync = Map.from(state.lastSync);
       if (!lastSync.containsKey('song.db')) {
-        //lastSync['song.db'] = DateTime(2023, 9, 15);
         lastSync['song.db'] = DateTime(2025, 12, 18);
         emit(state.copyWith(lastSync: lastSync));
       }
       checkIsSynced();
+    });
+  }
+
+  void _setupAudioStreams() {
+    _playerStateSub = audioPlayer.onPlayerStateChanged.listen((state) {
+      if (!_isMidiActive) _playerStateController.add(state);
+    });
+    _positionSub = audioPlayer.onPositionChanged.listen((pos) {
+      if (!_isMidiActive) _positionController.add(pos);
+    });
+    _durationSub = audioPlayer.onDurationChanged.listen((dur) {
+      if (!_isMidiActive) _durationController.add(dur);
+    });
+    audioPlayer.onPlayerComplete.listen((_) {
+      if (!_isMidiActive) _playerStateController.add(PlayerState.completed);
     });
   }
   Future<bool> downloadLyric(
@@ -59,6 +93,9 @@ class SongCubit extends HydratedCubit<SongState> {
       File localFile,
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return false;
+    }
     try {
       final storage = FirebaseStorage.instance;
       final fileRef = storage.ref('v2/song/lyrics/$sRemoteName');
@@ -106,6 +143,9 @@ class SongCubit extends HydratedCubit<SongState> {
       File localFile,
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return false;
+    }
     try {
       final storage = FirebaseStorage.instance;
       final fileRef = storage.ref('v2/song/$sRemoteName');
@@ -188,9 +228,9 @@ class SongCubit extends HydratedCubit<SongState> {
       }
       await document.close();
 
-      print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+      log('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
     } catch (e) {
-      print(e.toString());
+      log(e.toString());
     }
     return result;
   }
@@ -203,10 +243,7 @@ class SongCubit extends HydratedCubit<SongState> {
   String? imageLyricLastKey;
 
   Future<List<Uint8List>> getImageLyricPath(
-      String bookCode,
-      int pageStart,
-      int pageLength) async {
-
+      String bookCode, int pageStart, int pageLength) async {
     final key = '$bookCode-$pageStart-$pageLength';
 
     // kalau request sama dengan yang terakhir, pakai Future sebelumnya
@@ -224,8 +261,8 @@ class SongCubit extends HydratedCubit<SongState> {
         var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
         if (!file.existsSync()) {
           var data = await rootBundle.load('assets/data/$bookCode.pdf');
-          List<int> bytes = data.buffer.asUint8List(
-              data.offsetInBytes, data.lengthInBytes);
+          List<int> bytes =
+              data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
           await file.writeAsBytes(bytes, flush: true);
         }
 
@@ -258,9 +295,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
         await document.close();
 
-        print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+        log('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
       } catch (e) {
-        print('Error getImageLyricPath: $e');
+        log('Error getImageLyricPath: $e');
       }
       return result;
     }
@@ -268,7 +305,6 @@ class SongCubit extends HydratedCubit<SongState> {
     imageLyricLastFuture = loader();
     return imageLyricLastFuture!;
   }
-
 
   Future<bool> isSynced() async {
     await checkingSyncCompleter.future;
@@ -304,6 +340,12 @@ class SongCubit extends HydratedCubit<SongState> {
   Completer<bool> checkingSyncCompleter = Completer();
   Future<bool> checkIsSynced() async {
     checkingSyncCompleter = Completer();
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      if (!checkingSyncCompleter.isCompleted) {
+        checkingSyncCompleter.complete(false);
+      }
+      return true;
+    }
     AppDirectory localDir = di();
     try {
       Map<String, DateTime> remoteLyricsUpdateAt =
@@ -362,11 +404,12 @@ class SongCubit extends HydratedCubit<SongState> {
     return true;
   }
 
-  sync(SongState songState) {
+  void sync(SongState songState) {
     emit(songState);
   }
 
-  syncDbAndLyric({required Function(String status) onProgress}) async {
+  Future<void> syncDbAndLyric(
+      {required Function(String status) onProgress}) async {
     AppDirectory localDir = di();
     try {
       final db = (await getUnsyncedFiles())
@@ -413,22 +456,22 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  onSearchTermsChanged(String text) {
+  void onSearchTermsChanged(String text) {
     emit(state.copyWith(searchTerms: text));
   }
 
-  toggleShuffle() async {
+  Future<void> toggleShuffle() async {
     Fluttertoast.cancel();
     Fluttertoast.showToast(
         msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}');
     emit(state.copyWith(shuffleMode: !state.shuffleMode));
   }
 
-  changeSortNote(String sortBy) {
+  void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
-  saveNote(SongNote data) {
+  void saveNote(SongNote data) {
     var notes = List<SongNote>.from(state.notes);
     int index = notes.indexWhere((note) => note.id == data.id);
 
@@ -441,18 +484,18 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(notes: notes));
   }
 
-  deleteNote(SongNote data) async {
+  Future<void> deleteNote(SongNote data) async {
     var notes = List<SongNote>.from(state.notes);
     notes.remove(data);
 
     emit(state.copyWith(notes: notes));
   }
 
-  removeSelection() async {
+  Future<void> removeSelection() async {
     emit(state.copyWith(selectedSong: null));
   }
 
-  selectSong(Song song) {
+  void selectSong(Song song) {
     emit(state.copyWith(selectedSong: song));
   }
 
@@ -483,11 +526,11 @@ class SongCubit extends HydratedCubit<SongState> {
     return;
   }
 
-  modifyTextScaleFactor(double factor) {
+  void modifyTextScaleFactor(double factor) {
     emit(state.copyWith(defaultTextScale: state.defaultTextScale + factor));
   }
 
-  syncSong() async {
+  Future<void> syncSong() async {
     // final response = await repository
   }
 
@@ -508,12 +551,74 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  pause() {
-    songHandler.pause();
+  void pause() {
+    if (_isMidiActive) {
+      songHandler.pause();
+      _stopMidiPolling();
+      _midiAccumulated = _midiAccumulated +
+          (DateTime.now().difference(_midiStartedAt));
+      _playerStateController.add(PlayerState.paused);
+      return;
+    }
+    songHandler.pause().catchError(
+          (e) => log('Song pause failed: $e', name: 'SongCubit'),
+        );
   }
 
-  play() {
-    songHandler.play();
+  void play() {
+    if (_isMidiActive) {
+      songHandler.play();
+      _midiStartedAt = DateTime.now();
+      _startMidiPolling();
+      _playerStateController.add(PlayerState.playing);
+      return;
+    }
+    songHandler.play().catchError(
+          (e) => log('Song play failed: $e', name: 'SongCubit'),
+        );
+  }
+
+  void _startMidiPolling() {
+    _stopMidiPolling();
+    _midiPollTimer = Timer.periodic(const Duration(milliseconds: 200), (_) {
+      if (!_isMidiActive) {
+        _stopMidiPolling();
+        return;
+      }
+      final mode = songHandler.windowsMidiPlayer.getMode();
+      if (mode == null || mode == 'stopped') {
+        _stopMidiPolling();
+        _playerStateController.add(PlayerState.completed);
+        return;
+      }
+      final posMs = songHandler.windowsMidiPlayer.getPositionMs();
+      if (posMs != null) {
+        _positionController.add(Duration(milliseconds: posMs));
+      } else {
+        final elapsed = DateTime.now().difference(_midiStartedAt) + _midiAccumulated;
+        _positionController.add(elapsed);
+      }
+      final lenMs = songHandler.windowsMidiPlayer.getLengthMs();
+      if (lenMs != null && lenMs > 0) {
+        _midiDuration = Duration(milliseconds: lenMs);
+      } else if (_midiDuration == Duration.zero) {
+        _midiDuration = const Duration(seconds: 300);
+      }
+      _durationController.add(_midiDuration);
+    });
+  }
+
+  void _stopMidiPolling() {
+    _midiPollTimer?.cancel();
+    _midiPollTimer = null;
+  }
+
+  void _resetMidiState() {
+    _stopMidiPolling();
+    _midiAccumulated = Duration.zero;
+    _midiStartedAt = DateTime.now();
+    _midiDuration = Duration.zero;
+    _playerStateController.add(PlayerState.stopped);
   }
 
   Reference get storage => FirebaseStorage.instance.ref();
@@ -533,10 +638,12 @@ class SongCubit extends HydratedCubit<SongState> {
       if (result != null) {
         changeAudioFormat(result.startsWith('assets') ? 'midi' : 'mp3', false);
         if (reload == true) {
-          Fluttertoast.cancel();
-          Fluttertoast.showToast(
-              msg: '${!result.startsWith('assets') ? 'MIDI' : 'MP3'} not found'
-                  .tr());
+          try { Fluttertoast.cancel(); } catch (_) {}
+          try {
+            Fluttertoast.showToast(
+                msg: '${!result.startsWith('assets') ? 'MIDI' : 'MP3'} not found'
+                    .tr());
+          } catch (_) {}
         }
       }
     }
@@ -544,6 +651,20 @@ class SongCubit extends HydratedCubit<SongState> {
       late Source url;
       var source = result;
       if (result.startsWith('assets')) {
+        if (Platform.isWindows && result.toLowerCase().endsWith('.mid')) {
+          final midiOk = await songHandler.setWindowsMidiAsset(source, song);
+          if (!midiOk) {
+            try { Fluttertoast.cancel(); } catch (_) {}
+            try { Fluttertoast.showToast(msg: 'MIDI playback not available'.tr()); } catch (_) {}
+            emit(state.copyWith(isAudioLoading: false, showAudio: false));
+            return null;
+          }
+          _resetMidiState();
+          _positionController.add(Duration.zero);
+          _durationController.add(Duration.zero);
+          emit(state.copyWith(isAudioLoading: false));
+          return result;
+        }
         url = AssetSource(source.replaceAll('assets/', ''));
         try {
           await audioPlayer.audioCache.clearAll();
@@ -582,7 +703,7 @@ class SongCubit extends HydratedCubit<SongState> {
     return result;
   }
 
-  changeAudioFormat(String format, bool reload) {
+  void changeAudioFormat(String format, bool reload) {
     emit(state.copyWith(defaultAudioFormat: format));
     if (reload) {
       fetchAvailableSong(state.currentSong!.songs[state.pageIndex], reload);
@@ -592,6 +713,9 @@ class SongCubit extends HydratedCubit<SongState> {
   Map<String, String> downloadUrls = {};
 
   Future<String?> isMp3Available(Song song) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return null;
+    }
     List<String> enableMusicCode =
         (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
     if (enableMusicCode.contains(song.code)) return null;
@@ -612,43 +736,44 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  toggleSizer() {
+  void toggleSizer() {
     emit(state.copyWith(showSizer: !state.showSizer));
   }
 
-  toggleAudio([bool? show]) {
+  void toggleAudio([bool? show]) {
     emit(state.copyWith(showAudio: show ?? !state.showAudio));
   }
 
-  changeFont(String font) {
+  void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
   }
 
-  changeTextScale(double value) {
+  void changeTextScale(double value) {
     emit(state.copyWith(defaultTextScale: value));
   }
 
-  changeTextHeight(double value) {
+  void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
-  changePage(int index, int verseIndex) async {
+  Future<void> changePage(int index, int verseIndex) async {
     await songHandler.seek(Duration.zero);
     songHandler.stop();
+    if (_isMidiActive) _resetMidiState();
     fetchAvailableSong(state.songs[index]);
     emit(state.copyWith(pageIndex: index, verseIndex: verseIndex));
   }
 
   Timer? debouncer;
 
-  debounce(Function() callback) {
+  void debounce(Function() callback) {
     if (debouncer?.isActive == true) {
       debouncer?.cancel();
     }
     debouncer = Timer(const Duration(seconds: 1), callback);
   }
 
-  changeMode() {
+  void changeMode() {
     emit(state.copyWith(isImageMode: !state.isImageMode));
   }
 
@@ -665,7 +790,7 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  modifyFavorite(Song song, { bool playOnlyFav = true }) {
+  void modifyFavorite(Song song, {bool playOnlyFav = true}) {
     List<SongBook> modifiedSongBook = [];
     if (state.favoriteSongBook.isEmpty) {
       modifiedSongBook =
@@ -686,8 +811,7 @@ class SongCubit extends HydratedCubit<SongState> {
       }
       return temp;
     }).toList();
-    final hasFavoriteSongs = modifiedSongBook
-    .any((sb) => sb.songs.isNotEmpty);
+    final hasFavoriteSongs = modifiedSongBook.any((sb) => sb.songs.isNotEmpty);
     emit(state.copyWith(
         favoriteSongBook: modifiedSongBook,
         playOnlyFavorite: playOnlyFav && hasFavoriteSongs));
@@ -704,7 +828,7 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  changeBookcode(String bookCode, {bool isFavorite = false}) {
+  void changeBookcode(String bookCode, {bool isFavorite = false}) {
     List<Song> songs = [];
     for (var book in state.favoriteSongBook) {
       songs.addAll(book.songs);
@@ -718,12 +842,12 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  deleteHistory(SongHistory history) {
+  void deleteHistory(SongHistory history) {
     emit(state.copyWith(
         histories: List<SongHistory>.from(state.histories)..remove(history)));
   }
 
-  addToHistory(SongHistory item) {
+  void addToHistory(SongHistory item) {
     List<SongHistory> data = List.from(state.histories);
 
     if (data.length >= 20) {
@@ -747,6 +871,13 @@ class SongCubit extends HydratedCubit<SongState> {
 
   @override
   Future<void> close() {
+    _stopMidiPolling();
+    _playerStateSub?.cancel();
+    _positionSub?.cancel();
+    _durationSub?.cancel();
+    _playerStateController.close();
+    _positionController.close();
+    _durationController.close();
     audioPlayer.dispose();
     debouncer?.cancel();
     return super.close();

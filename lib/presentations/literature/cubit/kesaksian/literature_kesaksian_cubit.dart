@@ -32,7 +32,7 @@ class LiteratureKesaksianCubit extends HydratedCubit<LiteratureKesaksianState> {
     return state.toJson();
   }
 
-  getData() async {
+  Future<void> getData() async {
     emit(state.copyWith(isLoading: true));
     var response = await repository.getKesaksian(selector);
     emit(state.copyWith(isLoading: false));

@@ -48,7 +48,7 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
       snapSizes: [childHeight],
       builder: (context, scrollController) {
         return Material(
-          color: context.colorScheme.background,
+          color: context.colorScheme.surface,
           borderRadius: const BorderRadius.vertical(
             top: Radius.circular(12),
           ),

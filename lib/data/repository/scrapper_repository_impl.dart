@@ -1,11 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
+import 'package:collection/collection.dart';
 import 'package:dartz/dartz.dart';
-import 'package:webview_flutter/webview_flutter.dart';
+import 'package:http/http.dart' as http;
+
 
 import '../../domain/entity/kesaksian/kesaksian_entity.dart';
 import '../../domain/entity/panduan/panduan_entity.dart';
@@ -18,54 +19,130 @@ import '../data.dart';
 
 class ScrapperRepositoryImpl implements ScrapperRepository {
   final Chaleno chaleno;
-  late final WebViewController webViewController = WebViewController()
-    ..setNavigationDelegate(NavigationDelegate(
-      onProgress: (progress) {
-        if (progress == 100 && !scrapperCompleter.isCompleted) {
-          scrapperCompleter.complete(true);
-        }
-      },
-      onUrlChange: (change) {
-        log(change.url ?? '', name: 'URL Changed');
-      },
-    ))
-    ..setJavaScriptMode(JavaScriptMode.unrestricted)
-
-    /// Platform apple = Ipod, Ipad, Iphone, Macintosh
-    ..setUserAgent('$Platform.operatingSystem; $Platform.localHostname');
 
   ScrapperRepositoryImpl(this.chaleno);
-
-  Completer<bool> scrapperCompleter = Completer();
   @override
   Future<Either<Failure, List<Sauh>>> getSauh() async {
+    return _getSauhFromHtml();
+  }
+
+  Future<Either<Failure, List<Sauh>>> _getSauhFromHtml() async {
     bool hasError = false;
     List<Sauh> data = [];
     late Failure failure;
     try {
-      scrapperCompleter = Completer();
-      await webViewController
-          .loadRequest(Uri.parse('https://tjc.org/id/sauhbagijiwa/'));
-      final config = await FirebaseUtils.stringConfig('sauhconfig');
-      final req = await scrapperCompleter.future;
-      if (!req) throw 'Tidak dapat mengambil data dari internet';
-      final jsR = await webViewController.runJavaScriptReturningResult(config);
-      final List res = jsonDecode(jsR as String);
-      for (final map in res) {
+      final response = await http.get(
+        Uri.parse(
+          'https://tjc.org/id/wp-json/wp/v2/posts'
+          '?categories=229'
+          '&per_page=6'
+          '&orderby=date'
+          '&order=desc'
+          '&_embed=wp:featuredmedia',
+        ),
+      );
+      if (response.statusCode != 200) {
+        throw 'HTTP ${response.statusCode}';
+      }
+      final List posts = jsonDecode(response.body);
+      final seenUrls = <String>{};
+      for (final post in posts) {
+        final title = (post['title']?['rendered'] ?? '').trim();
+        final url = _absoluteTjcUrl(post['link'] ?? '#');
+        String imageUrl = '';
+        final embedded = post['_embedded'];
+        if (embedded != null && embedded is Map) {
+          final media = embedded['wp:featuredmedia'];
+          if (media is List && media.isNotEmpty) {
+            imageUrl = media[0]['source_url'] ?? '';
+          }
+        }
+        log('SBJ API: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
+        if (title.isEmpty || url == '#' || seenUrls.contains(url)) {
+          continue;
+        }
+        seenUrls.add(url);
         data.add(
           Sauh(
-            title: map['title'],
+            title: title,
             description: '---',
-            url: map['linkUrl'],
-            imageUrl: map['imageUrl'],
+            url: url,
+            imageUrl: _absoluteTjcUrl(imageUrl),
           ),
         );
       }
+      if (data.isEmpty) throw "Can't parse Sauh Bagi Jiwa";
     } catch (e) {
       hasError = true;
       failure = Failure.fromError(e);
     }
     return hasError ? Left(failure) : Right(data);
+  }
+
+  String _extractImageUrl(dynamic element) {
+    final img = element.tagName == 'img' ? element : element.querySelector('img');
+    if (img == null) return '';
+
+    final bestFromSrcSet = _bestSrcSetUrl(
+      img.attr('data-tf-srcset') ??
+          img.attr('data-srcset') ??
+          img.attr('srcset') ??
+          '',
+    );
+    if (bestFromSrcSet.isNotEmpty) return bestFromSrcSet;
+    final candidates = [
+      img.attr('data-tf-src'),
+      img.attr('data-src'),
+      img.attr('src'),
+    ];
+    final result = candidates.whereType<String>().firstWhereOrNull(
+            (value) => value.isNotEmpty && !value.startsWith('data:image')) ??
+        '';
+    if (result.isNotEmpty) return result;
+
+    final noscriptImg = element.querySelector('noscript img');
+    if (noscriptImg != null) {
+      final nsSrc = noscriptImg.attr('src') ?? '';
+      if (nsSrc.isNotEmpty && !nsSrc.startsWith('data:image')) return nsSrc;
+      final nsSrcSet = noscriptImg.attr('srcset') ?? '';
+      if (nsSrcSet.isNotEmpty) {
+        return _bestSrcSetUrl(nsSrcSet);
+      }
+    }
+    return '';
+  }
+
+  String _bestSrcSetUrl(String srcSet) {
+    if (srcSet.isEmpty) return '';
+    final candidates = srcSet
+        .split(',')
+        .map((value) => value.trim())
+        .where((value) => value.isNotEmpty)
+        .map((value) {
+      final parts = value.split(RegExp(r'\s+'));
+      final url = parts.first;
+      final width = parts.length > 1
+          ? int.tryParse(parts[1].replaceAll(RegExp(r'[^0-9]'), '')) ?? 0
+          : 0;
+      return MapEntry(url, width);
+    }).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    return candidates.firstWhereOrNull((item) => item.key.isNotEmpty)?.key ??
+        '';
+  }
+
+  String _preferOriginalWordPressImage(String url) {
+    if (url.isEmpty || url.startsWith('data:image')) return '';
+    return url.replaceFirst(
+      RegExp(r'(-\d+x\d+)+\.(jpe?g|png|webp)$', caseSensitive: false),
+      r'.$2',
+    );
+  }
+
+  String _absoluteTjcUrl(String url) {
+    if (url.startsWith('http')) return url;
+    if (url.startsWith('/')) return 'https://tjc.org$url';
+    return url;
   }
 
   @override
@@ -84,7 +161,10 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
           var title = article.querySelector('.post-title')?.text ?? '';
           var description = (article.querySelector('p')?.text ?? '').trim();
           var url = article.querySelector('a')?.href ?? '#';
-          var imageUrl = article.querySelector('img')?.src ?? '';
+          var imageUrl = _absoluteTjcUrl(
+            _preferOriginalWordPressImage(_extractImageUrl(article)),
+          );
+          log('SS: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
 
           data.add(
             TrueVoice(

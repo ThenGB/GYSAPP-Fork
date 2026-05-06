@@ -37,8 +37,12 @@ class _WebpageViewState extends State<WebpageView> {
   void dispose() {
     progress.dispose();
     Future.delayed(Duration.zero, () {
-      var context = router.navigatorKey.currentContext!;
-      SystemChrome.setSystemUIOverlayStyle(context
+      final overlayContext = router.navigatorKey.currentContext;
+      if (overlayContext == null) {
+        return;
+      }
+      // ignore: use_build_context_synchronously
+      SystemChrome.setSystemUIOverlayStyle(overlayContext
           .theme.appBarTheme.systemOverlayStyle!
           .copyWith(statusBarBrightness: initialBrightness));
     });
@@ -51,6 +55,7 @@ class _WebpageViewState extends State<WebpageView> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (forceClose) return true;

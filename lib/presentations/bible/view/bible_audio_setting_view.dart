@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +28,8 @@ class BibleAudioSettingView extends StatefulWidget {
 }
 
 class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
-  FlutterTts tts = FlutterTts();
+  FlutterTts? tts =
+      isTextToSpeechConfiguredForCurrentPlatform ? FlutterTts() : null;
   List<String> availableTtsLang = [];
   List<Map> availableVoices = [];
 
@@ -40,9 +43,18 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
         .toList();
   }
 
-  speak(String sentence, String locale) async {
+  Future<void> speak(String sentence, String locale) async {
+    final tts = this.tts;
+    if (tts == null) {
+      try { Fluttertoast.cancel(); } catch (_) {}
+      try { Fluttertoast.showToast(msg: 'Not available'.tr()); } catch (_) {}
+      return;
+    }
+
     if (isSpeaking) {
-      await tts.stop();
+      try {
+        await tts.stop();
+      } catch (_) {}
       isSpeaking = false;
       if (isLangSpeaking(locale)) {
         langSpeaking = '';
@@ -50,14 +62,26 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
       }
     }
     await Future.delayed(Duration(milliseconds: 200));
-    await tts.awaitSpeakCompletion(true);
+    try {
+      await tts.awaitSpeakCompletion(true);
+    } catch (_) {}
     await tts.setLanguage(locale);
-    await tts.setVoice(voices[locale]!.cast());
+    var voiceForLocale = voices[locale];
+    if (voiceForLocale != null) {
+      try {
+        await tts.setVoice(voiceForLocale.cast());
+      } catch (_) {}
+    }
     await tts.setPitch(pitch);
     await tts.setSpeechRate(speed);
     langSpeaking = locale;
     isSpeaking = true;
-    await tts.speak(sentence);
+    try {
+      await tts.speak(sentence);
+    } catch (e) {
+      try { Fluttertoast.cancel(); } catch (_) {}
+      try { Fluttertoast.showToast(msg: Failure.fromError(e).message); } catch (_) {}
+    }
     langSpeaking = '';
     isSpeaking = false;
   }
@@ -83,33 +107,62 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
   @override
   void initState() {
+    final tts = this.tts;
+    if (tts == null) {
+      super.initState();
+      return;
+    }
+
     tts.getLanguages.then((value) {
-      var supportedLang = ['id-ID', 'en-US', 'zh-CN'];
-      var values = (value as List<Object?>).cast<String>().toList();
-      var filtered =
-          values.where((element) => supportedLang.contains(element)).toList();
-      availableTtsLang = List.from(filtered);
+      try {
+        var supportedLangPrefixes = {'id': 'id-ID', 'en': 'en-US', 'zh': 'zh-CN'};
+        var values = (value as List<Object?>).cast<String>().toList();
+        var filtered = values
+            .where((element) =>
+                supportedLangPrefixes.containsKey(element) ||
+                supportedLangPrefixes.containsValue(element) ||
+                supportedLangPrefixes.containsKey(element.split('-').first) ||
+                supportedLangPrefixes.containsValue(element.split('-').first))
+            .toList();
+        if (filtered.isEmpty) {
+          filtered = values.where((element) {
+            var prefix = element.split('-').first;
+            return supportedLangPrefixes.containsKey(prefix);
+          }).toList();
+        }
+        availableTtsLang = List.from(filtered);
+      } catch (e) {
+        log('TTS getLanguages failed: $e', name: 'AudioSettings');
+      }
       if (mounted) {
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
           setState(() {});
         });
       }
+    }).catchError((e) {
+      log('TTS getLanguages error: $e', name: 'AudioSettings');
     });
     Future.microtask(() async {
-      availableVoices = (await tts.getVoices as List<Object?>)
-          .cast<Map>()
-          .toList()
-          .map((e) =>
-              e.map((key, value) => MapEntry(key.toString(), value.toString())))
-          .toList();
-      setState(() {});
+      try {
+        availableVoices = (await tts.getVoices as List<Object?>)
+            .cast<Map>()
+            .toList()
+            .map((e) => e.map(
+                (key, value) => MapEntry(key.toString(), value.toString())))
+            .toList();
+      } catch (e) {
+        log('TTS getVoices failed: $e', name: 'AudioSettings');
+      }
+      if (mounted) setState(() {});
     });
     super.initState();
   }
 
   @override
   void dispose() {
-    tts.stop();
+    if (isSpeaking || canStopIdleTextToSpeechForCurrentPlatform) {
+      tts?.stop();
+    }
     super.dispose();
   }
 
@@ -135,8 +188,8 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                     'Are you sure want to save this preferences?'.tr())
                 .then((confirmed) {
               router.maybePop();
-              Fluttertoast.cancel();
-              Fluttertoast.showToast(msg: 'Saved'.tr());
+              try { Fluttertoast.cancel(); } catch (_) {}
+              try { Fluttertoast.showToast(msg: 'Saved'.tr()); } catch (_) {}
               widget.onSave(voices, pitch, speed);
             });
           },

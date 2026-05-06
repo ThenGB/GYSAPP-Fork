@@ -9,21 +9,21 @@ class Verse with _$Verse {
   const Verse._();
   const factory Verse({
     @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
-        required int id,
+    required int id,
     @JsonKey(name: 'b', fromJson: dynamicToInt, toJson: intToDynamic)
-        required int bookId,
+    required int bookId,
     @JsonKey(name: 'c', fromJson: dynamicToInt, toJson: intToDynamic)
-        required int chapterId,
+    required int chapterId,
     @JsonKey(name: 'v', fromJson: dynamicToInt, toJson: intToDynamic)
-        required int verseId,
+    required int verseId,
     @JsonKey(name: 't') String? verse,
     @JsonKey(name: 'r') int? revisionId,
     @JsonKey(name: 'c1', fromJson: dynamicToString, toJson: stringToDynamic)
-        String? c1,
+    String? c1,
     @JsonKey(name: 'v1', fromJson: dynamicToString, toJson: stringToDynamic)
-        String? v1,
+    String? v1,
     @JsonKey(name: 'color', fromJson: _colorFromJson, toJson: _colorToJson)
-        Color? color,
+    Color? color,
   }) = _Verse;
 
   factory Verse.fromJson(Map<String, dynamic> json) => _$VerseFromJson(json);
@@ -40,7 +40,7 @@ String? _colorToJson(Color? color) {
   if (color == Colors.transparent || color == null) {
     return null;
   }
-  return '#${color.value.toRadixString(16).padLeft(8, '0').substring(2)}';
+  return '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2)}';
 }
 
 Color? _colorFromJson(dynamic json) {
@@ -52,18 +52,18 @@ Color? _colorFromJson(dynamic json) {
   return Color(0xFF000000 + colorInt);
 }
 
-dynamicToString(dynamic value) {
+String? dynamicToString(dynamic value) {
   return value?.toString();
 }
 
-stringToDynamic(String? value) {
+String? stringToDynamic(String? value) {
   return value;
 }
 
-dynamicToInt(dynamic value) {
+int dynamicToInt(dynamic value) {
   return int.parse(value.toString());
 }
 
-intToDynamic(int value) {
+int intToDynamic(int value) {
   return value;
 }

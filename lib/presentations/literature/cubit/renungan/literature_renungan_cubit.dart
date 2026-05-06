@@ -33,7 +33,7 @@ class LiteratureRenunganCubit extends HydratedCubit<LiteratureRenunganState> {
     return state.toJson();
   }
 
-  getData() async {
+  Future<void> getData() async {
     emit(state.copyWith(isLoading: true));
     var response = await repository.getRenungan(selector);
     emit(state.copyWith(isLoading: false));

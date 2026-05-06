@@ -39,7 +39,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
             FocusManager.instance.primaryFocus?.unfocus();
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,7 +336,7 @@ class NoDataFound extends StatelessWidget {
             description,
             textAlign: TextAlign.center,
             style: context.textTheme.bodyMedium?.copyWith(
-              color: context.textTheme.bodyMedium?.color?.withOpacity(.5),
+              color: context.textTheme.bodyMedium?.color?.withValues(alpha: .5),
             ),
           ),
           if (action != null) ...[

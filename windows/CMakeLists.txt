@@ -2,6 +2,11 @@
 cmake_minimum_required(VERSION 3.14)
 project(church LANGUAGES CXX)
 
+# Third-party Flutter plugins currently pull older CMake projects during the
+# Windows build. Keep our output focused on actionable app warnings.
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "church")
@@ -54,7 +59,11 @@ add_subdirectory("runner")
 
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
+set(_ORIGINAL_CMAKE_COMMAND "${CMAKE_COMMAND}")
+set(CMAKE_COMMAND
+  "powershell.exe;-NoProfile;-ExecutionPolicy;Bypass;-File;${CMAKE_CURRENT_SOURCE_DIR}/cmake_silent.ps1;${_ORIGINAL_CMAKE_COMMAND}")
 include(flutter/generated_plugins.cmake)
+set(CMAKE_COMMAND "${_ORIGINAL_CMAKE_COMMAND}")
 
 
 # === Installation ===

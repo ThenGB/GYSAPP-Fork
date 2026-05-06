@@ -42,7 +42,7 @@ class _SongNoteViewState extends State<SongNoteView> {
   );
   late SongNote data = widget.initialData;
   bool forceClose = false;
-  onSave() async {
+  Future<void> onSave() async {
     forceClose = true;
     data =
         data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
@@ -62,9 +62,11 @@ class _SongNoteViewState extends State<SongNoteView> {
 
   @override
   Widget build(BuildContext context) {
+    controller.readOnly = mode == NoteMode.viewOnly;
     return BlocProvider<SongCubit>.value(
       value: widget.cubit,
       child: BlocBuilder<SongCubit, SongState>(
+        // ignore: deprecated_member_use
         builder: (context, state) => WillPopScope(
           onWillPop: () async {
             if (forceClose) return true;
@@ -156,10 +158,7 @@ class _SongNoteViewState extends State<SongNoteView> {
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
-                  autoFocus: true,
-
-                  /// TODO: Uncomment this line
-                  // readOnly: mode == NoteMode.viewOnly,
+                  autoFocus: mode == NoteMode.write,
                 ),
                 focusNode: focusNode,
                 scrollController: scrollController,
@@ -171,9 +170,9 @@ class _SongNoteViewState extends State<SongNoteView> {
                     margin: context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
                     child: quill.QuillToolbar.simple(
-                      configurations: quill.QuillSimpleToolbarConfigurations(
-                        controller: controller,
-                      ),
+                      controller: controller,
+                      configurations:
+                          const quill.QuillSimpleToolbarConfigurations(),
                     ),
                   ),
           ),

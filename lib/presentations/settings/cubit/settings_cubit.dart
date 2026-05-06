@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../router/router.dart';
 import 'settings_state.dart';
 
@@ -10,10 +11,21 @@ export 'settings_state.dart';
 
 class SettingsCubit extends HydratedCubit<SettingsState> {
   SettingsCubit() : super(const SettingsState()) {
-    toggleSabatNotification(state.isSabatNotificationActive, true);
+    if (isNotificationConfiguredForCurrentPlatform) {
+      toggleSabatNotification(state.isSabatNotificationActive, true);
+    }
   }
 
-  toggleSabatNotification([bool? value, bool isInit = false]) async {
+  Future<void> toggleSabatNotification(
+      [bool? value, bool isInit = false]) async {
+    if (!isNotificationConfiguredForCurrentPlatform) {
+      emit(
+        state.copyWith(
+          isSabatNotificationActive: false,
+        ),
+      );
+      return;
+    }
     if (!(await AwesomeNotifications().isNotificationAllowed())) {
       var res =
           await AwesomeNotifications().requestPermissionToSendNotifications();
@@ -58,11 +70,20 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     );
   }
 
-  sync(SettingsState settingsState) {
+  void sync(SettingsState settingsState) {
     emit(settingsState);
   }
 
   Future setBibleReminderDailyNotification(Map<int, DateTime> days) async {
+    if (!isNotificationConfiguredForCurrentPlatform) {
+      emit(
+        state.copyWith(
+          isBibleReminderNotificationActive: false,
+          bibleReminders: {},
+        ),
+      );
+      return;
+    }
     if (!(await AwesomeNotifications().isNotificationAllowed())) {
       await AwesomeNotifications().requestPermissionToSendNotifications();
     }

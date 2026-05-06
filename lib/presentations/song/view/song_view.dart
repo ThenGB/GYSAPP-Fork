@@ -59,7 +59,7 @@ class _SongViewState extends State<SongView> {
           ? (cubit.state.songs[currentPageIndex].title ?? '')
           : '');
 
-  pageListener([int? currentPage]) {
+  void pageListener([int? currentPage]) {
     currentPageIndex =
         currentPage ?? pageController.page?.toInt() ?? currentPageIndex;
     if (int.parse(pageController.page.toString().split('.').last) == 0) {
@@ -173,8 +173,7 @@ class _SongViewState extends State<SongView> {
                         initialData: cubit.audioPlayer.state,
                         stream: context
                             .read<SongCubit>()
-                            .audioPlayer
-                            .onPlayerStateChanged,
+                            .playerStateStream,
                         builder: (context, snapshot) => IconButton(
                           onPressed: () {
                             // if (state.isAudioLoading) return;
@@ -210,14 +209,12 @@ class _SongViewState extends State<SongView> {
                             StreamBuilder<Duration>(
                           stream: context
                               .read<SongCubit>()
-                              .audioPlayer
-                              .onPositionChanged,
+                              .positionStream,
                           builder: (context, positionSnapshot) =>
                               StreamBuilder<Duration>(
                             stream: context
                                 .read<SongCubit>()
-                                .audioPlayer
-                                .onDurationChanged,
+                                .durationStream,
                             builder: (context, durationSnapshot) => state
                                     .isAudioLoading
                                 ? SizedBox(
@@ -275,14 +272,12 @@ class _SongViewState extends State<SongView> {
                                 StreamBuilder<Duration>(
                               stream: context
                                   .read<SongCubit>()
-                                  .audioPlayer
-                                  .onPositionChanged,
+                                  .positionStream,
                               builder: (context, positionSnapshot) =>
                                   StreamBuilder<Duration>(
                                 stream: context
                                     .read<SongCubit>()
-                                    .audioPlayer
-                                    .onDurationChanged,
+                                    .durationStream,
                                 builder: (context, durationSnapshot) {
                                   String durationToString(Duration duration) {
                                     if (duration.inHours >= 1) {
@@ -346,7 +341,9 @@ class _SongViewState extends State<SongView> {
                             ),
                             itemBuilder: (context) {
                               // return ['mp3', 'mid']
-                              return ['mid'] //.apm:20251219:ref hy:hanya allow midi;
+                              return [
+                                'mid'
+                              ] //.apm:20251219:ref hy:hanya allow midi;
                                   .map(
                                     (e) => PopupMenuItem(
                                       value: e,
@@ -727,7 +724,8 @@ class _SongViewState extends State<SongView> {
                                 if (value == 'fav') {
                                   if (currentPageIndex < state.songs.length) {
                                     cubit.modifyFavorite(
-                                        state.songs[currentPageIndex], playOnlyFav: false);
+                                        state.songs[currentPageIndex],
+                                        playOnlyFav: false);
                                   }
                                 } else if (value == 'copy') {
                                   if (currentPageIndex < state.songs.length &&
@@ -744,9 +742,9 @@ class _SongViewState extends State<SongView> {
                                         '$number - $title\n\n${currentVerseIndex + 1}. $verse';
                                     await Clipboard.setData(
                                         ClipboardData(text: text));
-                                    Fluttertoast.cancel();
-                                    Fluttertoast.showToast(
-                                        msg: 'Copied to clipboard'.tr());
+                                    try { Fluttertoast.cancel(); } catch (_) {}
+                                    try { Fluttertoast.showToast(
+                                        msg: 'Copied to clipboard'.tr()); } catch (_) {}
                                   }
                                 } else if (value == 'size') {
                                   cubit.toggleSizer();
@@ -860,9 +858,10 @@ class _SongViewState extends State<SongView> {
                                                       state.songs.length) {
                                                     context
                                                         .read<SongCubit>()
-                                                        .modifyFavorite(state
-                                                                .songs[
-                                                            currentPageIndex], playOnlyFav: false);
+                                                        .modifyFavorite(
+                                                            state.songs[
+                                                                currentPageIndex],
+                                                            playOnlyFav: false);
                                                     router.maybePop();
                                                   }
                                                 },
@@ -1078,18 +1077,16 @@ class _SongViewState extends State<SongView> {
                                                           (context, index) {
                                                         if (state.isImageMode) {
                                                           return FutureBuilder(
-                                                            key: ValueKey('img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
+                                                            key: ValueKey(
+                                                                'img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
                                                             //initialData:
                                                             //    currentImage,
                                                             future: //state
-                                                                cubit
-                                                                .getImageLyricPath(
+                                                                cubit.getImageLyricPath(
                                                                     //context,
                                                                     state.bookCode,
-                                                                    song.pageStart ??
-                                                                        0,
-                                                                    song.pageLength ??
-                                                                        0),
+                                                                    song.pageStart ?? 0,
+                                                                    song.pageLength ?? 0),
                                                             builder: (context,
                                                                 snapshot) {
                                                               if (snapshot.data
@@ -1155,8 +1152,9 @@ class _SongViewState extends State<SongView> {
                                                             item,
                                                             textAlign: TextAlign
                                                                 .center,
-                                                            textScaleFactor:
-                                                                _currentScale,
+                                                            textScaler:
+                                                                TextScaler.linear(
+                                                                    _currentScale),
                                                             style: state
                                                                 .defaultTextTheme
                                                                 .bodyMedium
@@ -1257,11 +1255,12 @@ class _SongViewState extends State<SongView> {
                                                     .keyboard_arrow_up_rounded),
                                               ),
                                               Text(
-                                                  '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}'
-                                                  , style: const TextStyle(
-                                                      color: Colors.grey, // Warna teks hitam
-                                                  ),
+                                                '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}',
+                                                style: const TextStyle(
+                                                  color: Colors
+                                                      .grey, // Warna teks hitam
                                                 ),
+                                              ),
                                               IconButton(
                                                 onPressed: () {
                                                   verseController?.nextPage(
@@ -1801,7 +1800,7 @@ class SelectedSongMenu extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
         ],
         color: context.colorScheme.surface,
       ),
@@ -1924,8 +1923,8 @@ class SelectedSongMenu extends StatelessWidget {
                       }
                       text += '\n\n$footer';
                       await Clipboard.setData(ClipboardData(text: text));
-                      Fluttertoast.cancel();
-                      Fluttertoast.showToast(msg: 'Copied!'.tr());
+                      try { Fluttertoast.cancel(); } catch (_) {}
+                      try { Fluttertoast.showToast(msg: 'Copied!'.tr()); } catch (_) {}
                     },
                     child: Text('Copy'.tr())),
                 SizedBox(

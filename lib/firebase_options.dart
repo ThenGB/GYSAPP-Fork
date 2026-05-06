@@ -27,10 +27,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.macOS:
         return macos;
       case TargetPlatform.windows:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for windows - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return windows;
       case TargetPlatform.linux:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for linux - '
@@ -70,8 +67,10 @@ class DefaultFirebaseOptions {
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
-    androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-7a41kf03rqhb80idlht4fisrcmvur8in.apps.googleusercontent.com',
+    androidClientId:
+        '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
+    iosClientId:
+        '4071878363-7a41kf03rqhb80idlht4fisrcmvur8in.apps.googleusercontent.com',
     iosBundleId: 'com.itm.hatiku',
   );
 
@@ -82,8 +81,21 @@ class DefaultFirebaseOptions {
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
-    androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com',
+    androidClientId:
+        '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
+    iosClientId:
+        '4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com',
     iosBundleId: 'com.itmandiri.church',
+  );
+
+  static const FirebaseOptions windows = FirebaseOptions(
+    apiKey: 'AIzaSyCe5JcdxYeLaE1n_aum-TQIkIo5oFdcxo4',
+    appId: '1:4071878363:web:43e0ce49a19a5dc4a266fe',
+    messagingSenderId: '4071878363',
+    projectId: 'hatiku-4c1de',
+    authDomain: 'hatiku-4c1de.firebaseapp.com',
+    databaseURL: 'https://hatiku-4c1de.firebaseio.com',
+    storageBucket: 'hatiku-4c1de.appspot.com',
+    measurementId: 'G-09MHH8KMY2',
   );
 }
