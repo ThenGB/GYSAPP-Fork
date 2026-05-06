@@ -6,6 +6,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../domain/entity/banner/banner.dart';
 import '../../../domain/entity/menulink/menulink_entity.dart';
 import '../../../domain/repository/scrapper_repository.dart';
@@ -16,27 +17,31 @@ export 'home_state.dart';
 class HomeCubit extends HydratedCubit<HomeState> {
   final ScrapperRepository repository;
 
-  CollectionReference bannersCollection =
-      FirebaseFirestore.instance.collection('banners');
+  CollectionReference? bannersCollection;
   late BehaviorSubject<List<ImageBanner>> rxBanner =
       BehaviorSubject<List<ImageBanner>>.seeded([]);
 
   ValueStream<List<ImageBanner>> get bannerObservable => rxBanner.stream;
   HomeCubit(this.repository) : super(const HomeState()) {
-    log(FirebaseAuth.instance.currentUser.toString());
     scrappSauhBagiJiwa();
     scrappTrueVoice();
     getMenu();
-    bannersCollection.snapshots().listen((event) {
-      final banners = event.docs.map((e) {
-        final map = (e.data() as Map<String, dynamic>).map(
-          (key, value) => MapEntry(key,
-              value is Timestamp ? value.toDate().toIso8601String() : value),
-        );
-        return ImageBanner.fromJson(map);
-      }).toList();
-      rxBanner.add(banners);
-    });
+    if (isFirebaseConfiguredForCurrentPlatform) {
+      log(FirebaseAuth.instance.currentUser.toString());
+      bannersCollection = FirebaseFirestore.instance.collection('banners');
+      bannersCollection?.snapshots().listen((event) {
+        final banners = event.docs.map((e) {
+          final map = (e.data() as Map<String, dynamic>).map(
+            (key, value) => MapEntry(
+              key,
+              value is Timestamp ? value.toDate().toIso8601String() : value,
+            ),
+          );
+          return ImageBanner.fromJson(map);
+        }).toList();
+        rxBanner.add(banners);
+      });
+    }
     getPrimaryMenuStatus();
   }
 

@@ -26,7 +26,8 @@ class BibleAudioSettingView extends StatefulWidget {
 }
 
 class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
-  FlutterTts tts = FlutterTts();
+  FlutterTts? tts =
+      isTextToSpeechConfiguredForCurrentPlatform ? FlutterTts() : null;
   List<String> availableTtsLang = [];
   List<Map> availableVoices = [];
 
@@ -41,8 +42,17 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   }
 
   Future<void> speak(String sentence, String locale) async {
+    final tts = this.tts;
+    if (tts == null) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: 'Not available'.tr());
+      return;
+    }
+
     if (isSpeaking) {
-      await tts.stop();
+      try {
+        await tts.stop();
+      } catch (_) {}
       isSpeaking = false;
       if (isLangSpeaking(locale)) {
         langSpeaking = '';
@@ -57,7 +67,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     await tts.setSpeechRate(speed);
     langSpeaking = locale;
     isSpeaking = true;
-    await tts.speak(sentence);
+    try {
+      await tts.speak(sentence);
+    } catch (e) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: Failure.fromError(e).message);
+    }
     langSpeaking = '';
     isSpeaking = false;
   }
@@ -83,6 +98,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
   @override
   void initState() {
+    final tts = this.tts;
+    if (tts == null) {
+      super.initState();
+      return;
+    }
+
     tts.getLanguages.then((value) {
       var supportedLang = ['id-ID', 'en-US', 'zh-CN'];
       var values = (value as List<Object?>).cast<String>().toList();
@@ -109,7 +130,9 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
   @override
   void dispose() {
-    tts.stop();
+    if (isSpeaking || canStopIdleTextToSpeechForCurrentPlatform) {
+      tts?.stop();
+    }
     super.dispose();
   }
 

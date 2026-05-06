@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -17,6 +18,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
@@ -28,36 +30,84 @@ import 'presentations/presentations.dart';
 import 'router/router.dart';
 
 Future initApplication() async {
+  final initStopwatch = Stopwatch()..start();
+  void initLog(String message) {
+    if (kDebugMode) {
+      debugPrint('[initApplication +${initStopwatch.elapsed}] $message');
+    }
+  }
+
+  initLog('starting');
   var appConfig =
       AppConfig(appName: 'GYS APP', baseUrlApi: 'https://e.gys.or.id/api/v1');
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  initLog('flutter binding ready');
+  _setupDatabaseFactory();
+  initLog('database factory ready');
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: await getApplicationSupportDirectory(),
   );
+  initLog('hydrated storage ready');
   await EasyLocalization.ensureInitialized();
-  setupInjection(appConfig);
-  await _setupNotification();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
-  Isolate.current.addErrorListener(RawReceivePort((pair) {
-    final errorAndStackTrace = pair as List<dynamic>;
-    FirebaseCrashlytics.instance.recordError(
-      errorAndStackTrace.firstOrNull,
-      StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
-      fatal: true,
+  initLog('localization ready');
+  await setupInjection(appConfig);
+  initLog('dependency injection ready');
+  if (isNotificationConfiguredForCurrentPlatform) {
+    await _setupNotification();
+    initLog('notifications ready');
+  }
+  if (isFirebaseCoreConfiguredForCurrentPlatform) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
     );
-  }).sendPort);
-  await FirebaseRemoteConfig.instance.ensureInitialized();
-  await FirebaseAppCheck.instance.activate(
-    androidProvider:
-        kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
-    appleProvider: AppleProvider.appAttest,
-  );
+    if (isFirebaseCrashlyticsConfiguredForCurrentPlatform) {
+      FlutterError.onError =
+          FirebaseCrashlytics.instance.recordFlutterFatalError;
+      Isolate.current.addErrorListener(RawReceivePort((pair) {
+        final errorAndStackTrace = pair as List<dynamic>;
+        FirebaseCrashlytics.instance.recordError(
+          errorAndStackTrace.firstOrNull,
+          StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
+          fatal: true,
+        );
+      }).sendPort);
+    } else {
+      FlutterError.onError = FlutterError.presentError;
+    }
+    if (isFirebaseRemoteConfigConfiguredForCurrentPlatform) {
+      await FirebaseRemoteConfig.instance.ensureInitialized();
+      if (isFirebaseAppCheckConfiguredForCurrentPlatform) {
+        await FirebaseAppCheck.instance.activate(
+          androidProvider: kReleaseMode
+              ? AndroidProvider.playIntegrity
+              : AndroidProvider.debug,
+          appleProvider: AppleProvider.appAttest,
+        );
+      }
+      initLog('firebase ready');
+    } else {
+      FirebaseUtils.useFallbackConfig();
+      initLog('firebase core ready with fallback remote config');
+    }
+  } else {
+    FirebaseUtils.useFallbackConfig();
+    FlutterError.onError = FlutterError.presentError;
+    initLog('using fallback firebase config');
+  }
 
   await _setupLocalData();
+  initLog('local data ready');
   FlutterNativeSplash.remove();
+  initLog('done');
   log('App Initialization DONE');
+}
+
+void _setupDatabaseFactory() {
+  if (Platform.isWindows || Platform.isLinux) {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
+  }
 }
 
 Future _setupLocalData() async {
@@ -71,6 +121,9 @@ Future _setupLocalData() async {
     [Assets.assetsDataSongsKR, localDir.songLyricFolder],
     [Assets.assetsDataSongsMDR, localDir.songLyricFolder],
   ]) {
+    if (kDebugMode) {
+      debugPrint('Preparing local asset ${item[0]}');
+    }
     await assetToStorage(
       assetFilePath: item[0],
       localFilePath: '${item[1]}/${basename(item[0])}',

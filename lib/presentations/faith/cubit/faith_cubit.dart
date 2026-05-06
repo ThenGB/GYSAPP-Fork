@@ -6,7 +6,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:http/http.dart' as http;
 
+import '../../../data/utilities/platform_utils.dart';
 import '../../../domain/entity/faith_note/faith_note.dart';
 import 'faith_state.dart';
 
@@ -121,12 +123,22 @@ class FaithCubit extends HydratedCubit<FaithState> {
         }
       }
 
+      if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+        return null;
+      }
+
       // If not in cache or cache is outdated, fetch from Firebase
-      final storage = FirebaseStorage.instance;
-      final folderRef = storage.ref('10dasar');
-      final list = await folderRef.listAll();
-      await cachePdfNameList(list); // Update the cache
-      return _findPdfName(list.items.map((e) => e.name).toList(), index);
+      try {
+        final storage = FirebaseStorage.instance;
+        final folderRef = storage.ref('10dasar');
+        final list = await folderRef.listAll();
+        await cachePdfNameList(list.items.map((e) => e.name).toList());
+        return _findPdfName(list.items.map((e) => e.name).toList(), index);
+      } catch (_) {
+        final names = await _getPdfNamesFromRest();
+        await cachePdfNameList(names);
+        return _findPdfName(names, index);
+      }
     } catch (e) {
       // Handle any errors here
       return null;
@@ -140,23 +152,54 @@ class FaithCubit extends HydratedCubit<FaithState> {
   }
 
 // Cache the PDF name list
-  Future<void> cachePdfNameList(ListResult list) async {
-    final dataToCache = Uint8List.fromList(
-        jsonEncode(list.items.map((e) => e.name).toList()).codeUnits);
+  Future<void> cachePdfNameList(List<String> list) async {
+    final dataToCache = Uint8List.fromList(jsonEncode(list).codeUnits);
     await pdfNameCacheManager.putFile('cached_pdf_names', dataToCache);
   }
 
   Stream<FileResponse> getPdf(int index) async* {
-    final storage = FirebaseStorage.instance;
-    final folderRef = storage.ref('10dasar');
-    final list = await folderRef.listAll();
-    final remoteFile = list.items.firstWhereOrNull((element) =>
-        (int.tryParse(element.name.split('-').first) ?? -1) == index);
-    if (remoteFile == null) {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
       yield* Stream.empty();
       return;
     }
-    String url = await remoteFile.getDownloadURL();
+    String? url;
+    try {
+      final storage = FirebaseStorage.instance;
+      final folderRef = storage.ref('10dasar');
+      final list = await folderRef.listAll();
+      final remoteFile = list.items.firstWhereOrNull((element) =>
+          (int.tryParse(element.name.split('-').first) ?? -1) == index);
+      url = await remoteFile?.getDownloadURL();
+    } catch (_) {
+      final names = await _getPdfNamesFromRest();
+      final name = _findPdfName(names, index);
+      url = name == null ? null : _firebaseStorageRestMediaUrl('10dasar/$name');
+    }
+    if (url == null) {
+      yield* Stream.empty();
+      return;
+    }
     yield* DefaultCacheManager().getFileStream(url, withProgress: true);
+  }
+
+  Future<List<String>> _getPdfNamesFromRest() async {
+    final response = await http.get(Uri.parse(
+      'https://firebasestorage.googleapis.com/v0/b/hatiku-4c1de.appspot.com/o?prefix=10dasar%2F',
+    ));
+    if (response.statusCode != 200) return [];
+    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+    final items = (decoded['items'] as List<dynamic>? ?? []);
+    return items
+        .map((item) => (item as Map<String, dynamic>)['name'] as String? ?? '')
+        .where((name) => name.startsWith('10dasar/'))
+        .map((name) => name.replaceFirst('10dasar/', ''))
+        .where((name) => name.isNotEmpty)
+        .toList();
+  }
+
+  String _firebaseStorageRestMediaUrl(String objectName) {
+    return 'https://firebasestorage.googleapis.com/v0/b/'
+        'hatiku-4c1de.appspot.com/o/'
+        '${Uri.encodeComponent(objectName)}?alt=media';
   }
 }

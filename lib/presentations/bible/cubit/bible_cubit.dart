@@ -10,6 +10,7 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
 import '../../../data/utilities/string_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/bcvbc/bcvbc.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
@@ -31,7 +32,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
     log('Initialized BibleCubit');
     incrementTodayReading();
   }
-  final FlutterTts tts = FlutterTts();
+  final FlutterTts? tts =
+      isTextToSpeechConfiguredForCurrentPlatform ? FlutterTts() : null;
 
   bool get isSelectingBible => state.selectedVerse.isNotEmpty;
 
@@ -149,6 +151,11 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<void> speakTheBible() async {
+    final tts = this.tts;
+    if (tts == null) {
+      emit(state.copyWith(isSpeaking: false));
+      return;
+    }
     emit(state.copyWith(isSpeaking: true));
     List<Verse> verses = [];
 
@@ -184,7 +191,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
         await Future.delayed(
           Duration(milliseconds: 600),
         );
-        await tts.speak(sentence);
+        try {
+          await tts.speak(sentence);
+        } catch (e) {
+          log('TTS speak failed: $e', name: 'BibleCubit');
+          emit(state.copyWith(isSpeaking: false));
+          return;
+        }
         emit(state.copyWith(currentStartWord: 0, currentEndWord: 0));
       }
     }
@@ -192,7 +205,20 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<void> stopSpeaking() async {
-    await tts.stop();
+    final tts = this.tts;
+    if (tts == null) {
+      emit(state.copyWith(isSpeaking: false));
+      return;
+    }
+    if (!state.isSpeaking && !canStopIdleTextToSpeechForCurrentPlatform) {
+      emit(state.copyWith(isSpeaking: false));
+      return;
+    }
+    try {
+      await tts.stop();
+    } catch (e) {
+      log('TTS stop failed: $e', name: 'BibleCubit');
+    }
     emit(state.copyWith(isSpeaking: false));
   }
 
@@ -212,37 +238,50 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<void> initTts() async {
-    await tts.awaitSpeakCompletion(true);
-    await tts.awaitSynthCompletion(true);
-    await tts.setSpeechRate(state.speedRate);
-    await tts.setPitch(state.pitchRate);
-    List<String> langs =
-        ((await tts.getLanguages) as List<Object?>).cast<String>().toList();
-    int? lang = langs.map((e) => e.split('-').first).toList().indexWhere(
-        (element) => element == state.currentBibleLanguage.split('-').first);
-    await tts.setLanguage(langs[lang]);
-    // List<Map<String, String>> voices =
-    //     ((await tts.getVoices) as List).cast<Map<String, String>>().toList();
-    List<Map> voices = (await tts.getVoices as List<Object?>)
-        .cast<Map>()
-        .toList()
-        .map((e) =>
-            e.map((key, value) => MapEntry(key.toString(), value.toString())))
-        .toList();
-    var currentLang = state.currentBibleLanguage;
-    Map<String, String>? voice =
-        (voices.firstWhereOrNull((element) => element['locale'] == currentLang))
-            ?.map((key, value) => MapEntry(key.toString(), value.toString()));
-    if (voice != null) {
-      var savedVoice = state.voices[currentLang];
-      if (savedVoice == null) {
-        var savedVoices = Map.from(state.voices);
-        savedVoices[currentLang] = voice;
-        emit(state.copyWith(voices: savedVoices.cast()));
+    final tts = this.tts;
+    if (tts == null) return;
+
+    try {
+      await tts.awaitSpeakCompletion(true);
+      if (!Platform.isWindows) {
+        await tts.awaitSynthCompletion(true);
       }
-      await tts.setVoice(savedVoice?.cast() ?? voice);
+      await tts.setSpeechRate(state.speedRate);
+      await tts.setPitch(state.pitchRate);
+      List<String> langs =
+          ((await tts.getLanguages) as List<Object?>).cast<String>().toList();
+      final lang = langs.map((e) => e.split('-').first).toList().indexWhere(
+          (element) => element == state.currentBibleLanguage.split('-').first);
+      if (!lang.isNegative) {
+        await tts.setLanguage(langs[lang]);
+      }
+      // List<Map<String, String>> voices =
+      //     ((await tts.getVoices) as List).cast<Map<String, String>>().toList();
+      List<Map> voices = (await tts.getVoices as List<Object?>)
+          .cast<Map>()
+          .toList()
+          .map((e) =>
+              e.map((key, value) => MapEntry(key.toString(), value.toString())))
+          .toList();
+      var currentLang = state.currentBibleLanguage;
+      Map<String, String>? voice = (voices
+              .firstWhereOrNull((element) => element['locale'] == currentLang))
+          ?.map((key, value) => MapEntry(key.toString(), value.toString()));
+      if (voice != null) {
+        var savedVoice = state.voices[currentLang];
+        if (savedVoice == null) {
+          var savedVoices = Map.from(state.voices);
+          savedVoices[currentLang] = voice;
+          emit(state.copyWith(voices: savedVoices.cast()));
+        }
+        await tts.setVoice(savedVoice?.cast() ?? voice);
+      }
+      await tts.setVolume(1);
+    } catch (e) {
+      log('TTS initialization failed: $e', name: 'BibleCubit');
+      return;
     }
-    await tts.setVolume(1);
+
     tts.setProgressHandler((text, start, end, word) {
       log('TTS Speaking \ntext: $text\nstart: $start\nend: $end\nword: $word\n',
           name: 'Speaking');

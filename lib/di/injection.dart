@@ -22,9 +22,9 @@ import '../presentations/presentations.dart';
 var di = GetIt.I;
 AppConfig get config => di<AppConfig>();
 
-void setupInjection(AppConfig config) {
+Future<void> setupInjection(AppConfig config) async {
   _blocs();
-  _utils(config);
+  await _utils(config);
   _repositories();
 }
 

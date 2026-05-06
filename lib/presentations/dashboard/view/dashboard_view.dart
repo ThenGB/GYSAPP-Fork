@@ -27,7 +27,9 @@ class DashboardView extends StatefulWidget {
 class _DashboardViewState extends State<DashboardView> {
   @override
   void dispose() {
-    WakelockPlus.disable();
+    if (Platform.isAndroid) {
+      WakelockPlus.disable();
+    }
     super.dispose();
   }
 
@@ -231,19 +233,13 @@ class _DashboardViewState extends State<DashboardView> {
                           curve: Curves.easeOut,
                           child: OrientationBuilder(
                             builder: (context, orientation) {
-                              var isLandscape =
-                                  context.mediaQuery.orientation ==
-                                      Orientation.landscape;
-                              var songCondition =
-                                  isLandscape && tabsRouter.activeIndex == 2;
                               var bibleCondition =
                                   state.selectedVerse.isNotEmpty;
                               var faithCondition =
                                   faithState.selectedFaith.isNotEmpty;
                               var songCondition2 =
                                   songState.selectedSong != null;
-                              if (songCondition ||
-                                  bibleCondition ||
+                              if (bibleCondition ||
                                   faithCondition ||
                                   songCondition2) {
                                 return SizedBox(

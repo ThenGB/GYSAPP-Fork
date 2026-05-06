@@ -10,6 +10,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import '../../../app.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../data/utilities/variables/failure.dart';
 import '../../../di/injection.dart';
 import 'initial_state.dart';
@@ -20,6 +21,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
   InitialCubit() : super(const InitialState());
 
   Future<void> getRemoteConfig() async {
+    if (!isFirebaseConfiguredForCurrentPlatform) {
+      FirebaseUtils.useFallbackConfig();
+      return;
+    }
     try {
       FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
@@ -71,7 +76,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
     } catch (e) {
       log(Failure.fromError(e).message, name: 'getRemoteConfig', error: e);
     }
-    FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
+    FirebaseUtils.complete(FirebaseRemoteConfig.instance);
   }
 
   Future<void> initState() async {
@@ -117,12 +122,14 @@ class InitialCubit extends HydratedCubit<InitialState> {
       ),
     );
 
-    try {
-      await FirebaseAuth.instance
-          .signInAnonymously()
-          .timeout(Duration(seconds: 5));
-    } catch (e) {
-      log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
+    if (isFirebaseConfiguredForCurrentPlatform) {
+      try {
+        await FirebaseAuth.instance
+            .signInAnonymously()
+            .timeout(Duration(seconds: 5));
+      } catch (e) {
+        log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
+      }
     }
   }
 

@@ -5,9 +5,11 @@ import 'package:audioplayers/audioplayers.dart';
 
 import '../../domain/domain.dart';
 import '../data.dart';
+import 'windows_midi_player.dart';
 
 class SongHandler extends BaseAudioHandler with SeekHandler {
   final AudioPlayer player;
+  final WindowsMidiPlayer windowsMidiPlayer = WindowsMidiPlayer();
   Function()? onNext;
   final Debouncer debouncer = Debouncer(Duration(milliseconds: 500));
 
@@ -56,12 +58,18 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
   @override
   Future<void> play() async {
+    if (windowsMidiPlayer.hasSource) {
+      await windowsMidiPlayer.play();
+      playbackState.add(playbackState.value.copyWith(playing: true));
+      return;
+    }
     // perbaikan: hindari player.source! yang bisa null
     await player.resume();
   }
 
   Future setSource(Source source, Song song) async {
     try {
+      await windowsMidiPlayer.stop();
       await player.setSource(source);
 
       String mediaItemId = song.title ?? '';
@@ -91,13 +99,52 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     }
   }
 
+  Future setWindowsMidiAsset(String assetPath, Song song) async {
+    try {
+      await player.stop();
+      await windowsMidiPlayer.setAsset(assetPath);
+
+      mediaItem.add(
+        MediaItem(
+          id: assetPath,
+          title: song.title ?? 'Unknown',
+          duration: Duration.zero,
+        ),
+      );
+      playbackState.add(
+        playbackState.value.copyWith(
+          controls: const [MediaControl.play, MediaControl.stop],
+          processingState: AudioProcessingState.ready,
+          playing: false,
+        ),
+      );
+    } catch (e) {
+      log('Windows MIDI source failed: $e', name: 'SongHandler');
+    }
+  }
+
   @override
   Future<void> pause() async {
+    if (windowsMidiPlayer.hasSource) {
+      await windowsMidiPlayer.pause();
+      playbackState.add(playbackState.value.copyWith(playing: false));
+      return;
+    }
     await player.pause();
   }
 
   @override
   Future<void> stop() async {
+    if (windowsMidiPlayer.hasSource) {
+      await windowsMidiPlayer.stop();
+      playbackState.add(
+        playbackState.value.copyWith(
+          processingState: AudioProcessingState.idle,
+          playing: false,
+        ),
+      );
+      return;
+    }
     await player.stop();
   }
 

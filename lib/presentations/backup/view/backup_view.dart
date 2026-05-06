@@ -25,9 +25,15 @@ class BackupView extends StatefulWidget {
 }
 
 class _BackupViewState extends State<BackupView> {
-  var currentUser = di<GoogleSignIn>().currentUser;
+  GoogleSignInAccount? currentUser;
+
+  bool get canUseCloudBackup => isGoogleSignInConfiguredForCurrentPlatform;
+
   @override
   void initState() {
+    if (canUseCloudBackup) {
+      currentUser = di<GoogleSignIn>().currentUser;
+    }
     context.read<BackupCubit>().initLocalData(widget.data);
     context.read<BackupCubit>().getDataSummary();
     super.initState();
@@ -90,7 +96,9 @@ class _BackupViewState extends State<BackupView> {
                               WidgetSpan(
                                 alignment: PlaceholderAlignment.middle,
                                 child: TextButton(
-                                  onPressed: () async {
+                                  onPressed: !canUseCloudBackup
+                                      ? null
+                                      : () async {
                                     if (await di<GoogleSignIn>().isSignedIn()) {
                                       await di<GoogleSignIn>().signOut();
                                     }
@@ -99,7 +107,9 @@ class _BackupViewState extends State<BackupView> {
                                     setState(() {});
                                   },
                                   child: FutureBuilder(
-                                    future: di<GoogleSignIn>().isSignedIn(),
+                                    future: canUseCloudBackup
+                                        ? di<GoogleSignIn>().isSignedIn()
+                                        : Future.value(false),
                                     builder: (context, snapshot) => Text(
                                       (snapshot.data == true
                                               ? 'Change account'
@@ -188,7 +198,9 @@ class _BackupViewState extends State<BackupView> {
                                   foregroundColor: Colors.white,
                                 ),
                                 onPressed:
-                                    currentUser == null || state.isBackuping
+                                    !canUseCloudBackup ||
+                                            currentUser == null ||
+                                            state.isBackuping
                                         ? null
                                         : () {
                                             context
@@ -221,7 +233,17 @@ class _BackupViewState extends State<BackupView> {
                                   ],
                                 ),
                               ),
-                              if (currentUser == null)
+                              if (!canUseCloudBackup)
+                                Text(
+                                  '*${'Cloud backup is not available on Windows yet'.tr()}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: context.colorScheme.error,
+                                    fontWeight: FontWeight.w500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                )
+                              else if (currentUser == null)
                                 Text(
                                   '*${'Login required'.tr()}',
                                   style: TextStyle(
@@ -331,7 +353,9 @@ class _BackupViewState extends State<BackupView> {
                                   foregroundColor: Colors.white,
                                 ),
                                 onPressed:
-                                    currentUser == null || state.isSyncing
+                                    !canUseCloudBackup ||
+                                            currentUser == null ||
+                                            state.isSyncing
                                         ? null
                                         : () {
                                             context
@@ -380,7 +404,17 @@ class _BackupViewState extends State<BackupView> {
                                   ],
                                 ),
                               ),
-                              if (currentUser == null)
+                              if (!canUseCloudBackup)
+                                Text(
+                                  '*${'Cloud sync is not available on Windows yet'.tr()}',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: context.colorScheme.error,
+                                    fontWeight: FontWeight.w500,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                )
+                              else if (currentUser == null)
                                 Text(
                                   '*${'Login required'.tr()}',
                                   style: TextStyle(

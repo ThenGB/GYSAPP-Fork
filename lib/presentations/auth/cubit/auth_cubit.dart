@@ -1,10 +1,12 @@
 import 'dart:convert';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_appauth/flutter_appauth.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-import '../../../data/utilities/variables/constants.dart';
+import '../../../data/data.dart';
 import '../../../domain/repository/auth_repository.dart';
 import 'auth_state.dart';
 
@@ -36,26 +38,39 @@ class AuthCubit extends HydratedCubit<AuthState> {
 
   Future<void> onGoogleLogin(
       InAppWebViewController controller, String cmd) async {
-    FlutterAppAuth appAuth = const FlutterAppAuth();
-    final response = await appAuth.authorizeAndExchangeCode(
-      AuthorizationTokenRequest(clientID(), redirectUrl(),
-          issuer: googleIssuer,
-          serviceConfiguration: const AuthorizationServiceConfiguration(
-              authorizationEndpoint:
-                  'https://accounts.google.com/o/oauth2/auth',
-              tokenEndpoint: 'https://oauth2.googleapis.com/token'),
-          scopes: [
-            'https://www.googleapis.com/auth/userinfo.email',
-            'https://www.googleapis.com/auth/userinfo.profile'
-          ]),
-    );
-    emit(state.copyWith(idToken: response.idToken));
-    if (response.idToken?.isNotEmpty == true) {
-      var data = jsonEncode({
-        '__action': cmd,
-        'credential': response.idToken,
-      });
-      controller.evaluateJavascript(source: 'onCallbackGIS($data)');
+    if (!isAppAuthConfiguredForCurrentPlatform) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(
+        msg: 'Google login is not available on Windows yet'.tr(),
+      );
+      return;
+    }
+
+    try {
+      FlutterAppAuth appAuth = const FlutterAppAuth();
+      final response = await appAuth.authorizeAndExchangeCode(
+        AuthorizationTokenRequest(clientID(), redirectUrl(),
+            issuer: googleIssuer,
+            serviceConfiguration: const AuthorizationServiceConfiguration(
+                authorizationEndpoint:
+                    'https://accounts.google.com/o/oauth2/auth',
+                tokenEndpoint: 'https://oauth2.googleapis.com/token'),
+            scopes: [
+              'https://www.googleapis.com/auth/userinfo.email',
+              'https://www.googleapis.com/auth/userinfo.profile'
+            ]),
+      );
+      emit(state.copyWith(idToken: response.idToken));
+      if (response.idToken?.isNotEmpty == true) {
+        var data = jsonEncode({
+          '__action': cmd,
+          'credential': response.idToken,
+        });
+        controller.evaluateJavascript(source: 'onCallbackGIS($data)');
+      }
+    } catch (e) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: Failure.fromError(e).message);
     }
   }
 }

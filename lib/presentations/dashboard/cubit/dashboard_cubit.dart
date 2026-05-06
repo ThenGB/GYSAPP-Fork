@@ -10,6 +10,7 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 
 import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/config_literature/config_literature_entity.dart';
 import '../../../domain/repository/account_repository.dart';
@@ -115,6 +116,9 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   List<FullMetadata> lastContent = [];
 
   Future<List<FullMetadata>> listNetworkBibles(bool reload) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return Future.error("Firebase Storage isn't configured for Windows");
+    }
     try {
       if (isListing || reload) {
         return lastContent;
@@ -154,6 +158,9 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       File fFile,
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return false;
+    }
     try {
       final storage = FirebaseStorage.instance;
       final fileRef = storage.ref('v2/alkitab/$sRemoteName');
@@ -225,8 +232,10 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   Future initRemoteConfig() async {
     emit(state.copyWith(isLoading: true));
     try {
-      log(FirebaseRemoteConfig.instance.getAll().toString(),
-          name: 'Remote Config');
+      if (isFirebaseConfiguredForCurrentPlatform) {
+        log(FirebaseRemoteConfig.instance.getAll().toString(),
+            name: 'Remote Config');
+      }
       await setFtpConnect();
       setPaths();
       setConfigLiterature();

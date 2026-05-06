@@ -59,6 +59,9 @@ class SongCubit extends HydratedCubit<SongState> {
       File localFile,
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return false;
+    }
     try {
       final storage = FirebaseStorage.instance;
       final fileRef = storage.ref('v2/song/lyrics/$sRemoteName');
@@ -106,6 +109,9 @@ class SongCubit extends HydratedCubit<SongState> {
       File localFile,
       Function(double progressInPercent, int totalReceived, int fileSize)
           onProgress) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return false;
+    }
     try {
       final storage = FirebaseStorage.instance;
       final fileRef = storage.ref('v2/song/$sRemoteName');
@@ -300,6 +306,12 @@ class SongCubit extends HydratedCubit<SongState> {
   Completer<bool> checkingSyncCompleter = Completer();
   Future<bool> checkIsSynced() async {
     checkingSyncCompleter = Completer();
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      if (!checkingSyncCompleter.isCompleted) {
+        checkingSyncCompleter.complete(false);
+      }
+      return true;
+    }
     AppDirectory localDir = di();
     try {
       Map<String, DateTime> remoteLyricsUpdateAt =
@@ -506,11 +518,15 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void pause() {
-    songHandler.pause();
+    songHandler.pause().catchError(
+          (e) => log('Song pause failed: $e', name: 'SongCubit'),
+        );
   }
 
   void play() {
-    songHandler.play();
+    songHandler.play().catchError(
+          (e) => log('Song play failed: $e', name: 'SongCubit'),
+        );
   }
 
   Reference get storage => FirebaseStorage.instance.ref();
@@ -541,6 +557,11 @@ class SongCubit extends HydratedCubit<SongState> {
       late Source url;
       var source = result;
       if (result.startsWith('assets')) {
+        if (Platform.isWindows && result.toLowerCase().endsWith('.mid')) {
+          await songHandler.setWindowsMidiAsset(source, song);
+          emit(state.copyWith(isAudioLoading: false));
+          return result;
+        }
         url = AssetSource(source.replaceAll('assets/', ''));
         try {
           await audioPlayer.audioCache.clearAll();
@@ -589,6 +610,9 @@ class SongCubit extends HydratedCubit<SongState> {
   Map<String, String> downloadUrls = {};
 
   Future<String?> isMp3Available(Song song) async {
+    if (!isFirebaseStorageConfiguredForCurrentPlatform) {
+      return null;
+    }
     List<String> enableMusicCode =
         (await FirebaseUtils.stringConfig('enabled_music_code')).split(',');
     if (enableMusicCode.contains(song.code)) return null;

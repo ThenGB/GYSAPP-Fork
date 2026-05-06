@@ -411,97 +411,109 @@ class FaithWidget extends StatelessWidget {
                 : null,
           ),
           padding: const EdgeInsets.all(8.0),
-          child: Text.rich(
-            TextSpan(
-              text: "${item['number']}. ${item['text']}",
-              children: [
-                WidgetSpan(
-                  alignment: PlaceholderAlignment.middle,
-                  child: FutureBuilder(
-                    future: context.read<FaithCubit>().getPdfName(index + 1),
-                    builder: (context, snapshot) => snapshot.data == null
-                        ? SizedBox()
-                        : GestureDetector(
-                            onTap: () {
-                              if (!state.pdfLoadingList.contains(index + 1)) {
-                                context
-                                    .read<FaithCubit>()
-                                    .putPdfState(index + 1, isLoading: true);
-                              }
-                            },
-                            child: Container(
-                              padding: EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: Colors.amber.shade300,
-                                borderRadius: BorderRadius.circular(100),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    path.basenameWithoutExtension(
-                                        snapshot.data!.split('-').last),
-                                    style: TextStyle(
-                                      height: 1,
-                                      fontSize: 6,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                  if (state.pdfLoadingList.contains(index + 1))
-                                    StreamBuilder<FileResponse>(
-                                      stream: context
-                                          .read<FaithCubit>()
-                                          .getPdf(index + 1),
-                                      builder: (context, snapshot) {
-                                        if (snapshot.data is FileInfo) {
-                                          context
-                                              .read<FaithCubit>()
-                                              .putPdfState(index + 1,
-                                                  isLoading: false);
-                                          open_filex.OpenFilex.open(
-                                              (snapshot.data as FileInfo)
-                                                  .file
-                                                  .path);
-                                        }
-                                        return snapshot.data is DownloadProgress
-                                            ? Padding(
-                                                padding: const EdgeInsets.only(
-                                                    left: 8),
-                                                child: SizedBox(
-                                                  width: 6,
-                                                  height: 6,
-                                                  child: Center(
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation(
-                                                              Colors.white),
-                                                      value: (snapshot.data
-                                                              as DownloadProgress)
-                                                          .progress,
-                                                    ),
-                                                  ),
-                                                ),
-                                              )
-                                            : SizedBox();
-                                      },
-                                    ),
-                                ],
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text.rich(
+                TextSpan(text: "${item['number']}. ${item['text']}"),
+                textScaler: TextScaler.linear(scale),
+                style: state.defaultTextTheme.bodyMedium?.copyWith(
+                  height: fontHeight,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 16,
+                ),
+              ),
+              FutureBuilder<String?>(
+                future: context.read<FaithCubit>().getPdfName(index + 1),
+                builder: (context, snapshot) {
+                  final pdfName = snapshot.data;
+                  if (pdfName == null) return SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 8),
+                    child: _FaithPdfPill(
+                      index: index + 1,
+                      pdfName: pdfName,
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _FaithPdfPill extends StatelessWidget {
+  const _FaithPdfPill({
+    required this.index,
+    required this.pdfName,
+  });
+
+  final int index;
+  final String pdfName;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<FaithCubit, FaithState>(
+      buildWhen: (previous, current) =>
+          previous.pdfLoadingList != current.pdfLoadingList,
+      builder: (context, state) => GestureDetector(
+        onTap: () {
+          if (!state.pdfLoadingList.contains(index)) {
+            context.read<FaithCubit>().putPdfState(index, isLoading: true);
+          }
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(
+            color: Colors.amber.shade300,
+            borderRadius: BorderRadius.circular(100),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                path.basenameWithoutExtension(pdfName.split('-').last),
+                style: TextStyle(
+                  height: 1,
+                  fontSize: 10,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              if (state.pdfLoadingList.contains(index))
+                StreamBuilder<FileResponse>(
+                  stream: context.read<FaithCubit>().getPdf(index),
+                  builder: (context, snapshot) {
+                    if (snapshot.data is FileInfo) {
+                      context
+                          .read<FaithCubit>()
+                          .putPdfState(index, isLoading: false);
+                      open_filex.OpenFilex.open(
+                          (snapshot.data as FileInfo).file.path);
+                    }
+                    return snapshot.data is DownloadProgress
+                        ? Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: SizedBox(
+                              width: 10,
+                              height: 10,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor:
+                                      AlwaysStoppedAnimation(Colors.white),
+                                  value: (snapshot.data as DownloadProgress)
+                                      .progress,
+                                ),
                               ),
                             ),
-                          ),
-                  ),
+                          )
+                        : SizedBox.shrink();
+                  },
                 ),
-              ],
-            ),
-            textScaler: TextScaler.linear(scale),
-            style: state.defaultTextTheme.bodyMedium?.copyWith(
-              height: fontHeight,
-              fontWeight: FontWeight.w500,
-              fontSize: 16,
-            ),
+            ],
           ),
         ),
       ),

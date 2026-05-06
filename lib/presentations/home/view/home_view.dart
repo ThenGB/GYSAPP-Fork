@@ -20,6 +20,44 @@ import '../../../domain/entity/truevoice/truevoice_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
+bool _isHttpImageUrl(String? imageUrl) {
+  final uri = Uri.tryParse(imageUrl ?? '');
+  return uri != null &&
+      (uri.scheme == 'http' || uri.scheme == 'https') &&
+      uri.host.isNotEmpty;
+}
+
+Widget _safeNetworkImage(
+  String? imageUrl, {
+  BoxFit fit = BoxFit.cover,
+  double? height,
+  double? width,
+  Widget? fallback,
+}) {
+  final fallbackWidget = SizedBox(
+    height: height,
+    width: width,
+    child: fallback ??
+        ColoredBox(
+          color: Colors.grey.shade300,
+          child: const SizedBox.expand(),
+        ),
+  );
+  if (!_isHttpImageUrl(imageUrl)) {
+    return fallbackWidget;
+  }
+  return CachedNetworkImage(
+    imageUrl: imageUrl!,
+    fit: fit,
+    height: height,
+    width: width,
+    placeholder: (context, url) => const Center(
+      child: CircularProgressIndicator(),
+    ),
+    errorWidget: (context, url, error) => fallbackWidget,
+  );
+}
+
 @RoutePage()
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -94,17 +132,9 @@ class HomeView extends StatelessWidget {
                                     child: Stack(
                                       children: [
                                         Positioned.fill(
-                                          child: CachedNetworkImage(
-                                            imageUrl: banner.imageUrl ?? '',
+                                          child: _safeNetworkImage(
+                                            banner.imageUrl,
                                             fit: BoxFit.cover,
-                                            placeholder: (context, url) =>
-                                                const Center(
-                                              child:
-                                                  CircularProgressIndicator(),
-                                            ),
-                                            errorWidget:
-                                                (context, url, error) =>
-                                                    const Icon(Icons.error),
                                           ),
                                         ),
                                         if (banner.linkUrl != null)
@@ -426,8 +456,8 @@ class SauhBagiJiwa extends StatelessWidget {
             margin: EdgeInsets.symmetric(horizontal: gap),
             child: Stack(
               children: [
-                CachedNetworkImage(
-                  imageUrl: item.imageUrl,
+                _safeNetworkImage(
+                  item.imageUrl,
                   height: 111,
                   fit: BoxFit.cover,
                   width: double.infinity,
@@ -513,8 +543,8 @@ class SuaraSejati extends StatelessWidget {
                                   height: 95 *
                                       context.mediaQuery.textScaler.scale(1),
                                   width: double.infinity,
-                                  child: CachedNetworkImage(
-                                    imageUrl: e.imageUrl,
+                                  child: _safeNetworkImage(
+                                    e.imageUrl,
                                     fit: BoxFit.cover,
                                   ),
                                 ),
@@ -603,8 +633,12 @@ class _HomeHeaderState extends State<HomeHeader> {
                 child: state.account == null
                     ? Image.asset(Assets.assetsImagesAppicon, width: 32)
                     : ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: state.account?.profilePicture ?? '',
+                        child: _safeNetworkImage(
+                          state.account?.profilePicture,
+                          fallback: Image.asset(
+                            Assets.assetsImagesAppicon,
+                            width: 32,
+                          ),
                         ),
                       ),
               ),
