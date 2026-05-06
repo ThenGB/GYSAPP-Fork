@@ -21,7 +21,7 @@ class GoogleRepositoryImpl implements GoogleRepository {
   }
 
   @override
-  signOut() async {
+  Future<void> signOut() async {
     await googleSignIn.signOut();
   }
 }

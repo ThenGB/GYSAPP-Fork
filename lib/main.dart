@@ -154,7 +154,7 @@ class SmartNetworkAssetLoader extends AssetLoader {
         }
       }
     } catch (e) {
-      print(e.toString());
+      log(e.toString());
     }
 
     return '';
@@ -189,7 +189,7 @@ class SmartNetworkAssetLoader extends AssetLoader {
     var file = File(await getFilenameForLocale(localeName));
     await file.create(recursive: true);
     await file.writeAsString(content);
-    return print('saved');
+    log('saved');
   }
 
   Future<String> get _localPath async {

@@ -11,7 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:open_filex/open_filex.dart' as openFilex;
+import 'package:open_filex/open_filex.dart' as open_filex;
 import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 import 'package:simple_animations/simple_animations.dart';
@@ -63,7 +63,7 @@ class _FaithViewState extends State<FaithView> {
     return temp['title'];
   }
 
-  pageListener() {
+  void pageListener() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       currentPage = pageController.page?.toInt() ?? 0;
       if (mounted) {
@@ -407,7 +407,7 @@ class FaithWidget extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: state.selectedFaith.contains(index)
-                ? Colors.blueGrey.withOpacity(.15)
+                ? Colors.blueGrey.withValues(alpha: .15)
                 : null,
           ),
           padding: const EdgeInsets.all(8.0),
@@ -459,7 +459,7 @@ class FaithWidget extends StatelessWidget {
                                               .read<FaithCubit>()
                                               .putPdfState(index + 1,
                                                   isLoading: false);
-                                          openFilex.OpenFilex.open(
+                                          open_filex.OpenFilex.open(
                                               (snapshot.data as FileInfo)
                                                   .file
                                                   .path);
@@ -529,7 +529,7 @@ class SelectedFaithMenu extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       decoration: BoxDecoration(
         boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
         ],
         color: context.colorScheme.surface,
       ),

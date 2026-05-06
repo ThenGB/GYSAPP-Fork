@@ -40,6 +40,7 @@ class _BibleListViewState extends State<BibleListView> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (allowForceClose) return true;

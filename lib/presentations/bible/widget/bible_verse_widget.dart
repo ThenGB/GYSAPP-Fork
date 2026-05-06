@@ -60,8 +60,8 @@ class VerseWidgetState extends State<VerseWidget>
   late AnimationController animationController =
       AnimationController(vsync: this, duration: kThemeAnimationDuration);
   late Animation<Color?> animation = ColorTween(
-          begin: Colors.blueGrey.withOpacity(0),
-          end: Colors.blueGrey.withOpacity(.15))
+          begin: Colors.blueGrey.withValues(alpha: 0),
+          end: Colors.blueGrey.withValues(alpha: .15))
       .animate(animationController);
   void playAnimation() async {
     for (var i = 0; i < 3; i++) {
@@ -95,7 +95,7 @@ class VerseWidgetState extends State<VerseWidget>
                       .state
                       .defaultTextTheme
                       .bodyMedium,
-                  textScaleFactor: widget.textScale,
+                  textScaler: TextScaler.linear(widget.textScale),
                   TextSpan(children: [
                     if (widget.hasPericope) ...[
                       ...widget.pericope.asMap().entries.map((e) {
@@ -166,7 +166,7 @@ class VerseWidgetState extends State<VerseWidget>
               width: double.infinity,
               color: widget.selectedVerse.contains(widget.verse) ||
                       widget.isSpeaking
-                  ? Colors.blueGrey.withOpacity(.15)
+                  ? Colors.blueGrey.withValues(alpha: .15)
                   : animation.value,
               padding: EdgeInsets.symmetric(horizontal: 16, vertical: 0),
               child: Builder(builder: (context) {
@@ -257,7 +257,8 @@ class VerseWidgetState extends State<VerseWidget>
                                 maxLines: 1,
                                 overflow: TextOverflow.visible,
                                 //superscript is usually smaller in size
-                                textScaleFactor: 0.7 * widget.textScale,
+                                textScaler:
+                                    TextScaler.linear(0.7 * widget.textScale),
                                 style: TextStyle(
                                   color: context.colorScheme.onPrimaryContainer,
                                 ),
@@ -273,7 +274,7 @@ class VerseWidgetState extends State<VerseWidget>
                             .state
                             .defaultTextTheme
                             .bodyMedium,
-                        textScaleFactor: widget.textScale,
+                        textScaler: TextScaler.linear(widget.textScale),
                         textAlign: TextAlign.justify,
                         TextSpan(
                           children: [
@@ -329,7 +330,8 @@ class VerseWidgetState extends State<VerseWidget>
                                               maxLines: 1,
                                               overflow: TextOverflow.visible,
                                               //superscript is usually smaller in size
-                                              textScaleFactor: 0.7,
+                                              textScaler:
+                                                  const TextScaler.linear(0.7),
                                               style: TextStyle(
                                                 color: context.colorScheme
                                                     .onPrimaryContainer,
@@ -460,7 +462,8 @@ class VerseWidgetState extends State<VerseWidget>
                                     child: Text(
                                       '*',
                                       key: widgetKey,
-                                      textScaleFactor: widget.textScale,
+                                      textScaler:
+                                          TextScaler.linear(widget.textScale),
 
                                       /// REF*
                                       style: TextStyle(

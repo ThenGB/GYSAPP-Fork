@@ -39,7 +39,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   Database? bibleDb;
   Database? splitBibleDb;
-  initBible() async {
+  Future<void> initBible() async {
     await openDatabase(join(
             di<AppDirectory>().bibleFolder, '${state.currentBibleCode}.db'))
         .then((value) {
@@ -50,20 +50,20 @@ class BibleCubit extends HydratedCubit<BibleState> {
     });
   }
 
-  updateFilterBook(List<BibleBook> values) {
+  void updateFilterBook(List<BibleBook> values) {
     emit(state.copyWith(selectedFilterBooks: values));
   }
 
-  sync(BibleState bibleState) {
+  void sync(BibleState bibleState) {
     emit(bibleState);
   }
 
-  applyTtsSetting(Map<String, Map> voices, double pitch, double speed) {
+  void applyTtsSetting(Map<String, Map> voices, double pitch, double speed) {
     emit(state.copyWith(voices: voices, pitchRate: pitch, speedRate: speed));
     initTts();
   }
 
-  onFilterPerjanjianLama() {
+  void onFilterPerjanjianLama() {
     if (state.isSelectedPerjanjianLama == null ||
         state.isSelectedPerjanjianLama == true) {
       List<BibleBook> listPerjanjianLama = List.from(state.selectedFilterBooks)
@@ -76,7 +76,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     }
   }
 
-  onFilterCurrentBible() {
+  void onFilterCurrentBible() {
     if (state.selectedFilterBooks.length == 1 &&
         state.selectedFilterBooks.single == state.currentBook) {
       updateFilterBook([]);
@@ -85,7 +85,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     }
   }
 
-  onFilterPerjanjianBaru() {
+  void onFilterPerjanjianBaru() {
     if (state.isSelectedPerjanjianBaru == null ||
         state.isSelectedPerjanjianBaru == true) {
       List<BibleBook> listPerjanjianLama = List.from(state.selectedFilterBooks)
@@ -105,7 +105,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
       state.verses.length,
       (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
 
-  modifyBookmark() {
+  void modifyBookmark() {
     List<BibleBookmark> bookmarks = List.from(state.bookmarks);
     List<BibleBookmark> newValues = List.from(state.selectedVerse)
         .map((e) => BibleBookmark(
@@ -148,7 +148,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     );
   }
 
-  speakTheBible() async {
+  Future<void> speakTheBible() async {
     emit(state.copyWith(isSpeaking: true));
     List<Verse> verses = [];
 
@@ -191,12 +191,12 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(isSpeaking: false));
   }
 
-  stopSpeaking() async {
+  Future<void> stopSpeaking() async {
     await tts.stop();
     emit(state.copyWith(isSpeaking: false));
   }
 
-  replaceBookmarks(List<BibleBookmark> items) {
+  void replaceBookmarks(List<BibleBookmark> items) {
     emit(state.copyWith(bookmarks: items));
   }
 
@@ -207,11 +207,11 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return response;
   }
 
-  toggleAudio() {
+  void toggleAudio() {
     emit(state.copyWith(enableAudio: !state.enableAudio));
   }
 
-  initTts() async {
+  Future<void> initTts() async {
     await tts.awaitSpeakCompletion(true);
     await tts.awaitSynthCompletion(true);
     await tts.setSpeechRate(state.speedRate);
@@ -279,7 +279,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     });
   }
 
-  incrementTodayReading() async {
+  Future<void> incrementTodayReading() async {
     if (state.todayReading == null) return;
     DateTime now = DateTime.now();
 
@@ -303,7 +303,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return totalCount;
   }
 
-  setTodayReading(Verse? bible) {
+  void setTodayReading(Verse? bible) {
     emit(
       state.copyWith(
         todayReading: bible,
@@ -323,7 +323,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return state.toJson();
   }
 
-  getBibles() {
+  Future<void> getBibles() async {
     var folder = Directory(di<AppDirectory>().bibleFolder);
     var files = folder.listSync();
     var bibles = files.map((e) => basename(e.path)).toList();
@@ -337,7 +337,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return response;
   }
 
-  selectBibleCode(int index, [bool secondary = false]) async {
+  Future<void> selectBibleCode(int index, [bool secondary = false]) async {
     var bibleCode = state.bibleCodes[index].split('.').first;
 
     /// close current bible
@@ -369,7 +369,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
   //   });
   // }
 
-  selectBook(BibleBook book) {
+  void selectBook(BibleBook book) {
     emit(state.copyWith(currentBook: book));
   }
 
@@ -395,7 +395,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return response;
   }
 
-  saveToHistory(Verse verse) {
+  void saveToHistory(Verse verse) {
     Map<DateTime, Verse> map = Map.from(state.histories);
 
     // Add the new entry to the map
@@ -592,9 +592,9 @@ class BibleCubit extends HydratedCubit<BibleState> {
     );
   }
 
-  previousVerse() {}
+  void previousVerse() {}
 
-  hightLightBible(List<Verse> bible) {
+  void hightLightBible(List<Verse> bible) {
     List<Verse> temp = List.from(state.hightlightedVerse);
     var existsAndSelected = state.hightlightedVerse.where(
         (element) => state.selectedVerse.map((e) => e.id).contains(element.id));
@@ -621,7 +621,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(hightlightedVerse: temp));
   }
 
-  selectBible(Verse bible) {
+  void selectBible(Verse bible) {
     List<Verse> temp = List.from(state.selectedVerse);
     if (temp.contains(bible)) {
       temp.remove(bible);
@@ -632,7 +632,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(selectedVerse: temp));
   }
 
-  removeSelection() {
+  void removeSelection() {
     emit(state.copyWith(selectedVerse: []));
   }
 
@@ -684,25 +684,25 @@ class BibleCubit extends HydratedCubit<BibleState> {
     );
   }
 
-  changeContent(Verse newBible) async {
+  Future<void> changeContent(Verse newBible) async {
     emit(state.copyWith(selectedVerse: []));
     // int bibleId = newBible.bookId * 1000000 + newBible.chapterId * 1000 + 1;
     getContent(newBible);
   }
 
-  changeFont(String font) {
+  void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
   }
 
-  changeTextScale(double value) {
+  void changeTextScale(double value) {
     emit(state.copyWith(defaultTextScale: value));
   }
 
-  changeTextHeight(double value) {
+  void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
-  saveNote(BibleNote data) {
+  void saveNote(BibleNote data) {
     var notes = List<BibleNote>.from(state.notes);
     bool isNoteFound = false;
 
@@ -721,11 +721,11 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(notes: notes));
   }
 
-  changeSortNote(String sortBy) {
+  void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
-  deleteNote(BibleNote data) {
+  void deleteNote(BibleNote data) {
     var notes = List<BibleNote>.from(state.notes);
     notes.remove(data);
 
@@ -863,11 +863,13 @@ Future<String?> convertIDsToNameAlkitab(
   }
 
   // Ambil nama kitab
-  String bookName =
-      isLong ? StringUtil.castToString(data.first['bl']) : StringUtil.castToString(data.first['bs']);
+  String bookName = isLong
+      ? StringUtil.castToString(data.first['bl'])
+      : StringUtil.castToString(data.first['bs']);
 
   // Ambil pasal
-  String chapter = int.parse(s.substring(s.length - 6, s.length - 3)).toString();
+  String chapter =
+      int.parse(s.substring(s.length - 6, s.length - 3)).toString();
 
   // Konstruksi daftar ayat
   int? prevVerseNumber;

@@ -28,7 +28,7 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
     super.initState();
   }
 
-  measure([String? logt]) {
+  void measure([String? logt]) {
     if (logt != null) {
       log(logt);
     }

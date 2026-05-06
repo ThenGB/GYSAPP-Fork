@@ -43,7 +43,7 @@ class LiteratureWartaView extends StatelessWidget {
                           colors: [
                             context.theme.scaffoldBackgroundColor,
                             context.theme.scaffoldBackgroundColor
-                                .withOpacity(0),
+                                .withValues(alpha: 0),
                           ],
                           begin: Alignment.bottomCenter,
                           end: Alignment.topCenter,
@@ -115,7 +115,7 @@ class LiteratureWartaView extends StatelessWidget {
                                               child: Container(
                                                 width: maxWidth,
                                                 color: Colors.blueGrey
-                                                    .withOpacity(.3),
+                                                    .withValues(alpha: .3),
                                                 child: AspectRatio(
                                                   aspectRatio: 3 / 4,
                                                   child: CachedNetworkImage(
@@ -142,7 +142,7 @@ class LiteratureWartaView extends StatelessWidget {
                           //           boxShadow: [
                           //             BoxShadow(
                           //               blurRadius: 2,
-                          //               color: Colors.black.withOpacity(.2),
+                          //               color: Colors.black.withValues(alpha: .2),
                           //               offset: const Offset(0, 1),
                           //             ),
                           //           ],
@@ -160,7 +160,7 @@ class LiteratureWartaView extends StatelessWidget {
                           //                   colors: [
                           //                     context.colorScheme.background,
                           //                     context.colorScheme.background
-                          //                         .withOpacity(.2),
+                          //                         .withValues(alpha: .2),
                           //                   ],
                           //                   begin: Alignment.centerLeft,
                           //                   end: Alignment.centerRight,

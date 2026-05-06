@@ -37,11 +37,12 @@ class BackupCubit extends HydratedCubit<BackupState> {
     return state.toJson();
   }
 
-  getDataSummary() async {
+  Future<void> getDataSummary() async {
     // final response = await repository.getDataSummary();
   }
 
-  startBackup({required Future<bool> Function() promptSaveToLocal}) async {
+  Future<void> startBackup(
+      {required Future<bool> Function() promptSaveToLocal}) async {
     Map<String, dynamic> data = state.appBackupData!.toJson();
     String folder = appDirectory.backupFolder;
     File backupJson =
@@ -63,7 +64,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     }
   }
 
-  backupToCloud() async {
+  Future<void> backupToCloud() async {
     emit(state.copyWith(isBackuping: true));
     Map<String, dynamic> data = state.appBackupData!.toJson();
     String folder = appDirectory.backupFolder;
@@ -94,7 +95,8 @@ class BackupCubit extends HydratedCubit<BackupState> {
     }
   }
 
-  syncFromCloud({required Function(AppBackupData data) onLoaded}) async {
+  Future<void> syncFromCloud(
+      {required Function(AppBackupData data) onLoaded}) async {
     emit(state.copyWith(isSyncing: true));
     final responseLogin = await googleRepository.signIn();
     if (responseLogin != null) {
@@ -144,7 +146,8 @@ class BackupCubit extends HydratedCubit<BackupState> {
     return null;
   }
 
-  syncFromFile({required Function(AppBackupData data) onLoaded}) async {
+  Future<void> syncFromFile(
+      {required Function(AppBackupData data) onLoaded}) async {
     try {
       FilePickerResult? pickedFile =
           (await FilePicker.platform.pickFiles(allowMultiple: false));
@@ -160,7 +163,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     }
   }
 
-  initLocalData(AppBackupData data) {
+  void initLocalData(AppBackupData data) {
     String bibleNotesSummary =
         '${data.bibleState?.notes.length ?? 0} notes on bible';
     String bibleBookmarks =

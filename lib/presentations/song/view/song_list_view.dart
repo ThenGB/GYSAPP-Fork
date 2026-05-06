@@ -64,13 +64,13 @@ class _SongListViewState extends State<SongListView>
     super.dispose();
   }
 
-  searchListener() {
+  void searchListener() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {});
     });
   }
 
-  tabListener() {
+  void tabListener() {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {});
     });

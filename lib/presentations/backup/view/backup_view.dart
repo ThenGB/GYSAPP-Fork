@@ -88,25 +88,27 @@ class _BackupViewState extends State<BackupView> {
                                     fontWeight: FontWeight.normal,
                                   )),
                               WidgetSpan(
-                                  alignment: PlaceholderAlignment.middle,
-                                  child: TextButton(
-                                      onPressed: () async {
-                                        if (await di<GoogleSignIn>()
-                                            .isSignedIn()) {
-                                          await di<GoogleSignIn>().signOut();
-                                        }
-                                        currentUser =
-                                            await di<GoogleSignIn>().signIn();
-                                        setState(() {});
-                                      },
-                                      child: FutureBuilder(
-                                          future:
-                                              di<GoogleSignIn>().isSignedIn(),
-                                          builder: (context, snapshot) => Text(
-                                              (snapshot.data == true
-                                                      ? 'Change account'
-                                                      : 'Login')
-                                                  .tr(),),),),)
+                                alignment: PlaceholderAlignment.middle,
+                                child: TextButton(
+                                  onPressed: () async {
+                                    if (await di<GoogleSignIn>().isSignedIn()) {
+                                      await di<GoogleSignIn>().signOut();
+                                    }
+                                    currentUser =
+                                        await di<GoogleSignIn>().signIn();
+                                    setState(() {});
+                                  },
+                                  child: FutureBuilder(
+                                    future: di<GoogleSignIn>().isSignedIn(),
+                                    builder: (context, snapshot) => Text(
+                                      (snapshot.data == true
+                                              ? 'Change account'
+                                              : 'Login')
+                                          .tr(),
+                                    ),
+                                  ),
+                                ),
+                              )
                             ]),
                       ),
                       SizedBox(height: 8),
@@ -419,7 +421,7 @@ class _BackupViewState extends State<BackupView> {
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 12,
-                    color: context.textColor?.withOpacity(.45),
+                    color: context.textColor?.withValues(alpha: .45),
                   ),
                 ),
               )

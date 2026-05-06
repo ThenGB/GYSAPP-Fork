@@ -33,7 +33,7 @@ class LiteraturePanduanCubit extends HydratedCubit<LiteraturePanduanState> {
     return state.toJson();
   }
 
-  getData() async {
+  Future<void> getData() async {
     emit(state.copyWith(isLoading: true));
     var response = await repository.getPanduan(selector);
     emit(state.copyWith(isLoading: false));

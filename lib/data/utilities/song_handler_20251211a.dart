@@ -11,7 +11,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
   Function()? onNext;
   final Debouncer debouncer = Debouncer(Duration(milliseconds: 500));
 
-  initNextFunction({required Function() nextFunction}) {
+  void initNextFunction({required Function() nextFunction}) {
     onNext = nextFunction;
   }
 
@@ -36,7 +36,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
-  clearQueue() {
+  void clearQueue() {
     if (queue.value.isNotEmpty) {
       queue.value.removeLast();
     }

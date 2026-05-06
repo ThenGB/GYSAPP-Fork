@@ -22,13 +22,13 @@ import '../presentations/presentations.dart';
 var di = GetIt.I;
 AppConfig get config => di<AppConfig>();
 
-setupInjection(AppConfig config) {
+void setupInjection(AppConfig config) {
   _blocs();
   _utils(config);
   _repositories();
 }
 
-_blocs() {
+void _blocs() {
   di.registerFactory(() => HomeCubit(di()));
   di.registerFactory(() => InitialCubit());
   di.registerFactory(() => DashboardCubit(di()));
@@ -44,7 +44,7 @@ _blocs() {
   di.registerFactory(() => BackupCubit(di(), di(), di(), di()));
 }
 
-_utils(AppConfig appConfig) async {
+Future<void> _utils(AppConfig appConfig) async {
   var document = (await getApplicationDocumentsDirectory()).path;
   var cache = (await getTemporaryDirectory()).path;
   var support = (await getApplicationSupportDirectory()).path;
@@ -85,7 +85,7 @@ _utils(AppConfig appConfig) async {
   di.registerSingleton(AudioPlayer()..setReleaseMode(ReleaseMode.stop));
 }
 
-_repositories() {
+void _repositories() {
   di.registerFactory<ScrapperRepository>(() => ScrapperRepositoryImpl(di()));
   di.registerFactory<BibleRepository>(() => BibleRepositoryImpl());
   di.registerFactory<SongRepository>(() => SongRepositoryImpl());

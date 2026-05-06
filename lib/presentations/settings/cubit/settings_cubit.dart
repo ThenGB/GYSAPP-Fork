@@ -13,7 +13,8 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     toggleSabatNotification(state.isSabatNotificationActive, true);
   }
 
-  toggleSabatNotification([bool? value, bool isInit = false]) async {
+  Future<void> toggleSabatNotification(
+      [bool? value, bool isInit = false]) async {
     if (!(await AwesomeNotifications().isNotificationAllowed())) {
       var res =
           await AwesomeNotifications().requestPermissionToSendNotifications();
@@ -58,7 +59,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     );
   }
 
-  sync(SettingsState settingsState) {
+  void sync(SettingsState settingsState) {
     emit(settingsState);
   }
 

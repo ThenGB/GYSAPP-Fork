@@ -59,7 +59,7 @@ class _SongViewState extends State<SongView> {
           ? (cubit.state.songs[currentPageIndex].title ?? '')
           : '');
 
-  pageListener([int? currentPage]) {
+  void pageListener([int? currentPage]) {
     currentPageIndex =
         currentPage ?? pageController.page?.toInt() ?? currentPageIndex;
     if (int.parse(pageController.page.toString().split('.').last) == 0) {
@@ -346,7 +346,9 @@ class _SongViewState extends State<SongView> {
                             ),
                             itemBuilder: (context) {
                               // return ['mp3', 'mid']
-                              return ['mid'] //.apm:20251219:ref hy:hanya allow midi;
+                              return [
+                                'mid'
+                              ] //.apm:20251219:ref hy:hanya allow midi;
                                   .map(
                                     (e) => PopupMenuItem(
                                       value: e,
@@ -727,7 +729,8 @@ class _SongViewState extends State<SongView> {
                                 if (value == 'fav') {
                                   if (currentPageIndex < state.songs.length) {
                                     cubit.modifyFavorite(
-                                        state.songs[currentPageIndex], playOnlyFav: false);
+                                        state.songs[currentPageIndex],
+                                        playOnlyFav: false);
                                   }
                                 } else if (value == 'copy') {
                                   if (currentPageIndex < state.songs.length &&
@@ -860,9 +863,10 @@ class _SongViewState extends State<SongView> {
                                                       state.songs.length) {
                                                     context
                                                         .read<SongCubit>()
-                                                        .modifyFavorite(state
-                                                                .songs[
-                                                            currentPageIndex], playOnlyFav: false);
+                                                        .modifyFavorite(
+                                                            state.songs[
+                                                                currentPageIndex],
+                                                            playOnlyFav: false);
                                                     router.maybePop();
                                                   }
                                                 },
@@ -1078,18 +1082,16 @@ class _SongViewState extends State<SongView> {
                                                           (context, index) {
                                                         if (state.isImageMode) {
                                                           return FutureBuilder(
-                                                            key: ValueKey('img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
+                                                            key: ValueKey(
+                                                                'img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
                                                             //initialData:
                                                             //    currentImage,
                                                             future: //state
-                                                                cubit
-                                                                .getImageLyricPath(
+                                                                cubit.getImageLyricPath(
                                                                     //context,
                                                                     state.bookCode,
-                                                                    song.pageStart ??
-                                                                        0,
-                                                                    song.pageLength ??
-                                                                        0),
+                                                                    song.pageStart ?? 0,
+                                                                    song.pageLength ?? 0),
                                                             builder: (context,
                                                                 snapshot) {
                                                               if (snapshot.data
@@ -1155,8 +1157,9 @@ class _SongViewState extends State<SongView> {
                                                             item,
                                                             textAlign: TextAlign
                                                                 .center,
-                                                            textScaleFactor:
-                                                                _currentScale,
+                                                            textScaler:
+                                                                TextScaler.linear(
+                                                                    _currentScale),
                                                             style: state
                                                                 .defaultTextTheme
                                                                 .bodyMedium
@@ -1257,11 +1260,12 @@ class _SongViewState extends State<SongView> {
                                                     .keyboard_arrow_up_rounded),
                                               ),
                                               Text(
-                                                  '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}'
-                                                  , style: const TextStyle(
-                                                      color: Colors.grey, // Warna teks hitam
-                                                  ),
+                                                '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}',
+                                                style: const TextStyle(
+                                                  color: Colors
+                                                      .grey, // Warna teks hitam
                                                 ),
+                                              ),
                                               IconButton(
                                                 onPressed: () {
                                                   verseController?.nextPage(
@@ -1801,7 +1805,7 @@ class SelectedSongMenu extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
         ],
         color: context.colorScheme.surface,
       ),

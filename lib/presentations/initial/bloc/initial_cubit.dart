@@ -19,7 +19,7 @@ export 'initial_state.dart';
 class InitialCubit extends HydratedCubit<InitialState> {
   InitialCubit() : super(const InitialState());
 
-  getRemoteConfig() async {
+  Future<void> getRemoteConfig() async {
     try {
       FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
@@ -74,7 +74,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
     FirebaseUtils.initialization.complete(FirebaseRemoteConfig.instance);
   }
 
-  initState() async {
+  Future<void> initState() async {
     emit(
       state.copyWith(
         message: 'Initiating...',
@@ -126,7 +126,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
     }
   }
 
-  toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
+  void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
     emit(state.copyWith(themeMode: themeMode.toThemeString));
     Future.delayed(
       kThemeChangeDuration,
@@ -139,11 +139,11 @@ class InitialCubit extends HydratedCubit<InitialState> {
     );
   }
 
-  changeTextScale(double newScale) {
+  void changeTextScale(double newScale) {
     emit(state.copyWith(defaultTextScale: newScale));
   }
 
-  changeFontStyle(String newValue) {
+  void changeFontStyle(String newValue) {
     emit(state.copyWith(defaultFont: newValue));
   }
 

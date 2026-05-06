@@ -29,7 +29,7 @@ extension ContextExt on BuildContext {
   bool get isExtraExtraSmall => shortestSide < 320;
   bool get isExtraExtraExtraSmall => shortestSide < 280;
 
-  showSnackBar(String message) {
+  void showSnackBar(String message) {
     ScaffoldMessenger.of(this).hideCurrentSnackBar();
     ScaffoldMessenger.of(this).showSnackBar(SnackBar(content: Text(message)));
   }
@@ -62,7 +62,7 @@ extension ContextExt on BuildContext {
                     ),
                     Container(
                       decoration: BoxDecoration(
-                        color: context.textColor?.withOpacity(.3),
+                        color: context.textColor?.withValues(alpha: .3),
                         borderRadius: BorderRadius.circular(100),
                       ),
                       height: 4,

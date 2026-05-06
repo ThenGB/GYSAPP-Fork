@@ -30,7 +30,7 @@ class BibleSearchFilterView extends StatefulWidget {
 class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
   bool isGridViewMode = true;
   late List<BibleBook> values = List.from(widget.initialValues);
-  onTapItem(BibleBook book) {
+  void onTapItem(BibleBook book) {
     if (values.contains(book)) {
       values.remove(book);
     } else {
@@ -92,12 +92,12 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
             SharedAxisTransition(
           animation: primaryAnimation,
           secondaryAnimation: secondaryAnimation,
-          fillColor: context.colorScheme.background,
+          fillColor: context.colorScheme.surface,
           transitionType: SharedAxisTransitionType.vertical,
           child: child,
         ),
         child: Container(
-          color: context.colorScheme.background,
+          color: context.colorScheme.surface,
           child: FutureBuilder(
             future: FirebaseUtils.jsonConfig('bible_name'),
             builder: (context, snapshot) => ListView(
@@ -151,7 +151,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                     color: values.contains(e.value)
                         ? context.colorScheme.secondaryContainer
                         : context.colorScheme.secondaryContainer
-                            .withOpacity(.3),
+                            .withValues(alpha: .3),
                     child: InkWell(
                       onTap: () {
                         onTapItem(e.value);
@@ -174,7 +174,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                           isGridViewMode
                               ? (e.value.shortName ?? '')
                               : (e.value.longName ?? ''),
-                          textScaleFactor: widget.textScale,
+                          textScaler: TextScaler.linear(widget.textScale),
                           textAlign: TextAlign.center,
                         ),
                       ),

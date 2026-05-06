@@ -1,6 +1,6 @@
 class Assets {
   Assets._();
-  
+
   /// Assets for assetsDataBTb
   /// assets/data/b_tb.db
   static const String assetsDataBTb = "assets/data/b_tb.db";
@@ -2167,7 +2167,8 @@ class Assets {
 
   /// Assets for assetsIconsFontSizePlus
   /// assets/icons/font_size_plus.png
-  static const String assetsIconsFontSizePlus = "assets/icons/font_size_plus.png";
+  static const String assetsIconsFontSizePlus =
+      "assets/icons/font_size_plus.png";
 
   /// Assets for assetsIconsHistory
   /// assets/icons/history.png
@@ -2243,11 +2244,13 @@ class Assets {
 
   /// Assets for assetsImagesKumpulanrenungan
   /// assets/images/kumpulanrenungan.webp
-  static const String assetsImagesKumpulanrenungan = "assets/images/kumpulanrenungan.webp";
+  static const String assetsImagesKumpulanrenungan =
+      "assets/images/kumpulanrenungan.webp";
 
   /// Assets for assetsImagesPanduankitab
   /// assets/images/panduankitab.webp
-  static const String assetsImagesPanduankitab = "assets/images/panduankitab.webp";
+  static const String assetsImagesPanduankitab =
+      "assets/images/panduankitab.webp";
 
   /// Assets for assetsImagesPujian
   /// assets/images/pujian.webp
@@ -2259,7 +2262,8 @@ class Assets {
 
   /// Assets for assetsImagesWartasejati
   /// assets/images/wartasejati.webp
-  static const String assetsImagesWartasejati = "assets/images/wartasejati.webp";
+  static const String assetsImagesWartasejati =
+      "assets/images/wartasejati.webp";
 
   /// Assets for assetsImagesZhFlag
   /// assets/images/zh_flag.png

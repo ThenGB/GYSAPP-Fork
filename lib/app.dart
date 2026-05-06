@@ -36,7 +36,7 @@ Future initApplication() async {
     storageDirectory: await getApplicationSupportDirectory(),
   );
   await EasyLocalization.ensureInitialized();
-  await setupInjection(appConfig);
+  setupInjection(appConfig);
   await _setupNotification();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;

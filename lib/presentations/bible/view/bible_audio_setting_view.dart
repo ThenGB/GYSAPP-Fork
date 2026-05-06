@@ -40,7 +40,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
         .toList();
   }
 
-  speak(String sentence, String locale) async {
+  Future<void> speak(String sentence, String locale) async {
     if (isSpeaking) {
       await tts.stop();
       isSpeaking = false;

@@ -70,8 +70,10 @@ class DefaultFirebaseOptions {
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
-    androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-7a41kf03rqhb80idlht4fisrcmvur8in.apps.googleusercontent.com',
+    androidClientId:
+        '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
+    iosClientId:
+        '4071878363-7a41kf03rqhb80idlht4fisrcmvur8in.apps.googleusercontent.com',
     iosBundleId: 'com.itm.hatiku',
   );
 
@@ -82,8 +84,10 @@ class DefaultFirebaseOptions {
     projectId: 'hatiku-4c1de',
     databaseURL: 'https://hatiku-4c1de.firebaseio.com',
     storageBucket: 'hatiku-4c1de.appspot.com',
-    androidClientId: '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
-    iosClientId: '4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com',
+    androidClientId:
+        '4071878363-49fvamanae3j2vd6921jn9oksdiqes75.apps.googleusercontent.com',
+    iosClientId:
+        '4071878363-1psuhe7hkoe7f93sjtiap586p1oe6jga.apps.googleusercontent.com',
     iosBundleId: 'com.itmandiri.church',
   );
 }

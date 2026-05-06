@@ -41,7 +41,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
   );
   late FaithNote data = widget.initialData;
 
-  onSave() async {
+  Future<void> onSave() async {
     forceClose = true;
     data =
         data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
@@ -63,9 +63,11 @@ class FaithNoteViewState extends State<FaithNoteView> {
 
   @override
   Widget build(BuildContext context) {
+    controller.readOnly = mode == NoteMode.viewOnly;
     return BlocProvider<FaithCubit>.value(
       value: widget.cubit,
       child: BlocBuilder<FaithCubit, FaithState>(
+        // ignore: deprecated_member_use
         builder: (context, state) => WillPopScope(
           onWillPop: () async {
             if (forceClose) return true;
@@ -160,10 +162,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
-                  autoFocus: true,
-
-                  /// TODO: Uncomment this line
-                  // readOnly: mode == NoteMode.viewOnly,
+                  autoFocus: mode == NoteMode.write,
                 ),
               ),
             ),
@@ -173,9 +172,9 @@ class FaithNoteViewState extends State<FaithNoteView> {
                     margin: context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
                     child: quill.QuillToolbar.simple(
-                      configurations: quill.QuillSimpleToolbarConfigurations(
-                        controller: controller,
-                      ),
+                      controller: controller,
+                      configurations:
+                          const quill.QuillSimpleToolbarConfigurations(),
                     ),
                   ),
           ),

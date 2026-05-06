@@ -23,18 +23,19 @@ class AuthCubit extends HydratedCubit<AuthState> {
     return state.toJson();
   }
 
-  toggleLoading(bool value) async {
+  Future<void> toggleLoading(bool value) async {
     if (!value) {
       await Future.delayed(Duration(seconds: 2));
     }
     emit(state.copyWith(isLoading: value));
   }
 
-  onProgress(int value) {
+  void onProgress(int value) {
     emit(state.copyWith(progress: value));
   }
 
-  onGoogleLogin(InAppWebViewController controller, String cmd) async {
+  Future<void> onGoogleLogin(
+      InAppWebViewController controller, String cmd) async {
     FlutterAppAuth appAuth = const FlutterAppAuth();
     final response = await appAuth.authorizeAndExchangeCode(
       AuthorizationTokenRequest(clientID(), redirectUrl(),

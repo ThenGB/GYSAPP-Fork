@@ -42,7 +42,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
   );
   late BibleNote data = widget.initialData;
   bool forceClose = false;
-  onSave() async {
+  Future<void> onSave() async {
     forceClose = true;
     data =
         data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
@@ -62,9 +62,11 @@ class _BibleNoteViewState extends State<BibleNoteView> {
 
   @override
   Widget build(BuildContext context) {
+    controller.readOnly = mode == NoteMode.viewOnly;
     return BlocProvider<BibleCubit>.value(
       value: widget.cubit,
       child: BlocBuilder<BibleCubit, BibleState>(
+        // ignore: deprecated_member_use
         builder: (context, state) => WillPopScope(
           onWillPop: () async {
             if (forceClose) return true;
@@ -154,10 +156,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                   padding: EdgeInsets.zero,
                   expands: true,
                   scrollable: true,
-                  autoFocus: true,
-
-                  ///TODO(kei): check this
-                  // readOnly: mode == NoteMode.viewOnly,
+                  autoFocus: mode == NoteMode.write,
                 ),
                 focusNode: focusNode,
                 scrollController: scrollController,
@@ -169,9 +168,9 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                     margin: context.mediaQuery.viewPadding +
                         context.mediaQuery.viewInsets,
                     child: quill.QuillToolbar.simple(
-                      configurations: quill.QuillSimpleToolbarConfigurations(
-                        controller: controller,
-                      ),
+                      controller: controller,
+                      configurations:
+                          const quill.QuillSimpleToolbarConfigurations(),
                     ),
                   ),
           ),

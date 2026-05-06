@@ -150,7 +150,7 @@ class _DashboardViewState extends State<DashboardView> {
                             style: TextStyle(
                               fontSize: 12,
                               fontStyle: FontStyle.italic,
-                              color: context.textColor?.withOpacity(.5),
+                              color: context.textColor?.withValues(alpha: .5),
                             ),
                           )
                         ],
@@ -170,6 +170,7 @@ class _DashboardViewState extends State<DashboardView> {
                 // },
               ),
             ],
+            // ignore: deprecated_member_use
             child: WillPopScope(
               onWillPop: () async {
                 if (tabRouter?.activeIndex != 0) {
@@ -331,7 +332,7 @@ class _DashboardViewState extends State<DashboardView> {
                                                           tabsRouter.activeIndex
                                                       ? context
                                                           .theme.disabledColor
-                                                          .withOpacity(.1)
+                                                          .withValues(alpha: .1)
                                                       : null,
                                                 ),
                                                 width: double.infinity,
@@ -345,7 +346,8 @@ class _DashboardViewState extends State<DashboardView> {
                                                             .color!
                                                         : context.textTheme
                                                             .bodyMedium!.color!
-                                                            .withOpacity(0.5),
+                                                            .withValues(
+                                                                alpha: 0.5),
                                                     pages.indexOf(e) == 0
                                                         ? BlendMode.dstIn
                                                         : BlendMode.srcIn,

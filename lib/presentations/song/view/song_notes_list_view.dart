@@ -41,7 +41,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
             FocusManager.instance.primaryFocus?.unfocus();
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

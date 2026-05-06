@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/services.dart';
 
-assetToStorage(
+Future<void> assetToStorage(
     {required String assetFilePath, required String localFilePath}) async {
   var file = File(localFilePath);
   if (!file.existsSync()) {

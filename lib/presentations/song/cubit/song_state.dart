@@ -1,15 +1,10 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:pdf_render/pdf_render.dart';
 // import 'package:pdfx/pdfx.dart';
 import '../../../data/utilities/extensions/extensions.dart';
-import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
@@ -132,6 +127,7 @@ class SongState with _$SongState {
 
     return songs;
   }
+
   /*
   // Fungsi getImageLyricPath
   Future<List<Uint8List>> getImageLyricPath(

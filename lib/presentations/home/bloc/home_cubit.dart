@@ -40,14 +40,14 @@ class HomeCubit extends HydratedCubit<HomeState> {
     getPrimaryMenuStatus();
   }
 
-  refresh() {
+  void refresh() {
     scrappSauhBagiJiwa();
     scrappTrueVoice();
     getMenu();
     getPrimaryMenuStatus();
   }
 
-  getMenu() async {
+  Future<void> getMenu() async {
     var appMenuJson = await FirebaseUtils.listMapConfig('app_menu');
     final List<Menulink> menuLinks =
         appMenuJson.map<Menulink>((e) => Menulink.fromJson(e)).toList();
@@ -55,7 +55,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
     emit(state.copyWith(menuLinks: menuLinks));
   }
 
-  getPrimaryMenuStatus() async {
+  Future<void> getPrimaryMenuStatus() async {
     var appMenuJson = await FirebaseUtils.jsonConfig('primary_menu');
     final bool isSuaraSejatiEnabled = appMenuJson['suara_sejati'];
     final bool isSauhEnabled = appMenuJson['sauh_bagi_jiwa'];
@@ -65,7 +65,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
     ));
   }
 
-  scrappSauhBagiJiwa() async {
+  Future<void> scrappSauhBagiJiwa() async {
     var result = await repository.getSauh();
     result.fold(
       (failure) {},
@@ -75,7 +75,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
     );
   }
 
-  scrappTrueVoice() async {
+  Future<void> scrappTrueVoice() async {
     var result = await repository.getSuaraSejati();
     result.fold(
       (failure) {},

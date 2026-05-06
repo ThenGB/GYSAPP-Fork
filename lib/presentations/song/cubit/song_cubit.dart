@@ -188,9 +188,9 @@ class SongCubit extends HydratedCubit<SongState> {
       }
       await document.close();
 
-      print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+      log('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
     } catch (e) {
-      print(e.toString());
+      log(e.toString());
     }
     return result;
   }
@@ -203,10 +203,7 @@ class SongCubit extends HydratedCubit<SongState> {
   String? imageLyricLastKey;
 
   Future<List<Uint8List>> getImageLyricPath(
-      String bookCode,
-      int pageStart,
-      int pageLength) async {
-
+      String bookCode, int pageStart, int pageLength) async {
     final key = '$bookCode-$pageStart-$pageLength';
 
     // kalau request sama dengan yang terakhir, pakai Future sebelumnya
@@ -224,8 +221,8 @@ class SongCubit extends HydratedCubit<SongState> {
         var file = File('${di<AppDirectory>().songLyricFolder}/$bookCode.pdf');
         if (!file.existsSync()) {
           var data = await rootBundle.load('assets/data/$bookCode.pdf');
-          List<int> bytes = data.buffer.asUint8List(
-              data.offsetInBytes, data.lengthInBytes);
+          List<int> bytes =
+              data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
           await file.writeAsBytes(bytes, flush: true);
         }
 
@@ -258,9 +255,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
         await document.close();
 
-        print('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
+        log('###PDF: $bookCode [LEN=${result.length}] ==> ${file.path}');
       } catch (e) {
-        print('Error getImageLyricPath: $e');
+        log('Error getImageLyricPath: $e');
       }
       return result;
     }
@@ -268,7 +265,6 @@ class SongCubit extends HydratedCubit<SongState> {
     imageLyricLastFuture = loader();
     return imageLyricLastFuture!;
   }
-
 
   Future<bool> isSynced() async {
     await checkingSyncCompleter.future;
@@ -362,11 +358,12 @@ class SongCubit extends HydratedCubit<SongState> {
     return true;
   }
 
-  sync(SongState songState) {
+  void sync(SongState songState) {
     emit(songState);
   }
 
-  syncDbAndLyric({required Function(String status) onProgress}) async {
+  Future<void> syncDbAndLyric(
+      {required Function(String status) onProgress}) async {
     AppDirectory localDir = di();
     try {
       final db = (await getUnsyncedFiles())
@@ -413,22 +410,22 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  onSearchTermsChanged(String text) {
+  void onSearchTermsChanged(String text) {
     emit(state.copyWith(searchTerms: text));
   }
 
-  toggleShuffle() async {
+  Future<void> toggleShuffle() async {
     Fluttertoast.cancel();
     Fluttertoast.showToast(
         msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}');
     emit(state.copyWith(shuffleMode: !state.shuffleMode));
   }
 
-  changeSortNote(String sortBy) {
+  void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
-  saveNote(SongNote data) {
+  void saveNote(SongNote data) {
     var notes = List<SongNote>.from(state.notes);
     int index = notes.indexWhere((note) => note.id == data.id);
 
@@ -441,18 +438,18 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(notes: notes));
   }
 
-  deleteNote(SongNote data) async {
+  Future<void> deleteNote(SongNote data) async {
     var notes = List<SongNote>.from(state.notes);
     notes.remove(data);
 
     emit(state.copyWith(notes: notes));
   }
 
-  removeSelection() async {
+  Future<void> removeSelection() async {
     emit(state.copyWith(selectedSong: null));
   }
 
-  selectSong(Song song) {
+  void selectSong(Song song) {
     emit(state.copyWith(selectedSong: song));
   }
 
@@ -483,11 +480,11 @@ class SongCubit extends HydratedCubit<SongState> {
     return;
   }
 
-  modifyTextScaleFactor(double factor) {
+  void modifyTextScaleFactor(double factor) {
     emit(state.copyWith(defaultTextScale: state.defaultTextScale + factor));
   }
 
-  syncSong() async {
+  Future<void> syncSong() async {
     // final response = await repository
   }
 
@@ -508,11 +505,11 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  pause() {
+  void pause() {
     songHandler.pause();
   }
 
-  play() {
+  void play() {
     songHandler.play();
   }
 
@@ -582,7 +579,7 @@ class SongCubit extends HydratedCubit<SongState> {
     return result;
   }
 
-  changeAudioFormat(String format, bool reload) {
+  void changeAudioFormat(String format, bool reload) {
     emit(state.copyWith(defaultAudioFormat: format));
     if (reload) {
       fetchAvailableSong(state.currentSong!.songs[state.pageIndex], reload);
@@ -612,27 +609,27 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  toggleSizer() {
+  void toggleSizer() {
     emit(state.copyWith(showSizer: !state.showSizer));
   }
 
-  toggleAudio([bool? show]) {
+  void toggleAudio([bool? show]) {
     emit(state.copyWith(showAudio: show ?? !state.showAudio));
   }
 
-  changeFont(String font) {
+  void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
   }
 
-  changeTextScale(double value) {
+  void changeTextScale(double value) {
     emit(state.copyWith(defaultTextScale: value));
   }
 
-  changeTextHeight(double value) {
+  void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
-  changePage(int index, int verseIndex) async {
+  Future<void> changePage(int index, int verseIndex) async {
     await songHandler.seek(Duration.zero);
     songHandler.stop();
     fetchAvailableSong(state.songs[index]);
@@ -641,14 +638,14 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Timer? debouncer;
 
-  debounce(Function() callback) {
+  void debounce(Function() callback) {
     if (debouncer?.isActive == true) {
       debouncer?.cancel();
     }
     debouncer = Timer(const Duration(seconds: 1), callback);
   }
 
-  changeMode() {
+  void changeMode() {
     emit(state.copyWith(isImageMode: !state.isImageMode));
   }
 
@@ -665,7 +662,7 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  modifyFavorite(Song song, { bool playOnlyFav = true }) {
+  void modifyFavorite(Song song, {bool playOnlyFav = true}) {
     List<SongBook> modifiedSongBook = [];
     if (state.favoriteSongBook.isEmpty) {
       modifiedSongBook =
@@ -686,8 +683,7 @@ class SongCubit extends HydratedCubit<SongState> {
       }
       return temp;
     }).toList();
-    final hasFavoriteSongs = modifiedSongBook
-    .any((sb) => sb.songs.isNotEmpty);
+    final hasFavoriteSongs = modifiedSongBook.any((sb) => sb.songs.isNotEmpty);
     emit(state.copyWith(
         favoriteSongBook: modifiedSongBook,
         playOnlyFavorite: playOnlyFav && hasFavoriteSongs));
@@ -704,7 +700,7 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  changeBookcode(String bookCode, {bool isFavorite = false}) {
+  void changeBookcode(String bookCode, {bool isFavorite = false}) {
     List<Song> songs = [];
     for (var book in state.favoriteSongBook) {
       songs.addAll(book.songs);
@@ -718,12 +714,12 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  deleteHistory(SongHistory history) {
+  void deleteHistory(SongHistory history) {
     emit(state.copyWith(
         histories: List<SongHistory>.from(state.histories)..remove(history)));
   }
 
-  addToHistory(SongHistory item) {
+  void addToHistory(SongHistory item) {
     List<SongHistory> data = List.from(state.histories);
 
     if (data.length >= 20) {

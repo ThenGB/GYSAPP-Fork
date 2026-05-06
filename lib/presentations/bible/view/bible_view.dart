@@ -85,7 +85,7 @@ class _BibleViewState extends State<BibleView> {
 
   double lastOffset = 0;
 
-  scrollToVerse(int verseIndex, bool playAnimation,
+  Future<void> scrollToVerse(int verseIndex, bool playAnimation,
       [bool forSecondView = false]) async {
     Future.delayed((kThemeAnimationDuration + Duration(milliseconds: 300)),
         () async {
@@ -115,7 +115,7 @@ class _BibleViewState extends State<BibleView> {
     });
   }
 
-  openSettings() async {
+  Future<void> openSettings() async {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -256,7 +256,7 @@ class _BibleViewState extends State<BibleView> {
   late double _baseScale = context.read<BibleCubit>().state.defaultTextScale;
   double get scale => _currentScale.clamp(.8, 2);
 
-  onTapTitle(BibleState state, bool forSecondView) {
+  void onTapTitle(BibleState state, bool forSecondView) {
     if (context.read<DashboardCubit>().state.isSyncing) {
       Fluttertoast.cancel();
       Fluttertoast.showToast(msg: 'Syncing'.tr());
@@ -284,7 +284,7 @@ class _BibleViewState extends State<BibleView> {
                       : VerseMode.topOnly,
             );
         router.maybePop();
-        await context.read<BibleCubit>().saveToHistory(verse);
+        context.read<BibleCubit>().saveToHistory(verse);
 
         scrollToVerse(verse.verseId - 1, true, forSecondView);
       },

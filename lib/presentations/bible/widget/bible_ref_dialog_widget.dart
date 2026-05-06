@@ -37,7 +37,7 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
     super.initState();
   }
 
-  getCurrentVerse() {
+  void getCurrentVerse() {
     Future.microtask(() async {
       currentVerses =
           await widget.cubit.getVersesByIdRange(currentRef.sv, currentRef.ev);
@@ -50,18 +50,18 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
-      data:
-          context.mediaQuery.copyWith(textScaleFactor: widget.textScaleFactor),
+      data: context.mediaQuery
+          .copyWith(textScaler: TextScaler.linear(widget.textScaleFactor)),
       child: BlocProvider.value(
         value: widget.cubit,
         child: Container(
           clipBehavior: Clip.antiAlias,
           padding: EdgeInsets.all(2),
           decoration: BoxDecoration(
-              color: context.colorScheme.background,
+              color: context.colorScheme.surface,
               border: Border.all(
                 strokeAlign: BorderSide.strokeAlignInside,
-                color: Colors.blueGrey.withOpacity(.3),
+                color: Colors.blueGrey.withValues(alpha: .3),
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
@@ -70,14 +70,14 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                   spreadRadius: 0,
                   blurStyle: BlurStyle.normal,
                   offset: Offset(0, 2),
-                  color: Colors.blueGrey.withOpacity(.3),
+                  color: Colors.blueGrey.withValues(alpha: .3),
                 ),
               ]),
           child: SimpleDialog(
             shape:
                 BeveledRectangleBorder(borderRadius: BorderRadius.circular(12)),
             insetPadding: EdgeInsets.zero,
-            backgroundColor: context.colorScheme.background,
+            backgroundColor: context.colorScheme.surface,
             surfaceTintColor: Colors.transparent,
             alignment: Alignment.topCenter,
             contentPadding: EdgeInsets.all(0),
@@ -193,8 +193,9 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                               width: 20,
                               decoration: BoxDecoration(
                                   gradient: LinearGradient(colors: [
-                                context.colorScheme.background.withOpacity(0),
-                                context.colorScheme.background,
+                                context.colorScheme.surface
+                                    .withValues(alpha: 0),
+                                context.colorScheme.surface,
                               ])),
                             ),
                           ),
@@ -208,81 +209,75 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                       child: SingleChildScrollView(
                         child: Column(
                           children: [
-                            ...currentVerses
-                                .map(
-                                  (e) => Padding(
-                                    padding: const EdgeInsets.only(bottom: 8),
-                                    child: InkWell(
-                                      onTap: () {
-                                        router.maybePop();
-                                        widget.cubit.getContent(e);
-                                        widget.scrollFunction(e.verseId - 1);
-                                      },
-                                      child: Builder(builder: (context) {
-                                        var sentence = (e.verse ?? '')
-                                            .replaceAll('  ', ' ');
-                                        sentence = removeTextBetweenTags(
-                                            sentence, 'f');
-                                        sentence = sentence.replaceAll(
-                                            '<pb/>', '    ');
-                                        sentence =
-                                            sentence.replaceAll('<t>', '');
-                                        sentence =
-                                            sentence.replaceAll('</t>', '');
-                                        return Text.rich(
-                                          style: widget.cubit.state
-                                              .defaultTextTheme.bodyMedium,
-                                          textScaleFactor:
-                                              widget.textScaleFactor,
-                                          textAlign: TextAlign.justify,
-                                          TextSpan(
-                                            children: [
-                                              if (!(e.verse ?? '')
-                                                  .contains('<t>'))
-                                                WidgetSpan(
-                                                  alignment:
-                                                      PlaceholderAlignment
-                                                          .middle,
-                                                  child: Row(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      Text(
-                                                        '${e.verseId}  ',
-                                                        softWrap: false,
-
-                                                        maxLines: 1,
-                                                        overflow: TextOverflow
-                                                            .visible,
-                                                        //superscript is usually smaller in size
-                                                        textScaleFactor: 0.7,
-                                                        style: TextStyle(
-                                                          color: context
-                                                              .colorScheme
-                                                              .onPrimaryContainer,
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              TextSpan(
-                                                text: '',
-                                                style: TextStyle(
-                                                  height: widget.cubit.state
-                                                      .defaultTextHeight,
-                                                ),
+                            ...currentVerses.map(
+                              (e) => Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: InkWell(
+                                  onTap: () {
+                                    router.maybePop();
+                                    widget.cubit.getContent(e);
+                                    widget.scrollFunction(e.verseId - 1);
+                                  },
+                                  child: Builder(builder: (context) {
+                                    var sentence =
+                                        (e.verse ?? '').replaceAll('  ', ' ');
+                                    sentence =
+                                        removeTextBetweenTags(sentence, 'f');
+                                    sentence =
+                                        sentence.replaceAll('<pb/>', '    ');
+                                    sentence = sentence.replaceAll('<t>', '');
+                                    sentence = sentence.replaceAll('</t>', '');
+                                    return Text.rich(
+                                      style: widget.cubit.state.defaultTextTheme
+                                          .bodyMedium,
+                                      textScaler: TextScaler.linear(
+                                          widget.textScaleFactor),
+                                      textAlign: TextAlign.justify,
+                                      TextSpan(
+                                        children: [
+                                          if (!(e.verse ?? '').contains('<t>'))
+                                            WidgetSpan(
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  buildStyledText(sentence),
+                                                  Text(
+                                                    '${e.verseId}  ',
+                                                    softWrap: false,
+
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.visible,
+                                                    //superscript is usually smaller in size
+                                                    textScaler:
+                                                        const TextScaler.linear(
+                                                            0.7),
+                                                    style: TextStyle(
+                                                      color: context.colorScheme
+                                                          .onPrimaryContainer,
+                                                    ),
+                                                  ),
                                                 ],
                                               ),
+                                            ),
+                                          TextSpan(
+                                            text: '',
+                                            style: TextStyle(
+                                              height: widget.cubit.state
+                                                  .defaultTextHeight,
+                                            ),
+                                            children: [
+                                              buildStyledText(sentence),
                                             ],
                                           ),
-                                        );
-                                      }),
-                                    ),
-                                  ),
-                                )
-                                .toList(),
+                                        ],
+                                      ),
+                                    );
+                                  }),
+                                ),
+                              ),
+                            ),
                           ],
                         ),
                       ),

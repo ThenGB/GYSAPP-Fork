@@ -81,7 +81,7 @@ class HomeView extends StatelessWidget {
                                                   .externalApplication,
                                             );
                                           } else {
-                                            router.pushNamed(banner.linkUrl!);
+                                            router.pushPath(banner.linkUrl!);
                                           }
                                         },
                                   child: Container(
@@ -244,7 +244,7 @@ class LinkLainnya extends StatelessWidget {
                             );
                             return;
                           }
-                          router.pushNamed(e.value.url);
+                          router.pushPath(e.value.url);
                         }
                         // await launchUrl(
                         //   Uri.parse(e.value.url),
@@ -259,8 +259,8 @@ class LinkLainnya extends StatelessWidget {
                         child: ColorFiltered(
                           colorFilter: ColorFilter.mode(
                             e.value.enabled
-                                ? Colors.black.withOpacity(1)
-                                : Colors.black.withOpacity(.3),
+                                ? Colors.black.withValues(alpha: 1)
+                                : Colors.black.withValues(alpha: .3),
                             BlendMode.dstIn,
                           ),
                           child: Column(
@@ -494,9 +494,9 @@ class SuaraSejati extends StatelessWidget {
                           router.push(WebpageRoute(url: e.url));
                         },
                         child: Container(
-                          width: 165 * context.mediaQuery.textScaleFactor,
+                          width: 165 * context.mediaQuery.textScaler.scale(1),
                           margin: const EdgeInsets.only(right: 4),
-                          height: 143 * context.mediaQuery.textScaleFactor,
+                          height: 143 * context.mediaQuery.textScaler.scale(1),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(4),
                             border: Border.all(
@@ -510,8 +510,8 @@ class SuaraSejati extends StatelessWidget {
                                 borderRadius: BorderRadius.circular(4),
                                 child: Container(
                                   color: Colors.grey,
-                                  height:
-                                      95 * context.mediaQuery.textScaleFactor,
+                                  height: 95 *
+                                      context.mediaQuery.textScaler.scale(1),
                                   width: double.infinity,
                                   child: CachedNetworkImage(
                                     imageUrl: e.imageUrl,
@@ -521,10 +521,10 @@ class SuaraSejati extends StatelessWidget {
                               ),
                               Padding(
                                 padding: EdgeInsets.symmetric(
-                                    horizontal:
-                                        8 * context.mediaQuery.textScaleFactor,
-                                    vertical:
-                                        4 * context.mediaQuery.textScaleFactor),
+                                    horizontal: 8 *
+                                        context.mediaQuery.textScaler.scale(1),
+                                    vertical: 4 *
+                                        context.mediaQuery.textScaler.scale(1)),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -535,8 +535,8 @@ class SuaraSejati extends StatelessWidget {
                                       style: TextStyle(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 12,
-                                        color:
-                                            context.textColor?.withOpacity(.87),
+                                        color: context.textColor
+                                            ?.withValues(alpha: .87),
                                       ),
                                     ),
                                     const SizedBox(
@@ -549,7 +549,7 @@ class SuaraSejati extends StatelessWidget {
                                       style: TextStyle(
                                           fontSize: 10,
                                           color: context.textColor
-                                              ?.withOpacity(.65)),
+                                              ?.withValues(alpha: .65)),
                                     ),
                                   ],
                                 ),

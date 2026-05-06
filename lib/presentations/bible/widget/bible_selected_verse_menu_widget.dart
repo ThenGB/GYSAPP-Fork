@@ -29,9 +29,9 @@ class SelectedVerseMenu extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       decoration: BoxDecoration(
         boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withOpacity(.2)),
+          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
         ],
-        color: context.colorScheme.background,
+        color: context.colorScheme.surface,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

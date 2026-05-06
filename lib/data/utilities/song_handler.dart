@@ -11,7 +11,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
   Function()? onNext;
   final Debouncer debouncer = Debouncer(Duration(milliseconds: 500));
 
-  initNextFunction({required Function() nextFunction}) {
+  void initNextFunction({required Function() nextFunction}) {
     onNext = nextFunction;
   }
 
@@ -30,9 +30,9 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
 
     player.onPlayerStateChanged
         .map(
-          (event) =>
-              playbackState.value.copyWith(playing: event == PlayerState.playing),
-        )
+      (event) =>
+          playbackState.value.copyWith(playing: event == PlayerState.playing),
+    )
         .listen((event) {
       playbackState.add(event);
 
@@ -46,7 +46,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
     });
   }
 
-  clearQueue() {
+  void clearQueue() {
     if (queue.value.isNotEmpty) {
       final newList = [...queue.value];
       newList.removeLast();
@@ -65,7 +65,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
       await player.setSource(source);
 
       String mediaItemId = song.title ?? '';
-      
+
       // perbaikan: ganti UniqueKey() dengan ID unik tanpa import tambahan
       if (mediaItemId.isEmpty) {
         mediaItemId = 'id_${DateTime.now().microsecondsSinceEpoch}';
@@ -109,7 +109,7 @@ class SongHandler extends BaseAudioHandler with SeekHandler {
       log('seek timeout: $e');
     }
   }
-  
+
   PlaybackState _transformEvent(AudioEvent event) {
     log(player.state.name);
 

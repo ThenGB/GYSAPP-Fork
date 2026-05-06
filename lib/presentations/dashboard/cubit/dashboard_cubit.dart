@@ -187,7 +187,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     }
   }
 
-  setPaths() async {
+  Future<void> setPaths() async {
     var biblepath = await FirebaseUtils.stringConfig('biblepath');
     emit(
       state.copyWith(
@@ -213,7 +213,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     );
   }
 
-  setConfigLiterature() async {
+  Future<void> setConfigLiterature() async {
     try {
       var json = await FirebaseUtils.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));

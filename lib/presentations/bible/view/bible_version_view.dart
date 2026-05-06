@@ -48,7 +48,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                   style: TextButton.styleFrom(
                     backgroundColor: Colors.green,
                     foregroundColor: Colors.white,
-                    disabledBackgroundColor: Colors.grey.withOpacity(.1),
+                    disabledBackgroundColor: Colors.grey.withValues(alpha: .1),
                     surfaceTintColor: Colors.transparent,
                   ),
                   onPressed: value
@@ -70,7 +70,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
           ],
         ),
         body: Container(
-          color: context.colorScheme.background,
+          color: context.colorScheme.surface,
           child: FutureBuilder(
             initialData: initialData,
             future:
@@ -80,8 +80,9 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                   initialData == null) {
                 return Shimmer.fromColors(
                   period: Duration(milliseconds: 500),
-                  baseColor: context.theme.disabledColor.withOpacity(.1),
-                  highlightColor: context.theme.disabledColor.withOpacity(.2),
+                  baseColor: context.theme.disabledColor.withValues(alpha: .1),
+                  highlightColor:
+                      context.theme.disabledColor.withValues(alpha: .2),
                   child: ListView.builder(
                     itemCount: 3,
                     itemBuilder: (context, index) {
@@ -381,7 +382,7 @@ class _SyncButtonState extends State<SyncButton> {
 
   bool isDownloading = false;
 
-  downloadCallback() async {
+  Future<void> downloadCallback() async {
     downloadProgress.value = null;
     if (!widget.localFile.existsSync()) {
       // continue;
@@ -424,6 +425,7 @@ class _SyncButtonState extends State<SyncButton> {
 
   @override
   Widget build(BuildContext context) {
+    // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {
         if (isDownloading) {

@@ -104,7 +104,7 @@ class _BibleViewerState extends State<BibleViewer> {
                   : AlwaysScrollableScrollPhysics(),
               controller: widget.scrollController,
               child: Container(
-                color: context.colorScheme.background,
+                color: context.colorScheme.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -170,7 +170,7 @@ class _BibleViewerState extends State<BibleViewer> {
                               pericopeParalels.getById(verses[index].id),
                         ),
                       );
-                    }).toList(),
+                    }),
                     FutureBuilder(
                       future: widget.selectedVerseMenuHeight,
                       builder: (context, snapshot) {

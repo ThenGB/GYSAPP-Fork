@@ -27,31 +27,31 @@ class FaithCubit extends HydratedCubit<FaithState> {
     return state.copyWith(selectedFaith: []).toJson();
   }
 
-  changeFont(String font) {
+  void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
   }
 
-  sync(FaithState faithState) {
+  void sync(FaithState faithState) {
     emit(faithState);
   }
 
-  changeTextScale(double value) {
+  void changeTextScale(double value) {
     emit(state.copyWith(defaultTextScale: value));
   }
 
-  changeTextHeight(double value) {
+  void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
-  setLanguage(Locale locale) {
+  void setLanguage(Locale locale) {
     emit(state.copyWith(language: locale.languageCode));
   }
 
-  removeSelection() {
+  void removeSelection() {
     emit(state.copyWith(selectedFaith: []));
   }
 
-  saveNote(FaithNote data) {
+  void saveNote(FaithNote data) {
     var notes = List<FaithNote>.from(state.notes);
     int index = notes.indexWhere((note) => note.id == data.id);
 
@@ -64,18 +64,18 @@ class FaithCubit extends HydratedCubit<FaithState> {
     emit(state.copyWith(notes: notes));
   }
 
-  changeSortNote(String sortBy) {
+  void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
-  deleteNote(FaithNote data) {
+  void deleteNote(FaithNote data) {
     var notes = List<FaithNote>.from(state.notes);
     notes.remove(data);
 
     emit(state.copyWith(notes: notes));
   }
 
-  selectVerse(int index) {
+  void selectVerse(int index) {
     List<int> temp = List.from(state.selectedFaith);
     if (temp.contains(index)) {
       temp.remove(index);
@@ -97,7 +97,7 @@ class FaithCubit extends HydratedCubit<FaithState> {
     ),
   );
 
-  putPdfState(int index, {bool isLoading = true}) {
+  void putPdfState(int index, {bool isLoading = true}) {
     Set<int> loadingList = Set.from(state.pdfLoadingList);
     if (isLoading) {
       loadingList.add(index);

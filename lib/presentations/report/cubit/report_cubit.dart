@@ -17,5 +17,5 @@ class ReportCubit extends HydratedCubit<ReportState> {
     return state.toJson();
   }
 
-  sendReport() async {}
+  Future<void> sendReport() async {}
 }
