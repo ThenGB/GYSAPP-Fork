@@ -4,3 +4,4 @@ abstract class GoogleRepository {
   Future<GoogleSignInAccount?> signIn();
   Future<void> signOut();
 }
+

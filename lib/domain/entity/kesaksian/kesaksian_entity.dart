@@ -4,7 +4,7 @@ part 'kesaksian_entity.freezed.dart';
 part 'kesaksian_entity.g.dart';
 
 @freezed
-class Kesaksian with _$Kesaksian {
+abstract class Kesaksian with _$Kesaksian {
   const Kesaksian._();
   const factory Kesaksian({
     required String title,
@@ -16,3 +16,4 @@ class Kesaksian with _$Kesaksian {
   factory Kesaksian.fromJson(Map<String, dynamic> json) =>
       _$KesaksianFromJson(json);
 }
+

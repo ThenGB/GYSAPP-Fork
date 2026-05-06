@@ -6,7 +6,7 @@ part 'literature_kesaksian_state.freezed.dart';
 part 'literature_kesaksian_state.g.dart';
 
 @freezed
-class LiteratureKesaksianState with _$LiteratureKesaksianState {
+abstract class LiteratureKesaksianState with _$LiteratureKesaksianState {
   const LiteratureKesaksianState._();
   const factory LiteratureKesaksianState({
     @Default(false) bool isLoading,
@@ -16,3 +16,4 @@ class LiteratureKesaksianState with _$LiteratureKesaksianState {
   factory LiteratureKesaksianState.fromJson(Map<String, dynamic> json) =>
       _$LiteratureKesaksianStateFromJson(json);
 }
+

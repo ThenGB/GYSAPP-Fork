@@ -127,3 +127,4 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
     );
   }
 }
+

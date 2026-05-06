@@ -799,3 +799,4 @@ class _CustomLoadingWidgetState extends State<CustomLoadingWidget> {
     );
   }
 }
+

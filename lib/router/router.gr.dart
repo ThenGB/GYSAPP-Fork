@@ -1,3 +1,4 @@
+// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
 // **************************************************************************
@@ -19,11 +20,7 @@ class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           BackupRoute.name,
-          args: BackupRouteArgs(
-            key: key,
-            data: data,
-            onSynced: onSynced,
-          ),
+          args: BackupRouteArgs(key: key, data: data, onSynced: onSynced),
           initialChildren: children,
         );
 
@@ -43,11 +40,7 @@ class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
 }
 
 class BackupRouteArgs {
-  const BackupRouteArgs({
-    this.key,
-    required this.data,
-    required this.onSynced,
-  });
+  const BackupRouteArgs({this.key, required this.data, required this.onSynced});
 
   final Key? key;
 
@@ -59,6 +52,16 @@ class BackupRouteArgs {
   String toString() {
     return 'BackupRouteArgs{key: $key, data: $data, onSynced: $onSynced}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BackupRouteArgs) return false;
+    return key == other.key && data == other.data;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ data.hashCode;
 }
 
 /// generated route for
@@ -121,16 +124,33 @@ class BibleAudioSettingRouteArgs {
 
   final double initialSpeedRate;
 
-  final dynamic Function(
-    Map<String, Map<dynamic, dynamic>>,
-    double,
-    double,
-  ) onSave;
+  final dynamic Function(Map<String, Map<dynamic, dynamic>>, double, double)
+      onSave;
 
   @override
   String toString() {
     return 'BibleAudioSettingRouteArgs{key: $key, initialVoices: $initialVoices, initialPitchRate: $initialPitchRate, initialSpeedRate: $initialSpeedRate, onSave: $onSave}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleAudioSettingRouteArgs) return false;
+    return key == other.key &&
+        const MapEquality<String, Map<dynamic, dynamic>>().equals(
+          initialVoices,
+          other.initialVoices,
+        ) &&
+        initialPitchRate == other.initialPitchRate &&
+        initialSpeedRate == other.initialSpeedRate;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      const MapEquality<String, Map<dynamic, dynamic>>().hash(initialVoices) ^
+      initialPitchRate.hashCode ^
+      initialSpeedRate.hashCode;
 }
 
 /// generated route for
@@ -139,10 +159,7 @@ class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
   BibleListRoute({
     Key? key,
     required List<BibleBook> books,
-    required Future<List<Verse>> Function(
-      int?,
-      int?,
-    ) getBibles,
+    required Future<List<Verse>> Function(int?, int?) getBibles,
     required dynamic Function(Verse) onSelected,
     required double textScale,
     required String bibleCode,
@@ -192,10 +209,7 @@ class BibleListRouteArgs {
 
   final List<BibleBook> books;
 
-  final Future<List<Verse>> Function(
-    int?,
-    int?,
-  ) getBibles;
+  final Future<List<Verse>> Function(int?, int?) getBibles;
 
   final dynamic Function(Verse) onSelected;
 
@@ -207,6 +221,23 @@ class BibleListRouteArgs {
   String toString() {
     return 'BibleListRouteArgs{key: $key, books: $books, getBibles: $getBibles, onSelected: $onSelected, textScale: $textScale, bibleCode: $bibleCode}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleListRouteArgs) return false;
+    return key == other.key &&
+        const ListEquality<BibleBook>().equals(books, other.books) &&
+        textScale == other.textScale &&
+        bibleCode == other.bibleCode;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      const ListEquality<BibleBook>().hash(books) ^
+      textScale.hashCode ^
+      bibleCode.hashCode;
 }
 
 /// generated route for
@@ -259,6 +290,18 @@ class BibleNoteListRouteArgs {
   String toString() {
     return 'BibleNoteListRouteArgs{key: $key, cubit: $cubit, initialSearch: $initialSearch}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleNoteListRouteArgs) return false;
+    return key == other.key &&
+        cubit == other.cubit &&
+        initialSearch == other.initialSearch;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ cubit.hashCode ^ initialSearch.hashCode;
 }
 
 /// generated route for
@@ -323,6 +366,20 @@ class BibleNoteRouteArgs {
   String toString() {
     return 'BibleNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleNoteRouteArgs) return false;
+    return key == other.key &&
+        initialData == other.initialData &&
+        cubit == other.cubit &&
+        mode == other.mode;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ initialData.hashCode ^ cubit.hashCode ^ mode.hashCode;
 }
 
 /// generated route for
@@ -393,6 +450,28 @@ class BibleSearchFilterRouteArgs {
   String toString() {
     return 'BibleSearchFilterRouteArgs{key: $key, allBooks: $allBooks, initialValues: $initialValues, onFiltered: $onFiltered, textScale: $textScale, bibleCode: $bibleCode}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleSearchFilterRouteArgs) return false;
+    return key == other.key &&
+        const ListEquality<BibleBook>().equals(allBooks, other.allBooks) &&
+        const ListEquality<BibleBook>().equals(
+          initialValues,
+          other.initialValues,
+        ) &&
+        textScale == other.textScale &&
+        bibleCode == other.bibleCode;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      const ListEquality<BibleBook>().hash(allBooks) ^
+      const ListEquality<BibleBook>().hash(initialValues) ^
+      textScale.hashCode ^
+      bibleCode.hashCode;
 }
 
 /// generated route for
@@ -405,11 +484,7 @@ class BibleSearchRoute extends PageRouteInfo<BibleSearchRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           BibleSearchRoute.name,
-          args: BibleSearchRouteArgs(
-            key: key,
-            cubit: cubit,
-            onTap: onTap,
-          ),
+          args: BibleSearchRouteArgs(key: key, cubit: cubit, onTap: onTap),
           initialChildren: children,
         );
 
@@ -445,6 +520,16 @@ class BibleSearchRouteArgs {
   String toString() {
     return 'BibleSearchRouteArgs{key: $key, cubit: $cubit, onTap: $onTap}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleSearchRouteArgs) return false;
+    return key == other.key && cubit == other.cubit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ cubit.hashCode;
 }
 
 /// generated route for
@@ -456,10 +541,7 @@ class BibleVersionRoute extends PageRouteInfo<BibleVersionRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           BibleVersionRoute.name,
-          args: BibleVersionRouteArgs(
-            key: key,
-            dashboardCubit: dashboardCubit,
-          ),
+          args: BibleVersionRouteArgs(key: key, dashboardCubit: dashboardCubit),
           initialChildren: children,
         );
 
@@ -478,10 +560,7 @@ class BibleVersionRoute extends PageRouteInfo<BibleVersionRouteArgs> {
 }
 
 class BibleVersionRouteArgs {
-  const BibleVersionRouteArgs({
-    this.key,
-    required this.dashboardCubit,
-  });
+  const BibleVersionRouteArgs({this.key, required this.dashboardCubit});
 
   final Key? key;
 
@@ -491,16 +570,23 @@ class BibleVersionRouteArgs {
   String toString() {
     return 'BibleVersionRouteArgs{key: $key, dashboardCubit: $dashboardCubit}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! BibleVersionRouteArgs) return false;
+    return key == other.key && dashboardCubit == other.dashboardCubit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ dashboardCubit.hashCode;
 }
 
 /// generated route for
 /// [BibleView]
 class BibleRoute extends PageRouteInfo<void> {
   const BibleRoute({List<PageRouteInfo>? children})
-      : super(
-          BibleRoute.name,
-          initialChildren: children,
-        );
+      : super(BibleRoute.name, initialChildren: children);
 
   static const String name = 'BibleRoute';
 
@@ -516,10 +602,7 @@ class BibleRoute extends PageRouteInfo<void> {
 /// [DashboardView]
 class DashboardRoute extends PageRouteInfo<void> {
   const DashboardRoute({List<PageRouteInfo>? children})
-      : super(
-          DashboardRoute.name,
-          initialChildren: children,
-        );
+      : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
@@ -540,10 +623,7 @@ class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           FaithNoteListRoute.name,
-          args: FaithNoteListRouteArgs(
-            key: key,
-            cubit: cubit,
-          ),
+          args: FaithNoteListRouteArgs(key: key, cubit: cubit),
           initialChildren: children,
         );
 
@@ -553,19 +633,13 @@ class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<FaithNoteListRouteArgs>();
-      return FaithNoteListView(
-        key: args.key,
-        cubit: args.cubit,
-      );
+      return FaithNoteListView(key: args.key, cubit: args.cubit);
     },
   );
 }
 
 class FaithNoteListRouteArgs {
-  const FaithNoteListRouteArgs({
-    this.key,
-    required this.cubit,
-  });
+  const FaithNoteListRouteArgs({this.key, required this.cubit});
 
   final Key? key;
 
@@ -575,6 +649,16 @@ class FaithNoteListRouteArgs {
   String toString() {
     return 'FaithNoteListRouteArgs{key: $key, cubit: $cubit}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! FaithNoteListRouteArgs) return false;
+    return key == other.key && cubit == other.cubit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ cubit.hashCode;
 }
 
 /// generated route for
@@ -639,16 +723,27 @@ class FaithNoteRouteArgs {
   String toString() {
     return 'FaithNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! FaithNoteRouteArgs) return false;
+    return key == other.key &&
+        initialData == other.initialData &&
+        cubit == other.cubit &&
+        mode == other.mode;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ initialData.hashCode ^ cubit.hashCode ^ mode.hashCode;
 }
 
 /// generated route for
 /// [FaithView]
 class FaithRoute extends PageRouteInfo<void> {
   const FaithRoute({List<PageRouteInfo>? children})
-      : super(
-          FaithRoute.name,
-          initialChildren: children,
-        );
+      : super(FaithRoute.name, initialChildren: children);
 
   static const String name = 'FaithRoute';
 
@@ -664,10 +759,7 @@ class FaithRoute extends PageRouteInfo<void> {
 /// [FontSettingView]
 class FontSettingRoute extends PageRouteInfo<void> {
   const FontSettingRoute({List<PageRouteInfo>? children})
-      : super(
-          FontSettingRoute.name,
-          initialChildren: children,
-        );
+      : super(FontSettingRoute.name, initialChildren: children);
 
   static const String name = 'FontSettingRoute';
 
@@ -683,10 +775,7 @@ class FontSettingRoute extends PageRouteInfo<void> {
 /// [HomeView]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
-      : super(
-          HomeRoute.name,
-          initialChildren: children,
-        );
+      : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
@@ -702,10 +791,7 @@ class HomeRoute extends PageRouteInfo<void> {
 /// [InitialView]
 class InitialRoute extends PageRouteInfo<void> {
   const InitialRoute({List<PageRouteInfo>? children})
-      : super(
-          InitialRoute.name,
-          initialChildren: children,
-        );
+      : super(InitialRoute.name, initialChildren: children);
 
   static const String name = 'InitialRoute';
 
@@ -721,10 +807,7 @@ class InitialRoute extends PageRouteInfo<void> {
 /// [LiteratureKesaksianView]
 class LiteratureKesaksianRoute extends PageRouteInfo<void> {
   const LiteratureKesaksianRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureKesaksianRoute.name,
-          initialChildren: children,
-        );
+      : super(LiteratureKesaksianRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureKesaksianRoute';
 
@@ -740,10 +823,7 @@ class LiteratureKesaksianRoute extends PageRouteInfo<void> {
 /// [LiteraturePanduanKitabView]
 class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
   const LiteraturePanduanKitabRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteraturePanduanKitabRoute.name,
-          initialChildren: children,
-        );
+      : super(LiteraturePanduanKitabRoute.name, initialChildren: children);
 
   static const String name = 'LiteraturePanduanKitabRoute';
 
@@ -759,10 +839,7 @@ class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
 /// [LiteratureRenunganView]
 class LiteratureRenunganRoute extends PageRouteInfo<void> {
   const LiteratureRenunganRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureRenunganRoute.name,
-          initialChildren: children,
-        );
+      : super(LiteratureRenunganRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureRenunganRoute';
 
@@ -778,10 +855,7 @@ class LiteratureRenunganRoute extends PageRouteInfo<void> {
 /// [LiteratureView]
 class LiteratureRoute extends PageRouteInfo<void> {
   const LiteratureRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureRoute.name,
-          initialChildren: children,
-        );
+      : super(LiteratureRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureRoute';
 
@@ -797,10 +871,7 @@ class LiteratureRoute extends PageRouteInfo<void> {
 /// [LiteratureWartaView]
 class LiteratureWartaRoute extends PageRouteInfo<void> {
   const LiteratureWartaRoute({List<PageRouteInfo>? children})
-      : super(
-          LiteratureWartaRoute.name,
-          initialChildren: children,
-        );
+      : super(LiteratureWartaRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureWartaRoute';
 
@@ -821,10 +892,7 @@ class LoginRoute extends PageRouteInfo<LoginRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           LoginRoute.name,
-          args: LoginRouteArgs(
-            key: key,
-            onLoggedIn: onLoggedIn,
-          ),
+          args: LoginRouteArgs(key: key, onLoggedIn: onLoggedIn),
           initialChildren: children,
         );
 
@@ -835,19 +903,14 @@ class LoginRoute extends PageRouteInfo<LoginRouteArgs> {
     builder: (data) {
       final args = data.argsAs<LoginRouteArgs>();
       return WrappedRoute(
-          child: LoginView(
-        key: args.key,
-        onLoggedIn: args.onLoggedIn,
-      ));
+        child: LoginView(key: args.key, onLoggedIn: args.onLoggedIn),
+      );
     },
   );
 }
 
 class LoginRouteArgs {
-  const LoginRouteArgs({
-    this.key,
-    required this.onLoggedIn,
-  });
+  const LoginRouteArgs({this.key, required this.onLoggedIn});
 
   final Key? key;
 
@@ -857,6 +920,16 @@ class LoginRouteArgs {
   String toString() {
     return 'LoginRouteArgs{key: $key, onLoggedIn: $onLoggedIn}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LoginRouteArgs) return false;
+    return key == other.key;
+  }
+
+  @override
+  int get hashCode => key.hashCode;
 }
 
 /// generated route for
@@ -893,11 +966,7 @@ class ReportRoute extends PageRouteInfo<ReportRouteArgs> {
 }
 
 class ReportRouteArgs {
-  const ReportRouteArgs({
-    this.key,
-    this.account,
-    required this.onLoggedIn,
-  });
+  const ReportRouteArgs({this.key, this.account, required this.onLoggedIn});
 
   final Key? key;
 
@@ -909,16 +978,23 @@ class ReportRouteArgs {
   String toString() {
     return 'ReportRouteArgs{key: $key, account: $account, onLoggedIn: $onLoggedIn}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! ReportRouteArgs) return false;
+    return key == other.key && account == other.account;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ account.hashCode;
 }
 
 /// generated route for
 /// [SettingsView]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})
-      : super(
-          SettingsRoute.name,
-          initialChildren: children,
-        );
+      : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
@@ -1040,6 +1116,16 @@ class SongListRouteArgs {
   String toString() {
     return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged, onBack: $onBack, onPlayFavorite: $onPlayFavorite}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SongListRouteArgs) return false;
+    return key == other.key && initialSearchText == other.initialSearchText;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ initialSearchText.hashCode;
 }
 
 /// generated route for
@@ -1104,6 +1190,20 @@ class SongNoteRouteArgs {
   String toString() {
     return 'SongNoteRouteArgs{key: $key, initialData: $initialData, cubit: $cubit, mode: $mode, onSave: $onSave}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SongNoteRouteArgs) return false;
+    return key == other.key &&
+        initialData == other.initialData &&
+        cubit == other.cubit &&
+        mode == other.mode;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^ initialData.hashCode ^ cubit.hashCode ^ mode.hashCode;
 }
 
 /// generated route for
@@ -1115,10 +1215,7 @@ class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           SongNotesListRoute.name,
-          args: SongNotesListRouteArgs(
-            key: key,
-            cubit: cubit,
-          ),
+          args: SongNotesListRouteArgs(key: key, cubit: cubit),
           initialChildren: children,
         );
 
@@ -1128,19 +1225,13 @@ class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
     name,
     builder: (data) {
       final args = data.argsAs<SongNotesListRouteArgs>();
-      return SongNotesListView(
-        key: args.key,
-        cubit: args.cubit,
-      );
+      return SongNotesListView(key: args.key, cubit: args.cubit);
     },
   );
 }
 
 class SongNotesListRouteArgs {
-  const SongNotesListRouteArgs({
-    this.key,
-    required this.cubit,
-  });
+  const SongNotesListRouteArgs({this.key, required this.cubit});
 
   final Key? key;
 
@@ -1150,16 +1241,23 @@ class SongNotesListRouteArgs {
   String toString() {
     return 'SongNotesListRouteArgs{key: $key, cubit: $cubit}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! SongNotesListRouteArgs) return false;
+    return key == other.key && cubit == other.cubit;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ cubit.hashCode;
 }
 
 /// generated route for
 /// [SongSyncView]
 class SongSyncRoute extends PageRouteInfo<void> {
   const SongSyncRoute({List<PageRouteInfo>? children})
-      : super(
-          SongSyncRoute.name,
-          initialChildren: children,
-        );
+      : super(SongSyncRoute.name, initialChildren: children);
 
   static const String name = 'SongSyncRoute';
 
@@ -1175,10 +1273,7 @@ class SongSyncRoute extends PageRouteInfo<void> {
 /// [SongView]
 class SongRoute extends PageRouteInfo<void> {
   const SongRoute({List<PageRouteInfo>? children})
-      : super(
-          SongRoute.name,
-          initialChildren: children,
-        );
+      : super(SongRoute.name, initialChildren: children);
 
   static const String name = 'SongRoute';
 
@@ -1200,11 +1295,7 @@ class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
     List<PageRouteInfo>? children,
   }) : super(
           WebpageRoute.name,
-          args: WebpageRouteArgs(
-            key: key,
-            url: url,
-            getNavColor: getNavColor,
-          ),
+          args: WebpageRouteArgs(key: key, url: url, getNavColor: getNavColor),
           initialChildren: children,
         );
 
@@ -1224,11 +1315,7 @@ class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
 }
 
 class WebpageRouteArgs {
-  const WebpageRouteArgs({
-    this.key,
-    required this.url,
-    this.getNavColor,
-  });
+  const WebpageRouteArgs({this.key, required this.url, this.getNavColor});
 
   final Key? key;
 
@@ -1240,4 +1327,14 @@ class WebpageRouteArgs {
   String toString() {
     return 'WebpageRouteArgs{key: $key, url: $url, getNavColor: $getNavColor}';
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! WebpageRouteArgs) return false;
+    return key == other.key && url == other.url;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ url.hashCode;
 }

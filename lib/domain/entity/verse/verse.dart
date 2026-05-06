@@ -5,7 +5,7 @@ part 'verse.freezed.dart';
 part 'verse.g.dart';
 
 @freezed
-class Verse with _$Verse {
+abstract class Verse with _$Verse {
   const Verse._();
   const factory Verse({
     @JsonKey(name: 'id', fromJson: dynamicToInt, toJson: intToDynamic)
@@ -67,3 +67,4 @@ int dynamicToInt(dynamic value) {
 int intToDynamic(int value) {
   return value;
 }
+

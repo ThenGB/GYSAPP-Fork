@@ -6,7 +6,7 @@ part 'song_note.freezed.dart';
 part 'song_note.g.dart';
 
 @freezed
-class SongNote with _$SongNote {
+abstract class SongNote with _$SongNote {
   const SongNote._();
   const factory SongNote({
     required int id,
@@ -28,3 +28,4 @@ class SongNote with _$SongNote {
   factory SongNote.fromJson(Map<String, dynamic> json) =>
       _$SongNoteFromJson(json);
 }
+

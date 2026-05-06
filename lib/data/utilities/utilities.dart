@@ -7,3 +7,4 @@ export 'platform_utils.dart';
 export 'string_utils.dart';
 export 'variables/variables.dart';
 export 'functions/functions.dart';
+

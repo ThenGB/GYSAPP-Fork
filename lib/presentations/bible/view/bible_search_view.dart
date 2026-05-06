@@ -315,3 +315,4 @@ class _BibleSearchViewState extends State<BibleSearchView> {
     );
   }
 }
+

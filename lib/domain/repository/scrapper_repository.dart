@@ -16,3 +16,4 @@ abstract class ScrapperRepository {
   Future<Either<Failure, List<Renungan>>> getRenungan(String selector);
   Future<Either<Failure, List<Panduan>>> getPanduan(String selector);
 }
+

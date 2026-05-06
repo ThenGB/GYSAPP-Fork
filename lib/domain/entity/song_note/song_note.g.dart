@@ -6,8 +6,7 @@ part of 'song_note.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SongNoteImpl _$$SongNoteImplFromJson(Map<String, dynamic> json) =>
-    _$SongNoteImpl(
+_SongNote _$SongNoteFromJson(Map<String, dynamic> json) => _SongNote(
       id: (json['id'] as num).toInt(),
       song: Song.fromJson(json['song'] as Map<String, dynamic>),
       text: json['text'] as String?,
@@ -15,8 +14,7 @@ _$SongNoteImpl _$$SongNoteImplFromJson(Map<String, dynamic> json) =>
       updatedDate: DateTime.parse(json['updatedDate'] as String),
     );
 
-Map<String, dynamic> _$$SongNoteImplToJson(_$SongNoteImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SongNoteToJson(_SongNote instance) => <String, dynamic>{
       'id': instance.id,
       'song': instance.song,
       'text': instance.text,

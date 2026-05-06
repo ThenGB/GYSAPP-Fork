@@ -181,3 +181,4 @@ class _SongNoteViewState extends State<SongNoteView> {
     );
   }
 }
+

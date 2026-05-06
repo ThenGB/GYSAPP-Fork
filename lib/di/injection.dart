@@ -1,7 +1,5 @@
 import 'dart:developer';
 
-import 'package:audio_service/audio_service.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
@@ -13,7 +11,6 @@ import '../data/data.dart';
 import '../data/repository/backupsync_repository_impl.dart';
 import '../data/repository/google_repository_impl.dart';
 import '../data/utilities/encrypt.dart';
-import '../data/utilities/song_handler.dart';
 import '../domain/domain.dart';
 import '../domain/repository/backupsync_repository.dart';
 import '../domain/repository/google_repository.dart';
@@ -26,6 +23,7 @@ Future<void> setupInjection(AppConfig config) async {
   _blocs();
   await _utils(config);
   _repositories();
+  _services();
 }
 
 void _blocs() {
@@ -37,7 +35,7 @@ void _blocs() {
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
-  di.registerFactory(() => SongCubit(di(), di()));
+  di.registerFactory(() => SongCubit(di(), di(), di()));
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AuthCubit(di()));
@@ -72,23 +70,18 @@ Future<void> _utils(AppConfig appConfig) async {
       ],
     ),
   );
-  di.registerSingletonAsync<SongHandler>(
-    () async => await AudioService.init(
-      builder: () => SongHandler(player: di()),
-      config: AudioServiceConfig(
-        androidNotificationChannelId: 'com.itm.hatiku.song',
-        androidNotificationChannelName: 'Song Service',
-      ),
-    ),
-  );
+}
 
-  di.registerSingleton(AudioPlayer()..setReleaseMode(ReleaseMode.stop));
+void _services() {
+  di.registerLazySingleton(() => LocalBibleAssetService());
+  di.registerLazySingleton(() => LocalAssetService()..initialize());
+  di.registerLazySingleton(() => MidiEngineService(di()));
 }
 
 void _repositories() {
   di.registerFactory<ScrapperRepository>(() => ScrapperRepositoryImpl(di()));
   di.registerFactory<BibleRepository>(() => BibleRepositoryImpl());
-  di.registerFactory<SongRepository>(() => SongRepositoryImpl());
+  di.registerFactory<SongRepository>(() => SongRepositoryImpl(di()));
   di.registerFactory<AuthRepository>(() => AuthRepositoryImpl());
   di.registerFactory<AccountRepository>(
       () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi));
@@ -137,7 +130,6 @@ extension RequestOptionsExtension on RequestOptions {
       'path': path,
       'headers': headers,
       'data': data,
-      // Add any other properties you want to include
     };
   }
 }

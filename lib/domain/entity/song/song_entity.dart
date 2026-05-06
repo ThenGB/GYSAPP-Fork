@@ -4,7 +4,7 @@ part 'song_entity.freezed.dart';
 part 'song_entity.g.dart';
 
 @freezed
-class SongBook with _$SongBook {
+abstract class SongBook with _$SongBook {
   const SongBook._();
   const factory SongBook({
     @JsonKey(name: 'code') String? code,
@@ -16,7 +16,7 @@ class SongBook with _$SongBook {
 }
 
 @freezed
-class Song with _$Song {
+abstract class Song with _$Song {
   const Song._();
   const factory Song({
     @JsonKey(name: 'code') String? code,
@@ -31,3 +31,4 @@ class Song with _$Song {
 
   factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
 }
+

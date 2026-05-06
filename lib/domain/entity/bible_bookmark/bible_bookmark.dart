@@ -6,7 +6,7 @@ part 'bible_bookmark.freezed.dart';
 part 'bible_bookmark.g.dart';
 
 @freezed
-class BibleBookmark with _$BibleBookmark {
+abstract class BibleBookmark with _$BibleBookmark {
   const BibleBookmark._();
   const factory BibleBookmark({
     @JsonKey(name: 'created_at') required DateTime createdAt,
@@ -17,3 +17,4 @@ class BibleBookmark with _$BibleBookmark {
   factory BibleBookmark.fromJson(Map<String, dynamic> json) =>
       _$BibleBookmarkFromJson(json);
 }
+

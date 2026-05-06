@@ -13,3 +13,4 @@ Future<void> assetToStorage(
         buffer.asUint8List(fileData.offsetInBytes, fileData.lengthInBytes));
   }
 }
+

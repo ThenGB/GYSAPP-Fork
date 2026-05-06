@@ -6,8 +6,7 @@ part of 'faith_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FaithStateImpl _$$FaithStateImplFromJson(Map<String, dynamic> json) =>
-    _$FaithStateImpl(
+_FaithState _$FaithStateFromJson(Map<String, dynamic> json) => _FaithState(
       selectedFaith: (json['selectedFaith'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
@@ -27,7 +26,7 @@ _$FaithStateImpl _$$FaithStateImplFromJson(Map<String, dynamic> json) =>
       defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
     );
 
-Map<String, dynamic> _$$FaithStateImplToJson(_$FaithStateImpl instance) =>
+Map<String, dynamic> _$FaithStateToJson(_FaithState instance) =>
     <String, dynamic>{
       'selectedFaith': instance.selectedFaith,
       'notes': instance.notes,

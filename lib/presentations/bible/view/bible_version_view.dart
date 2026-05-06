@@ -567,3 +567,4 @@ class _SyncButtonState extends State<SyncButton> {
     );
   }
 }
+

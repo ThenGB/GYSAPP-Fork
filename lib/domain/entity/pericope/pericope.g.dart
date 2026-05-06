@@ -6,8 +6,7 @@ part of 'pericope.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$PericopeImpl _$$PericopeImplFromJson(Map<String, dynamic> json) =>
-    _$PericopeImpl(
+_Pericope _$PericopeFromJson(Map<String, dynamic> json) => _Pericope(
       id: (json['id'] as num).toInt(),
       s: (json['s'] as num?)?.toInt(),
       bookId: (json['b'] as num?)?.toInt(),
@@ -16,8 +15,7 @@ _$PericopeImpl _$$PericopeImplFromJson(Map<String, dynamic> json) =>
       title: json['t'] as String?,
     );
 
-Map<String, dynamic> _$$PericopeImplToJson(_$PericopeImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$PericopeToJson(_Pericope instance) => <String, dynamic>{
       'id': instance.id,
       's': instance.s,
       'b': instance.bookId,

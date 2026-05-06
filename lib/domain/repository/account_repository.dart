@@ -7,3 +7,4 @@ abstract class AccountRepository {
   Future<Either<Failure, Account>> getProfile(String token);
   Future<Either<Failure, Account>> updateProfile();
 }
+

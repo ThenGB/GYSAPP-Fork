@@ -4,7 +4,7 @@ part 'song_history.freezed.dart';
 part 'song_history.g.dart';
 
 @freezed
-class SongHistory with _$SongHistory {
+abstract class SongHistory with _$SongHistory {
   const SongHistory._();
   const factory SongHistory({
     required int index,
@@ -15,3 +15,4 @@ class SongHistory with _$SongHistory {
   factory SongHistory.fromJson(Map<String, dynamic> json) =>
       _$SongHistoryFromJson(json);
 }
+

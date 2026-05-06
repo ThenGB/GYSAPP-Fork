@@ -4,7 +4,7 @@ part 'truevoice_entity.freezed.dart';
 part 'truevoice_entity.g.dart';
 
 @freezed
-class TrueVoice with _$TrueVoice {
+abstract class TrueVoice with _$TrueVoice {
   const TrueVoice._();
   const factory TrueVoice({
     required String title,
@@ -16,3 +16,4 @@ class TrueVoice with _$TrueVoice {
   factory TrueVoice.fromJson(Map<String, dynamic> json) =>
       _$TrueVoiceFromJson(json);
 }
+

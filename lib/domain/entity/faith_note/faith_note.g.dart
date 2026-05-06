@@ -6,8 +6,7 @@ part of 'faith_note.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$FaithNoteImpl _$$FaithNoteImplFromJson(Map<String, dynamic> json) =>
-    _$FaithNoteImpl(
+_FaithNote _$FaithNoteFromJson(Map<String, dynamic> json) => _FaithNote(
       id: (json['id'] as num).toInt(),
       verses: (json['verses'] as List<dynamic>)
           .map((e) => (e as num).toInt())
@@ -17,7 +16,7 @@ _$FaithNoteImpl _$$FaithNoteImplFromJson(Map<String, dynamic> json) =>
       updatedDate: DateTime.parse(json['updatedDate'] as String),
     );
 
-Map<String, dynamic> _$$FaithNoteImplToJson(_$FaithNoteImpl instance) =>
+Map<String, dynamic> _$FaithNoteToJson(_FaithNote instance) =>
     <String, dynamic>{
       'id': instance.id,
       'verses': instance.verses,

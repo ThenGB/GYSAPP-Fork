@@ -305,6 +305,7 @@ class SettingsView extends StatelessWidget {
                       ),
                     ),
                   ),
+                  const _SongSettingsSection(),
                   Section(
                     label: 'Notification'.tr(),
                     child: (gap) => Material(
@@ -517,6 +518,249 @@ class SettingsView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _SongSettingsSection extends StatelessWidget {
+  const _SongSettingsSection();
+
+  static const _instruments = <int, String>{
+    0: 'Piano',
+    6: 'Harpsichord',
+    19: 'Church organ',
+    24: 'Nylon guitar',
+    40: 'Violin',
+    48: 'Strings',
+    52: 'Choir',
+    56: 'Trumpet',
+    73: 'Flute',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SongCubit, SongState>(
+      builder: (context, state) {
+        final songCubit = context.read<SongCubit>();
+        return Section(
+          label: 'Pujian',
+          child: (gap) => Material(
+            child: Column(
+              children: [
+                SwitchListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Tampilkan chord',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle:
+                      const Text('Default overlay chord seperti gyschordweb'),
+                  value: state.showChord,
+                  onChanged: songCubit.toggleChord,
+                ),
+                SwitchListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Aktifkan MIDI player',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle:
+                      const Text('Tampilkan kontrol player di halaman pujian'),
+                  value: state.showAudio,
+                  onChanged: songCubit.toggleAudio,
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Transpose',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: const Text('Nada dasar chord dan MIDI'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: songCubit.transposeDown,
+                        icon: const Icon(Icons.remove),
+                      ),
+                      SizedBox(
+                        width: 36,
+                        child: Text(
+                          state.transposeStep > 0
+                              ? '+${state.transposeStep}'
+                              : '${state.transposeStep}',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        onPressed: songCubit.transposeUp,
+                        icon: const Icon(Icons.add),
+                      ),
+                    ],
+                  ),
+                ),
+                SwitchListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Hindari chord kres/mol',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: Text(
+                    state.originalFamilyChord == null
+                        ? 'Otomatis saat family chord asli terdeteksi'
+                        : 'Family asli: ${ChordService.formatChordForDisplay(
+                            state.originalFamilyChord!,
+                            accidentalMode: state.chordAccidentalMode,
+                            baseTransposeOffset: state.baseTransposeOffset,
+                          )}',
+                  ),
+                  value: state.preferNaturalChords,
+                  onChanged: songCubit.togglePreferNaturalChords,
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Penulisan chord',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle:
+                      const Text('Pilih preferensi kres (#) atau mol (b)'),
+                  trailing: SegmentedButton<String>(
+                    showSelectedIcon: false,
+                    segments: const [
+                      ButtonSegment(
+                        value: ChordService.accidentalSharp,
+                        label: Text('#'),
+                      ),
+                      ButtonSegment(
+                        value: ChordService.accidentalFlat,
+                        label: Text('b'),
+                      ),
+                    ],
+                    selected: {state.chordAccidentalMode},
+                    onSelectionChanged: (selection) {
+                      songCubit.setChordAccidentalMode(selection.first);
+                    },
+                  ),
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Tempo default',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: const Text('Kecepatan playback MIDI'),
+                  trailing: SizedBox(
+                    width: 168,
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Expanded(
+                          child: Slider(
+                            min: 40,
+                            max: 180,
+                            divisions: 140,
+                            value: state.defaultTempoBpm.clamp(40, 180),
+                            onChanged: songCubit.setDefaultTempo,
+                          ),
+                        ),
+                        SizedBox(
+                          width: 44,
+                          child: Text(
+                            '${state.defaultTempoBpm.round()}',
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Instrumen MIDI',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: const Text('Program instrumen SoundFont'),
+                  trailing: PopupMenuButton<int?>(
+                    initialValue: state.midiInstrument,
+                    onSelected: songCubit.setMidiInstrument,
+                    itemBuilder: (context) => [
+                      const PopupMenuItem<int?>(
+                        value: null,
+                        child: Text('Default'),
+                      ),
+                      ..._instruments.entries.map(
+                        (entry) => PopupMenuItem<int?>(
+                          value: entry.key,
+                          child: Text('${entry.value} (${entry.key})'),
+                        ),
+                      ),
+                    ],
+                    child: Text(
+                      state.midiInstrument == null
+                          ? 'Default'
+                          : _instruments[state.midiInstrument] ??
+                              'Program ${state.midiInstrument}',
+                    ),
+                  ),
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'SoundFont',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: const Text('Bank suara MIDI'),
+                  trailing: PopupMenuButton<String>(
+                    initialValue: state.soundFont,
+                    onSelected: songCubit.setSoundFont,
+                    itemBuilder: (context) => const [
+                      PopupMenuItem(
+                        value: 'GeneralUser-GS.sf2',
+                        child: Text('GeneralUser GS'),
+                      ),
+                      PopupMenuItem(
+                        value: 'TimGM6mb.sf2',
+                        child: Text('TimGM6mb'),
+                      ),
+                    ],
+                    child: Text(
+                      state.soundFont == 'TimGM6mb.sf2'
+                          ? 'TimGM6mb'
+                          : 'GeneralUser GS',
+                    ),
+                  ),
+                ),
+                ListTile(
+                  dense: true,
+                  visualDensity: VisualDensity.compact,
+                  title: const Text(
+                    'Reset pengaturan pujian',
+                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                  ),
+                  subtitle: const Text(
+                      'Kembalikan chord, MIDI, tempo, dan instrumen'),
+                  trailing: TextButton(
+                    onPressed: songCubit.resetPlaybackSettings,
+                    child: const Text('Reset'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

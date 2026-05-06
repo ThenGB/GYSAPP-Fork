@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,99 +9,61 @@ part of 'bible_note.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-BibleNote _$BibleNoteFromJson(Map<String, dynamic> json) {
-  return _BibleNote.fromJson(json);
-}
 
 /// @nodoc
 mixin _$BibleNote {
-  int get id => throw _privateConstructorUsedError;
-  List<Verse> get verses => throw _privateConstructorUsedError;
-  String? get text => throw _privateConstructorUsedError;
-  DateTime get createdDate => throw _privateConstructorUsedError;
-  DateTime get updatedDate => throw _privateConstructorUsedError;
-
-  /// Serializes this BibleNote to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  int get id;
+  List<Verse> get verses;
+  String? get text;
+  DateTime get createdDate;
+  DateTime get updatedDate;
 
   /// Create a copy of BibleNote
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
-  $BibleNoteCopyWith<BibleNote> get copyWith =>
-      throw _privateConstructorUsedError;
-}
-
-/// @nodoc
-abstract class $BibleNoteCopyWith<$Res> {
-  factory $BibleNoteCopyWith(BibleNote value, $Res Function(BibleNote) then) =
-      _$BibleNoteCopyWithImpl<$Res, BibleNote>;
-  @useResult
-  $Res call(
-      {int id,
-      List<Verse> verses,
-      String? text,
-      DateTime createdDate,
-      DateTime updatedDate});
-}
-
-/// @nodoc
-class _$BibleNoteCopyWithImpl<$Res, $Val extends BibleNote>
-    implements $BibleNoteCopyWith<$Res> {
-  _$BibleNoteCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of BibleNote
-  /// with the given fields replaced by the non-null parameter values.
   @pragma('vm:prefer-inline')
+  $BibleNoteCopyWith<BibleNote> get copyWith =>
+      _$BibleNoteCopyWithImpl<BibleNote>(this as BibleNote, _$identity);
+
+  /// Serializes this BibleNote to a JSON map.
+  Map<String, dynamic> toJson();
+
   @override
-  $Res call({
-    Object? id = null,
-    Object? verses = null,
-    Object? text = freezed,
-    Object? createdDate = null,
-    Object? updatedDate = null,
-  }) {
-    return _then(_value.copyWith(
-      id: null == id
-          ? _value.id
-          : id // ignore: cast_nullable_to_non_nullable
-              as int,
-      verses: null == verses
-          ? _value.verses
-          : verses // ignore: cast_nullable_to_non_nullable
-              as List<Verse>,
-      text: freezed == text
-          ? _value.text
-          : text // ignore: cast_nullable_to_non_nullable
-              as String?,
-      createdDate: null == createdDate
-          ? _value.createdDate
-          : createdDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-      updatedDate: null == updatedDate
-          ? _value.updatedDate
-          : updatedDate // ignore: cast_nullable_to_non_nullable
-              as DateTime,
-    ) as $Val);
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is BibleNote &&
+            (identical(other.id, id) || other.id == id) &&
+            const DeepCollectionEquality().equals(other.verses, verses) &&
+            (identical(other.text, text) || other.text == text) &&
+            (identical(other.createdDate, createdDate) ||
+                other.createdDate == createdDate) &&
+            (identical(other.updatedDate, updatedDate) ||
+                other.updatedDate == updatedDate));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      id,
+      const DeepCollectionEquality().hash(verses),
+      text,
+      createdDate,
+      updatedDate);
+
+  @override
+  String toString() {
+    return 'BibleNote(id: $id, verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
   }
 }
 
 /// @nodoc
-abstract class _$$BibleNoteImplCopyWith<$Res>
-    implements $BibleNoteCopyWith<$Res> {
-  factory _$$BibleNoteImplCopyWith(
-          _$BibleNoteImpl value, $Res Function(_$BibleNoteImpl) then) =
-      __$$BibleNoteImplCopyWithImpl<$Res>;
-  @override
+abstract mixin class $BibleNoteCopyWith<$Res> {
+  factory $BibleNoteCopyWith(BibleNote value, $Res Function(BibleNote) _then) =
+      _$BibleNoteCopyWithImpl;
   @useResult
   $Res call(
       {int id,
@@ -112,12 +74,11 @@ abstract class _$$BibleNoteImplCopyWith<$Res>
 }
 
 /// @nodoc
-class __$$BibleNoteImplCopyWithImpl<$Res>
-    extends _$BibleNoteCopyWithImpl<$Res, _$BibleNoteImpl>
-    implements _$$BibleNoteImplCopyWith<$Res> {
-  __$$BibleNoteImplCopyWithImpl(
-      _$BibleNoteImpl _value, $Res Function(_$BibleNoteImpl) _then)
-      : super(_value, _then);
+class _$BibleNoteCopyWithImpl<$Res> implements $BibleNoteCopyWith<$Res> {
+  _$BibleNoteCopyWithImpl(this._self, this._then);
+
+  final BibleNote _self;
+  final $Res Function(BibleNote) _then;
 
   /// Create a copy of BibleNote
   /// with the given fields replaced by the non-null parameter values.
@@ -130,35 +91,201 @@ class __$$BibleNoteImplCopyWithImpl<$Res>
     Object? createdDate = null,
     Object? updatedDate = null,
   }) {
-    return _then(_$BibleNoteImpl(
+    return _then(_self.copyWith(
       id: null == id
-          ? _value.id
+          ? _self.id
           : id // ignore: cast_nullable_to_non_nullable
               as int,
       verses: null == verses
-          ? _value._verses
+          ? _self.verses
           : verses // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       text: freezed == text
-          ? _value.text
+          ? _self.text
           : text // ignore: cast_nullable_to_non_nullable
               as String?,
       createdDate: null == createdDate
-          ? _value.createdDate
+          ? _self.createdDate
           : createdDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
       updatedDate: null == updatedDate
-          ? _value.updatedDate
+          ? _self.updatedDate
           : updatedDate // ignore: cast_nullable_to_non_nullable
               as DateTime,
     ));
   }
 }
 
+/// Adds pattern-matching-related methods to [BibleNote].
+extension BibleNotePatterns on BibleNote {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_BibleNote value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_BibleNote value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_BibleNote value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(int id, List<Verse> verses, String? text,
+            DateTime createdDate, DateTime updatedDate)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote() when $default != null:
+        return $default(_that.id, _that.verses, _that.text, _that.createdDate,
+            _that.updatedDate);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(int id, List<Verse> verses, String? text,
+            DateTime createdDate, DateTime updatedDate)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote():
+        return $default(_that.id, _that.verses, _that.text, _that.createdDate,
+            _that.updatedDate);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(int id, List<Verse> verses, String? text,
+            DateTime createdDate, DateTime updatedDate)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleNote() when $default != null:
+        return $default(_that.id, _that.verses, _that.text, _that.createdDate,
+            _that.updatedDate);
+      case _:
+        return null;
+    }
+  }
+}
+
 /// @nodoc
 @JsonSerializable()
-class _$BibleNoteImpl extends _BibleNote {
-  const _$BibleNoteImpl(
+class _BibleNote extends BibleNote {
+  const _BibleNote(
       {required this.id,
       required final List<Verse> verses,
       this.text,
@@ -166,9 +293,8 @@ class _$BibleNoteImpl extends _BibleNote {
       required this.updatedDate})
       : _verses = verses,
         super._();
-
-  factory _$BibleNoteImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BibleNoteImplFromJson(json);
+  factory _BibleNote.fromJson(Map<String, dynamic> json) =>
+      _$BibleNoteFromJson(json);
 
   @override
   final int id;
@@ -187,16 +313,26 @@ class _$BibleNoteImpl extends _BibleNote {
   @override
   final DateTime updatedDate;
 
+  /// Create a copy of BibleNote
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'BibleNote(id: $id, verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$BibleNoteCopyWith<_BibleNote> get copyWith =>
+      __$BibleNoteCopyWithImpl<_BibleNote>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$BibleNoteToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$BibleNoteImpl &&
+            other is _BibleNote &&
             (identical(other.id, id) || other.id == id) &&
             const DeepCollectionEquality().equals(other._verses, _verses) &&
             (identical(other.text, text) || other.text == text) &&
@@ -216,49 +352,69 @@ class _$BibleNoteImpl extends _BibleNote {
       createdDate,
       updatedDate);
 
-  /// Create a copy of BibleNote
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$BibleNoteImplCopyWith<_$BibleNoteImpl> get copyWith =>
-      __$$BibleNoteImplCopyWithImpl<_$BibleNoteImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$BibleNoteImplToJson(
-      this,
-    );
+  String toString() {
+    return 'BibleNote(id: $id, verses: $verses, text: $text, createdDate: $createdDate, updatedDate: $updatedDate)';
   }
 }
 
-abstract class _BibleNote extends BibleNote {
-  const factory _BibleNote(
-      {required final int id,
-      required final List<Verse> verses,
-      final String? text,
-      required final DateTime createdDate,
-      required final DateTime updatedDate}) = _$BibleNoteImpl;
-  const _BibleNote._() : super._();
+/// @nodoc
+abstract mixin class _$BibleNoteCopyWith<$Res>
+    implements $BibleNoteCopyWith<$Res> {
+  factory _$BibleNoteCopyWith(
+          _BibleNote value, $Res Function(_BibleNote) _then) =
+      __$BibleNoteCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {int id,
+      List<Verse> verses,
+      String? text,
+      DateTime createdDate,
+      DateTime updatedDate});
+}
 
-  factory _BibleNote.fromJson(Map<String, dynamic> json) =
-      _$BibleNoteImpl.fromJson;
+/// @nodoc
+class __$BibleNoteCopyWithImpl<$Res> implements _$BibleNoteCopyWith<$Res> {
+  __$BibleNoteCopyWithImpl(this._self, this._then);
 
-  @override
-  int get id;
-  @override
-  List<Verse> get verses;
-  @override
-  String? get text;
-  @override
-  DateTime get createdDate;
-  @override
-  DateTime get updatedDate;
+  final _BibleNote _self;
+  final $Res Function(_BibleNote) _then;
 
   /// Create a copy of BibleNote
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$BibleNoteImplCopyWith<_$BibleNoteImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? id = null,
+    Object? verses = null,
+    Object? text = freezed,
+    Object? createdDate = null,
+    Object? updatedDate = null,
+  }) {
+    return _then(_BibleNote(
+      id: null == id
+          ? _self.id
+          : id // ignore: cast_nullable_to_non_nullable
+              as int,
+      verses: null == verses
+          ? _self._verses
+          : verses // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      text: freezed == text
+          ? _self.text
+          : text // ignore: cast_nullable_to_non_nullable
+              as String?,
+      createdDate: null == createdDate
+          ? _self.createdDate
+          : createdDate // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+      updatedDate: null == updatedDate
+          ? _self.updatedDate
+          : updatedDate // ignore: cast_nullable_to_non_nullable
+              as DateTime,
+    ));
+  }
 }
+
+// dart format on

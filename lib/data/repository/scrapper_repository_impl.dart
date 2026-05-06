@@ -311,3 +311,4 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     return hasError ? Left(failure) : Right(data);
   }
 }
+

@@ -6,7 +6,7 @@ part 'literature_panduan_state.freezed.dart';
 part 'literature_panduan_state.g.dart';
 
 @freezed
-class LiteraturePanduanState with _$LiteraturePanduanState {
+abstract class LiteraturePanduanState with _$LiteraturePanduanState {
   const LiteraturePanduanState._();
   const factory LiteraturePanduanState({
     @Default(false) bool isLoading,
@@ -16,3 +16,4 @@ class LiteraturePanduanState with _$LiteraturePanduanState {
   factory LiteraturePanduanState.fromJson(Map<String, dynamic> json) =>
       _$LiteraturePanduanStateFromJson(json);
 }
+

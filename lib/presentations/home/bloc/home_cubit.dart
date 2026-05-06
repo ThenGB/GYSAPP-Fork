@@ -100,3 +100,4 @@ class HomeCubit extends HydratedCubit<HomeState> {
     return state.toJson();
   }
 }
+

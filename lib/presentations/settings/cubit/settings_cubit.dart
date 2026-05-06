@@ -149,3 +149,4 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     return state.toJson();
   }
 }
+

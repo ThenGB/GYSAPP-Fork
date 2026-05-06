@@ -6,9 +6,9 @@ part of 'literature_renungan_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$LiteratureRenunganStateImpl _$$LiteratureRenunganStateImplFromJson(
+_LiteratureRenunganState _$LiteratureRenunganStateFromJson(
         Map<String, dynamic> json) =>
-    _$LiteratureRenunganStateImpl(
+    _LiteratureRenunganState(
       isLoading: json['isLoading'] as bool? ?? false,
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => Renungan.fromJson(e as Map<String, dynamic>))
@@ -16,8 +16,8 @@ _$LiteratureRenunganStateImpl _$$LiteratureRenunganStateImplFromJson(
           const [],
     );
 
-Map<String, dynamic> _$$LiteratureRenunganStateImplToJson(
-        _$LiteratureRenunganStateImpl instance) =>
+Map<String, dynamic> _$LiteratureRenunganStateToJson(
+        _LiteratureRenunganState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'items': instance.items,

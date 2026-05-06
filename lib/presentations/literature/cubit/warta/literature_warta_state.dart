@@ -6,7 +6,7 @@ part 'literature_warta_state.freezed.dart';
 part 'literature_warta_state.g.dart';
 
 @freezed
-class LiteratureWartaState with _$LiteratureWartaState {
+abstract class LiteratureWartaState with _$LiteratureWartaState {
   const LiteratureWartaState._();
   const factory LiteratureWartaState({
     @Default(false) bool isLoading,
@@ -16,3 +16,4 @@ class LiteratureWartaState with _$LiteratureWartaState {
   factory LiteratureWartaState.fromJson(Map<String, dynamic> json) =>
       _$LiteratureWartaStateFromJson(json);
 }
+

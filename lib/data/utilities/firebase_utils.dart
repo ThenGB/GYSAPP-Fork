@@ -121,3 +121,4 @@ class FirebaseUtils {
     return config.getAll();
   }
 }
+

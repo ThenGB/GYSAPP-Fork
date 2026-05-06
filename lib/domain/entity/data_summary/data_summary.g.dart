@@ -6,15 +6,14 @@ part of 'data_summary.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DataSummaryImpl _$$DataSummaryImplFromJson(Map<String, dynamic> json) =>
-    _$DataSummaryImpl(
+_DataSummary _$DataSummaryFromJson(Map<String, dynamic> json) => _DataSummary(
       values: (json['values'] as List<dynamic>?)
               ?.map((e) => e as String)
               .toList() ??
           const [],
     );
 
-Map<String, dynamic> _$$DataSummaryImplToJson(_$DataSummaryImpl instance) =>
+Map<String, dynamic> _$DataSummaryToJson(_DataSummary instance) =>
     <String, dynamic>{
       'values': instance.values,
     };

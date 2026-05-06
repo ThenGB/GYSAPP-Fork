@@ -16,3 +16,4 @@ extension ListRearrangeExtension<T> on List<T?> {
     return List<T>.from(rearrangedList..remove(null));
   }
 }
+

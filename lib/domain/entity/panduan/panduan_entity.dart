@@ -4,7 +4,7 @@ part 'panduan_entity.freezed.dart';
 part 'panduan_entity.g.dart';
 
 @freezed
-class Panduan with _$Panduan {
+abstract class Panduan with _$Panduan {
   const Panduan._();
   const factory Panduan({
     required String title,
@@ -16,3 +16,4 @@ class Panduan with _$Panduan {
   factory Panduan.fromJson(Map<String, dynamic> json) =>
       _$PanduanFromJson(json);
 }
+

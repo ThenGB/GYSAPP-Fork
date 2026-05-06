@@ -84,3 +84,4 @@ class RestListResult {
 
   List<String> get fileNames => files.map((f) => f.split('/').last).toList();
 }
+

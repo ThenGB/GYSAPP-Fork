@@ -21,3 +21,4 @@ abstract class BibleRepository {
   Future<List<Verse>> search(
       Database db, String searchText, List<BibleBook> selectedBooks);
 }
+

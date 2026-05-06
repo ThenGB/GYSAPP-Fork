@@ -121,3 +121,4 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
     );
   }
 }
+

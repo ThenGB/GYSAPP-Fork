@@ -4,11 +4,13 @@ import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 
+import '../../../data/services/local_bible_asset_service.dart';
 import '../../../data/utilities/string_utils.dart';
 import '../../../data/utilities/platform_utils.dart';
 import '../../../di/injection.dart';
@@ -16,9 +18,7 @@ import '../../../domain/entity/bcvbc/bcvbc.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
 import '../../../domain/entity/bible_bookmark/bible_bookmark.dart';
 import '../../../domain/entity/bible_note/bible_note.dart';
-import '../../../domain/entity/bible_ref/bible_ref.dart';
 import '../../../domain/entity/pericope/pericope.dart';
-import '../../../domain/entity/pericope_paralel/pericope_paralel.dart';
 import '../../../domain/entity/verse/verse.dart';
 import '../../../domain/repository/bible_repository.dart';
 import '../bible.dart';
@@ -38,18 +38,50 @@ class BibleCubit extends HydratedCubit<BibleState> {
   bool get isSelectingBible => state.selectedVerse.isNotEmpty;
 
   BibleRepository bibleRepository = di();
+  LocalBibleAssetService bibleAssetService = di();
 
   Database? bibleDb;
   Database? splitBibleDb;
+  bool get _usesAssetBible =>
+      bibleAssetService.isBundledCode(state.currentBibleCode);
+  bool get _usesSplitAssetBible =>
+      bibleAssetService.isBundledCode(state.splitBibleCode);
+
   Future<void> initBible() async {
-    await openDatabase(join(
-            di<AppDirectory>().bibleFolder, '${state.currentBibleCode}.db'))
-        .then((value) {
-      bibleDb = value;
+    if (_usesAssetBible) {
+      await getBibles();
+      await getContent(state.currentBible);
+      return;
+    }
+
+    final dbPath =
+        join(di<AppDirectory>().bibleFolder, '${state.currentBibleCode}.db');
+    final dbFile = File(dbPath);
+
+    // Ensure Bible DB is copied from assets if not exists
+    if (!dbFile.existsSync()) {
+      try {
+        dbFile.parent.createSync(recursive: true);
+        final assetPath = 'assets/data/${state.currentBibleCode}.db';
+        final data = await rootBundle.load(assetPath);
+        await dbFile.writeAsBytes(
+          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
+        );
+        log('Copied Bible DB from assets: $assetPath -> $dbPath',
+            name: 'BibleCubit');
+      } catch (e) {
+        log('Failed to copy Bible DB: $e', name: 'BibleCubit');
+        return;
+      }
+    }
+
+    try {
+      bibleDb = await openDatabase(dbPath, readOnly: true);
       splitBibleDb = bibleDb;
-      // getBooks();
       getContent(state.currentBible);
-    });
+    } catch (e) {
+      log('Failed to open Bible DB: $e', name: 'BibleCubit');
+    }
   }
 
   void updateFilterBook(List<BibleBook> values) {
@@ -228,6 +260,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   Future<List<Verse>> searchBibleByString(String searchText) async {
     if (searchText.isEmpty) return [];
+    if (_usesAssetBible) {
+      return bibleAssetService.search(
+        state.currentBibleCode,
+        searchText,
+        state.selectedFilterBooks,
+      );
+    }
     final response = await bibleRepository.search(
         bibleDb!, searchText, state.selectedFilterBooks);
     return response;
@@ -269,12 +308,10 @@ class BibleCubit extends HydratedCubit<BibleState> {
               .firstWhereOrNull((element) => element['locale'] == currentLang))
           ?.map((key, value) => MapEntry(key.toString(), value.toString()));
       voice ??= (voices
-              .firstWhereOrNull(
-                  (element) => element['locale'] == langPrefix))
+              .firstWhereOrNull((element) => element['locale'] == langPrefix))
           ?.map((key, value) => MapEntry(key.toString(), value.toString()));
-      voice ??= (voices
-              .firstWhereOrNull((element) =>
-                  element['locale'].toString().startsWith('$langPrefix-')))
+      voice ??= (voices.firstWhereOrNull((element) =>
+              element['locale'].toString().startsWith('$langPrefix-')))
           ?.map((key, value) => MapEntry(key.toString(), value.toString()));
       if (voice != null) {
         var savedVoice = state.voices[currentLang];
@@ -373,13 +410,24 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   Future<void> getBibles() async {
     var folder = Directory(di<AppDirectory>().bibleFolder);
+    if (!folder.existsSync()) {
+      folder.createSync(recursive: true);
+    }
     var files = folder.listSync();
     var bibles = files.map((e) => basename(e.path)).toList();
     bibles.removeWhere((element) => element.split('.').last != 'db');
+    bibles.addAll(await bibleAssetService.getBundledBibleCodes());
     emit(state.copyWith(bibleCodes: bibles.toSet().toList()));
   }
 
   Future<List<Verse>> getVersesByBook(int bookId, int chapterId) async {
+    if (_usesAssetBible) {
+      return bibleAssetService.getVerses(
+        state.currentBibleCode,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
+    }
     final response = await bibleRepository.getVerses(bibleDb!,
         bookId: bookId, chapterId: chapterId);
     return response;
@@ -390,16 +438,20 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
     /// close current bible
     if (secondary) {
-      splitBibleDb = await openDatabase(
-        join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-      );
+      splitBibleDb = bibleAssetService.isBundledCode(bibleCode)
+          ? null
+          : await openDatabase(
+              join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
+            );
       emit(
         state.copyWith(splitBibleCode: bibleCode),
       );
     } else {
-      bibleDb = await openDatabase(
-        join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-      );
+      bibleDb = bibleAssetService.isBundledCode(bibleCode)
+          ? null
+          : await openDatabase(
+              join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
+            );
       emit(
         state.copyWith(currentBibleCode: bibleCode),
       );
@@ -427,6 +479,15 @@ class BibleCubit extends HydratedCubit<BibleState> {
     for (var element in verses) {
       if (element != null) parsedVerses.add(element.id);
     }
+    if (splitMode ? _usesSplitAssetBible : _usesAssetBible) {
+      return await bibleAssetService.getBibleTitle(
+            splitMode ? state.splitBibleCode : state.currentBibleCode,
+            parsedVerses,
+            isLong: true,
+            withVerse: withVerse,
+          ) ??
+          'Unknown';
+    }
     String? title = await convertIDsToNameAlkitab(
       parsedVerses,
       bibleDb: splitMode ? splitBibleDb! : bibleDb!,
@@ -438,6 +499,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<List<Verse>> getVersesByIdRange(int? start, int? end) async {
+    if (_usesAssetBible) {
+      return bibleAssetService.getVersesByIdRange(
+        state.currentBibleCode,
+        fromId: start ?? 1,
+        toId: end,
+      );
+    }
     final response = await bibleRepository.getVersesByIdRange(bibleDb!,
         fromId: start ?? 1, toId: end);
     return response;
@@ -500,27 +568,46 @@ class BibleCubit extends HydratedCubit<BibleState> {
     //   withVerse: false,
     // );
 
-    List<Verse> bibleContent = await bibleRepository.getVerses(
-      bibleDb!,
-      bookId: bookId,
-      chapterId: chapterId,
-    );
-    List<BibleBook> bookContent = await bibleRepository.getBooks(
-      bibleDb!,
-      // bookId: bookId,
-    );
-    List<Pericope> pericopes = await bibleRepository.getPericope(
-      bibleDb!,
-      bookId: bookId,
-      chapterId: chapterId,
-    );
-    List<PericopeParalel> pericopeParalels =
-        await bibleRepository.getPericopeParalel(
-      bibleDb!,
-      bc: bcvbc.bc!,
-    );
-    List<BibleRef> references =
-        await bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!);
+    final bibleContent = _usesAssetBible
+        ? await bibleAssetService.getVerses(
+            state.currentBibleCode,
+            bookId: bookId,
+            chapterId: chapterId,
+          )
+        : await bibleRepository.getVerses(
+            bibleDb!,
+            bookId: bookId,
+            chapterId: chapterId,
+          );
+    final bookContent = _usesAssetBible
+        ? await bibleAssetService.getBooks(state.currentBibleCode)
+        : await bibleRepository.getBooks(
+            bibleDb!,
+            // bookId: bookId,
+          );
+    final pericopes = _usesAssetBible
+        ? await bibleAssetService.getPericopes(
+            state.currentBibleCode,
+            bookId: bookId,
+            chapterId: chapterId,
+          )
+        : await bibleRepository.getPericope(
+            bibleDb!,
+            bookId: bookId,
+            chapterId: chapterId,
+          );
+    final pericopeParalels = _usesAssetBible
+        ? await bibleAssetService.getPericopeParalels(
+            state.currentBibleCode,
+            bc: bcvbc.bc!,
+          )
+        : await bibleRepository.getPericopeParalel(
+            bibleDb!,
+            bc: bcvbc.bc!,
+          );
+    final references = _usesAssetBible
+        ? await bibleAssetService.getRefs(state.currentBibleCode, bc: bcvbc.bc!)
+        : await bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!);
     var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
     verseKeys = List.generate(bibleContent.length,
         (index) => GlobalKey<VerseWidgetState>(debugLabel: index.toString()));
@@ -570,28 +657,47 @@ class BibleCubit extends HydratedCubit<BibleState> {
       //   withVerse: false,
       // );
 
-      List<Verse> bibleContent = await bibleRepository.getVerses(
-        splitBibleDb!,
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-      List<BibleBook> bookContent = await bibleRepository.getBooks(
-        splitBibleDb!,
-        // bookId: bookId,
-      );
-      List<Pericope> pericopes = await bibleRepository.getPericope(
-        splitBibleDb!,
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-      List<PericopeParalel> pericopeParalels =
-          await bibleRepository.getPericopeParalel(
-        splitBibleDb!,
-        bc: bcvbc.bc!,
-      );
+      final bibleContent = _usesSplitAssetBible
+          ? await bibleAssetService.getVerses(
+              state.splitBibleCode,
+              bookId: bookId,
+              chapterId: chapterId,
+            )
+          : await bibleRepository.getVerses(
+              splitBibleDb!,
+              bookId: bookId,
+              chapterId: chapterId,
+            );
+      final bookContent = _usesSplitAssetBible
+          ? await bibleAssetService.getBooks(state.splitBibleCode)
+          : await bibleRepository.getBooks(
+              splitBibleDb!,
+              // bookId: bookId,
+            );
+      final pericopes = _usesSplitAssetBible
+          ? await bibleAssetService.getPericopes(
+              state.splitBibleCode,
+              bookId: bookId,
+              chapterId: chapterId,
+            )
+          : await bibleRepository.getPericope(
+              splitBibleDb!,
+              bookId: bookId,
+              chapterId: chapterId,
+            );
+      final pericopeParalels = _usesSplitAssetBible
+          ? await bibleAssetService.getPericopeParalels(
+              state.splitBibleCode,
+              bc: bcvbc.bc!,
+            )
+          : await bibleRepository.getPericopeParalel(
+              splitBibleDb!,
+              bc: bcvbc.bc!,
+            );
 
-      List<BibleRef> references =
-          await bibleRepository.getRef(splitBibleDb!, bc: bcvbc.bc!);
+      final references = _usesSplitAssetBible
+          ? await bibleAssetService.getRefs(state.splitBibleCode, bc: bcvbc.bc!)
+          : await bibleRepository.getRef(splitBibleDb!, bc: bcvbc.bc!);
 
       var book =
           bookContent.firstWhereOrNull((element) => element.id == bookId);

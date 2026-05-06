@@ -19,3 +19,4 @@ abstract class BackupSyncRepository {
   Future<Either<Failure, File?>> syncFromDrive(
       {required GoogleSignInAccount googleUser});
 }
+

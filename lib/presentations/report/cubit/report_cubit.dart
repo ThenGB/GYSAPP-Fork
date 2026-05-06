@@ -19,3 +19,4 @@ class ReportCubit extends HydratedCubit<ReportState> {
 
   Future<void> sendReport() async {}
 }
+

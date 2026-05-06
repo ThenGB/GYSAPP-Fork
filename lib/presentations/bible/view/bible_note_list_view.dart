@@ -308,3 +308,4 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
     );
   }
 }
+

@@ -4,7 +4,7 @@ part 'sauh_entity.freezed.dart';
 part 'sauh_entity.g.dart';
 
 @freezed
-class Sauh with _$Sauh {
+abstract class Sauh with _$Sauh {
   const Sauh._();
   const factory Sauh({
     required String title,
@@ -15,3 +15,4 @@ class Sauh with _$Sauh {
 
   factory Sauh.fromJson(Map<String, dynamic> json) => _$SauhFromJson(json);
 }
+

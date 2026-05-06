@@ -6,7 +6,7 @@ part of 'verse.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$VerseImpl _$$VerseImplFromJson(Map<String, dynamic> json) => _$VerseImpl(
+_Verse _$VerseFromJson(Map<String, dynamic> json) => _Verse(
       id: dynamicToInt(json['id']),
       bookId: dynamicToInt(json['b']),
       chapterId: dynamicToInt(json['c']),
@@ -18,8 +18,7 @@ _$VerseImpl _$$VerseImplFromJson(Map<String, dynamic> json) => _$VerseImpl(
       color: _colorFromJson(json['color']),
     );
 
-Map<String, dynamic> _$$VerseImplToJson(_$VerseImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$VerseToJson(_Verse instance) => <String, dynamic>{
       'id': intToDynamic(instance.id),
       'b': intToDynamic(instance.bookId),
       'c': intToDynamic(instance.chapterId),

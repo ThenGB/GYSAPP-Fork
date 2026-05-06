@@ -4,7 +4,7 @@ part 'renungan_entity.freezed.dart';
 part 'renungan_entity.g.dart';
 
 @freezed
-class Renungan with _$Renungan {
+abstract class Renungan with _$Renungan {
   const Renungan._();
   const factory Renungan({
     required String title,
@@ -16,3 +16,4 @@ class Renungan with _$Renungan {
   factory Renungan.fromJson(Map<String, dynamic> json) =>
       _$RenunganFromJson(json);
 }
+

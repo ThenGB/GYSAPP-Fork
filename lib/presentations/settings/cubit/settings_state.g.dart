@@ -6,8 +6,8 @@ part of 'settings_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SettingsStateImpl _$$SettingsStateImplFromJson(Map<String, dynamic> json) =>
-    _$SettingsStateImpl(
+_SettingsState _$SettingsStateFromJson(Map<String, dynamic> json) =>
+    _SettingsState(
       isSabatNotificationActive:
           json['isSabatNotificationActive'] as bool? ?? false,
       isBibleReminderNotificationActive:
@@ -18,7 +18,7 @@ _$SettingsStateImpl _$$SettingsStateImplFromJson(Map<String, dynamic> json) =>
           const {},
     );
 
-Map<String, dynamic> _$$SettingsStateImplToJson(_$SettingsStateImpl instance) =>
+Map<String, dynamic> _$SettingsStateToJson(_SettingsState instance) =>
     <String, dynamic>{
       'isSabatNotificationActive': instance.isSabatNotificationActive,
       'isBibleReminderNotificationActive':

@@ -9,7 +9,7 @@ part 'menulink_entity.freezed.dart';
 part 'menulink_entity.g.dart';
 
 @freezed
-class Menulink with _$Menulink {
+abstract class Menulink with _$Menulink {
   const Menulink._();
   const factory Menulink({
     required String label,
@@ -37,3 +37,4 @@ class Menulink with _$Menulink {
     }
   }
 }
+

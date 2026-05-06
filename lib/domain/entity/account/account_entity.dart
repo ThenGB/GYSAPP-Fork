@@ -4,7 +4,7 @@ part 'account_entity.freezed.dart';
 part 'account_entity.g.dart';
 
 @freezed
-class Account with _$Account {
+abstract class Account with _$Account {
   const Account._();
   const factory Account({
     @JsonKey(name: 'id') @Default(0) int id,
@@ -20,3 +20,4 @@ class Account with _$Account {
   factory Account.fromJson(Map<String, dynamic> json) =>
       _$AccountFromJson(json);
 }
+

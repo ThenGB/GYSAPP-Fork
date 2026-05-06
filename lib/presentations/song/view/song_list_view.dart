@@ -2,7 +2,6 @@ import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -158,13 +157,11 @@ class _SongListViewState extends State<SongListView>
         centerTitle: true,
         actions: [
           if (tabController.index == 1) ...[
-            StreamBuilder(
-              stream:
-                  context.read<SongCubit>().playerStateStream,
-              builder: (context, snapshot) => IconButton(
+            BlocBuilder<SongCubit, SongState>(
+              builder: (context, state) => IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: widget.onPlayFavorite,
-                icon: Icon(snapshot.data == PlayerState.playing
+                icon: Icon(state.isAudioPlaying
                     ? Icons.pause_circle
                     : Icons.play_circle),
               ),
@@ -595,3 +592,4 @@ class _PageTurnEffect extends CustomPainter {
         oldDelegate.amount.value != amount.value;
   }
 }
+

@@ -6,7 +6,7 @@ part 'literature_renungan_state.freezed.dart';
 part 'literature_renungan_state.g.dart';
 
 @freezed
-class LiteratureRenunganState with _$LiteratureRenunganState {
+abstract class LiteratureRenunganState with _$LiteratureRenunganState {
   const LiteratureRenunganState._();
   const factory LiteratureRenunganState({
     @Default(false) bool isLoading,
@@ -16,3 +16,4 @@ class LiteratureRenunganState with _$LiteratureRenunganState {
   factory LiteratureRenunganState.fromJson(Map<String, dynamic> json) =>
       _$LiteratureRenunganStateFromJson(json);
 }
+
