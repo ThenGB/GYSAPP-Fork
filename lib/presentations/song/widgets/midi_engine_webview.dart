@@ -23,8 +23,6 @@ class MidiEngineWebView extends StatefulWidget {
 }
 
 class _MidiEngineWebViewState extends State<MidiEngineWebView> {
-  InAppWebViewController? _controller;
-
   @override
   Widget build(BuildContext context) {
     // Hidden webview (1x1 pixel)
@@ -33,19 +31,25 @@ class _MidiEngineWebViewState extends State<MidiEngineWebView> {
       height: 1,
       child: InAppWebView(
         initialFile: 'assets/web/midi_engine.html',
+        initialSettings: InAppWebViewSettings(
+          transparentBackground: true,
+          allowFileAccessFromFileURLs: true,
+          allowUniversalAccessFromFileURLs: true,
+          mediaPlaybackRequiresUserGesture: false,
+        ),
         onWebViewCreated: (controller) {
-          _controller = controller;
           widget.service.onWebViewCreated(controller);
-          _initEngine();
         },
         onConsoleMessage: (controller, consoleMessage) {
           log('MIDI Engine: ${consoleMessage.message}', name: 'MidiEngine');
         },
         onLoadStop: (controller, url) {
           log('MIDI engine loaded: $url', name: 'MidiEngine');
+          _initEngine();
         },
         onReceivedError: (controller, request, error) {
-          log('MIDI engine error [${error.type}]: ${error.description}', name: 'MidiEngine');
+          log('MIDI engine error [${error.type}]: ${error.description}',
+              name: 'MidiEngine');
         },
       ),
     );
@@ -56,12 +60,7 @@ class _MidiEngineWebViewState extends State<MidiEngineWebView> {
       final sfPath = await _ensureSoundFont();
       final sfUrl = Uri.file(sfPath).toString();
 
-      await _controller?.evaluateJavascript(source: """
-        if (window.FlutterMidiBridge) {
-          window.FlutterMidiBridge.init('$sfUrl');
-        }
-      """);
-
+      await widget.service.initializeWebEngine(sfUrl);
       log('SoundFont initialized: $sfUrl', name: 'MidiEngine');
     } catch (e) {
       log('Failed to init engine: $e', name: 'MidiEngine');
@@ -74,7 +73,8 @@ class _MidiEngineWebViewState extends State<MidiEngineWebView> {
 
     if (!await File(sfPath).exists()) {
       await Directory('${dir.path}/soundfont').create(recursive: true);
-      final data = await rootBundle.load('assets/data/soundfont/GeneralUser-GS.sf2');
+      final data =
+          await rootBundle.load('assets/data/soundfont/GeneralUser-GS.sf2');
       final bytes = data.buffer.asUint8List();
       await File(sfPath).writeAsBytes(bytes, flush: true);
     }
@@ -82,4 +82,3 @@ class _MidiEngineWebViewState extends State<MidiEngineWebView> {
     return sfPath;
   }
 }
-

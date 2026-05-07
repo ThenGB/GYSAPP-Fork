@@ -57,6 +57,9 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
               ) ??
               const {},
       transposeStep: (json['transposeStep'] as num?)?.toInt() ?? 0,
+      chordAccidentalMode: json['chordAccidentalMode'] as String? ?? 'sharp',
+      preferNaturalChords: json['preferNaturalChords'] as bool? ?? false,
+      originalFamilyChord: json['originalFamilyChord'] as String?,
       tempoBpm: (json['tempoBpm'] as num?)?.toDouble() ?? 76.0,
       defaultTempoBpm: (json['defaultTempoBpm'] as num?)?.toDouble() ?? 76.0,
       midiInstrument: (json['midiInstrument'] as num?)?.toInt(),
@@ -94,6 +97,9 @@ Map<String, dynamic> _$SongStateToJson(_SongState instance) =>
       'remoteLyricsUpdateAt': instance.remoteLyricsUpdateAt
           .map((k, e) => MapEntry(k, e.toIso8601String())),
       'transposeStep': instance.transposeStep,
+      'chordAccidentalMode': instance.chordAccidentalMode,
+      'preferNaturalChords': instance.preferNaturalChords,
+      'originalFamilyChord': instance.originalFamilyChord,
       'tempoBpm': instance.tempoBpm,
       'defaultTempoBpm': instance.defaultTempoBpm,
       'midiInstrument': instance.midiInstrument,

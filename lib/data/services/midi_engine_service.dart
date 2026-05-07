@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -34,6 +35,9 @@ class MidiEngineService extends ChangeNotifier {
 
   InAppWebViewController? _controller;
   bool _initialized = false;
+  bool _webEngineReady = false;
+  bool _disposed = false;
+  final List<String> _pendingJsCalls = [];
 
   MidiPlaybackState _state = const MidiPlaybackState();
 
@@ -60,7 +64,10 @@ class MidiEngineService extends ChangeNotifier {
     try {
       final path = await _assetService.getSoundFontPath('GeneralUser-GS.sf2');
       final soundFontReady = await File(path).exists();
-      log('SoundFont ready at: $path (exists: $soundFontReady)', name: 'MidiEngine');
+      log(
+        'SoundFont ready at: $path (exists: $soundFontReady)',
+        name: 'MidiEngine',
+      );
     } catch (e) {
       log('Failed to prepare SoundFont: $e', name: 'MidiEngine');
     }
@@ -68,6 +75,7 @@ class MidiEngineService extends ChangeNotifier {
 
   void onWebViewCreated(InAppWebViewController controller) {
     _controller = controller;
+    _webEngineReady = false;
 
     // Setup JS handlers for state callbacks
     controller.addJavaScriptHandler(
@@ -92,23 +100,58 @@ class MidiEngineService extends ChangeNotifier {
           loadProgress: progress,
           currentSong: _state.currentSong,
         );
-        _stateController.add(_state);
-        notifyListeners();
+        _emitState();
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'midiReady',
+      callback: (args) {
+        _webEngineReady = true;
+        _flushPendingJsCalls();
+      },
+    );
+
+    controller.addJavaScriptHandler(
+      handlerName: 'midiError',
+      callback: (args) {
+        final message = args.isEmpty ? 'Unknown MIDI error' : '${args.first}';
+        log('MIDI JS error: $message', name: 'MidiEngine');
+        _state = MidiPlaybackState(
+          isPlaying: false,
+          position: _state.position,
+          duration: _state.duration,
+          isLoading: false,
+          loadProgress: _state.loadProgress,
+          currentSong: _state.currentSong,
+        );
+        _emitState();
       },
     );
   }
 
   void _updateState(Map<String, dynamic> data) {
     _state = MidiPlaybackState(
-      isPlaying: data['playing'] as bool? ?? false,
-      position: (data['time'] as num?)?.toDouble() ?? 0,
+      isPlaying:
+          data['isPlaying'] as bool? ?? data['playing'] as bool? ?? false,
+      position: (data['position'] as num?)?.toDouble() ??
+          (data['time'] as num?)?.toDouble() ??
+          0,
       duration: (data['duration'] as num?)?.toDouble() ?? 0,
-      isLoading: data['loading'] as bool? ?? false,
-      loadProgress: _state.loadProgress,
+      isLoading:
+          data['isLoading'] as bool? ?? data['loading'] as bool? ?? false,
+      loadProgress:
+          (data['loadProgress'] as num?)?.toDouble() ?? _state.loadProgress,
       currentSong: _state.currentSong,
     );
-    _stateController.add(_state);
-    notifyListeners();
+    _emitState();
+  }
+
+  Future<void> initializeWebEngine(String soundFontFileUrl) async {
+    await _callJs(
+      'window.FlutterMidiBridge && window.FlutterMidiBridge.init(${jsonEncode(soundFontFileUrl)});',
+      requireEngineReady: false,
+    );
   }
 
   Future<void> loadMidi(
@@ -120,25 +163,25 @@ class MidiEngineService extends ChangeNotifier {
     // Copy MIDI asset to filesystem so WebView can access it
     final fileUrl = await _copyMidiToFilesystem(midiPath);
 
-    await _callJs("""
+    _state = MidiPlaybackState(
+      isPlaying: false,
+      position: 0,
+      duration: _state.duration,
+      isLoading: true,
+      loadProgress: 0,
+      currentSong: midiPath,
+    );
+    _emitState();
+
+    await _callJs('''
       if (window.FlutterMidiBridge) {
-        window.FlutterMidiBridge.loadMidi('$fileUrl', {
+        window.FlutterMidiBridge.loadMidi(${jsonEncode(fileUrl)}, {
           transpose: $transpose,
           instrument: ${instrument ?? -1},
           autoplay: $autoplay
         });
       }
-    """);
-
-    _state = MidiPlaybackState(
-      isPlaying: false,
-      position: 0,
-      duration: 0,
-      isLoading: true,
-      loadProgress: 0,
-      currentSong: midiPath,
-    );
-    notifyListeners();
+    ''');
   }
 
   Future<String> _copyMidiToFilesystem(String assetPath) async {
@@ -161,20 +204,47 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> play() async {
     await _callJs('window.FlutterMidiBridge.play();');
+    _state = MidiPlaybackState(
+      isPlaying: true,
+      position: _state.position,
+      duration: _state.duration,
+      isLoading: _state.isLoading,
+      loadProgress: _state.loadProgress,
+      currentSong: _state.currentSong,
+    );
+    _emitState();
   }
 
   Future<void> pause() async {
     await _callJs('window.FlutterMidiBridge.pause();');
+    _state = MidiPlaybackState(
+      isPlaying: false,
+      position: _state.position,
+      duration: _state.duration,
+      isLoading: _state.isLoading,
+      loadProgress: _state.loadProgress,
+      currentSong: _state.currentSong,
+    );
+    _emitState();
   }
 
   Future<void> stop() async {
     await _callJs('window.FlutterMidiBridge.stop();');
     _state = const MidiPlaybackState();
-    notifyListeners();
+    _emitState();
   }
 
   Future<void> seek(double seconds) async {
     await _callJs('window.FlutterMidiBridge.seek($seconds);');
+    _state = MidiPlaybackState(
+      isPlaying: _state.isPlaying,
+      position: seconds.clamp(0, _state.duration).toDouble(),
+      duration: _state.duration,
+      isLoading: _state.isLoading,
+      loadProgress: _state.loadProgress,
+      currentSong: _state.currentSong,
+    );
+    _emitState();
   }
 
   Future<void> setTranspose(int semitones) async {
@@ -186,7 +256,7 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   Future<void> setInstrument(int program) async {
-    await _callJs('window.FlutterMidiBridge.engine.setInstrument($program);');
+    await _callJs('window.FlutterMidiBridge.setInstrument($program);');
   }
 
   Future<void> setVolume(double volume) async {
@@ -195,12 +265,24 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> preload(String midiPath) async {
     final fileUrl = await _copyMidiToFilesystem(midiPath);
-    await _callJs("window.FlutterMidiBridge.engine.preload('$fileUrl');");
+    await _callJs(
+      'window.FlutterMidiBridge && window.FlutterMidiBridge.preload(${jsonEncode(fileUrl)});',
+    );
   }
 
-  Future<void> _callJs(String jsCode) async {
+  Future<void> _callJs(
+    String jsCode, {
+    bool requireEngineReady = true,
+  }) async {
+    if (_disposed) return;
     if (_controller == null) {
-      log('WebView controller not ready', name: 'MidiEngine');
+      _pendingJsCalls.add(jsCode);
+      log('Queued JS call while WebView is not ready', name: 'MidiEngine');
+      return;
+    }
+    if (requireEngineReady && !_webEngineReady) {
+      _pendingJsCalls.add(jsCode);
+      log('Queued JS call while MIDI engine is not ready', name: 'MidiEngine');
       return;
     }
     try {
@@ -210,10 +292,34 @@ class MidiEngineService extends ChangeNotifier {
     }
   }
 
+  Future<void> _flushPendingJsCalls() async {
+    if (_controller == null || !_webEngineReady || _pendingJsCalls.isEmpty) {
+      return;
+    }
+
+    final calls = List<String>.from(_pendingJsCalls);
+    _pendingJsCalls.clear();
+    for (final jsCode in calls) {
+      await _callJs(jsCode);
+    }
+  }
+
+  void _emitState() {
+    if (!_stateController.isClosed) {
+      _stateController.add(_state);
+    }
+    if (!_disposed) notifyListeners();
+  }
+
   Future<void> disposeEngine() async {
-    await _callJs('window.FlutterMidiBridge.engine.destroy();');
-    _stateController.close();
+    if (_disposed) return;
+    await _callJs(
+      'window.FlutterMidiBridge && window.FlutterMidiBridge.destroy();',
+      requireEngineReady: false,
+    );
+    _disposed = true;
+    _pendingJsCalls.clear();
+    await _stateController.close();
     super.dispose();
   }
 }
-

@@ -97,32 +97,34 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(isAudioLoading: false));
   }
 
-  void play() {
-    if (state.showAudio) {
-      _midiEngine.play();
-      emit(state.copyWith(isAudioPlaying: true));
+  Future<void> play() async {
+    if (!state.showAudio) return;
+    if (_midiEngine.state.currentSong == null && state.songs.isNotEmpty) {
+      await _loadMidiForSong(state.songs[state.pageIndex]);
     }
+    await _midiEngine.play();
+    emit(state.copyWith(isAudioPlaying: true));
   }
 
-  void pause() {
-    _midiEngine.pause();
+  Future<void> pause() async {
+    await _midiEngine.pause();
     emit(state.copyWith(isAudioPlaying: false));
   }
 
-  void stop() {
-    _midiEngine.stop();
+  Future<void> stop() async {
+    await _midiEngine.stop();
     emit(state.copyWith(isAudioPlaying: false));
   }
 
-  void seek(Duration position) {
-    _midiEngine.seek(position.inSeconds.toDouble());
+  Future<void> seek(Duration position) async {
+    await _midiEngine.seek(position.inMilliseconds / 1000);
   }
 
-  void togglePlayPause() {
+  Future<void> togglePlayPause() async {
     if (state.isAudioPlaying) {
-      pause();
+      await pause();
     } else {
-      play();
+      await play();
     }
   }
 
@@ -132,7 +134,7 @@ class SongCubit extends HydratedCubit<SongState> {
     final newValue = show ?? !state.showAudio;
     emit(state.copyWith(showAudio: newValue));
 
-    if (newValue) {
+    if (newValue && state.songs.isNotEmpty) {
       _loadMidiForSong(state.songs[state.pageIndex]);
     } else {
       _midiEngine.stop();
@@ -152,6 +154,25 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setTranspose(semitones);
   }
 
+  void setChordAccidentalMode(String mode) {
+    final normalized = mode == ChordService.accidentalFlat
+        ? ChordService.accidentalFlat
+        : ChordService.accidentalSharp;
+    emit(state.copyWith(chordAccidentalMode: normalized));
+  }
+
+  void togglePreferNaturalChords([bool? value]) {
+    final preferNatural = value ?? !state.preferNaturalChords;
+    final recommendedTranspose = preferNatural
+        ? ChordService.recommendedNaturalTranspose(state.originalFamilyChord)
+        : 0;
+    emit(state.copyWith(
+      preferNaturalChords: preferNatural,
+      transposeStep: recommendedTranspose,
+    ));
+    _midiEngine.setTranspose(recommendedTranspose);
+  }
+
   void transposeUp() {
     setTranspose((state.transposeStep + 1).clamp(-12, 12));
   }
@@ -167,11 +188,36 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setTempo(bpm);
   }
 
+  void setDefaultTempo(double bpm) {
+    emit(state.copyWith(defaultTempoBpm: bpm, tempoBpm: bpm));
+    _midiEngine.setTempo(bpm);
+  }
+
   // ─── Instrument ───────────────────────────────────────────────
 
-  void setMidiInstrument(int program) {
+  void setMidiInstrument(int? program) {
     emit(state.copyWith(midiInstrument: program));
-    _midiEngine.setInstrument(program);
+    _midiEngine.setInstrument(program ?? -1);
+  }
+
+  void resetPlaybackSettings() {
+    emit(state.copyWith(
+      showAudio: false,
+      showChord: false,
+      transposeStep: 0,
+      chordAccidentalMode: ChordService.accidentalSharp,
+      preferNaturalChords: false,
+      originalFamilyChord: null,
+      tempoBpm: 76,
+      defaultTempoBpm: 76,
+      midiInstrument: null,
+      soundFont: 'GeneralUser-GS.sf2',
+      isAudioPlaying: false,
+    ));
+    _midiEngine.stop();
+    _midiEngine.setTranspose(0);
+    _midiEngine.setTempo(76);
+    _midiEngine.setInstrument(-1);
   }
 
   // ─── SoundFont ────────────────────────────────────────────────
@@ -210,7 +256,20 @@ class SongCubit extends HydratedCubit<SongState> {
 
     try {
       final jsonString = await rootBundle.loadString(chordPath);
-      return ChordService.parseChordJson(jsonString);
+      final chords = ChordService.parseChordJson(jsonString);
+      final familyChord = ChordService.detectFamilyChord(chords);
+      final previousTranspose = state.transposeStep;
+      final recommendedTranspose = state.preferNaturalChords
+          ? ChordService.recommendedNaturalTranspose(familyChord)
+          : state.transposeStep;
+      emit(state.copyWith(
+        originalFamilyChord: familyChord,
+        transposeStep: recommendedTranspose,
+      ));
+      if (recommendedTranspose != previousTranspose) {
+        _midiEngine.setTranspose(recommendedTranspose);
+      }
+      return chords;
     } catch (e) {
       log('Error loading chord data: $e');
       return null;

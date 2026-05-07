@@ -43,6 +43,9 @@ abstract class SongState with _$SongState {
     @Default({}) Map<String, DateTime> remoteLyricsUpdateAt,
     // New gyschordweb fields
     @Default(0) int transposeStep,
+    @Default('sharp') String chordAccidentalMode,
+    @Default(false) bool preferNaturalChords,
+    String? originalFamilyChord,
     @Default(76.0) double tempoBpm,
     @Default(76.0) double defaultTempoBpm,
     int? midiInstrument,
@@ -211,4 +214,3 @@ extension SongStateSafeAccess on SongState {
     return index >= 0 && index < songs.length;
   }
 }
-

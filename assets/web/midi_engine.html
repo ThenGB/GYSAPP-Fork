@@ -83,15 +83,33 @@ OF SUCH DAMAGE.
         loadProgress: 0,
         currentSong: null
       },
+      _ready: false,
+      _initPromise: null,
+      _stateTimer: null,
 
       async init(soundFontUrl) {
+        if (this._ready) {
+          this._notifyReady();
+          return true;
+        }
+        if (this._initPromise) return this._initPromise;
+        this._initPromise = this._init(soundFontUrl);
+        return this._initPromise;
+      },
+
+      async _init(soundFontUrl) {
         try {
           this.engine = MidiEngine;
-          this.engine.init(soundFontUrl || 'GeneralUser-GS.sf2', {
+          await this.engine.init(soundFontUrl || 'GeneralUser-GS.sf2', {
             onStateChange: (playing, time, duration) => {
               this._state.isPlaying = playing;
               this._state.position = time;
               this._state.duration = duration;
+              if (playing) {
+                this._startStateTicker();
+              } else {
+                this._stopStateTicker();
+              }
               this._notifyState();
             },
             onProgress: (percent) => {
@@ -107,16 +125,26 @@ OF SUCH DAMAGE.
               }
             }
           });
+          this._ready = true;
           this._updateStatus('MIDI Engine Ready');
           this._notifyState();
+          this._notifyReady();
+          return true;
         } catch (err) {
           this._updateStatus('Error: ' + err.message);
           console.error('MIDI Engine init error:', err);
+          this._notifyError(err);
+          return false;
+        } finally {
+          this._initPromise = null;
         }
       },
 
       async loadMidi(url, options) {
-        if (!this.engine) return;
+        if (!this._ready || !this.engine) {
+          this._notifyError(new Error('MIDI engine is not ready'));
+          return;
+        }
         this._state.isLoading = true;
         this._state.currentSong = url;
         this._notifyState();
@@ -133,27 +161,41 @@ OF SUCH DAMAGE.
           this._state.isLoading = false;
           this._updateStatus('Load error: ' + err.message);
           console.error('Load MIDI error:', err);
+          this._notifyError(err);
+          this._notifyState();
         }
       },
 
       play() {
         if (!this.engine) return;
         this.engine.play();
+        this._state.isPlaying = true;
+        this._startStateTicker();
+        this._notifyState();
       },
 
       pause() {
         if (!this.engine) return;
         this.engine.pause();
+        this._state.isPlaying = false;
+        this._stopStateTicker();
+        this._notifyState();
       },
 
       stop() {
         if (!this.engine) return;
         this.engine.stop();
+        this._state.isPlaying = false;
+        this._state.position = 0;
+        this._stopStateTicker();
+        this._notifyState();
       },
 
       seek(seconds) {
         if (!this.engine) return;
         this.engine.seek(seconds);
+        this._state.position = seconds;
+        this._notifyState();
       },
 
       setTranspose(semitones) {
@@ -166,6 +208,11 @@ OF SUCH DAMAGE.
         this.engine.setTempoBpm(bpm);
       },
 
+      setInstrument(program) {
+        if (!this.engine) return;
+        this.engine.setInstrument(program);
+      },
+
       setVolume(volume) {
         if (!this.engine) return;
         this.engine.setVolume(volume);
@@ -174,6 +221,18 @@ OF SUCH DAMAGE.
       changeSoundFont(url) {
         if (!this.engine) return;
         this.engine.changeSoundFont(url);
+      },
+
+      preload(url) {
+        if (!this.engine) return;
+        this.engine.preload(url);
+      },
+
+      destroy() {
+        if (!this.engine) return;
+        this._stopStateTicker();
+        this.engine.destroy();
+        this._ready = false;
       },
 
       getState() {
@@ -193,14 +252,45 @@ OF SUCH DAMAGE.
         }
       },
 
+      _startStateTicker() {
+        if (this._stateTimer) return;
+        this._stateTimer = window.setInterval(() => {
+          if (!this.engine) return;
+          this._notifyState();
+          if (!this.engine.isPlaying()) {
+            this._stopStateTicker();
+          }
+        }, 250);
+      },
+
+      _stopStateTicker() {
+        if (!this._stateTimer) return;
+        window.clearInterval(this._stateTimer);
+        this._stateTimer = null;
+      },
+
+      _notifyReady() {
+        if (window.flutter_inappwebview) {
+          window.flutter_inappwebview.callHandler('midiReady', {});
+        }
+      },
+
+      _notifyError(error) {
+        if (window.flutter_inappwebview) {
+          window.flutter_inappwebview.callHandler(
+            'midiError',
+            String(error && error.message ? error.message : error)
+          );
+        }
+      },
+
       _updateStatus(text) {
         const el = document.getElementById('status');
         if (el) el.textContent = text;
       }
     };
 
-    // Auto-init when page loads
-    window.FlutterMidiBridge.init();
+    window.dispatchEvent(new Event('flutter-midi-bridge-ready'));
   </script>
 </body>
 </html>

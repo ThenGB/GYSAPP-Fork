@@ -40,6 +40,9 @@ mixin _$SongState {
   Map<String, DateTime> get lastSync;
   Map<String, DateTime> get remoteLyricsUpdateAt; // New gyschordweb fields
   int get transposeStep;
+  String get chordAccidentalMode;
+  bool get preferNaturalChords;
+  String? get originalFamilyChord;
   double get tempoBpm;
   double get defaultTempoBpm;
   int? get midiInstrument;
@@ -109,6 +112,12 @@ mixin _$SongState {
                 .equals(other.remoteLyricsUpdateAt, remoteLyricsUpdateAt) &&
             (identical(other.transposeStep, transposeStep) ||
                 other.transposeStep == transposeStep) &&
+            (identical(other.chordAccidentalMode, chordAccidentalMode) ||
+                other.chordAccidentalMode == chordAccidentalMode) &&
+            (identical(other.preferNaturalChords, preferNaturalChords) ||
+                other.preferNaturalChords == preferNaturalChords) &&
+            (identical(other.originalFamilyChord, originalFamilyChord) ||
+                other.originalFamilyChord == originalFamilyChord) &&
             (identical(other.tempoBpm, tempoBpm) ||
                 other.tempoBpm == tempoBpm) &&
             (identical(other.defaultTempoBpm, defaultTempoBpm) ||
@@ -151,6 +160,9 @@ mixin _$SongState {
         const DeepCollectionEquality().hash(lastSync),
         const DeepCollectionEquality().hash(remoteLyricsUpdateAt),
         transposeStep,
+        chordAccidentalMode,
+        preferNaturalChords,
+        originalFamilyChord,
         tempoBpm,
         defaultTempoBpm,
         midiInstrument,
@@ -160,7 +172,7 @@ mixin _$SongState {
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
   }
 }
 
@@ -196,6 +208,9 @@ abstract mixin class $SongStateCopyWith<$Res> {
       Map<String, DateTime> lastSync,
       Map<String, DateTime> remoteLyricsUpdateAt,
       int transposeStep,
+      String chordAccidentalMode,
+      bool preferNaturalChords,
+      String? originalFamilyChord,
       double tempoBpm,
       double defaultTempoBpm,
       int? midiInstrument,
@@ -243,6 +258,9 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
     Object? lastSync = null,
     Object? remoteLyricsUpdateAt = null,
     Object? transposeStep = null,
+    Object? chordAccidentalMode = null,
+    Object? preferNaturalChords = null,
+    Object? originalFamilyChord = freezed,
     Object? tempoBpm = null,
     Object? defaultTempoBpm = null,
     Object? midiInstrument = freezed,
@@ -354,6 +372,18 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
           ? _self.transposeStep
           : transposeStep // ignore: cast_nullable_to_non_nullable
               as int,
+      chordAccidentalMode: null == chordAccidentalMode
+          ? _self.chordAccidentalMode
+          : chordAccidentalMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      preferNaturalChords: null == preferNaturalChords
+          ? _self.preferNaturalChords
+          : preferNaturalChords // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalFamilyChord: freezed == originalFamilyChord
+          ? _self.originalFamilyChord
+          : originalFamilyChord // ignore: cast_nullable_to_non_nullable
+              as String?,
       tempoBpm: null == tempoBpm
           ? _self.tempoBpm
           : tempoBpm // ignore: cast_nullable_to_non_nullable
@@ -512,6 +542,9 @@ extension SongStatePatterns on SongState {
             Map<String, DateTime> lastSync,
             Map<String, DateTime> remoteLyricsUpdateAt,
             int transposeStep,
+            String chordAccidentalMode,
+            bool preferNaturalChords,
+            String? originalFamilyChord,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -550,6 +583,9 @@ extension SongStatePatterns on SongState {
             _that.lastSync,
             _that.remoteLyricsUpdateAt,
             _that.transposeStep,
+            _that.chordAccidentalMode,
+            _that.preferNaturalChords,
+            _that.originalFamilyChord,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -602,6 +638,9 @@ extension SongStatePatterns on SongState {
             Map<String, DateTime> lastSync,
             Map<String, DateTime> remoteLyricsUpdateAt,
             int transposeStep,
+            String chordAccidentalMode,
+            bool preferNaturalChords,
+            String? originalFamilyChord,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -639,6 +678,9 @@ extension SongStatePatterns on SongState {
             _that.lastSync,
             _that.remoteLyricsUpdateAt,
             _that.transposeStep,
+            _that.chordAccidentalMode,
+            _that.preferNaturalChords,
+            _that.originalFamilyChord,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -690,6 +732,9 @@ extension SongStatePatterns on SongState {
             Map<String, DateTime> lastSync,
             Map<String, DateTime> remoteLyricsUpdateAt,
             int transposeStep,
+            String chordAccidentalMode,
+            bool preferNaturalChords,
+            String? originalFamilyChord,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -727,6 +772,9 @@ extension SongStatePatterns on SongState {
             _that.lastSync,
             _that.remoteLyricsUpdateAt,
             _that.transposeStep,
+            _that.chordAccidentalMode,
+            _that.preferNaturalChords,
+            _that.originalFamilyChord,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -768,6 +816,9 @@ class _SongState extends SongState {
       final Map<String, DateTime> lastSync = const {},
       final Map<String, DateTime> remoteLyricsUpdateAt = const {},
       this.transposeStep = 0,
+      this.chordAccidentalMode = 'sharp',
+      this.preferNaturalChords = false,
+      this.originalFamilyChord,
       this.tempoBpm = 76.0,
       this.defaultTempoBpm = 76.0,
       this.midiInstrument,
@@ -908,6 +959,14 @@ class _SongState extends SongState {
   final int transposeStep;
   @override
   @JsonKey()
+  final String chordAccidentalMode;
+  @override
+  @JsonKey()
+  final bool preferNaturalChords;
+  @override
+  final String? originalFamilyChord;
+  @override
+  @JsonKey()
   final double tempoBpm;
   @override
   @JsonKey()
@@ -990,6 +1049,12 @@ class _SongState extends SongState {
                 .equals(other._remoteLyricsUpdateAt, _remoteLyricsUpdateAt) &&
             (identical(other.transposeStep, transposeStep) ||
                 other.transposeStep == transposeStep) &&
+            (identical(other.chordAccidentalMode, chordAccidentalMode) ||
+                other.chordAccidentalMode == chordAccidentalMode) &&
+            (identical(other.preferNaturalChords, preferNaturalChords) ||
+                other.preferNaturalChords == preferNaturalChords) &&
+            (identical(other.originalFamilyChord, originalFamilyChord) ||
+                other.originalFamilyChord == originalFamilyChord) &&
             (identical(other.tempoBpm, tempoBpm) ||
                 other.tempoBpm == tempoBpm) &&
             (identical(other.defaultTempoBpm, defaultTempoBpm) ||
@@ -1032,6 +1097,9 @@ class _SongState extends SongState {
         const DeepCollectionEquality().hash(_lastSync),
         const DeepCollectionEquality().hash(_remoteLyricsUpdateAt),
         transposeStep,
+        chordAccidentalMode,
+        preferNaturalChords,
+        originalFamilyChord,
         tempoBpm,
         defaultTempoBpm,
         midiInstrument,
@@ -1041,7 +1109,7 @@ class _SongState extends SongState {
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
   }
 }
 
@@ -1080,6 +1148,9 @@ abstract mixin class _$SongStateCopyWith<$Res>
       Map<String, DateTime> lastSync,
       Map<String, DateTime> remoteLyricsUpdateAt,
       int transposeStep,
+      String chordAccidentalMode,
+      bool preferNaturalChords,
+      String? originalFamilyChord,
       double tempoBpm,
       double defaultTempoBpm,
       int? midiInstrument,
@@ -1128,6 +1199,9 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
     Object? lastSync = null,
     Object? remoteLyricsUpdateAt = null,
     Object? transposeStep = null,
+    Object? chordAccidentalMode = null,
+    Object? preferNaturalChords = null,
+    Object? originalFamilyChord = freezed,
     Object? tempoBpm = null,
     Object? defaultTempoBpm = null,
     Object? midiInstrument = freezed,
@@ -1239,6 +1313,18 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
           ? _self.transposeStep
           : transposeStep // ignore: cast_nullable_to_non_nullable
               as int,
+      chordAccidentalMode: null == chordAccidentalMode
+          ? _self.chordAccidentalMode
+          : chordAccidentalMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      preferNaturalChords: null == preferNaturalChords
+          ? _self.preferNaturalChords
+          : preferNaturalChords // ignore: cast_nullable_to_non_nullable
+              as bool,
+      originalFamilyChord: freezed == originalFamilyChord
+          ? _self.originalFamilyChord
+          : originalFamilyChord // ignore: cast_nullable_to_non_nullable
+              as String?,
       tempoBpm: null == tempoBpm
           ? _self.tempoBpm
           : tempoBpm // ignore: cast_nullable_to_non_nullable

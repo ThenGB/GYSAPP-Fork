@@ -68,10 +68,14 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
   }
 
   Widget _buildPanel(ThemeData theme) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final panelWidth =
+        _expanded ? (screenWidth - 32).clamp(260.0, 340.0).toDouble() : 56.0;
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
-      width: _expanded ? 280 : 56,
+      width: panelWidth,
       decoration: BoxDecoration(
         color: theme.colorScheme.surface.withValues(alpha: 0.95),
         borderRadius: BorderRadius.circular(16),
@@ -83,7 +87,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
           ),
         ],
       ),
-      child: _expanded ? _buildExpandedContent(theme) : _buildCollapsedButton(theme),
+      child: _expanded
+          ? _buildExpandedContent(theme)
+          : _buildCollapsedButton(theme),
     );
   }
 
@@ -119,7 +125,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
           // Header with close button
           Row(
             children: [
-              Icon(Icons.drag_handle, size: 16, color: theme.colorScheme.outline),
+              Icon(Icons.drag_handle,
+                  size: 16, color: theme.colorScheme.outline),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.close, size: 18),
@@ -154,29 +161,47 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
           ),
           const SizedBox(height: 12),
 
-          // Seek bar
-          if (widget.duration > 0) ...[
-            Row(
-              children: [
-                Text(_formatTime(widget.position), style: theme.textTheme.bodySmall),
-                Expanded(
-                  child: Slider(
-                    value: widget.position.clamp(0, widget.duration),
-                    max: widget.duration,
-                    onChanged: widget.onSeek,
-                  ),
+          Row(
+            children: [
+              SizedBox(
+                width: 40,
+                child: Text(
+                  _formatTime(widget.position),
+                  style: theme.textTheme.bodySmall,
                 ),
-                Text(_formatTime(widget.duration), style: theme.textTheme.bodySmall),
-              ],
-            ),
-          ],
+              ),
+              Expanded(
+                child: Slider(
+                  value: widget.duration > 0
+                      ? widget.position.clamp(0, widget.duration)
+                      : 0,
+                  max: widget.duration > 0 ? widget.duration : 1,
+                  onChanged: widget.duration > 0 ? widget.onSeek : null,
+                ),
+              ),
+              SizedBox(
+                width: 40,
+                child: Text(
+                  _formatTime(widget.duration),
+                  textAlign: TextAlign.end,
+                  style: theme.textTheme.bodySmall,
+                ),
+              ),
+            ],
+          ),
 
           // Transpose control
           Row(
             children: [
               const Icon(Icons.music_note, size: 16),
               const SizedBox(width: 8),
-              const Text('Transpose'),
+              Flexible(
+                child: Text(
+                  'Transpose',
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
               const Spacer(),
               IconButton(
                 icon: const Icon(Icons.remove_circle_outline, size: 20),
@@ -189,7 +214,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                 child: Text(
                   '${widget.transposeStep > 0 ? '+' : ''}${widget.transposeStep}',
                   textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.bold),
                 ),
               ),
               IconButton(
@@ -207,9 +233,25 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
             children: [
               const Icon(Icons.speed, size: 16),
               const SizedBox(width: 8),
-              const Text('Tempo'),
-              const Spacer(),
-              Text('${widget.tempoBpm.toInt()} BPM', style: theme.textTheme.bodySmall),
+              Expanded(
+                child: Text(
+                  'Tempo',
+                  overflow: TextOverflow.ellipsis,
+                  style: theme.textTheme.bodyMedium,
+                ),
+              ),
+              const SizedBox(width: 8),
+              SizedBox(
+                width: 64,
+                child: FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerRight,
+                  child: Text(
+                    '${widget.tempoBpm.toInt()} BPM',
+                    style: theme.textTheme.bodySmall,
+                  ),
+                ),
+              ),
             ],
           ),
           Slider(
@@ -224,4 +266,3 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
     );
   }
 }
-

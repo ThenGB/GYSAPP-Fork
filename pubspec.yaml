@@ -173,6 +173,7 @@ flutter:
     - assets/data/chord/kr/
     - assets/data/soundfont/
     - assets/web/
+    - assets/web/js/
     - assets/web/pdfjs/
     - google_fonts/
   #   - images/a_dot_ham.jpeg

@@ -86,19 +86,70 @@ class _SongViewState extends State<SongView> {
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
       builder: (context, state) {
+        final showHeaderTransport =
+            state.showAudio && MediaQuery.sizeOf(context).width >= 760;
+        final textMode = state.isImageMode == true;
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
+            centerTitle: true,
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            surfaceTintColor: Colors.transparent,
             leading: IconButton(
               icon: const Icon(Icons.list_alt_rounded),
               tooltip: 'Selector nomor pujian',
               onPressed: _openSongSelector,
             ),
-            title: Text(
-              '${state.getSongNumberAt(currentPageIndex) ?? ''} - ${state.getSongTitleAt(currentPageIndex)}',
-              style: const TextStyle(fontSize: 16),
+            title: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  state.getSongTitleAt(currentPageIndex),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (state.originalFamilyChord != null)
+                  Text(
+                    'Family ${ChordService.normalizeChord(
+                      state.originalFamilyChord!,
+                      accidentalMode: state.chordAccidentalMode,
+                    )}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onPrimaryContainer
+                          .withValues(alpha: 0.72),
+                    ),
+                  ),
+              ],
             ),
             actions: [
+              if (showHeaderTransport)
+                AnimatedBuilder(
+                  animation: cubit.midiEngine,
+                  builder: (context, child) {
+                    final midiState = cubit.midiEngine.state;
+                    return _HeaderMidiControls(
+                      isPlaying: midiState.isPlaying,
+                      isLoading: midiState.isLoading,
+                      position: midiState.position,
+                      duration: midiState.duration,
+                      onPlayPause: () => cubit.togglePlayPause(),
+                      onStop: () => cubit.stop(),
+                      onSeek: (seconds) =>
+                          cubit.seek(Duration(seconds: seconds.round())),
+                    );
+                  },
+                ),
               // Audio toggle
               IconButton(
                 icon: Icon(
@@ -118,6 +169,15 @@ class _SongViewState extends State<SongView> {
                       : Theme.of(context).disabledColor,
                 ),
                 onPressed: () => cubit.toggleChord(),
+              ),
+              IconButton(
+                icon: Icon(
+                  textMode
+                      ? Icons.picture_as_pdf_rounded
+                      : Icons.article_outlined,
+                ),
+                tooltip: textMode ? 'Mode PDF' : 'Mode teks',
+                onPressed: cubit.changeMode,
               ),
               // More options
               PopupMenuButton(
@@ -180,6 +240,14 @@ class _SongViewState extends State<SongView> {
                 itemCount: state.songs.length,
                 itemBuilder: (context, index) {
                   final song = state.songs[index];
+                  if (textMode) {
+                    return _SongTextPage(
+                      song: song,
+                      textScale: state.defaultTextScale,
+                      textHeight: state.defaultTextHeight,
+                      fontBold: state.fontBold,
+                    );
+                  }
                   return FutureBuilder<String?>(
                     future:
                         cubit.getPdfPath(song.code ?? '', song.number ?? ''),
@@ -193,6 +261,7 @@ class _SongViewState extends State<SongView> {
                         showChord: state.showChord,
                         chords: _currentChords,
                         transposeStep: state.transposeStep,
+                        chordAccidentalMode: state.chordAccidentalMode,
                       );
                     },
                   );
@@ -200,13 +269,12 @@ class _SongViewState extends State<SongView> {
               ),
 
               // Hidden MIDI Engine WebView
-              if (state.showAudio)
-                MidiEngineWebView(
-                  service: cubit.midiEngine,
-                ),
+              MidiEngineWebView(
+                service: cubit.midiEngine,
+              ),
 
               // Draggable MIDI Controls
-              if (state.showAudio)
+              if (state.showAudio && !showHeaderTransport)
                 AnimatedBuilder(
                   animation: cubit.midiEngine,
                   builder: (context, child) {
@@ -301,5 +369,137 @@ class _SongViewState extends State<SongView> {
     _loadChordData();
     if (!pageController.hasClients) return;
     pageController.jumpToPage(index);
+  }
+}
+
+class _HeaderMidiControls extends StatelessWidget {
+  final bool isPlaying;
+  final bool isLoading;
+  final double position;
+  final double duration;
+  final VoidCallback onPlayPause;
+  final VoidCallback onStop;
+  final ValueChanged<double> onSeek;
+
+  const _HeaderMidiControls({
+    required this.isPlaying,
+    required this.isLoading,
+    required this.position,
+    required this.duration,
+    required this.onPlayPause,
+    required this.onStop,
+    required this.onSeek,
+  });
+
+  String _formatTime(double seconds) {
+    final minute = seconds ~/ 60;
+    final second = (seconds % 60).toInt();
+    return '$minute:${second.toString().padLeft(2, '0')}';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return SizedBox(
+      width: 300,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            tooltip: 'Stop',
+            visualDensity: VisualDensity.compact,
+            onPressed: onStop,
+            icon: const Icon(Icons.stop_rounded),
+          ),
+          IconButton(
+            tooltip: isPlaying ? 'Pause' : 'Play',
+            visualDensity: VisualDensity.compact,
+            onPressed: isLoading ? null : onPlayPause,
+            icon: isLoading
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow),
+          ),
+          Text(_formatTime(position), style: theme.textTheme.bodySmall),
+          Expanded(
+            child: Slider(
+              value: duration > 0 ? position.clamp(0, duration) : 0,
+              max: duration > 0 ? duration : 1,
+              onChanged: duration > 0 ? onSeek : null,
+            ),
+          ),
+          SizedBox(
+            width: 38,
+            child: Text(
+              _formatTime(duration),
+              textAlign: TextAlign.end,
+              style: theme.textTheme.bodySmall,
+            ),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _SongTextPage extends StatelessWidget {
+  final Song song;
+  final double textScale;
+  final double textHeight;
+  final bool fontBold;
+
+  const _SongTextPage({
+    required this.song,
+    required this.textScale,
+    required this.textHeight,
+    required this.fontBold,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final verses = song.verses;
+    return SelectionArea(
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          20,
+          20,
+          32 + MediaQuery.paddingOf(context).bottom,
+        ),
+        children: [
+          Text(
+            '${song.number ?? ''} - ${song.title ?? ''}',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 20),
+          if (verses.isEmpty)
+            Text(
+              'Teks lagu belum tersedia.',
+              style: theme.textTheme.bodyMedium,
+            )
+          else
+            ...verses.indexed.map(
+              (entry) => Padding(
+                padding: const EdgeInsets.only(bottom: 18),
+                child: Text(
+                  entry.$2,
+                  style: theme.textTheme.bodyLarge?.copyWith(
+                    fontSize: 16 * textScale,
+                    height: textHeight,
+                    fontWeight: fontBold ? FontWeight.w700 : FontWeight.w400,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }

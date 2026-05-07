@@ -13,6 +13,7 @@ class SongPdfViewer extends StatefulWidget {
   final bool showChord;
   final Map<int, List<ChordData>>? chords;
   final int transposeStep;
+  final String chordAccidentalMode;
   final VoidCallback? onPageChanged;
 
   const SongPdfViewer({
@@ -21,6 +22,7 @@ class SongPdfViewer extends StatefulWidget {
     this.showChord = false,
     this.chords,
     this.transposeStep = 0,
+    this.chordAccidentalMode = ChordService.accidentalSharp,
     this.onPageChanged,
   });
 
@@ -42,7 +44,8 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
     }
     if (oldWidget.showChord != widget.showChord ||
         oldWidget.chords != widget.chords ||
-        oldWidget.transposeStep != widget.transposeStep) {
+        oldWidget.transposeStep != widget.transposeStep ||
+        oldWidget.chordAccidentalMode != widget.chordAccidentalMode) {
       _syncChords();
     }
   }
@@ -184,12 +187,11 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
             .map(
               (chord) => {
                 'noteIdx': chord.noteIdx,
-                'chord': widget.transposeStep == 0
-                    ? chord.chord
-                    : ChordService.transposeChord(
-                        chord.chord,
-                        widget.transposeStep,
-                      ),
+                'chord': ChordService.transposeChord(
+                  chord.chord,
+                  widget.transposeStep,
+                  accidentalMode: widget.chordAccidentalMode,
+                ),
               },
             )
             .toList(),
