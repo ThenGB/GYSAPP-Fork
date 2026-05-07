@@ -246,8 +246,7 @@ class _DashboardViewState extends State<DashboardView> {
                                   width: double.infinity,
                                 );
                               }
-                              var size =
-                                  58 + context.mediaQuery.viewPadding.bottom;
+                              var size = 68.0;
                               return PlayAnimationBuilder(
                                 duration: kThemeAnimationDuration,
                                 tween: Tween<double>(begin: 0, end: 1),
@@ -256,28 +255,16 @@ class _DashboardViewState extends State<DashboardView> {
                                 builder: (context, value, child) =>
                                     Transform.translate(
                                   offset: Offset(0, size - size * value),
-                                  child: SizedBox(
-                                    height: size,
-                                    child: BottomNavigationBar(
+                                  child: BottomNavigationBar(
                                       elevation: 8,
                                       backgroundColor:
                                           context.colorScheme.surface,
                                       currentIndex: tabsRouter.activeIndex,
                                       selectedItemColor: context
                                           .primaryTextTheme.bodyMedium!.color,
-                                      showUnselectedLabels: true,
+                                      showUnselectedLabels: false,
+                                      showSelectedLabels: false,
                                       type: BottomNavigationBarType.fixed,
-                                      selectedLabelStyle: TextStyle(
-                                        color:
-                                            context.textTheme.bodyMedium!.color,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                      unselectedLabelStyle: TextStyle(
-                                        fontSize: 12,
-                                        color:
-                                            context.textTheme.bodyMedium!.color,
-                                      ),
                                       onTap: (value) {
                                         context
                                             .read<BibleCubit>()
@@ -312,14 +299,11 @@ class _DashboardViewState extends State<DashboardView> {
                                           .map(
                                             (e) => BottomNavigationBarItem(
                                               icon: Container(
-                                                margin: const EdgeInsets.only(
-                                                        bottom: 4)
-                                                    .add(const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 8)),
+                                                margin: const EdgeInsets.symmetric(horizontal: 8),
                                                 padding:
                                                     const EdgeInsets.symmetric(
-                                                        vertical: 0),
+                                                        vertical: 6,
+                                                        horizontal: 8),
                                                 decoration: BoxDecoration(
                                                   borderRadius:
                                                       BorderRadius.circular(
@@ -332,36 +316,77 @@ class _DashboardViewState extends State<DashboardView> {
                                                       : null,
                                                 ),
                                                 width: double.infinity,
-                                                child: ColorFiltered(
-                                                  colorFilter: ColorFilter.mode(
-                                                    tabsRouter.activeIndex ==
-                                                            pages.indexOf(e)
-                                                        ? context
-                                                            .primaryTextTheme
-                                                            .bodyMedium!
-                                                            .color!
-                                                        : context.textTheme
-                                                            .bodyMedium!.color!
-                                                            .withValues(
-                                                                alpha: 0.5),
-                                                    pages.indexOf(e) == 0
-                                                        ? BlendMode.dstIn
-                                                        : BlendMode.srcIn,
-                                                  ),
-                                                  child: Image.asset(
-                                                    e['icon'] as String,
-                                                    width: 24,
-                                                    height: 24,
-                                                  ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    ColorFiltered(
+                                                      colorFilter:
+                                                          ColorFilter.mode(
+                                                        tabsRouter
+                                                                    .activeIndex ==
+                                                                pages.indexOf(
+                                                                    e)
+                                                            ? context
+                                                                .primaryTextTheme
+                                                                .bodyMedium!
+                                                                .color!
+                                                            : context
+                                                                .textTheme
+                                                                .bodyMedium!
+                                                                .color!
+                                                                .withValues(
+                                                                    alpha:
+                                                                        0.5),
+                                                        pages.indexOf(e) == 0
+                                                            ? BlendMode.dstIn
+                                                            : BlendMode.srcIn,
+                                                      ),
+                                                      child: Image.asset(
+                                                        e['icon'] as String,
+                                                        width: 24,
+                                                        height: 24,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(
+                                                        height: 2),
+                                                    Text(
+                                                      (e['label']
+                                                              as String)
+                                                          .tr(),
+                                                      style: TextStyle(
+                                                        fontSize: 11,
+                                                        color: tabsRouter
+                                                                    .activeIndex ==
+                                                                pages.indexOf(
+                                                                    e)
+                                                            ? context
+                                                                .primaryTextTheme
+                                                                .bodyMedium
+                                                                ?.color
+                                                            : context
+                                                                .textTheme
+                                                                .bodyMedium
+                                                                ?.color
+                                                                ?.withValues(
+                                                                    alpha:
+                                                                        0.5),
+                                                        fontWeight: tabsRouter
+                                                                    .activeIndex ==
+                                                                pages.indexOf(
+                                                                    e)
+                                                            ? FontWeight.w600
+                                                            : null,
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
-                                              label:
-                                                  (e['label'] as String).tr(),
+                                              label: '',
                                             ),
                                           )
                                           .toList(),
                                     ),
-                                  ),
                                 ),
                               );
                             },

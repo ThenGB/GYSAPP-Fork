@@ -67,6 +67,16 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
       midiInstrument: (json['midiInstrument'] as num?)?.toInt(),
       soundFont: json['soundFont'] as String? ?? 'GeneralUser-GS.sf2',
       isAudioPlaying: json['isAudioPlaying'] as bool? ?? false,
+      pdfTwoPageMode: json['pdfTwoPageMode'] as bool? ?? false,
+      pdfVerticalScrolling: json['pdfVerticalScrolling'] as bool? ?? false,
+      lyricsTextAlign: json['lyricsTextAlign'] as String? ?? 'left',
+      lyricsVerticalAlign: json['lyricsVerticalAlign'] as String? ?? 'top',
+      chordFontSizePercent:
+          (json['chordFontSizePercent'] as num?)?.toInt() ?? 100,
+      chordFillOpacityPercent:
+          (json['chordFillOpacityPercent'] as num?)?.toInt() ?? 94,
+      chordPaddingPercent:
+          (json['chordPaddingPercent'] as num?)?.toInt() ?? 100,
     );
 
 Map<String, dynamic> _$SongStateToJson(_SongState instance) =>
@@ -109,4 +119,11 @@ Map<String, dynamic> _$SongStateToJson(_SongState instance) =>
       'midiInstrument': instance.midiInstrument,
       'soundFont': instance.soundFont,
       'isAudioPlaying': instance.isAudioPlaying,
+      'pdfTwoPageMode': instance.pdfTwoPageMode,
+      'pdfVerticalScrolling': instance.pdfVerticalScrolling,
+      'lyricsTextAlign': instance.lyricsTextAlign,
+      'lyricsVerticalAlign': instance.lyricsVerticalAlign,
+      'chordFontSizePercent': instance.chordFontSizePercent,
+      'chordFillOpacityPercent': instance.chordFillOpacityPercent,
+      'chordPaddingPercent': instance.chordPaddingPercent,
     };

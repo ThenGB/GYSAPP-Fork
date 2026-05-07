@@ -11,8 +11,22 @@ import '../../../router/router.dart';
 import '../bloc/initial_cubit.dart';
 
 @RoutePage()
-class InitialView extends StatelessWidget {
+class InitialView extends StatefulWidget {
   const InitialView({super.key});
+
+  @override
+  State<InitialView> createState() => _InitialViewState();
+}
+
+class _InitialViewState extends State<InitialView> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<InitialCubit>().initState();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +41,6 @@ class InitialView extends StatelessWidget {
       default:
     }
     timeago.setLocaleMessages(context.locale.languageCode, message);
-    context.read<InitialCubit>().initState();
     return BlocBuilder<InitialCubit, InitialState>(
       builder: (context, state) => BlocListener<InitialCubit, InitialState>(
         listener: (context, state) {
@@ -156,4 +169,3 @@ class EnShortMessages implements timeago.LookupMessages {
   @override
   String wordSeparator() => ' ';
 }
-

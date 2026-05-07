@@ -50,6 +50,13 @@ mixin _$SongState {
   int? get midiInstrument;
   String get soundFont;
   bool get isAudioPlaying;
+  bool get pdfTwoPageMode;
+  bool get pdfVerticalScrolling;
+  String get lyricsTextAlign;
+  String get lyricsVerticalAlign;
+  int get chordFontSizePercent;
+  int get chordFillOpacityPercent;
+  int get chordPaddingPercent;
 
   /// Create a copy of SongState
   /// with the given fields replaced by the non-null parameter values.
@@ -133,7 +140,22 @@ mixin _$SongState {
             (identical(other.soundFont, soundFont) ||
                 other.soundFont == soundFont) &&
             (identical(other.isAudioPlaying, isAudioPlaying) ||
-                other.isAudioPlaying == isAudioPlaying));
+                other.isAudioPlaying == isAudioPlaying) &&
+            (identical(other.pdfTwoPageMode, pdfTwoPageMode) ||
+                other.pdfTwoPageMode == pdfTwoPageMode) &&
+            (identical(other.pdfVerticalScrolling, pdfVerticalScrolling) ||
+                other.pdfVerticalScrolling == pdfVerticalScrolling) &&
+            (identical(other.lyricsTextAlign, lyricsTextAlign) ||
+                other.lyricsTextAlign == lyricsTextAlign) &&
+            (identical(other.lyricsVerticalAlign, lyricsVerticalAlign) ||
+                other.lyricsVerticalAlign == lyricsVerticalAlign) &&
+            (identical(other.chordFontSizePercent, chordFontSizePercent) ||
+                other.chordFontSizePercent == chordFontSizePercent) &&
+            (identical(
+                    other.chordFillOpacityPercent, chordFillOpacityPercent) ||
+                other.chordFillOpacityPercent == chordFillOpacityPercent) &&
+            (identical(other.chordPaddingPercent, chordPaddingPercent) ||
+                other.chordPaddingPercent == chordPaddingPercent));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -175,12 +197,19 @@ mixin _$SongState {
         defaultTempoBpm,
         midiInstrument,
         soundFont,
-        isAudioPlaying
+        isAudioPlaying,
+        pdfTwoPageMode,
+        pdfVerticalScrolling,
+        lyricsTextAlign,
+        lyricsVerticalAlign,
+        chordFontSizePercent,
+        chordFillOpacityPercent,
+        chordPaddingPercent
       ]);
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying, pdfTwoPageMode: $pdfTwoPageMode, pdfVerticalScrolling: $pdfVerticalScrolling, lyricsTextAlign: $lyricsTextAlign, lyricsVerticalAlign: $lyricsVerticalAlign, chordFontSizePercent: $chordFontSizePercent, chordFillOpacityPercent: $chordFillOpacityPercent, chordPaddingPercent: $chordPaddingPercent)';
   }
 }
 
@@ -225,7 +254,14 @@ abstract mixin class $SongStateCopyWith<$Res> {
       double defaultTempoBpm,
       int? midiInstrument,
       String soundFont,
-      bool isAudioPlaying});
+      bool isAudioPlaying,
+      bool pdfTwoPageMode,
+      bool pdfVerticalScrolling,
+      String lyricsTextAlign,
+      String lyricsVerticalAlign,
+      int chordFontSizePercent,
+      int chordFillOpacityPercent,
+      int chordPaddingPercent});
 
   $SongCopyWith<$Res>? get selectedSong;
 }
@@ -278,6 +314,13 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
     Object? midiInstrument = freezed,
     Object? soundFont = null,
     Object? isAudioPlaying = null,
+    Object? pdfTwoPageMode = null,
+    Object? pdfVerticalScrolling = null,
+    Object? lyricsTextAlign = null,
+    Object? lyricsVerticalAlign = null,
+    Object? chordFontSizePercent = null,
+    Object? chordFillOpacityPercent = null,
+    Object? chordPaddingPercent = null,
   }) {
     return _then(_self.copyWith(
       isLoading: null == isLoading
@@ -424,6 +467,34 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
           ? _self.isAudioPlaying
           : isAudioPlaying // ignore: cast_nullable_to_non_nullable
               as bool,
+      pdfTwoPageMode: null == pdfTwoPageMode
+          ? _self.pdfTwoPageMode
+          : pdfTwoPageMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pdfVerticalScrolling: null == pdfVerticalScrolling
+          ? _self.pdfVerticalScrolling
+          : pdfVerticalScrolling // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lyricsTextAlign: null == lyricsTextAlign
+          ? _self.lyricsTextAlign
+          : lyricsTextAlign // ignore: cast_nullable_to_non_nullable
+              as String,
+      lyricsVerticalAlign: null == lyricsVerticalAlign
+          ? _self.lyricsVerticalAlign
+          : lyricsVerticalAlign // ignore: cast_nullable_to_non_nullable
+              as String,
+      chordFontSizePercent: null == chordFontSizePercent
+          ? _self.chordFontSizePercent
+          : chordFontSizePercent // ignore: cast_nullable_to_non_nullable
+              as int,
+      chordFillOpacityPercent: null == chordFillOpacityPercent
+          ? _self.chordFillOpacityPercent
+          : chordFillOpacityPercent // ignore: cast_nullable_to_non_nullable
+              as int,
+      chordPaddingPercent: null == chordPaddingPercent
+          ? _self.chordPaddingPercent
+          : chordPaddingPercent // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 
@@ -571,7 +642,14 @@ extension SongStatePatterns on SongState {
             double defaultTempoBpm,
             int? midiInstrument,
             String soundFont,
-            bool isAudioPlaying)?
+            bool isAudioPlaying,
+            bool pdfTwoPageMode,
+            bool pdfVerticalScrolling,
+            String lyricsTextAlign,
+            String lyricsVerticalAlign,
+            int chordFontSizePercent,
+            int chordFillOpacityPercent,
+            int chordPaddingPercent)?
         $default, {
     required TResult orElse(),
   }) {
@@ -614,7 +692,14 @@ extension SongStatePatterns on SongState {
             _that.defaultTempoBpm,
             _that.midiInstrument,
             _that.soundFont,
-            _that.isAudioPlaying);
+            _that.isAudioPlaying,
+            _that.pdfTwoPageMode,
+            _that.pdfVerticalScrolling,
+            _that.lyricsTextAlign,
+            _that.lyricsVerticalAlign,
+            _that.chordFontSizePercent,
+            _that.chordFillOpacityPercent,
+            _that.chordPaddingPercent);
       case _:
         return orElse();
     }
@@ -671,7 +756,14 @@ extension SongStatePatterns on SongState {
             double defaultTempoBpm,
             int? midiInstrument,
             String soundFont,
-            bool isAudioPlaying)
+            bool isAudioPlaying,
+            bool pdfTwoPageMode,
+            bool pdfVerticalScrolling,
+            String lyricsTextAlign,
+            String lyricsVerticalAlign,
+            int chordFontSizePercent,
+            int chordFillOpacityPercent,
+            int chordPaddingPercent)
         $default,
   ) {
     final _that = this;
@@ -713,7 +805,14 @@ extension SongStatePatterns on SongState {
             _that.defaultTempoBpm,
             _that.midiInstrument,
             _that.soundFont,
-            _that.isAudioPlaying);
+            _that.isAudioPlaying,
+            _that.pdfTwoPageMode,
+            _that.pdfVerticalScrolling,
+            _that.lyricsTextAlign,
+            _that.lyricsVerticalAlign,
+            _that.chordFontSizePercent,
+            _that.chordFillOpacityPercent,
+            _that.chordPaddingPercent);
       case _:
         throw StateError('Unexpected subclass');
     }
@@ -769,7 +868,14 @@ extension SongStatePatterns on SongState {
             double defaultTempoBpm,
             int? midiInstrument,
             String soundFont,
-            bool isAudioPlaying)?
+            bool isAudioPlaying,
+            bool pdfTwoPageMode,
+            bool pdfVerticalScrolling,
+            String lyricsTextAlign,
+            String lyricsVerticalAlign,
+            int chordFontSizePercent,
+            int chordFillOpacityPercent,
+            int chordPaddingPercent)?
         $default,
   ) {
     final _that = this;
@@ -811,7 +917,14 @@ extension SongStatePatterns on SongState {
             _that.defaultTempoBpm,
             _that.midiInstrument,
             _that.soundFont,
-            _that.isAudioPlaying);
+            _that.isAudioPlaying,
+            _that.pdfTwoPageMode,
+            _that.pdfVerticalScrolling,
+            _that.lyricsTextAlign,
+            _that.lyricsVerticalAlign,
+            _that.chordFontSizePercent,
+            _that.chordFillOpacityPercent,
+            _that.chordPaddingPercent);
       case _:
         return null;
     }
@@ -857,7 +970,14 @@ class _SongState extends SongState {
       this.defaultTempoBpm = 76.0,
       this.midiInstrument,
       this.soundFont = 'GeneralUser-GS.sf2',
-      this.isAudioPlaying = false})
+      this.isAudioPlaying = false,
+      this.pdfTwoPageMode = false,
+      this.pdfVerticalScrolling = false,
+      this.lyricsTextAlign = 'left',
+      this.lyricsVerticalAlign = 'top',
+      this.chordFontSizePercent = 100,
+      this.chordFillOpacityPercent = 94,
+      this.chordPaddingPercent = 100})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         _notes = notes,
@@ -1018,6 +1138,27 @@ class _SongState extends SongState {
   @override
   @JsonKey()
   final bool isAudioPlaying;
+  @override
+  @JsonKey()
+  final bool pdfTwoPageMode;
+  @override
+  @JsonKey()
+  final bool pdfVerticalScrolling;
+  @override
+  @JsonKey()
+  final String lyricsTextAlign;
+  @override
+  @JsonKey()
+  final String lyricsVerticalAlign;
+  @override
+  @JsonKey()
+  final int chordFontSizePercent;
+  @override
+  @JsonKey()
+  final int chordFillOpacityPercent;
+  @override
+  @JsonKey()
+  final int chordPaddingPercent;
 
   /// Create a copy of SongState
   /// with the given fields replaced by the non-null parameter values.
@@ -1107,7 +1248,22 @@ class _SongState extends SongState {
             (identical(other.soundFont, soundFont) ||
                 other.soundFont == soundFont) &&
             (identical(other.isAudioPlaying, isAudioPlaying) ||
-                other.isAudioPlaying == isAudioPlaying));
+                other.isAudioPlaying == isAudioPlaying) &&
+            (identical(other.pdfTwoPageMode, pdfTwoPageMode) ||
+                other.pdfTwoPageMode == pdfTwoPageMode) &&
+            (identical(other.pdfVerticalScrolling, pdfVerticalScrolling) ||
+                other.pdfVerticalScrolling == pdfVerticalScrolling) &&
+            (identical(other.lyricsTextAlign, lyricsTextAlign) ||
+                other.lyricsTextAlign == lyricsTextAlign) &&
+            (identical(other.lyricsVerticalAlign, lyricsVerticalAlign) ||
+                other.lyricsVerticalAlign == lyricsVerticalAlign) &&
+            (identical(other.chordFontSizePercent, chordFontSizePercent) ||
+                other.chordFontSizePercent == chordFontSizePercent) &&
+            (identical(
+                    other.chordFillOpacityPercent, chordFillOpacityPercent) ||
+                other.chordFillOpacityPercent == chordFillOpacityPercent) &&
+            (identical(other.chordPaddingPercent, chordPaddingPercent) ||
+                other.chordPaddingPercent == chordPaddingPercent));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1149,12 +1305,19 @@ class _SongState extends SongState {
         defaultTempoBpm,
         midiInstrument,
         soundFont,
-        isAudioPlaying
+        isAudioPlaying,
+        pdfTwoPageMode,
+        pdfVerticalScrolling,
+        lyricsTextAlign,
+        lyricsVerticalAlign,
+        chordFontSizePercent,
+        chordFillOpacityPercent,
+        chordPaddingPercent
       ]);
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying, pdfTwoPageMode: $pdfTwoPageMode, pdfVerticalScrolling: $pdfVerticalScrolling, lyricsTextAlign: $lyricsTextAlign, lyricsVerticalAlign: $lyricsVerticalAlign, chordFontSizePercent: $chordFontSizePercent, chordFillOpacityPercent: $chordFillOpacityPercent, chordPaddingPercent: $chordPaddingPercent)';
   }
 }
 
@@ -1202,7 +1365,14 @@ abstract mixin class _$SongStateCopyWith<$Res>
       double defaultTempoBpm,
       int? midiInstrument,
       String soundFont,
-      bool isAudioPlaying});
+      bool isAudioPlaying,
+      bool pdfTwoPageMode,
+      bool pdfVerticalScrolling,
+      String lyricsTextAlign,
+      String lyricsVerticalAlign,
+      int chordFontSizePercent,
+      int chordFillOpacityPercent,
+      int chordPaddingPercent});
 
   @override
   $SongCopyWith<$Res>? get selectedSong;
@@ -1256,6 +1426,13 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
     Object? midiInstrument = freezed,
     Object? soundFont = null,
     Object? isAudioPlaying = null,
+    Object? pdfTwoPageMode = null,
+    Object? pdfVerticalScrolling = null,
+    Object? lyricsTextAlign = null,
+    Object? lyricsVerticalAlign = null,
+    Object? chordFontSizePercent = null,
+    Object? chordFillOpacityPercent = null,
+    Object? chordPaddingPercent = null,
   }) {
     return _then(_SongState(
       isLoading: null == isLoading
@@ -1402,6 +1579,34 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
           ? _self.isAudioPlaying
           : isAudioPlaying // ignore: cast_nullable_to_non_nullable
               as bool,
+      pdfTwoPageMode: null == pdfTwoPageMode
+          ? _self.pdfTwoPageMode
+          : pdfTwoPageMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      pdfVerticalScrolling: null == pdfVerticalScrolling
+          ? _self.pdfVerticalScrolling
+          : pdfVerticalScrolling // ignore: cast_nullable_to_non_nullable
+              as bool,
+      lyricsTextAlign: null == lyricsTextAlign
+          ? _self.lyricsTextAlign
+          : lyricsTextAlign // ignore: cast_nullable_to_non_nullable
+              as String,
+      lyricsVerticalAlign: null == lyricsVerticalAlign
+          ? _self.lyricsVerticalAlign
+          : lyricsVerticalAlign // ignore: cast_nullable_to_non_nullable
+              as String,
+      chordFontSizePercent: null == chordFontSizePercent
+          ? _self.chordFontSizePercent
+          : chordFontSizePercent // ignore: cast_nullable_to_non_nullable
+              as int,
+      chordFillOpacityPercent: null == chordFillOpacityPercent
+          ? _self.chordFillOpacityPercent
+          : chordFillOpacityPercent // ignore: cast_nullable_to_non_nullable
+              as int,
+      chordPaddingPercent: null == chordPaddingPercent
+          ? _self.chordPaddingPercent
+          : chordPaddingPercent // ignore: cast_nullable_to_non_nullable
+              as int,
     ));
   }
 

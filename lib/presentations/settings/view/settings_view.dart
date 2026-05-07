@@ -153,14 +153,25 @@ class SettingsView extends StatelessWidget {
                                     ),
                                     onPressed: () async {
                                       log('onTapSelectBible');
-                                      context.read<BibleCubit>().getBibles();
-                                      var bibleCodes = context
+                                      await context.read<BibleCubit>().getBibles();
+                                      if (!context.mounted) return;
+                                      final state = context
                                           .read<BibleCubit>()
-                                          .state
-                                          .bibleCodes
-                                          .map((e) =>
-                                              e.split('.').first.toUpperCase())
+                                          .state;
+                                      var bibleCodes = state.bibleCodes
+                                          .map((e) => e
+                                              .split('.')
+                                              .first)
                                           .toList();
+                                      if (bibleCodes.isEmpty) {
+                                        Fluttertoast.showToast(
+                                            msg: 'No Bible versions available'
+                                                .tr());
+                                        return;
+                                      }
+                                      var currentIndex = bibleCodes.indexOf(
+                                          state.currentBibleCode);
+                                      if (currentIndex < 0) currentIndex = 0;
                                       await showModalBottomSheet(
                                         context: context,
                                         backgroundColor: Colors.transparent,
@@ -168,10 +179,12 @@ class SettingsView extends StatelessWidget {
                                         useSafeArea: true,
                                         builder: (ctx) => BibleSelectWidget(
                                           bibleCodes: bibleCodes,
+                                          initialIndex: currentIndex,
                                           onTap: (index) async {
                                             await context
                                                 .read<BibleCubit>()
                                                 .selectBibleCode(index);
+                                            if (!ctx.mounted) return;
                                             router.maybePop();
                                           },
                                         ),
@@ -525,18 +538,6 @@ class SettingsView extends StatelessWidget {
 class _SongSettingsSection extends StatelessWidget {
   const _SongSettingsSection();
 
-  static const _instruments = <int, String>{
-    0: 'Piano',
-    6: 'Harpsichord',
-    19: 'Church organ',
-    24: 'Nylon guitar',
-    40: 'Violin',
-    48: 'Strings',
-    52: 'Choir',
-    56: 'Trumpet',
-    73: 'Flute',
-  };
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
@@ -575,149 +576,6 @@ class _SongSettingsSection extends StatelessWidget {
                   dense: true,
                   visualDensity: VisualDensity.compact,
                   title: const Text(
-                    'Transpose',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Nada dasar chord dan MIDI'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: songCubit.transposeDown,
-                        icon: const Icon(Icons.remove),
-                      ),
-                      SizedBox(
-                        width: 36,
-                        child: Text(
-                          state.transposeStep > 0
-                              ? '+${state.transposeStep}'
-                              : '${state.transposeStep}',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: songCubit.transposeUp,
-                        icon: const Icon(Icons.add),
-                      ),
-                    ],
-                  ),
-                ),
-                SwitchListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Hindari chord kres/mol',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    state.originalFamilyChord == null
-                        ? 'Otomatis saat family chord asli terdeteksi'
-                        : 'Family asli: ${ChordService.formatChordForDisplay(
-                            state.originalFamilyChord!,
-                            accidentalMode: state.chordAccidentalMode,
-                            baseTransposeOffset: state.baseTransposeOffset,
-                          )}',
-                  ),
-                  value: state.preferNaturalChords,
-                  onChanged: songCubit.togglePreferNaturalChords,
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Penulisan chord',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle:
-                      const Text('Pilih preferensi kres (#) atau mol (b)'),
-                  trailing: SegmentedButton<String>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(
-                        value: ChordService.accidentalSharp,
-                        label: Text('#'),
-                      ),
-                      ButtonSegment(
-                        value: ChordService.accidentalFlat,
-                        label: Text('b'),
-                      ),
-                    ],
-                    selected: {state.chordAccidentalMode},
-                    onSelectionChanged: (selection) {
-                      songCubit.setChordAccidentalMode(selection.first);
-                    },
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Tempo default',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Kecepatan playback MIDI'),
-                  trailing: SizedBox(
-                    width: 168,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            min: 40,
-                            max: 180,
-                            divisions: 140,
-                            value: state.defaultTempoBpm.clamp(40, 180),
-                            onChanged: songCubit.setDefaultTempo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 44,
-                          child: Text(
-                            '${state.defaultTempoBpm.round()}',
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Instrumen MIDI',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Program instrumen SoundFont'),
-                  trailing: PopupMenuButton<int?>(
-                    initialValue: state.midiInstrument,
-                    onSelected: songCubit.setMidiInstrument,
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<int?>(
-                        value: null,
-                        child: Text('Default'),
-                      ),
-                      ..._instruments.entries.map(
-                        (entry) => PopupMenuItem<int?>(
-                          value: entry.key,
-                          child: Text('${entry.value} (${entry.key})'),
-                        ),
-                      ),
-                    ],
-                    child: Text(
-                      state.midiInstrument == null
-                          ? 'Default'
-                          : _instruments[state.midiInstrument] ??
-                              'Program ${state.midiInstrument}',
-                    ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
                     'SoundFont',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                   ),
@@ -740,20 +598,6 @@ class _SongSettingsSection extends StatelessWidget {
                           ? 'TimGM6mb'
                           : 'GeneralUser GS',
                     ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Reset pengaturan pujian',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text(
-                      'Kembalikan chord, MIDI, tempo, dan instrumen'),
-                  trailing: TextButton(
-                    onPressed: songCubit.resetPlaybackSettings,
-                    child: const Text('Reset'),
                   ),
                 ),
               ],

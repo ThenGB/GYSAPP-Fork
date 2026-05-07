@@ -33,6 +33,7 @@ var MidiEngine = (function () {
   var _workerInitPromise = null;
   var _sfontLoaded = false;
   var _soundFontLoadPromise = null;
+  var _instruments = [];        // [{program, name}] from SoundFont
   var _pendingRenders = {};     // id → { resolve, reject }
   var _renderIdCounter = 0;
   var _WORKER_REQUEST_TIMEOUT_MS = 120000;
@@ -146,11 +147,36 @@ var MidiEngine = (function () {
       }
 
       try {
-        var workerUrl = 'js/midi-render-worker.min.js?v=4';
-        _worker = new Worker(workerUrl);
-      } catch (err) {
-        fail(new Error('Failed to create MIDI render worker: ' + err.message));
-        return;
+        // Primary: use pre-created blob URL (created at page load in the HTML template).
+        // NEVER fall back to file:// URLs — they are blocked by WebView2 on Windows
+        // where the page origin is 'null' (loaded from file://).
+        if (window._midiWorkerBlobUrl) {
+          _worker = new Worker(window._midiWorkerBlobUrl);
+        } else {
+          throw new Error('Worker blob URL not initialized');
+        }
+      } catch (primaryErr) {
+        console.warn('[MidiEngine] Primary worker init failed, trying inline blob create:', primaryErr.message);
+        try {
+          if (typeof window._midiWorkerFallbackCreate === 'function') {
+            _worker = window._midiWorkerFallbackCreate();
+          } else {
+            throw primaryErr;
+          }
+        } catch (fallbackErr) {
+          // Last resort: try data URL (may work where blob URLs are blocked)
+          console.warn('[MidiEngine] Inline blob create failed, trying data URL:', fallbackErr.message);
+          try {
+            if (typeof window._midiWorkerDataUrlCreate === 'function') {
+              _worker = window._midiWorkerDataUrlCreate();
+            } else {
+              throw fallbackErr;
+            }
+          } catch (dataUrlErr) {
+            fail(new Error('Failed to create MIDI render worker: ' + dataUrlErr.message));
+            return _workerInitPromise;
+          }
+        }
       }
 
       initTimeout = setTimeout(function () {
@@ -171,7 +197,17 @@ var MidiEngine = (function () {
         }
 
         if (msg.type === 'sfLoaded') {
+          if (msg.err || msg.err2) {
+            _sfontLoaded = false;
+            _instruments = [];
+            _rejectPendingRender(
+              msg.id,
+              new Error(msg.err || msg.err2 || 'SoundFont load failed')
+            );
+            return;
+          }
           _sfontLoaded = true;
+          _instruments = msg.presets || [];
           if (msg.presets && typeof SOUNDFONT_INSTRUMENTS !== 'undefined') {
             // Update the global map dynamically so the UI always shows actual SoundFont contents
             SOUNDFONT_INSTRUMENTS[_sfontUrl] = msg.presets;
@@ -313,6 +349,36 @@ var MidiEngine = (function () {
     }).catch(function () {});
   }
 
+  function _fetchArrayBuffer(url, errorPrefix) {
+    if (!url) return Promise.reject(new Error(errorPrefix + ': empty URL'));
+    return fetch(url).then(function (resp) {
+      if (!resp.ok) throw new Error(errorPrefix + ': ' + resp.status);
+      return resp.arrayBuffer();
+    }).catch(function (fetchError) {
+      return new Promise(function (resolve, reject) {
+        try {
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.responseType = 'arraybuffer';
+          xhr.onload = function () {
+            if ((xhr.status >= 200 && xhr.status < 300) ||
+                (xhr.status === 0 && xhr.response)) {
+              resolve(xhr.response);
+              return;
+            }
+            reject(new Error(errorPrefix + ': ' + xhr.status));
+          };
+          xhr.onerror = function () {
+            reject(fetchError);
+          };
+          xhr.send();
+        } catch (xhrError) {
+          reject(fetchError || xhrError);
+        }
+      });
+    });
+  }
+
   // ─── Soundfont Loading ────────────────────────────────────────────
 
   function _loadSoundFont(url) {
@@ -328,10 +394,7 @@ var MidiEngine = (function () {
         _sfontBuffer = cached;
         return _sendToWorker({ type: 'loadSoundFont', buffer: cached });
       }
-      return fetch(url).then(function (resp) {
-        if (!resp.ok) throw new Error('Failed to fetch soundfont: ' + resp.status);
-        return resp.arrayBuffer();
-      }).then(function (buf) {
+      return _fetchArrayBuffer(url, 'Failed to fetch soundfont').then(function (buf) {
         var toCache = buf.slice(0); // copy before transfer
         _sfontBuffer = toCache;
         _putCachedSF(url, toCache);
@@ -346,6 +409,14 @@ var MidiEngine = (function () {
     });
 
     return _soundFontLoadPromise;
+  }
+
+  function getSoundFontUrl() {
+    return _sfontUrl;
+  }
+
+  function getInstruments() {
+    return _instruments;
   }
 
   function _resolveSoundFontUrl(preferredUrl) {
@@ -767,10 +838,7 @@ var MidiEngine = (function () {
       }).then(function () {
         if (_loadGeneration !== thisGen) throw new Error('cancelled');
         _currentMidiUrl = url;
-        return fetch(url);
-      }).then(function (resp) {
-        if (!resp.ok) throw new Error('MIDI fetch failed: ' + resp.status);
-        return resp.arrayBuffer();
+        return _fetchArrayBuffer(url, 'MIDI fetch failed');
       }).then(function (buf) {
         return _renderLoadedMidiBuffer(buf);
       });
@@ -1250,10 +1318,10 @@ var MidiEngine = (function () {
     var startTime = performance.now();
 
     var rawMidiBuf = null;
-    var preloadPromise = fetch(item.url).then(function (resp) {
-      if (!resp.ok) throw new Error('Preload fetch failed: ' + resp.status + ' for ' + item.url);
-      return resp.arrayBuffer();
-    }).then(function (buf) {
+    var preloadPromise = _fetchArrayBuffer(
+      item.url,
+      'Preload fetch failed for ' + item.url
+    ).then(function (buf) {
       rawMidiBuf = buf;
       console.log('[Preload] Fetched', item.url, '(' + (buf.byteLength / 1024).toFixed(1) + 'KB), rendering...');
       return _renderToBuffer(buf, {
@@ -1557,6 +1625,8 @@ var MidiEngine = (function () {
     getCrossfadeDuration: getCrossfadeDuration,
     loadCrossfadePrefs: loadCrossfadePrefs,
     changeSoundFont: changeSoundFont,
+    getSoundFontUrl: getSoundFontUrl,
+    getInstruments: getInstruments,
     resumeContext: resumeContext,
     getAudioContext: getAudioContext,
     getCurrentMidiUrl: getCurrentMidiUrl,

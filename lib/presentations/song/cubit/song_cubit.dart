@@ -72,13 +72,17 @@ class SongCubit extends HydratedCubit<SongState> {
     if (state.songs.isEmpty) return;
     final song = state.songs[state.pageIndex];
     await _loadMidiForSong(song);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
-  Future<void> _loadMidiForSong(Song song) async {
+  Future<String?> _midiPathForSong(Song song) {
+    return _assetService.getMidiPath(song.code ?? '', song.number ?? '');
+  }
+
+  Future<void> _loadMidiForSong(Song song, {bool autoplay = false}) async {
     if (!state.showAudio) return;
 
-    final midiPath =
-        await _assetService.getMidiPath(song.code ?? '', song.number ?? '');
+    final midiPath = await _midiPathForSong(song);
     if (midiPath == null) {
       emit(state.copyWith(
         isAudioLoading: false,
@@ -91,18 +95,42 @@ class SongCubit extends HydratedCubit<SongState> {
     await _midiEngine.loadMidi(
       midiPath,
       transpose: state.transposeStep,
+      tempoBpm: state.tempoBpm,
       instrument: state.midiInstrument,
-      autoplay: false,
+      autoplay: autoplay,
     );
     emit(state.copyWith(isAudioLoading: false));
+  }
+
+  void _preloadNearbySongMidi(int index) {
+    if (!state.showAudio) return;
+    for (final nearbyIndex in [index - 1, index + 1]) {
+      if (nearbyIndex < 0 || nearbyIndex >= state.songs.length) continue;
+      _midiPathForSong(state.songs[nearbyIndex]).then((midiPath) {
+        if (midiPath == null) return;
+        _midiEngine.preload(
+          midiPath,
+          transpose: state.transposeStep,
+          instrument: state.midiInstrument,
+        );
+      });
+    }
   }
 
   Future<void> play() async {
     if (!state.showAudio) {
       emit(state.copyWith(showAudio: true));
     }
-    if (_midiEngine.state.currentSong == null && state.songs.isNotEmpty) {
-      await _loadMidiForSong(state.songs[state.pageIndex]);
+    if (state.songs.isNotEmpty) {
+      final song = state.songs[state.pageIndex];
+      final midiPath = await _midiPathForSong(song);
+      if (midiPath == null) {
+        emit(state.copyWith(showAudio: false, isAudioLoading: false));
+        return;
+      }
+      if (!_midiEngine.isCurrentSong(midiPath)) {
+        await _loadMidiForSong(song);
+      }
     }
     await _midiEngine.play();
     emit(state.copyWith(isAudioPlaying: true));
@@ -191,6 +219,7 @@ class SongCubit extends HydratedCubit<SongState> {
   void setTempo(double bpm) {
     emit(state.copyWith(tempoBpm: bpm));
     _midiEngine.setTempo(bpm);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
   void setDefaultTempo(double bpm) {
@@ -203,6 +232,7 @@ class SongCubit extends HydratedCubit<SongState> {
   void setMidiInstrument(int? program) {
     emit(state.copyWith(midiInstrument: program));
     _midiEngine.setInstrument(program ?? -1);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
   void resetPlaybackSettings() {
@@ -210,15 +240,12 @@ class SongCubit extends HydratedCubit<SongState> {
       showAudio: false,
       showChord: false,
       transposeStep: 0,
-      chordAccidentalMode: ChordService.accidentalSharp,
-      preferNaturalChords: false,
       originalFamilyChord: null,
       originalPdfKey: null,
       baseTransposeOffset: 0,
       tempoBpm: 76,
       defaultTempoBpm: 76,
       midiInstrument: null,
-      soundFont: 'GeneralUser-GS.sf2',
       isAudioPlaying: false,
     ));
     _midiEngine.stop();
@@ -231,8 +258,7 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> setSoundFont(String fileName) async {
     emit(state.copyWith(soundFont: fileName));
-    // SoundFont change requires engine reload
-    await _midiEngine.initialize();
+    await _midiEngine.changeSoundFont('../data/soundfont/$fileName');
     if (state.songs.isNotEmpty) {
       await _loadMidiForSong(state.songs[state.pageIndex]);
     }
@@ -241,15 +267,37 @@ class SongCubit extends HydratedCubit<SongState> {
   // ─── Page Navigation ──────────────────────────────────────────
 
   Future<void> changePage(int index, int verseIndex) async {
-    _midiEngine.stop();
+    if (index < 0 || index >= state.songs.length) return;
+    final wasPlaying = state.isAudioPlaying;
     emit(state.copyWith(
       pageIndex: index,
       verseIndex: verseIndex,
       isAudioPlaying: false,
+      originalPdfKey: null,
+      originalFamilyChord: null,
+      baseTransposeOffset: 0,
     ));
     if (state.showAudio) {
-      await _loadMidiForSong(state.songs[index]);
+      await _loadMidiForSong(
+        state.songs[index],
+        autoplay: wasPlaying,
+      );
+      _preloadNearbySongMidi(index);
     }
+  }
+
+  void setPdfTwoPageMode(bool enabled) {
+    emit(state.copyWith(
+      pdfTwoPageMode: enabled,
+      pdfVerticalScrolling: enabled ? false : state.pdfVerticalScrolling,
+    ));
+  }
+
+  void setPdfVerticalScrolling(bool enabled) {
+    emit(state.copyWith(
+      pdfVerticalScrolling: enabled,
+      pdfTwoPageMode: enabled ? false : state.pdfTwoPageMode,
+    ));
   }
 
   // ─── Chord Data Loading ───────────────────────────────────────
@@ -265,8 +313,12 @@ class SongCubit extends HydratedCubit<SongState> {
       final jsonString = await rootBundle.loadString(chordPath);
       final chords = ChordService.parseChordJson(jsonString);
       final familyChord = ChordService.detectFamilyChord(chords);
+
+      // Invalidate old PDF key so chord display doesn't use stale offset
+      // The PDF viewer will call updatePdfKey with the correct key after rendering
+      final pdfKey = state.originalPdfKey;
       final baseTransposeOffset = ChordService.calculateBaseTransposeOffset(
-        pdfKey: state.originalPdfKey,
+        pdfKey: pdfKey,
         familyChord: familyChord,
       );
       final previousTranspose = state.transposeStep;
@@ -279,6 +331,7 @@ class SongCubit extends HydratedCubit<SongState> {
       emit(state.copyWith(
         originalFamilyChord: familyChord,
         baseTransposeOffset: baseTransposeOffset,
+        originalPdfKey: pdfKey, // preserve existing pdf key until updatePdfKey
         transposeStep: recommendedTranspose,
       ));
       if (recommendedTranspose != previousTranspose) {
@@ -297,6 +350,13 @@ class SongCubit extends HydratedCubit<SongState> {
       pdfKey: pdfKey,
       familyChord: state.originalFamilyChord,
     );
+    if (state.preferNaturalChords && state.originalFamilyChord == null) {
+      emit(state.copyWith(
+        originalPdfKey: pdfKey,
+        baseTransposeOffset: baseTransposeOffset,
+      ));
+      return;
+    }
     final previousTranspose = state.transposeStep;
     final recommendedTranspose = state.preferNaturalChords
         ? ChordService.recommendedNaturalTranspose(
@@ -448,6 +508,26 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(defaultTextHeight: value));
   }
 
+  void changeLyricsTextAlign(String align) {
+    emit(state.copyWith(lyricsTextAlign: align));
+  }
+
+  void changeLyricsVerticalAlign(String align) {
+    emit(state.copyWith(lyricsVerticalAlign: align));
+  }
+
+  void changeChordFontSizePercent(int value) {
+    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200)));
+  }
+
+  void changeChordFillOpacityPercent(int value) {
+    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100)));
+  }
+
+  void changeChordPaddingPercent(int value) {
+    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400)));
+  }
+
   // ─── Mode ─────────────────────────────────────────────────────
 
   void changeMode() {
@@ -464,7 +544,21 @@ class SongCubit extends HydratedCubit<SongState> {
   @override
   Map<String, dynamic>? toJson(SongState state) {
     return state
-        .copyWith(isAudioLoading: false, isLoading: false, selectedSong: null)
+        .copyWith(
+          isAudioLoading: false,
+          isLoading: false,
+          selectedSong: null,
+          showAudio: false,
+          showChord: false,
+          transposeStep: 0,
+          originalFamilyChord: null,
+          originalPdfKey: null,
+          baseTransposeOffset: 0,
+          tempoBpm: 76,
+          defaultTempoBpm: 76,
+          midiInstrument: null,
+          isAudioPlaying: false,
+        )
         .toJson();
   }
 

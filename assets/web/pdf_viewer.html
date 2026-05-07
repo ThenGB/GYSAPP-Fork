@@ -11,6 +11,10 @@
         color-scheme: light;
         --chrome-bg: rgba(250, 250, 250, 0.92);
         --page-gap: 14px;
+        --chord-font-size: 12px;
+        --chord-pad-v: 2px;
+        --chord-pad-h: 6px;
+        --chord-bg-opacity: 0.94;
       }
 
       html,
@@ -35,6 +39,18 @@
         scroll-padding: var(--page-gap);
         scroll-snap-type: y mandatory;
         overscroll-behavior: contain;
+        cursor: grab;
+        touch-action: pan-x pan-y pinch-zoom;
+      }
+
+      #viewport.is-dragging {
+        cursor: grabbing;
+        scroll-snap-type: none;
+        user-select: none;
+      }
+
+      #viewport.vertical-scroll {
+        scroll-snap-type: none;
       }
 
       #viewer {
@@ -52,6 +68,19 @@
         animation: page-enter 220ms ease-out both;
       }
 
+      #viewer.two-page {
+        display: grid;
+        grid-template-columns: repeat(2, max-content);
+        justify-content: center;
+        align-items: start;
+        column-gap: var(--page-gap);
+      }
+
+      #viewer.two-page .page-wrap {
+        margin-left: 0;
+        margin-right: 0;
+      }
+
       .page {
         display: block;
         width: 100%;
@@ -62,7 +91,8 @@
       }
 
       .page-wrap.zooming {
-        transition: transform 120ms ease-out;
+        transition: transform 140ms cubic-bezier(0.22, 1, 0.36, 1);
+        will-change: transform;
       }
 
       .chord-layer {
@@ -74,11 +104,13 @@
       .chord-badge {
         position: absolute;
         border-radius: 4px;
-        padding: 2px 6px;
-        background: rgba(231, 242, 255, 0.94);
+        padding: var(--chord-pad-v, 2px) var(--chord-pad-h, 6px);
+        background: rgba(231, 242, 255, var(--chord-bg-opacity, 0.94));
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
         color: #0f315f;
-        font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+        font-weight: 700;
+        font-size: var(--chord-font-size, 12px);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
         line-height: 1.2;
         transform: translate(-50%, -50%);
@@ -164,12 +196,6 @@
     <main id="viewport">
       <section id="viewer"></section>
     </main>
-    <nav id="toolbar" aria-label="PDF controls">
-      <button id="zoomOut" type="button" title="Zoom out">-</button>
-      <span id="zoomLabel">100%</span>
-      <button id="zoomIn" type="button" title="Zoom in">+</button>
-      <button id="fitPage" type="button" title="Fit page">[]</button>
-    </nav>
 
     <script>
       pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs/pdf.worker.min.js";
@@ -177,10 +203,6 @@
       const statusEl = document.getElementById("status");
       const viewportEl = document.getElementById("viewport");
       const viewerEl = document.getElementById("viewer");
-      const zoomLabelEl = document.getElementById("zoomLabel");
-      const zoomInEl = document.getElementById("zoomIn");
-      const zoomOutEl = document.getElementById("zoomOut");
-      const fitPageEl = document.getElementById("fitPage");
 
       let pageObserver = null;
       let pdfDocument = null;
@@ -190,6 +212,8 @@
       let currentPage = 1;
       let currentChordData = {};
       let currentShowChord = false;
+      let currentTwoPageMode = false;
+      let currentVerticalScrolling = false;
       let zoomRenderTimer = null;
       const pageNotes = new Map();
       const noteYOffsetPercent = 2.2;
@@ -197,6 +221,20 @@
       function setStatus(message) {
         statusEl.textContent = message;
         statusEl.style.display = message ? "flex" : "none";
+      }
+
+      function previewZoom(ratio) {
+        viewerEl.querySelectorAll(".page-wrap").forEach((page) => {
+          page.classList.add("zooming");
+          page.style.transform = `scale(${ratio})`;
+        });
+      }
+
+      function clearZoomPreview() {
+        viewerEl.querySelectorAll(".page-wrap").forEach((page) => {
+          page.classList.remove("zooming");
+          page.style.transform = "";
+        });
       }
 
       function decodeBase64(base64) {
@@ -209,7 +247,12 @@
       }
 
       function calculateBaseScale(viewport) {
-        const availableWidth = Math.max(viewportEl.clientWidth - 16, 320);
+        const pageSlots = currentTwoPageMode ? 2 : 1;
+        const horizontalGaps = currentTwoPageMode ? 24 + Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--page-gap")) : 16;
+        const availableWidth = Math.max(
+          (viewportEl.clientWidth - horizontalGaps) / pageSlots,
+          160
+        );
         const availableHeight = Math.max(viewportEl.clientHeight - 28, 320);
         return Math.min(
           availableWidth / viewport.width,
@@ -218,7 +261,7 @@
       }
 
       function updateZoomLabel() {
-        zoomLabelEl.textContent = `${Math.round(currentZoom * 100)}%`;
+        // Zoom label shown in Flutter header
       }
 
       async function extractPageNotes(page) {
@@ -320,11 +363,45 @@
           if (window.flutter_inappwebview) {
             window.flutter_inappwebview.callHandler("pdfKeyDetected", key);
           }
+
+          // Detect tempo from PDF text
+          const tempo = extractPdfTempo(pdfText);
+          if (tempo !== null && window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("pdfTempoDetected", tempo);
+          }
         } catch (error) {
           if (window.flutter_inappwebview) {
             window.flutter_inappwebview.callHandler("pdfKeyDetected", "");
           }
         }
+      }
+
+      function extractPdfTempo(text) {
+        if (!text) return null;
+        const normalized = String(text).replace(/\s+/g, " ").trim();
+
+        // Priority 1: musical tempo symbol notation (quarter note = 120, J=76, q=100)
+        // Also handle M.M. (Maelzel's Metronome) notation
+        var m = normalized.match(/(?:^|[\s(])(?:J|j|Q|q|\u2669|\u266A)\s*[:=]\s*(\d{2,3})(?=\D|$)/);
+        if (m) return Math.min(Math.max(parseInt(m[1]), 30), 220);
+
+        // Priority 1b: M.M. (Maelzel Metronome) notation: "M.M. = 120", "M.M.120", "MM=120"
+        m = normalized.match(/(?:M\.?\s*M\.?|MM)\s*[:=]?\s*(\d{2,3})\b/);
+        if (m) return Math.min(Math.max(parseInt(m[1]), 30), 220);
+
+        // Priority 2: explicit BPM label ("tempo = 120", "bpm: 100", "tempo di...=100")
+        m = normalized.match(/(?:tempo|tempi|bpm|ketuk)\s*[:=]?\s*(\d{2,3})\b/i);
+        if (m) return Math.min(Math.max(parseInt(m[1]), 30), 220);
+
+        // Priority 3: fraction notation like "1/4 = 100" or "4/4 = 72"
+        m = normalized.match(/\d\s*\/\s*4\s*[:=]?\s*(\d{2,3})\b/);
+        if (m) return Math.min(Math.max(parseInt(m[1]), 30), 220);
+
+        // Priority 4: loose equals-number pattern (=120)
+        m = normalized.match(/(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b/);
+        if (m) return Math.min(Math.max(parseInt(m[1]), 30), 220);
+
+        return null;
       }
 
       function calculateChordPosition(noteIdx, pageNumber, width, height) {
@@ -473,6 +550,9 @@
 
         setStatus("Loading PDF...");
         viewerEl.replaceChildren();
+        viewerEl.classList.toggle("two-page", currentTwoPageMode);
+        viewportEl.classList.toggle("vertical-scroll", currentVerticalScrolling);
+        clearZoomPreview();
         updateZoomLabel();
 
         for (let pageNumber = 1; pageNumber <= pdfPageCount; pageNumber += 1) {
@@ -506,15 +586,21 @@
         });
       }
 
+      function goToPage(pageNumber, smooth = true) {
+        currentPage = Math.min(Math.max(pageNumber, 1), pdfPageCount || 1);
+        snapToPage(currentPage, smooth);
+      }
+
       function setZoom(nextZoom) {
         const oldZoom = currentZoom;
         currentZoom = Math.min(Math.max(nextZoom, 1), 4);
         if (Math.abs(oldZoom - currentZoom) < 0.001) return;
         updateZoomLabel();
+        previewZoom(currentZoom / oldZoom);
         clearTimeout(zoomRenderTimer);
         zoomRenderTimer = setTimeout(() => {
           renderDocument({ keepPage: true, animatePages: false });
-        }, 90);
+        }, 120);
       }
 
       function fitPage() {
@@ -525,6 +611,48 @@
         currentShowChord = Boolean(showChord);
         currentChordData = chordData || {};
         renderChordLayers();
+      };
+
+      window.setChordUiPrefs = function setChordUiPrefs(prefs) {
+        const root = document.documentElement;
+        if (prefs.fontSizePercent !== undefined) {
+          root.style.setProperty('--chord-font-size', (12 * prefs.fontSizePercent / 100) + 'px');
+        }
+        if (prefs.fillOpacityPercent !== undefined) {
+          root.style.setProperty('--chord-bg-opacity', String(prefs.fillOpacityPercent / 100));
+        }
+        if (prefs.paddingPercent !== undefined) {
+          const scale = prefs.paddingPercent / 100;
+          root.style.setProperty('--chord-pad-v', (2 * scale) + 'px');
+          root.style.setProperty('--chord-pad-h', (6 * scale) + 'px');
+        }
+        renderChordLayers();
+      };
+
+      window.setZoom = function setZoomValue(zoom) {
+        setZoom(zoom);
+      };
+
+      window.fitToPage = function fitToPage() {
+        fitPage();
+      };
+
+      window.getZoom = function getZoomValue() {
+        return currentZoom;
+      };
+
+      window.setPdfViewOptions = function setPdfViewOptions(options = {}) {
+        const nextTwoPage = Boolean(options.twoPageMode);
+        const nextVertical = nextTwoPage ? false : Boolean(options.verticalScrolling);
+        if (
+          nextTwoPage === currentTwoPageMode &&
+          nextVertical === currentVerticalScrolling
+        ) {
+          return;
+        }
+        currentTwoPageMode = nextTwoPage;
+        currentVerticalScrolling = nextVertical;
+        renderDocument({ keepPage: true, animatePages: false });
       };
 
       window.loadPdfBase64 = async function loadPdfBase64(base64) {
@@ -554,22 +682,87 @@
         }
       };
 
-      zoomInEl.addEventListener("click", () => setZoom(currentZoom + 0.15));
-      zoomOutEl.addEventListener("click", () => setZoom(currentZoom - 0.15));
-      fitPageEl.addEventListener("click", fitPage);
+      // Zoom/fitPage controlled from Flutter via window.setZoom / window.fitPage
+
+      function handleCtrlWheelZoom(event) {
+        if (!event.ctrlKey) return;
+        event.preventDefault();
+        setZoom(currentZoom + (event.deltaY < 0 ? 0.12 : -0.12));
+      }
 
       viewportEl.addEventListener(
         "wheel",
-        (event) => {
-          if (!event.ctrlKey) return;
-          event.preventDefault();
-          setZoom(currentZoom + (event.deltaY < 0 ? 0.12 : -0.12));
-        },
+        handleCtrlWheelZoom,
+        { passive: false }
+      );
+      window.addEventListener(
+        "wheel",
+        handleCtrlWheelZoom,
         { passive: false }
       );
 
       viewportEl.addEventListener("dblclick", () => {
         setZoom(Math.abs(currentZoom - 1) < 0.05 ? 1.5 : 1);
+      });
+
+      let dragStart = null;
+      viewportEl.addEventListener("pointerdown", (event) => {
+        if (event.pointerType === "touch" || event.button !== 0) return;
+        dragStart = {
+          x: event.clientX,
+          y: event.clientY,
+          left: viewportEl.scrollLeft,
+          top: viewportEl.scrollTop,
+        };
+        viewportEl.classList.add("is-dragging");
+        viewportEl.setPointerCapture(event.pointerId);
+      });
+
+      viewportEl.addEventListener("pointermove", (event) => {
+        if (!dragStart) return;
+        event.preventDefault();
+        viewportEl.scrollLeft = dragStart.left - (event.clientX - dragStart.x);
+        viewportEl.scrollTop = dragStart.top - (event.clientY - dragStart.y);
+      });
+
+      function endDrag(event) {
+        if (!dragStart) return;
+        const dx = event.clientX - dragStart.x;
+        const dy = event.clientY - dragStart.y;
+        dragStart = null;
+        viewportEl.classList.remove("is-dragging");
+        if (viewportEl.hasPointerCapture(event.pointerId)) {
+          viewportEl.releasePointerCapture(event.pointerId);
+        }
+        if (
+          currentZoom <= 1.05 &&
+          Math.abs(dx) > 90 &&
+          Math.abs(dx) > Math.abs(dy) * 1.35 &&
+          window.flutter_inappwebview
+        ) {
+          window.flutter_inappwebview.callHandler(
+            "pdfSwipeSong",
+            dx > 0 ? "previous" : "next"
+          );
+        } else if (
+          currentZoom <= 1.05 &&
+          !currentVerticalScrolling &&
+          Math.abs(dy) > 90 &&
+          Math.abs(dy) > Math.abs(dx) * 1.25
+        ) {
+          const step = currentTwoPageMode ? 2 : 1;
+          goToPage(currentPage + (dy < 0 ? step : -step));
+        }
+      }
+
+      viewportEl.addEventListener("pointerup", endDrag);
+      viewportEl.addEventListener("pointercancel", endDrag);
+      viewportEl.addEventListener("pointerleave", endDrag);
+
+      window.addEventListener("gesturestart", (event) => event.preventDefault());
+      window.addEventListener("gesturechange", (event) => {
+        event.preventDefault();
+        setZoom(currentZoom * event.scale);
       });
 
       let resizeTimer = null;

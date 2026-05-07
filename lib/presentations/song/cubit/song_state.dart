@@ -53,6 +53,13 @@ abstract class SongState with _$SongState {
     int? midiInstrument,
     @Default('GeneralUser-GS.sf2') String soundFont,
     @Default(false) bool isAudioPlaying,
+    @Default(false) bool pdfTwoPageMode,
+    @Default(false) bool pdfVerticalScrolling,
+    @Default('left') String lyricsTextAlign,
+    @Default('top') String lyricsVerticalAlign,
+    @Default(100) int chordFontSizePercent,
+    @Default(94) int chordFillOpacityPercent,
+    @Default(100) int chordPaddingPercent,
   }) = _SongState;
 
   SongBook? get currentSong {

@@ -8,10 +8,15 @@ import '../../../data/utilities/functions/measurewidgetsize.dart';
 import '../cubit/bible_cubit.dart';
 
 class BibleSelectWidget extends StatefulWidget {
-  const BibleSelectWidget(
-      {super.key, required this.bibleCodes, required this.onTap});
+  const BibleSelectWidget({
+    super.key,
+    required this.bibleCodes,
+    required this.onTap,
+    this.initialIndex,
+  });
   final List<String> bibleCodes;
   final Function(int index) onTap;
+  final int? initialIndex;
 
   @override
   State<BibleSelectWidget> createState() => _BibleSelectWidgetState();
@@ -71,6 +76,7 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
                           ...List.generate(
                             widget.bibleCodes.length,
                             (index) => ListTile(
+                              selected: index == widget.initialIndex,
                               onTap: () {
                                 widget.onTap(index);
                               },

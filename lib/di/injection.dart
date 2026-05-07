@@ -74,7 +74,7 @@ Future<void> _utils(AppConfig appConfig) async {
 
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
-  di.registerLazySingleton(() => LocalAssetService()..initialize());
+  di.registerLazySingleton(() => LocalAssetService());
   di.registerLazySingleton(() => MidiEngineService(di()));
 }
 

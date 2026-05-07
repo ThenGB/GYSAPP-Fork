@@ -36,7 +36,8 @@ void main() async {
               return url;
             },
             assetsPath: 'assets/translations',
-            localCacheDuration: Duration(seconds: 1),
+            localCacheDuration: const Duration(days: 1),
+            timeout: const Duration(seconds: 2),
           ),
           useOnlyLangCode: true,
           child: DevicePreview(
@@ -98,32 +99,30 @@ class SmartNetworkAssetLoader extends AssetLoader {
 
   @override
   Future<Map<String, dynamic>> load(String path, Locale locale) async {
+    final localeName = locale.languageCode;
     var string = '';
 
-    // try loading local previously-saved localization file
-    if (await localTranslationExists(locale.toString())) {
-      string = await loadFromLocalFile(locale.toString());
+    if (await localTranslationExists(localeName)) {
+      string = await loadFromLocalFile(localeName);
     }
 
-    // no local or failed, check if internet and download the file
-    if (string == '' && await isInternetConnectionAvailable()) {
-      string = await loadFromNetwork(locale.toString());
-    }
-
-    // local cache duration was reached or no internet access but prefer local file to assets
-    if (string == '' &&
-        await localTranslationExists(locale.toString(),
-            ignoreCacheDuration: true)) {
-      string = await loadFromLocalFile(locale.toString());
-    }
-
-    // still nothing? Load from assets
     if (string == '') {
-      string = await rootBundle.loadString('$assetsPath/$locale.json');
+      string = await rootBundle.loadString('$assetsPath/$localeName.json');
     }
 
-    // then returns the json file
-    return json.decode(string);
+    unawaited(_refreshFromNetwork(localeName));
+
+    return json.decode(string) as Map<String, dynamic>;
+  }
+
+  Future<void> _refreshFromNetwork(String localeName) async {
+    try {
+      if (await isInternetConnectionAvailable()) {
+        await loadFromNetwork(localeName);
+      }
+    } catch (e) {
+      log(e.toString());
+    }
   }
 
   Future<bool> localeExists(String localePath) => Future.value(true);
@@ -152,10 +151,9 @@ class SmartNetworkAssetLoader extends AssetLoader {
     url = '$url$localeName.json';
 
     try {
-      final response =
-          await Future.any([http.get(Uri.parse(url)), Future.delayed(timeout)]);
+      final response = await http.get(Uri.parse(url)).timeout(timeout);
 
-      if (response != null && response.statusCode == 200) {
+      if (response.statusCode == 200) {
         var content = utf8.decode(response.bodyBytes);
 
         // check valid json before saving it
@@ -217,4 +215,3 @@ class SmartNetworkAssetLoader extends AssetLoader {
     return File(await getFilenameForLocale(localeName));
   }
 }
-

@@ -86,14 +86,7 @@ class _FaithViewState extends State<FaithView> {
   bool onScaling = false;
   Set<int> touches = {};
 
-  GlobalKey selectedFaithMenuKey = GlobalKey();
-
-  Future<double> get selectedFaithMenuHeight async => await Future.delayed(
-        Duration(milliseconds: 500),
-        () {
-          return selectedFaithMenuKey.currentContext?.size?.height ?? 0;
-        },
-      );
+  final GlobalKey selectedFaithMenuKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -105,34 +98,6 @@ class _FaithViewState extends State<FaithView> {
     return BlocBuilder<FaithCubit, FaithState>(
       builder: (context, state) => Scaffold(
         backgroundColor: context.colorScheme.surface,
-        bottomSheet: Container(
-          key: selectedFaithMenuKey,
-          color: context.colorScheme.surface,
-          child: AnimatedSize(
-            curve: Curves.easeOut,
-            alignment: Alignment.bottomCenter,
-            duration: kThemeAnimationDuration,
-            child: state.selectedFaith.isEmpty
-                ? SizedBox(
-                    width: double.infinity,
-                  )
-                : PlayAnimationBuilder(
-                    curve: Curves.easeOut,
-                    delay: kThemeAnimationDuration,
-                    duration: kThemeAnimationDuration,
-                    tween: Tween<double>(begin: 0, end: 1),
-                    builder: (c, value, child) => Opacity(
-                      opacity: value,
-                      child: SelectedFaithMenu(
-                        title: currentTitle,
-                        indexes: state.selectedFaith,
-                        currentData: currentData,
-                        viewPadding: context.mediaQuery.viewPadding.vertical,
-                      ),
-                    ),
-                  ),
-          ),
-        ),
 
         appBar: AppBar(
           title: Text(currentTitle),
@@ -315,26 +280,11 @@ class _FaithViewState extends State<FaithView> {
                           child: IgnorePointer(
                             ignoring: onScaling,
                             child: ListView.builder(
-                              itemCount: currentData.length + 1,
+                              itemCount: currentData.length,
                               physics: onScaling
                                   ? NeverScrollableScrollPhysics()
                                   : AlwaysScrollableScrollPhysics(),
                               itemBuilder: (context, index) {
-                                if (index == currentData.length) {
-                                  return FutureBuilder(
-                                    future: selectedFaithMenuHeight,
-                                    builder: (context, snapshot) {
-                                      return SizedBox(
-                                        height:
-                                            (((state.selectedFaith.isNotEmpty
-                                                        ? (snapshot.data ?? 0)
-                                                        : 0)) -
-                                                    80.0)
-                                                .clamp(0.0, 1000.0),
-                                      );
-                                    },
-                                  );
-                                }
                                 var item = currentData[index];
                                 return DefaultTextStyle.merge(
                                   style: TextStyle(
@@ -361,9 +311,29 @@ class _FaithViewState extends State<FaithView> {
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: state.selectedFaith.isNotEmpty ? 80 : null,
-                  )
+                  AnimatedSize(
+                    curve: Curves.easeOut,
+                    alignment: Alignment.bottomCenter,
+                    duration: kThemeAnimationDuration,
+                    child: state.selectedFaith.isEmpty
+                        ? const SizedBox.shrink()
+                        : PlayAnimationBuilder(
+                            curve: Curves.easeOut,
+                            delay: kThemeAnimationDuration,
+                            duration: kThemeAnimationDuration,
+                            tween: Tween<double>(begin: 0, end: 1),
+                            builder: (c, value, child) => Opacity(
+                              opacity: value,
+                              child: SelectedFaithMenu(
+                                key: selectedFaithMenuKey,
+                                title: currentTitle,
+                                indexes: state.selectedFaith,
+                                currentData: currentData,
+                                viewPadding: context.mediaQuery.viewPadding.vertical,
+                              ),
+                            ),
+                          ),
+                  ),
                 ],
               ),
       ),
