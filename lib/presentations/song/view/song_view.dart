@@ -86,8 +86,7 @@ class _SongViewState extends State<SongView> {
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
       builder: (context, state) {
-        final showHeaderTransport =
-            state.showAudio && MediaQuery.sizeOf(context).width >= 760;
+        final showHeaderTransport = MediaQuery.sizeOf(context).width >= 760;
         final textMode = state.isImageMode == true;
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
@@ -116,10 +115,11 @@ class _SongViewState extends State<SongView> {
                 ),
                 if (state.originalFamilyChord != null)
                   Text(
-                    'Family ${ChordService.normalizeChord(
+                    'Family ${ChordService.formatChordForDisplay(
                       state.originalFamilyChord!,
                       accidentalMode: state.chordAccidentalMode,
-                    )}',
+                      baseTransposeOffset: state.baseTransposeOffset,
+                    )}${state.originalPdfKey == null ? '' : ' / PDF ${state.originalPdfKey}'}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
@@ -147,6 +147,8 @@ class _SongViewState extends State<SongView> {
                       onStop: () => cubit.stop(),
                       onSeek: (seconds) =>
                           cubit.seek(Duration(seconds: seconds.round())),
+                      transposeStep: state.transposeStep,
+                      onTranspose: cubit.setTranspose,
                     );
                   },
                 ),
@@ -261,7 +263,9 @@ class _SongViewState extends State<SongView> {
                         showChord: state.showChord,
                         chords: _currentChords,
                         transposeStep: state.transposeStep,
+                        baseTransposeOffset: state.baseTransposeOffset,
                         chordAccidentalMode: state.chordAccidentalMode,
+                        onPdfKeyDetected: cubit.updatePdfKey,
                       );
                     },
                   );
@@ -274,7 +278,7 @@ class _SongViewState extends State<SongView> {
               ),
 
               // Draggable MIDI Controls
-              if (state.showAudio && !showHeaderTransport)
+              if (!showHeaderTransport)
                 AnimatedBuilder(
                   animation: cubit.midiEngine,
                   builder: (context, child) {
@@ -377,18 +381,22 @@ class _HeaderMidiControls extends StatelessWidget {
   final bool isLoading;
   final double position;
   final double duration;
+  final int transposeStep;
   final VoidCallback onPlayPause;
   final VoidCallback onStop;
   final ValueChanged<double> onSeek;
+  final ValueChanged<int> onTranspose;
 
   const _HeaderMidiControls({
     required this.isPlaying,
     required this.isLoading,
     required this.position,
     required this.duration,
+    required this.transposeStep,
     required this.onPlayPause,
     required this.onStop,
     required this.onSeek,
+    required this.onTranspose,
   });
 
   String _formatTime(double seconds) {
@@ -401,7 +409,7 @@ class _HeaderMidiControls extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return SizedBox(
-      width: 300,
+      width: 430,
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -438,6 +446,30 @@ class _HeaderMidiControls extends StatelessWidget {
               textAlign: TextAlign.end,
               style: theme.textTheme.bodySmall,
             ),
+          ),
+          const SizedBox(width: 6),
+          IconButton(
+            tooltip: 'Transpose turun',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => onTranspose(transposeStep - 1),
+            icon: const Icon(Icons.remove_circle_outline, size: 18),
+          ),
+          SizedBox(
+            width: 28,
+            child: Text(
+              transposeStep > 0 ? '+$transposeStep' : '$transposeStep',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.labelMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Transpose naik',
+            visualDensity: VisualDensity.compact,
+            onPressed: () => onTranspose(transposeStep + 1),
+            icon: const Icon(Icons.add_circle_outline, size: 18),
           ),
           const SizedBox(width: 8),
         ],

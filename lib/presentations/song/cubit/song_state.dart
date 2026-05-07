@@ -46,6 +46,8 @@ abstract class SongState with _$SongState {
     @Default('sharp') String chordAccidentalMode,
     @Default(false) bool preferNaturalChords,
     String? originalFamilyChord,
+    String? originalPdfKey,
+    @Default(0) int baseTransposeOffset,
     @Default(76.0) double tempoBpm,
     @Default(76.0) double defaultTempoBpm,
     int? midiInstrument,

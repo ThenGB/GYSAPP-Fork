@@ -13,7 +13,9 @@ class SongPdfViewer extends StatefulWidget {
   final bool showChord;
   final Map<int, List<ChordData>>? chords;
   final int transposeStep;
+  final int baseTransposeOffset;
   final String chordAccidentalMode;
+  final ValueChanged<String?>? onPdfKeyDetected;
   final VoidCallback? onPageChanged;
 
   const SongPdfViewer({
@@ -22,7 +24,9 @@ class SongPdfViewer extends StatefulWidget {
     this.showChord = false,
     this.chords,
     this.transposeStep = 0,
+    this.baseTransposeOffset = 0,
     this.chordAccidentalMode = ChordService.accidentalSharp,
+    this.onPdfKeyDetected,
     this.onPageChanged,
   });
 
@@ -45,6 +49,7 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
     if (oldWidget.showChord != widget.showChord ||
         oldWidget.chords != widget.chords ||
         oldWidget.transposeStep != widget.transposeStep ||
+        oldWidget.baseTransposeOffset != widget.baseTransposeOffset ||
         oldWidget.chordAccidentalMode != widget.chordAccidentalMode) {
       _syncChords();
     }
@@ -124,6 +129,14 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
               },
             );
             controller.addJavaScriptHandler(
+              handlerName: 'pdfKeyDetected',
+              callback: (args) {
+                final key = args.isEmpty ? null : args.first?.toString();
+                widget.onPdfKeyDetected
+                    ?.call(key?.isEmpty == true ? null : key);
+              },
+            );
+            controller.addJavaScriptHandler(
               handlerName: 'pdfError',
               callback: (args) {
                 log('PDF.js error: ${args.join(' ')}');
@@ -190,6 +203,7 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
                 'chord': ChordService.transposeChord(
                   chord.chord,
                   widget.transposeStep,
+                  baseTransposeOffset: widget.baseTransposeOffset,
                   accidentalMode: widget.chordAccidentalMode,
                 ),
               },

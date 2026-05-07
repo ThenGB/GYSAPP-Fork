@@ -36,4 +36,24 @@ void main() {
 
     expect(ChordService.detectFamilyChord(chords), 'C');
   });
+
+  test('maps pdf key notation and aligns chord family to pdf key', () {
+    expect(ChordService.parsePdfKeyToSemitone('C'), 0);
+    expect(ChordService.parsePdfKeyToSemitone('Bes'), 10);
+    expect(ChordService.parsePdfKeyToSemitone('Fis'), 6);
+    expect(ChordService.parsePdfKeyToSemitone('H'), 11);
+
+    expect(
+      ChordService.calculateBaseTransposeOffset(
+        pdfKey: 'F',
+        familyChord: 'C',
+      ),
+      5,
+    );
+    expect(
+      ChordService.formatChordForDisplay('C',
+          baseTransposeOffset: 5, accidentalMode: ChordService.accidentalFlat),
+      'F',
+    );
+  });
 }

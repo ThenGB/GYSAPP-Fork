@@ -98,7 +98,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Future<void> play() async {
-    if (!state.showAudio) return;
+    if (!state.showAudio) {
+      emit(state.copyWith(showAudio: true));
+    }
     if (_midiEngine.state.currentSong == null && state.songs.isNotEmpty) {
       await _loadMidiForSong(state.songs[state.pageIndex]);
     }
@@ -164,7 +166,10 @@ class SongCubit extends HydratedCubit<SongState> {
   void togglePreferNaturalChords([bool? value]) {
     final preferNatural = value ?? !state.preferNaturalChords;
     final recommendedTranspose = preferNatural
-        ? ChordService.recommendedNaturalTranspose(state.originalFamilyChord)
+        ? ChordService.recommendedNaturalTranspose(
+            state.originalFamilyChord,
+            baseTransposeOffset: state.baseTransposeOffset,
+          )
         : 0;
     emit(state.copyWith(
       preferNaturalChords: preferNatural,
@@ -208,6 +213,8 @@ class SongCubit extends HydratedCubit<SongState> {
       chordAccidentalMode: ChordService.accidentalSharp,
       preferNaturalChords: false,
       originalFamilyChord: null,
+      originalPdfKey: null,
+      baseTransposeOffset: 0,
       tempoBpm: 76,
       defaultTempoBpm: 76,
       midiInstrument: null,
@@ -258,12 +265,20 @@ class SongCubit extends HydratedCubit<SongState> {
       final jsonString = await rootBundle.loadString(chordPath);
       final chords = ChordService.parseChordJson(jsonString);
       final familyChord = ChordService.detectFamilyChord(chords);
+      final baseTransposeOffset = ChordService.calculateBaseTransposeOffset(
+        pdfKey: state.originalPdfKey,
+        familyChord: familyChord,
+      );
       final previousTranspose = state.transposeStep;
       final recommendedTranspose = state.preferNaturalChords
-          ? ChordService.recommendedNaturalTranspose(familyChord)
+          ? ChordService.recommendedNaturalTranspose(
+              familyChord,
+              baseTransposeOffset: baseTransposeOffset,
+            )
           : state.transposeStep;
       emit(state.copyWith(
         originalFamilyChord: familyChord,
+        baseTransposeOffset: baseTransposeOffset,
         transposeStep: recommendedTranspose,
       ));
       if (recommendedTranspose != previousTranspose) {
@@ -273,6 +288,29 @@ class SongCubit extends HydratedCubit<SongState> {
     } catch (e) {
       log('Error loading chord data: $e');
       return null;
+    }
+  }
+
+  void updatePdfKey(String? pdfKey) {
+    if (pdfKey == state.originalPdfKey) return;
+    final baseTransposeOffset = ChordService.calculateBaseTransposeOffset(
+      pdfKey: pdfKey,
+      familyChord: state.originalFamilyChord,
+    );
+    final previousTranspose = state.transposeStep;
+    final recommendedTranspose = state.preferNaturalChords
+        ? ChordService.recommendedNaturalTranspose(
+            state.originalFamilyChord,
+            baseTransposeOffset: baseTransposeOffset,
+          )
+        : state.transposeStep;
+    emit(state.copyWith(
+      originalPdfKey: pdfKey,
+      baseTransposeOffset: baseTransposeOffset,
+      transposeStep: recommendedTranspose,
+    ));
+    if (recommendedTranspose != previousTranspose) {
+      _midiEngine.setTranspose(recommendedTranspose);
     }
   }
 

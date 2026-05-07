@@ -308,6 +308,25 @@
         return notes;
       }
 
+      async function detectPdfKey(pdf) {
+        try {
+          const page = await pdf.getPage(1);
+          const textContent = await page.getTextContent();
+          const pdfText = textContent.items.map((item) => item.str || "").join(" ");
+          const keyMatch = pdfText.match(
+            /(?:(?:do|la)\s*={1,2}\s*|[23469]\s*[\/|]\s*[248]\s+)([A-G](?:es|is|s|#|b)?(?:m)?)\b/i
+          );
+          const key = keyMatch ? keyMatch[1] : "";
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("pdfKeyDetected", key);
+          }
+        } catch (error) {
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("pdfKeyDetected", "");
+          }
+        }
+      }
+
       function calculateChordPosition(noteIdx, pageNumber, width, height) {
         const notes = pageNotes.get(Number(pageNumber)) || [];
         if (notes.length > 0) {
@@ -521,6 +540,7 @@
             data: decodeBase64(base64),
           }).promise;
           pdfPageCount = pdfDocument.numPages;
+          await detectPdfKey(pdfDocument);
           await renderDocument();
         } catch (error) {
           console.error(error);

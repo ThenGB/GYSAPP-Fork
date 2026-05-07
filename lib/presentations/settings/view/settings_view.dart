@@ -614,9 +614,10 @@ class _SongSettingsSection extends StatelessWidget {
                   subtitle: Text(
                     state.originalFamilyChord == null
                         ? 'Otomatis saat family chord asli terdeteksi'
-                        : 'Family asli: ${ChordService.normalizeChord(
+                        : 'Family asli: ${ChordService.formatChordForDisplay(
                             state.originalFamilyChord!,
                             accidentalMode: state.chordAccidentalMode,
+                            baseTransposeOffset: state.baseTransposeOffset,
                           )}',
                   ),
                   value: state.preferNaturalChords,

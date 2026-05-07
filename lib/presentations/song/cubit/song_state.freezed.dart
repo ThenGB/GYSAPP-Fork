@@ -43,6 +43,8 @@ mixin _$SongState {
   String get chordAccidentalMode;
   bool get preferNaturalChords;
   String? get originalFamilyChord;
+  String? get originalPdfKey;
+  int get baseTransposeOffset;
   double get tempoBpm;
   double get defaultTempoBpm;
   int? get midiInstrument;
@@ -118,6 +120,10 @@ mixin _$SongState {
                 other.preferNaturalChords == preferNaturalChords) &&
             (identical(other.originalFamilyChord, originalFamilyChord) ||
                 other.originalFamilyChord == originalFamilyChord) &&
+            (identical(other.originalPdfKey, originalPdfKey) ||
+                other.originalPdfKey == originalPdfKey) &&
+            (identical(other.baseTransposeOffset, baseTransposeOffset) ||
+                other.baseTransposeOffset == baseTransposeOffset) &&
             (identical(other.tempoBpm, tempoBpm) ||
                 other.tempoBpm == tempoBpm) &&
             (identical(other.defaultTempoBpm, defaultTempoBpm) ||
@@ -163,6 +169,8 @@ mixin _$SongState {
         chordAccidentalMode,
         preferNaturalChords,
         originalFamilyChord,
+        originalPdfKey,
+        baseTransposeOffset,
         tempoBpm,
         defaultTempoBpm,
         midiInstrument,
@@ -172,7 +180,7 @@ mixin _$SongState {
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
   }
 }
 
@@ -211,6 +219,8 @@ abstract mixin class $SongStateCopyWith<$Res> {
       String chordAccidentalMode,
       bool preferNaturalChords,
       String? originalFamilyChord,
+      String? originalPdfKey,
+      int baseTransposeOffset,
       double tempoBpm,
       double defaultTempoBpm,
       int? midiInstrument,
@@ -261,6 +271,8 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
     Object? chordAccidentalMode = null,
     Object? preferNaturalChords = null,
     Object? originalFamilyChord = freezed,
+    Object? originalPdfKey = freezed,
+    Object? baseTransposeOffset = null,
     Object? tempoBpm = null,
     Object? defaultTempoBpm = null,
     Object? midiInstrument = freezed,
@@ -384,6 +396,14 @@ class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
           ? _self.originalFamilyChord
           : originalFamilyChord // ignore: cast_nullable_to_non_nullable
               as String?,
+      originalPdfKey: freezed == originalPdfKey
+          ? _self.originalPdfKey
+          : originalPdfKey // ignore: cast_nullable_to_non_nullable
+              as String?,
+      baseTransposeOffset: null == baseTransposeOffset
+          ? _self.baseTransposeOffset
+          : baseTransposeOffset // ignore: cast_nullable_to_non_nullable
+              as int,
       tempoBpm: null == tempoBpm
           ? _self.tempoBpm
           : tempoBpm // ignore: cast_nullable_to_non_nullable
@@ -545,6 +565,8 @@ extension SongStatePatterns on SongState {
             String chordAccidentalMode,
             bool preferNaturalChords,
             String? originalFamilyChord,
+            String? originalPdfKey,
+            int baseTransposeOffset,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -586,6 +608,8 @@ extension SongStatePatterns on SongState {
             _that.chordAccidentalMode,
             _that.preferNaturalChords,
             _that.originalFamilyChord,
+            _that.originalPdfKey,
+            _that.baseTransposeOffset,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -641,6 +665,8 @@ extension SongStatePatterns on SongState {
             String chordAccidentalMode,
             bool preferNaturalChords,
             String? originalFamilyChord,
+            String? originalPdfKey,
+            int baseTransposeOffset,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -681,6 +707,8 @@ extension SongStatePatterns on SongState {
             _that.chordAccidentalMode,
             _that.preferNaturalChords,
             _that.originalFamilyChord,
+            _that.originalPdfKey,
+            _that.baseTransposeOffset,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -735,6 +763,8 @@ extension SongStatePatterns on SongState {
             String chordAccidentalMode,
             bool preferNaturalChords,
             String? originalFamilyChord,
+            String? originalPdfKey,
+            int baseTransposeOffset,
             double tempoBpm,
             double defaultTempoBpm,
             int? midiInstrument,
@@ -775,6 +805,8 @@ extension SongStatePatterns on SongState {
             _that.chordAccidentalMode,
             _that.preferNaturalChords,
             _that.originalFamilyChord,
+            _that.originalPdfKey,
+            _that.baseTransposeOffset,
             _that.tempoBpm,
             _that.defaultTempoBpm,
             _that.midiInstrument,
@@ -819,6 +851,8 @@ class _SongState extends SongState {
       this.chordAccidentalMode = 'sharp',
       this.preferNaturalChords = false,
       this.originalFamilyChord,
+      this.originalPdfKey,
+      this.baseTransposeOffset = 0,
       this.tempoBpm = 76.0,
       this.defaultTempoBpm = 76.0,
       this.midiInstrument,
@@ -966,6 +1000,11 @@ class _SongState extends SongState {
   @override
   final String? originalFamilyChord;
   @override
+  final String? originalPdfKey;
+  @override
+  @JsonKey()
+  final int baseTransposeOffset;
+  @override
   @JsonKey()
   final double tempoBpm;
   @override
@@ -1055,6 +1094,10 @@ class _SongState extends SongState {
                 other.preferNaturalChords == preferNaturalChords) &&
             (identical(other.originalFamilyChord, originalFamilyChord) ||
                 other.originalFamilyChord == originalFamilyChord) &&
+            (identical(other.originalPdfKey, originalPdfKey) ||
+                other.originalPdfKey == originalPdfKey) &&
+            (identical(other.baseTransposeOffset, baseTransposeOffset) ||
+                other.baseTransposeOffset == baseTransposeOffset) &&
             (identical(other.tempoBpm, tempoBpm) ||
                 other.tempoBpm == tempoBpm) &&
             (identical(other.defaultTempoBpm, defaultTempoBpm) ||
@@ -1100,6 +1143,8 @@ class _SongState extends SongState {
         chordAccidentalMode,
         preferNaturalChords,
         originalFamilyChord,
+        originalPdfKey,
+        baseTransposeOffset,
         tempoBpm,
         defaultTempoBpm,
         midiInstrument,
@@ -1109,7 +1154,7 @@ class _SongState extends SongState {
 
   @override
   String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, chordAccidentalMode: $chordAccidentalMode, preferNaturalChords: $preferNaturalChords, originalFamilyChord: $originalFamilyChord, originalPdfKey: $originalPdfKey, baseTransposeOffset: $baseTransposeOffset, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
   }
 }
 
@@ -1151,6 +1196,8 @@ abstract mixin class _$SongStateCopyWith<$Res>
       String chordAccidentalMode,
       bool preferNaturalChords,
       String? originalFamilyChord,
+      String? originalPdfKey,
+      int baseTransposeOffset,
       double tempoBpm,
       double defaultTempoBpm,
       int? midiInstrument,
@@ -1202,6 +1249,8 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
     Object? chordAccidentalMode = null,
     Object? preferNaturalChords = null,
     Object? originalFamilyChord = freezed,
+    Object? originalPdfKey = freezed,
+    Object? baseTransposeOffset = null,
     Object? tempoBpm = null,
     Object? defaultTempoBpm = null,
     Object? midiInstrument = freezed,
@@ -1325,6 +1374,14 @@ class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
           ? _self.originalFamilyChord
           : originalFamilyChord // ignore: cast_nullable_to_non_nullable
               as String?,
+      originalPdfKey: freezed == originalPdfKey
+          ? _self.originalPdfKey
+          : originalPdfKey // ignore: cast_nullable_to_non_nullable
+              as String?,
+      baseTransposeOffset: null == baseTransposeOffset
+          ? _self.baseTransposeOffset
+          : baseTransposeOffset // ignore: cast_nullable_to_non_nullable
+              as int,
       tempoBpm: null == tempoBpm
           ? _self.tempoBpm
           : tempoBpm // ignore: cast_nullable_to_non_nullable

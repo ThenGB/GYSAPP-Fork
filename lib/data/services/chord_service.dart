@@ -128,11 +128,13 @@ class ChordService {
   static String transposeChord(
     String chord,
     int semitones, {
+    int baseTransposeOffset = 0,
     String accidentalMode = accidentalSharp,
   }) {
     return formatChordForDisplay(
       chord,
       transpose: semitones,
+      baseTransposeOffset: baseTransposeOffset,
       accidentalMode: accidentalMode,
     );
   }
@@ -147,13 +149,15 @@ class ChordService {
   static String formatChordForDisplay(
     String chord, {
     int transpose = 0,
+    int baseTransposeOffset = 0,
     String accidentalMode = accidentalSharp,
   }) {
     final parsed = _parseChordToken(chord);
     if (parsed == null) return chord.trim();
 
     final notes = accidentalMode == accidentalFlat ? _notesFlat : _notesSharp;
-    final root = notes[_wrapSemitone(parsed.semitone + transpose)];
+    final root =
+        notes[_wrapSemitone(parsed.semitone + transpose + baseTransposeOffset)];
     final suffix = parsed.suffix.replaceAll('♯', '#').replaceAll('♭', 'b');
     final bass = parsed.bassSemitone == null
         ? ''
@@ -203,11 +207,69 @@ class ChordService {
     return (counts[lastRoot] ?? 0) > 1 ? lastRoot : mostFrequent;
   }
 
-  static int recommendedNaturalTranspose(String? familyChord) {
+  static int recommendedNaturalTranspose(
+    String? familyChord, {
+    int baseTransposeOffset = 0,
+  }) {
     if (familyChord == null) return 0;
     final parsed = _parseChordToken(familyChord);
     if (parsed == null) return 0;
-    return {1, 3, 6, 8, 10}.contains(parsed.semitone) ? -1 : 0;
+    final finalBaseSemi = _wrapSemitone(parsed.semitone + baseTransposeOffset);
+    return {1, 3, 6, 8, 10}.contains(finalBaseSemi) ? -1 : 0;
+  }
+
+  static int? parsePdfKeyToSemitone(String? key) {
+    if (key == null || key.trim().isEmpty) return null;
+    final normalized = key.trim().toLowerCase().replaceFirst(RegExp(r'm$'), '');
+    const keyMap = {
+      'c': 0,
+      'cis': 1,
+      'des': 1,
+      'db': 1,
+      'c#': 1,
+      'd': 2,
+      'dis': 3,
+      'es': 3,
+      'eb': 3,
+      'd#': 3,
+      'e': 4,
+      'f': 5,
+      'fis': 6,
+      'ges': 6,
+      'gb': 6,
+      'f#': 6,
+      'g': 7,
+      'gis': 8,
+      'as': 8,
+      'ab': 8,
+      'g#': 8,
+      'a': 9,
+      'ais': 10,
+      'bes': 10,
+      'bb': 10,
+      'a#': 10,
+      'b': 11,
+      'h': 11,
+    };
+    if (keyMap.containsKey(normalized)) return keyMap[normalized];
+    final base = _naturalNoteIndex[normalized.substring(0, 1).toUpperCase()];
+    if (base == null) return null;
+    if (normalized.contains('#')) return _wrapSemitone(base + 1);
+    if (normalized.contains('b')) return _wrapSemitone(base - 1);
+    return base;
+  }
+
+  static int calculateBaseTransposeOffset({
+    required String? pdfKey,
+    required String? familyChord,
+  }) {
+    final pdfSemi = parsePdfKeyToSemitone(pdfKey);
+    final chordSemi = _parseChordToken(familyChord ?? '')?.semitone;
+    if (pdfSemi == null || chordSemi == null) return 0;
+    var diff = (pdfSemi - chordSemi) % 12;
+    if (diff > 6) diff -= 12;
+    if (diff < -5) diff += 12;
+    return diff;
   }
 
   static Map<int, List<ChordData>> transposeAll(
@@ -224,6 +286,7 @@ class ChordService {
           transposeChord(
             c.chord,
             semitones,
+            baseTransposeOffset: 0,
             accidentalMode: accidentalMode,
           ),
         );
