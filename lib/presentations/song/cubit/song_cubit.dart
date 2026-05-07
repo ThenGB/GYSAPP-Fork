@@ -13,6 +13,8 @@ import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../domain/repository/song_repository.dart';
+import 'song_playback_defaults.dart';
+import 'song_playlist.dart';
 import 'song_state.dart';
 
 export 'song_state.dart';
@@ -28,21 +30,23 @@ class SongCubit extends HydratedCubit<SongState> {
 
   StreamSubscription<MidiPlaybackState>? _midiStateSub;
   Timer? _debouncer;
+  MidiPlaybackState _lastMidiState = const MidiPlaybackState();
+  bool _handlingAutoNext = false;
 
-  SongCubit(
-    this.songRepository,
-    this._assetService,
-    this._midiEngine,
-  ) : super(const SongState()) {
+  SongCubit(this.songRepository, this._assetService, this._midiEngine)
+    : super(const SongState()) {
     _setupMidiStreams();
-    getData().then((_) {
-      _midiEngine.initialize();
+    getData().then((_) async {
+      await _midiEngine.initialize();
+      await _midiEngine.changeSoundFont(state.soundFont);
       _preloadCurrentSongMidi();
     });
   }
 
   void _setupMidiStreams() {
     _midiStateSub = _midiEngine.stateStream.listen((midiState) {
+      final ended = _didMidiEnd(_lastMidiState, midiState);
+      _lastMidiState = midiState;
       // Convert MidiPlaybackState to relevant SongState updates
       if (midiState.isPlaying != state.isAudioPlaying) {
         emit(state.copyWith(isAudioPlaying: midiState.isPlaying));
@@ -50,7 +54,17 @@ class SongCubit extends HydratedCubit<SongState> {
       if (midiState.isLoading != state.isAudioLoading) {
         emit(state.copyWith(isAudioLoading: midiState.isLoading));
       }
+      if (ended) {
+        unawaited(_handleMidiSongEnded());
+      }
     });
+  }
+
+  bool _didMidiEnd(MidiPlaybackState previous, MidiPlaybackState current) {
+    if (!previous.isPlaying || current.isPlaying || current.duration <= 0) {
+      return false;
+    }
+    return current.position >= current.duration - 0.35;
   }
 
   Future<void> getData() async {
@@ -70,20 +84,31 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> _preloadCurrentSongMidi() async {
     if (state.songs.isEmpty) return;
+    _resetSongScopedPlaybackDefaults();
     final song = state.songs[state.pageIndex];
-    await _loadMidiForSong(song);
+    await _loadMidiForSong(song, force: true);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
-  Future<void> _loadMidiForSong(Song song) async {
-    if (!state.showAudio) return;
+  Future<String?> _midiPathForSong(Song song) {
+    return _assetService.getMidiPath(song.code ?? '', song.number ?? '');
+  }
 
-    final midiPath =
-        await _assetService.getMidiPath(song.code ?? '', song.number ?? '');
+  Future<void> _loadMidiForSong(
+    Song song, {
+    bool autoplay = false,
+    bool force = false,
+  }) async {
+    if (!force && !state.showAudio) return;
+
+    final midiPath = await _midiPathForSong(song);
     if (midiPath == null) {
-      emit(state.copyWith(
-        isAudioLoading: false,
-        showAudio: false,
-      ));
+      emit(
+        state.copyWith(
+          isAudioLoading: false,
+          showAudio: state.showAudio ? false : state.showAudio,
+        ),
+      );
       return;
     }
 
@@ -91,18 +116,46 @@ class SongCubit extends HydratedCubit<SongState> {
     await _midiEngine.loadMidi(
       midiPath,
       transpose: state.transposeStep,
+      tempoBpm: state.tempoBpm,
+      baseTempoBpm: state.defaultTempoBpm,
       instrument: state.midiInstrument,
-      autoplay: false,
+      autoplay: autoplay,
     );
     emit(state.copyWith(isAudioLoading: false));
+  }
+
+  void _preloadNearbySongMidi(int index) {
+    final queue = _playbackQueue();
+    for (final song in queue.preloadSongs) {
+      _midiPathForSong(song).then((midiPath) {
+        if (midiPath == null) return;
+        final preset = _defaultPreloadSettingsFor(song);
+        _midiEngine.preload(
+          midiPath,
+          transpose: preset.transposeStep,
+          tempoBpm: preset.tempoBpm,
+          baseTempoBpm: preset.defaultTempoBpm,
+          instrument: state.midiInstrument,
+          soundFont: state.soundFont,
+        );
+      });
+    }
   }
 
   Future<void> play() async {
     if (!state.showAudio) {
       emit(state.copyWith(showAudio: true));
     }
-    if (_midiEngine.state.currentSong == null && state.songs.isNotEmpty) {
-      await _loadMidiForSong(state.songs[state.pageIndex]);
+    if (state.songs.isNotEmpty) {
+      final song = state.songs[state.pageIndex];
+      final midiPath = await _midiPathForSong(song);
+      if (midiPath == null) {
+        emit(state.copyWith(showAudio: false, isAudioLoading: false));
+        return;
+      }
+      if (!_midiEngine.isCurrentSong(midiPath)) {
+        await _loadMidiForSong(song);
+      }
     }
     await _midiEngine.play();
     emit(state.copyWith(isAudioPlaying: true));
@@ -152,30 +205,50 @@ class SongCubit extends HydratedCubit<SongState> {
   // ─── Transpose ────────────────────────────────────────────────
 
   void setTranspose(int semitones) {
-    emit(state.copyWith(transposeStep: semitones));
-    _midiEngine.setTranspose(semitones);
+    final normalized = semitones.clamp(-12, 12);
+    emit(state.copyWith(transposeStep: normalized));
+    _midiEngine.setTranspose(normalized);
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void setTransposeKey(String key) {
+    setTranspose(_currentPlaybackDefaults().transposeStepForKey(key));
   }
 
   void setChordAccidentalMode(String mode) {
     final normalized = mode == ChordService.accidentalFlat
         ? ChordService.accidentalFlat
         : ChordService.accidentalSharp;
-    emit(state.copyWith(chordAccidentalMode: normalized));
+    final baseline = _currentPlaybackDefaults().resolveChordBaseline(
+      familyChord: state.originalFamilyChord,
+      pdfKey: state.originalPdfKey,
+      preferNaturalChords: state.preferNaturalChords,
+    );
+    emit(
+      state.copyWith(
+        chordAccidentalMode: normalized,
+        transposeStep: baseline.transposeStep,
+        baseTransposeOffset: baseline.baseTransposeOffset,
+      ),
+    );
+    _midiEngine.setTranspose(baseline.transposeStep);
   }
 
   void togglePreferNaturalChords([bool? value]) {
     final preferNatural = value ?? !state.preferNaturalChords;
-    final recommendedTranspose = preferNatural
-        ? ChordService.recommendedNaturalTranspose(
-            state.originalFamilyChord,
-            baseTransposeOffset: state.baseTransposeOffset,
-          )
-        : 0;
-    emit(state.copyWith(
+    final baseline = _currentPlaybackDefaults().resolveChordBaseline(
+      familyChord: state.originalFamilyChord,
+      pdfKey: state.originalPdfKey,
       preferNaturalChords: preferNatural,
-      transposeStep: recommendedTranspose,
-    ));
-    _midiEngine.setTranspose(recommendedTranspose);
+    );
+    emit(
+      state.copyWith(
+        preferNaturalChords: preferNatural,
+        transposeStep: baseline.transposeStep,
+        baseTransposeOffset: baseline.baseTransposeOffset,
+      ),
+    );
+    _midiEngine.setTranspose(baseline.transposeStep);
   }
 
   void transposeUp() {
@@ -190,12 +263,17 @@ class SongCubit extends HydratedCubit<SongState> {
 
   void setTempo(double bpm) {
     emit(state.copyWith(tempoBpm: bpm));
-    _midiEngine.setTempo(bpm);
+    _debouncer?.cancel();
+    _debouncer = Timer(const Duration(milliseconds: 250), () {
+      _midiEngine.setTempo(bpm);
+      _preloadNearbySongMidi(state.pageIndex);
+    });
   }
 
   void setDefaultTempo(double bpm) {
     emit(state.copyWith(defaultTempoBpm: bpm, tempoBpm: bpm));
-    _midiEngine.setTempo(bpm);
+    _midiEngine.setTempoBase(bpm);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
   // ─── Instrument ───────────────────────────────────────────────
@@ -203,24 +281,25 @@ class SongCubit extends HydratedCubit<SongState> {
   void setMidiInstrument(int? program) {
     emit(state.copyWith(midiInstrument: program));
     _midiEngine.setInstrument(program ?? -1);
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
   void resetPlaybackSettings() {
-    emit(state.copyWith(
-      showAudio: false,
-      showChord: false,
-      transposeStep: 0,
-      chordAccidentalMode: ChordService.accidentalSharp,
-      preferNaturalChords: false,
-      originalFamilyChord: null,
-      originalPdfKey: null,
-      baseTransposeOffset: 0,
-      tempoBpm: 76,
-      defaultTempoBpm: 76,
-      midiInstrument: null,
-      soundFont: 'GeneralUser-GS.sf2',
-      isAudioPlaying: false,
-    ));
+    emit(
+      state.copyWith(
+        showAudio: false,
+        showChord: false,
+        transposeStep: 0,
+        originalFamilyChord: null,
+        originalPdfKey: null,
+        baseTransposeOffset: 0,
+        tempoBpm: 76,
+        defaultTempoBpm: 76,
+        midiInstrument: null,
+        soundFont: defaultMidiSoundFont,
+        isAudioPlaying: false,
+      ),
+    );
     _midiEngine.stop();
     _midiEngine.setTranspose(0);
     _midiEngine.setTempo(76);
@@ -231,25 +310,58 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> setSoundFont(String fileName) async {
     emit(state.copyWith(soundFont: fileName));
-    // SoundFont change requires engine reload
-    await _midiEngine.initialize();
+    await _midiEngine.changeSoundFont(fileName);
     if (state.songs.isNotEmpty) {
-      await _loadMidiForSong(state.songs[state.pageIndex]);
+      await _loadMidiForSong(state.songs[state.pageIndex], force: true);
+      _preloadNearbySongMidi(state.pageIndex);
     }
   }
 
   // ─── Page Navigation ──────────────────────────────────────────
 
   Future<void> changePage(int index, int verseIndex) async {
-    _midiEngine.stop();
-    emit(state.copyWith(
-      pageIndex: index,
-      verseIndex: verseIndex,
-      isAudioPlaying: false,
-    ));
-    if (state.showAudio) {
-      await _loadMidiForSong(state.songs[index]);
-    }
+    if (index < 0 || index >= state.songs.length) return;
+    final wasPlaying = state.isAudioPlaying;
+    final reset = _currentPlaybackDefaults().resetForSong();
+    emit(
+      state.copyWith(
+        pageIndex: index,
+        verseIndex: verseIndex,
+        isAudioPlaying: false,
+        transposeStep: reset.transposeStep,
+        tempoBpm: reset.tempoBpm,
+        defaultTempoBpm: reset.defaultTempoBpm,
+        originalPdfKey: reset.originalPdfKey,
+        originalFamilyChord: reset.originalFamilyChord,
+        baseTransposeOffset: reset.baseTransposeOffset,
+      ),
+    );
+    _midiEngine.setTranspose(reset.transposeStep);
+    _midiEngine.setTempoBase(reset.defaultTempoBpm);
+    await _loadMidiForSong(
+      state.songs[index],
+      autoplay: wasPlaying,
+      force: true,
+    );
+    _preloadNearbySongMidi(index);
+  }
+
+  void setPdfTwoPageMode(bool enabled) {
+    emit(
+      state.copyWith(
+        pdfTwoPageMode: enabled,
+        pdfVerticalScrolling: enabled ? false : state.pdfVerticalScrolling,
+      ),
+    );
+  }
+
+  void setPdfVerticalScrolling(bool enabled) {
+    emit(
+      state.copyWith(
+        pdfVerticalScrolling: enabled,
+        pdfTwoPageMode: enabled ? false : state.pdfTwoPageMode,
+      ),
+    );
   }
 
   // ─── Chord Data Loading ───────────────────────────────────────
@@ -257,32 +369,36 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<Map<int, List<ChordData>>?> loadChordData(Song song) async {
     if (song.code != 'KR') return null;
 
-    final chordPath =
-        await _assetService.getChordPath(song.code ?? '', song.number ?? '');
+    final chordPath = await _assetService.getChordPath(
+      song.code ?? '',
+      song.number ?? '',
+    );
     if (chordPath == null) return null;
 
     try {
       final jsonString = await rootBundle.loadString(chordPath);
       final chords = ChordService.parseChordJson(jsonString);
       final familyChord = ChordService.detectFamilyChord(chords);
-      final baseTransposeOffset = ChordService.calculateBaseTransposeOffset(
-        pdfKey: state.originalPdfKey,
+
+      // Invalidate old PDF key so chord display doesn't use stale offset
+      // The PDF viewer will call updatePdfKey with the correct key after rendering
+      final pdfKey = state.originalPdfKey;
+      final baseline = _currentPlaybackDefaults().resolveChordBaseline(
         familyChord: familyChord,
+        pdfKey: pdfKey,
+        preferNaturalChords: state.preferNaturalChords,
       );
       final previousTranspose = state.transposeStep;
-      final recommendedTranspose = state.preferNaturalChords
-          ? ChordService.recommendedNaturalTranspose(
-              familyChord,
-              baseTransposeOffset: baseTransposeOffset,
-            )
-          : state.transposeStep;
-      emit(state.copyWith(
-        originalFamilyChord: familyChord,
-        baseTransposeOffset: baseTransposeOffset,
-        transposeStep: recommendedTranspose,
-      ));
-      if (recommendedTranspose != previousTranspose) {
-        _midiEngine.setTranspose(recommendedTranspose);
+      emit(
+        state.copyWith(
+          originalFamilyChord: baseline.originalFamilyChord,
+          baseTransposeOffset: baseline.baseTransposeOffset,
+          originalPdfKey: baseline.originalPdfKey,
+          transposeStep: baseline.transposeStep,
+        ),
+      );
+      if (baseline.transposeStep != previousTranspose) {
+        _midiEngine.setTranspose(baseline.transposeStep);
       }
       return chords;
     } catch (e) {
@@ -293,28 +409,249 @@ class SongCubit extends HydratedCubit<SongState> {
 
   void updatePdfKey(String? pdfKey) {
     if (pdfKey == state.originalPdfKey) return;
-    final baseTransposeOffset = ChordService.calculateBaseTransposeOffset(
-      pdfKey: pdfKey,
+    final baseline = _currentPlaybackDefaults().resolveChordBaseline(
       familyChord: state.originalFamilyChord,
+      pdfKey: pdfKey,
+      preferNaturalChords: state.preferNaturalChords,
     );
+    if (state.preferNaturalChords && state.originalFamilyChord == null) {
+      emit(
+        state.copyWith(
+          originalPdfKey: baseline.originalPdfKey,
+          baseTransposeOffset: baseline.baseTransposeOffset,
+        ),
+      );
+      return;
+    }
     final previousTranspose = state.transposeStep;
-    final recommendedTranspose = state.preferNaturalChords
-        ? ChordService.recommendedNaturalTranspose(
-            state.originalFamilyChord,
-            baseTransposeOffset: baseTransposeOffset,
-          )
-        : state.transposeStep;
-    emit(state.copyWith(
-      originalPdfKey: pdfKey,
-      baseTransposeOffset: baseTransposeOffset,
-      transposeStep: recommendedTranspose,
-    ));
-    if (recommendedTranspose != previousTranspose) {
-      _midiEngine.setTranspose(recommendedTranspose);
+    emit(
+      state.copyWith(
+        originalPdfKey: baseline.originalPdfKey,
+        baseTransposeOffset: baseline.baseTransposeOffset,
+        transposeStep: baseline.transposeStep,
+      ),
+    );
+    if (baseline.transposeStep != previousTranspose) {
+      _midiEngine.setTranspose(baseline.transposeStep);
     }
   }
 
+  SongPlaybackDefaults _currentPlaybackDefaults() {
+    return SongPlaybackDefaults(
+      transposeStep: state.transposeStep,
+      tempoBpm: state.tempoBpm,
+      defaultTempoBpm: state.defaultTempoBpm,
+      originalFamilyChord: state.originalFamilyChord,
+      originalPdfKey: state.originalPdfKey,
+      baseTransposeOffset: state.baseTransposeOffset,
+    );
+  }
+
+  SongPlaybackDefaults _defaultPreloadSettingsFor(Song song) {
+    if (state.pageIndex < state.songs.length &&
+        state.songs[state.pageIndex].code == song.code &&
+        state.songs[state.pageIndex].number == song.number) {
+      return _currentPlaybackDefaults();
+    }
+    return _currentPlaybackDefaults().resetForSong();
+  }
+
+  SongPlaybackQueue _playbackQueue() {
+    final currentSong =
+        state.pageIndex >= 0 && state.pageIndex < state.songs.length
+        ? state.songs[state.pageIndex]
+        : null;
+    return SongPlaybackQueue.resolve(
+      books: state.songBook,
+      currentSongs: state.songs,
+      currentSong: currentSong,
+      playlists: state.playlists,
+      activePlaylistId: state.activePlaylistId,
+      autoNextMode: state.playlistAutoNextMode,
+      shuffleIndex:
+          state.playlistAutoNextMode == SongPlaylistAutoNextMode.shufflePlaylist
+          ? state.playlistShuffleIndex
+          : state.shuffleIndex,
+    );
+  }
+
+  Future<void> _handleMidiSongEnded() async {
+    if (_handlingAutoNext) return;
+    final mode = SongPlaylistAutoNextMode.normalize(state.playlistAutoNextMode);
+    if (mode == SongPlaylistAutoNextMode.off) return;
+    final nextSong = _playbackQueue().nextSong;
+    if (nextSong == null) return;
+
+    _handlingAutoNext = true;
+    try {
+      await _openSong(nextSong, autoplay: true);
+    } finally {
+      _handlingAutoNext = false;
+    }
+  }
+
+  Future<void> _openSong(Song song, {bool autoplay = false}) async {
+    final bookCode = song.code ?? state.bookCode;
+    final book = state.songBook.firstWhere(
+      (book) => book.code == bookCode,
+      orElse: () => SongBook(code: bookCode, songs: const []),
+    );
+    final index = book.songs.indexWhere(
+      (item) => item.code == song.code && item.number == song.number,
+    );
+    if (index < 0) return;
+    emit(state.copyWith(bookCode: bookCode, playOnlyFavorite: false));
+    await changePage(index, 0);
+    if (autoplay) {
+      await play();
+    }
+  }
+
+  void _resetSongScopedPlaybackDefaults() {
+    final reset = _currentPlaybackDefaults().resetForSong();
+    emit(
+      state.copyWith(
+        transposeStep: reset.transposeStep,
+        tempoBpm: reset.tempoBpm,
+        defaultTempoBpm: reset.defaultTempoBpm,
+        originalFamilyChord: reset.originalFamilyChord,
+        originalPdfKey: reset.originalPdfKey,
+        baseTransposeOffset: reset.baseTransposeOffset,
+      ),
+    );
+    _midiEngine.setTranspose(reset.transposeStep);
+    _midiEngine.setTempoBase(reset.defaultTempoBpm);
+  }
+
   // ─── Book Code ────────────────────────────────────────────────
+
+  // Playlists
+
+  SongPlaylist? get activePlaylist {
+    final id = state.activePlaylistId;
+    if (id == null) return null;
+    for (final playlist in state.playlists) {
+      if (playlist.id == id) return playlist;
+    }
+    return null;
+  }
+
+  void createPlaylist([String? name]) {
+    final playlist = SongPlaylist(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      name: (name == null || name.trim().isEmpty) ? 'Playlist' : name.trim(),
+      songs: const [],
+    );
+    emit(
+      state.copyWith(
+        playlists: [...state.playlists, playlist],
+        activePlaylistId: state.activePlaylistId ?? playlist.id,
+      ),
+    );
+  }
+
+  void renamePlaylist(String playlistId, String name) {
+    final normalized = name.trim();
+    if (normalized.isEmpty) return;
+    emit(
+      state.copyWith(
+        playlists: state.playlists
+            .map(
+              (playlist) => playlist.id == playlistId
+                  ? playlist.copyWith(name: normalized)
+                  : playlist,
+            )
+            .toList(),
+      ),
+    );
+  }
+
+  void deletePlaylist(String playlistId) {
+    final playlists = state.playlists
+        .where((playlist) => playlist.id != playlistId)
+        .toList();
+    emit(
+      state.copyWith(
+        playlists: playlists,
+        activePlaylistId: state.activePlaylistId == playlistId
+            ? (playlists.isEmpty ? null : playlists.first.id)
+            : state.activePlaylistId,
+      ),
+    );
+  }
+
+  void setActivePlaylist(String? playlistId) {
+    emit(state.copyWith(activePlaylistId: playlistId));
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void setPlaylistAutoNextMode(String mode) {
+    final normalized = SongPlaylistAutoNextMode.normalize(mode);
+    emit(state.copyWith(playlistAutoNextMode: normalized));
+    _refreshPlaylistShuffleIfNeeded();
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void addSongToActivePlaylist(Song song) {
+    if (state.playlists.isEmpty) {
+      createPlaylist('Playlist');
+    }
+    final playlistId = state.activePlaylistId ?? state.playlists.first.id;
+    addSongToPlaylist(playlistId, song);
+  }
+
+  void addSongToPlaylist(String playlistId, Song song) {
+    emit(
+      state.copyWith(
+        playlists: state.playlists.map((playlist) {
+          if (playlist.id != playlistId) return playlist;
+          return playlist.copyWith(
+            songs: [...playlist.songs, SongPlaylistItem.fromSong(song)],
+          );
+        }).toList(),
+        activePlaylistId: state.activePlaylistId ?? playlistId,
+      ),
+    );
+    _refreshPlaylistShuffleIfNeeded();
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void removeSongFromPlaylist(String playlistId, int songIndex) {
+    emit(
+      state.copyWith(
+        playlists: state.playlists.map((playlist) {
+          if (playlist.id != playlistId ||
+              songIndex < 0 ||
+              songIndex >= playlist.songs.length) {
+            return playlist;
+          }
+          final songs = List<SongPlaylistItem>.from(playlist.songs)
+            ..removeAt(songIndex);
+          return playlist.copyWith(songs: songs);
+        }).toList(),
+      ),
+    );
+    _refreshPlaylistShuffleIfNeeded();
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  bool isSongInActivePlaylist(Song song) {
+    return activePlaylist?.songs.any((item) => item.matches(song)) ?? false;
+  }
+
+  void _refreshPlaylistShuffleIfNeeded() {
+    if (state.playlistAutoNextMode !=
+        SongPlaylistAutoNextMode.shufflePlaylist) {
+      return;
+    }
+    emit(
+      state.copyWith(
+        playlistShuffleIndex: getRandomUniqueIndex(
+          activePlaylist?.songs.length ?? 0,
+        ),
+      ),
+    );
+  }
 
   void changeBookcode(String bookCode, {bool isFavorite = false}) {
     List<Song> songs = [];
@@ -335,8 +672,9 @@ class SongCubit extends HydratedCubit<SongState> {
   void modifyFavorite(Song song, {bool playOnlyFav = true}) {
     List<SongBook> modifiedSongBook = [];
     if (state.favoriteSongBook.isEmpty) {
-      modifiedSongBook =
-          state.songBook.map((e) => e.copyWith(songs: [])).toList();
+      modifiedSongBook = state.songBook
+          .map((e) => e.copyWith(songs: []))
+          .toList();
     } else {
       modifiedSongBook = List.from(state.favoriteSongBook);
     }
@@ -354,16 +692,20 @@ class SongCubit extends HydratedCubit<SongState> {
       return temp;
     }).toList();
     final hasFavoriteSongs = modifiedSongBook.any((sb) => sb.songs.isNotEmpty);
-    emit(state.copyWith(
+    emit(
+      state.copyWith(
         favoriteSongBook: modifiedSongBook,
-        playOnlyFavorite: playOnlyFav && hasFavoriteSongs));
+        playOnlyFavorite: playOnlyFav && hasFavoriteSongs,
+      ),
+    );
   }
 
   bool isSongFavorite(Song? song) {
     if (song == null) return false;
     if (state.favoriteSongBook.map((e) => e.code).contains(song.code)) {
-      SongBook songBook = state.favoriteSongBook
-          .firstWhere((element) => element.code == song.code);
+      SongBook songBook = state.favoriteSongBook.firstWhere(
+        (element) => element.code == song.code,
+      );
       return songBook.songs.map((e) => e.number).contains(song.number);
     } else {
       return false;
@@ -373,8 +715,11 @@ class SongCubit extends HydratedCubit<SongState> {
   // ─── History ──────────────────────────────────────────────────
 
   void deleteHistory(SongHistory history) {
-    emit(state.copyWith(
-        histories: List<SongHistory>.from(state.histories)..remove(history)));
+    emit(
+      state.copyWith(
+        histories: List<SongHistory>.from(state.histories)..remove(history),
+      ),
+    );
   }
 
   void addToHistory(SongHistory item) {
@@ -430,8 +775,10 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> toggleShuffle() async {
     Fluttertoast.cancel();
     Fluttertoast.showToast(
-        msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}');
+      msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}',
+    );
     emit(state.copyWith(shuffleMode: !state.shuffleMode));
+    _preloadNearbySongMidi(state.pageIndex);
   }
 
   // ─── Font & Text ──────────────────────────────────────────────
@@ -446,6 +793,26 @@ class SongCubit extends HydratedCubit<SongState> {
 
   void changeTextHeight(double value) {
     emit(state.copyWith(defaultTextHeight: value));
+  }
+
+  void changeLyricsTextAlign(String align) {
+    emit(state.copyWith(lyricsTextAlign: align));
+  }
+
+  void changeLyricsVerticalAlign(String align) {
+    emit(state.copyWith(lyricsVerticalAlign: align));
+  }
+
+  void changeChordFontSizePercent(int value) {
+    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200)));
+  }
+
+  void changeChordFillOpacityPercent(int value) {
+    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100)));
+  }
+
+  void changeChordPaddingPercent(int value) {
+    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400)));
   }
 
   // ─── Mode ─────────────────────────────────────────────────────
@@ -464,7 +831,21 @@ class SongCubit extends HydratedCubit<SongState> {
   @override
   Map<String, dynamic>? toJson(SongState state) {
     return state
-        .copyWith(isAudioLoading: false, isLoading: false, selectedSong: null)
+        .copyWith(
+          isAudioLoading: false,
+          isLoading: false,
+          selectedSong: null,
+          showAudio: false,
+          showChord: false,
+          transposeStep: 0,
+          originalFamilyChord: null,
+          originalPdfKey: null,
+          baseTransposeOffset: 0,
+          tempoBpm: 76,
+          defaultTempoBpm: 76,
+          midiInstrument: null,
+          isAudioPlaying: false,
+        )
         .toJson();
   }
 

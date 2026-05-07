@@ -1,9 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
 
@@ -12,15 +10,21 @@ class LocalAssetService {
   final Map<String, dynamic> _masterIndex = {};
   Map<String, dynamic>? _assetManifest;
   Map<String, String>? _normalizedAssetPathMap;
+  Future<void>? _initializeFuture;
 
   Future<void> initialize() async {
-    await _loadMasterIndex();
+    _initializeFuture ??= _loadMasterIndex();
+    await _initializeFuture;
   }
 
   Future<void> _loadMasterIndex() async {
+    if (_masterIndex.isNotEmpty) {
+      return;
+    }
     try {
-      final jsonString =
-          await rootBundle.loadString('assets/data/index/master_index.json');
+      final jsonString = await rootBundle.loadString(
+        'assets/data/index/master_index.json',
+      );
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
       _masterIndex.addAll(data);
     } catch (e) {
@@ -105,7 +109,25 @@ class LocalAssetService {
       orElse: () => {},
     );
     if (song.isEmpty) return null;
-    return _resolveAssetPath(song['pdfFile'] as String?);
+    final indexedPath = await _resolveAssetPath(song['pdfFile'] as String?);
+    if (indexedPath != null) return indexedPath;
+    return _resolvePdfByNumber(bookCode, number);
+  }
+
+  Future<String?> _resolvePdfByNumber(String bookCode, String number) async {
+    final manifest = await _loadAssetManifest();
+    final folder = bookCode.toLowerCase().replaceAll('-', '_');
+    final normalizedNumber = number.padLeft(3, '0');
+    final prefix = 'assets/data/pdf/$folder/$normalizedNumber';
+    for (final key in manifest.keys) {
+      final normalizedKey = key.replaceAll('\\', '/').toLowerCase();
+      if (normalizedKey.startsWith(prefix.toLowerCase()) &&
+          normalizedKey.endsWith('.pdf')) {
+        return key;
+      }
+    }
+    log('PDF path not found for $bookCode $number', name: 'LocalAssetService');
+    return null;
   }
 
   Future<bool> hasChord(String bookCode, String number) async {
@@ -136,10 +158,39 @@ class LocalAssetService {
 
     final normalizedMap = await _loadNormalizedAssetPathMap();
     final resolved = normalizedMap[_normalizeAssetKey(candidate)];
-    if (resolved == null) {
-      log('Asset path not found: $path', name: 'LocalAssetService');
+    if (resolved != null) {
+      return resolved;
     }
-    return resolved;
+
+    // Fallback: extract the song number (e.g. "100") from the path and
+    // search the manifest for a file in the same folder starting with it.
+    // This handles cases where the index filename doesn't match the actual file
+    // (e.g. wrong title in filename, or number-only file like "416.MID").
+    final numberMatch = RegExp(r'/(\d+)[^/]*$').firstMatch(candidate);
+    if (numberMatch != null) {
+      final number = numberMatch.group(1)!;
+      final folder = candidate.substring(0, numberMatch.start + 1);
+      final folderPrefix = folder.toLowerCase();
+      final numPattern = RegExp(
+        '^$number'
+        r'[._\-]',
+        caseSensitive: false,
+      );
+      for (final key in manifest.keys) {
+        final normalizedKey = key.replaceAll('\\', '/').toLowerCase();
+        if (normalizedKey.startsWith(folderPrefix)) {
+          final fileName = normalizedKey.split('/').last;
+          if (numPattern.hasMatch(fileName) ||
+              fileName == '$number.mid' ||
+              fileName == '$number.MID') {
+            return key;
+          }
+        }
+      }
+    }
+
+    log('Asset path not found: $path', name: 'LocalAssetService');
+    return null;
   }
 
   String _withDataPrefix(String path) {
@@ -173,25 +224,6 @@ class LocalAssetService {
 
   String _normalizeAssetKey(String value) {
     return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
-  }
-
-  /// Copy SoundFont from assets to app documents directory for WebView access.
-  Future<String> getSoundFontPath(String fileName) async {
-    final dir = await getApplicationDocumentsDirectory();
-    final targetFile = File('${dir.path}/soundfont/$fileName');
-
-    if (await targetFile.exists()) {
-      return targetFile.path;
-    }
-
-    await targetFile.parent.create(recursive: true);
-
-    final assetPath = 'assets/data/soundfont/$fileName';
-    final data = await rootBundle.load(assetPath);
-    final bytes = data.buffer.asUint8List();
-    await targetFile.writeAsBytes(bytes, flush: true);
-
-    return targetFile.path;
   }
 
   /// Get all available soundfont files

@@ -651,16 +651,15 @@ class _HomeHeaderState extends State<HomeHeader> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    (context.watch<DashboardCubit>().state.idToken == null)
+                    state.idToken == null
                         ? 'Haleluya, $greetings'
-                        : '$greetings, ${context.watch<DashboardCubit>().state.account?.name ?? ''}!',
+                        : '$greetings, ${state.account?.name ?? ''}!',
                     style: const TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 16,
                     ),
                   ),
-                  if (context.watch<DashboardCubit>().state.idToken ==
-                      null) ...[
+                  if (state.idToken == null) ...[
                     Text.rich(
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -780,4 +779,3 @@ class _HomeHeaderState extends State<HomeHeader> {
     return span;
   }
 }
-

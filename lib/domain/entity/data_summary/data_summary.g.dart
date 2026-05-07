@@ -7,13 +7,10 @@ part of 'data_summary.dart';
 // **************************************************************************
 
 _DataSummary _$DataSummaryFromJson(Map<String, dynamic> json) => _DataSummary(
-      values: (json['values'] as List<dynamic>?)
-              ?.map((e) => e as String)
-              .toList() ??
-          const [],
-    );
+  values:
+      (json['values'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const [],
+);
 
 Map<String, dynamic> _$DataSummaryToJson(_DataSummary instance) =>
-    <String, dynamic>{
-      'values': instance.values,
-    };
+    <String, dynamic>{'values': instance.values};

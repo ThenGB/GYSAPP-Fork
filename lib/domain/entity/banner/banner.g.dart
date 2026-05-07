@@ -7,15 +7,15 @@ part of 'banner.dart';
 // **************************************************************************
 
 _ImageBanner _$ImageBannerFromJson(Map<String, dynamic> json) => _ImageBanner(
-      description: json['description'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      linkUrl: json['linkUrl'] as String?,
-      order: (json['order'] as num?)?.toInt(),
-      title: json['title'] as String?,
-      expiredDate: json['expiredDate'] == null
-          ? null
-          : DateTime.parse(json['expiredDate'] as String),
-    );
+  description: json['description'] as String?,
+  imageUrl: json['imageUrl'] as String?,
+  linkUrl: json['linkUrl'] as String?,
+  order: (json['order'] as num?)?.toInt(),
+  title: json['title'] as String?,
+  expiredDate: json['expiredDate'] == null
+      ? null
+      : DateTime.parse(json['expiredDate'] as String),
+);
 
 Map<String, dynamic> _$ImageBannerToJson(_ImageBanner instance) =>
     <String, dynamic>{

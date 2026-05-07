@@ -20,7 +20,8 @@ _AppBackupData _$AppBackupDataFromJson(Map<String, dynamic> json) =>
       settingsState: json['settings_state'] == null
           ? null
           : SettingsState.fromJson(
-              json['settings_state'] as Map<String, dynamic>),
+              json['settings_state'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$AppBackupDataToJson(_AppBackupData instance) =>

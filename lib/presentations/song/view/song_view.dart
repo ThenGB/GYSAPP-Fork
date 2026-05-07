@@ -13,7 +13,6 @@ import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 import '../widgets/draggable_midi_controls.dart';
-import '../widgets/midi_engine_webview.dart';
 import '../widgets/song_pdf_viewer.dart';
 
 @RoutePage()
@@ -32,6 +31,7 @@ class _SongViewState extends State<SongView> {
   )..addListener(pageListener);
 
   late int currentPageIndex = _initialPageIndex;
+  int _currentVerseIndex = 0;
 
   int _resolveInitialPageIndex() {
     try {
@@ -47,15 +47,18 @@ class _SongViewState extends State<SongView> {
   }
 
   Map<int, List<ChordData>>? _currentChords;
+  String? _currentPdfPath;
 
   void pageListener() {
     final newIndex = pageController.page?.round() ?? currentPageIndex;
     if (newIndex != currentPageIndex) {
       setState(() {
         currentPageIndex = newIndex;
+        _currentVerseIndex = 0;
       });
       cubit.changePage(newIndex, 0);
       _loadChordData();
+      _loadPdfForCurrentSong();
     }
   }
 
@@ -69,6 +72,7 @@ class _SongViewState extends State<SongView> {
   void initState() {
     super.initState();
     _loadChordData();
+    _loadPdfForCurrentSong();
   }
 
   Future<void> _loadChordData() async {
@@ -82,12 +86,42 @@ class _SongViewState extends State<SongView> {
     }
   }
 
+  Future<void> _loadPdfForCurrentSong() async {
+    if (currentPageIndex >= cubit.state.songs.length) return;
+    final song = cubit.state.songs[currentPageIndex];
+    final pdfPath = await cubit.getPdfPath(song.code ?? '', song.number ?? '');
+    if (mounted) {
+      setState(() {
+        _currentPdfPath = pdfPath;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SongCubit, SongState>(
+    return BlocConsumer<SongCubit, SongState>(
+      listenWhen: (previous, current) =>
+          previous.pageIndex != current.pageIndex ||
+          previous.bookCode != current.bookCode ||
+          previous.playOnlyFavorite != current.playOnlyFavorite,
+      listener: (context, state) {
+        setState(() {
+          currentPageIndex = state.pageIndex;
+          _currentVerseIndex = state.verseIndex;
+        });
+        _loadChordData();
+        _loadPdfForCurrentSong();
+        if (!pageController.hasClients) return;
+        pageController.jumpToPage(state.pageIndex);
+      },
       builder: (context, state) {
-        final showHeaderTransport = MediaQuery.sizeOf(context).width >= 760;
         final textMode = state.isImageMode == true;
+        final colors = Theme.of(context).colorScheme;
+        final isFavorite =
+            state.songs.isNotEmpty && currentPageIndex < state.songs.length
+            ? cubit.isSongFavorite(state.songs[currentPageIndex])
+            : false;
+
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
@@ -100,76 +134,41 @@ class _SongViewState extends State<SongView> {
               tooltip: 'Selector nomor pujian',
               onPressed: _openSongSelector,
             ),
-            title: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  state.getSongTitleAt(currentPageIndex),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                if (state.originalFamilyChord != null)
-                  Text(
-                    'Family ${ChordService.formatChordForDisplay(
-                      state.originalFamilyChord!,
-                      accidentalMode: state.chordAccidentalMode,
-                      baseTransposeOffset: state.baseTransposeOffset,
-                    )}${state.originalPdfKey == null ? '' : ' / PDF ${state.originalPdfKey}'}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 11,
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onPrimaryContainer
-                          .withValues(alpha: 0.72),
-                    ),
-                  ),
-              ],
+            title: _SongHeaderTitle(
+              number: state.getSongNumberAt(currentPageIndex),
+              title: state.getSongTitleAt(currentPageIndex),
+              familyChord: state.originalFamilyChord,
+              pdfKey: state.originalPdfKey,
+              accidentalMode: state.chordAccidentalMode,
+              baseTransposeOffset: state.baseTransposeOffset,
+              canGoPrevious: currentPageIndex > 0,
+              canGoNext: currentPageIndex < state.songs.length - 1,
+              onPrevious: _goToPreviousSong,
+              onNext: _goToNextSong,
             ),
             actions: [
-              if (showHeaderTransport)
-                AnimatedBuilder(
-                  animation: cubit.midiEngine,
-                  builder: (context, child) {
-                    final midiState = cubit.midiEngine.state;
-                    return _HeaderMidiControls(
-                      isPlaying: midiState.isPlaying,
-                      isLoading: midiState.isLoading,
-                      position: midiState.position,
-                      duration: midiState.duration,
-                      onPlayPause: () => cubit.togglePlayPause(),
-                      onStop: () => cubit.stop(),
-                      onSeek: (seconds) =>
-                          cubit.seek(Duration(seconds: seconds.round())),
-                      transposeStep: state.transposeStep,
-                      onTranspose: cubit.setTranspose,
-                    );
-                  },
-                ),
-              // Audio toggle
               IconButton(
                 icon: Icon(
                   state.showAudio ? Icons.volume_up : Icons.volume_off,
                   color: state.showAudio
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).disabledColor,
+                      ? colors.primary
+                      : colors.onSurface.withValues(alpha: 0.4),
                 ),
+                tooltip: state.showAudio
+                    ? 'Sembunyikan MIDI'
+                    : 'Tampilkan MIDI',
                 onPressed: () => cubit.toggleAudio(),
               ),
-              // Chord toggle
               IconButton(
                 icon: Icon(
                   state.showChord ? Icons.music_note : Icons.music_off,
                   color: state.showChord
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).disabledColor,
+                      ? colors.primary
+                      : colors.onSurface.withValues(alpha: 0.4),
                 ),
+                tooltip: state.showChord
+                    ? 'Sembunyikan chord'
+                    : 'Tampilkan chord',
                 onPressed: () => cubit.toggleChord(),
               ),
               IconButton(
@@ -181,14 +180,21 @@ class _SongViewState extends State<SongView> {
                 tooltip: textMode ? 'Mode PDF' : 'Mode teks',
                 onPressed: cubit.changeMode,
               ),
-              // More options
-              PopupMenuButton(
+              if (textMode)
+                IconButton(
+                  icon: const Icon(Icons.tune_rounded),
+                  tooltip: 'Pengaturan lirik',
+                  onPressed: _openLyricsSettings,
+                ),
+              PopupMenuButton<String>(
                 onSelected: (value) {
                   switch (value) {
                     case 'fav':
                       if (currentPageIndex < state.songs.length) {
-                        cubit.modifyFavorite(state.songs[currentPageIndex],
-                            playOnlyFav: false);
+                        cubit.modifyFavorite(
+                          state.songs[currentPageIndex],
+                          playOnlyFav: false,
+                        );
                       }
                       break;
                     case 'copy':
@@ -210,7 +216,7 @@ class _SongViewState extends State<SongView> {
                         Text('Favorite'.tr()),
                         const Spacer(),
                         Icon(
-                          cubit.isSongFavorite(state.songs[currentPageIndex])
+                          isFavorite
                               ? Icons.star_rounded
                               : Icons.star_border_rounded,
                           color: Colors.amber,
@@ -218,14 +224,8 @@ class _SongViewState extends State<SongView> {
                       ],
                     ),
                   ),
-                  PopupMenuItem(
-                    value: 'copy',
-                    child: Text('Copy'.tr()),
-                  ),
-                  PopupMenuItem(
-                    value: 'share',
-                    child: Text('Share'.tr()),
-                  ),
+                  PopupMenuItem(value: 'copy', child: Text('Copy'.tr())),
+                  PopupMenuItem(value: 'share', child: Text('Share'.tr())),
                   PopupMenuItem(
                     value: 'notes',
                     child: Text('See all notes'.tr()),
@@ -245,40 +245,42 @@ class _SongViewState extends State<SongView> {
                   if (textMode) {
                     return _SongTextPage(
                       song: song,
+                      fontFamily: state.defaultFont,
                       textScale: state.defaultTextScale,
                       textHeight: state.defaultTextHeight,
                       fontBold: state.fontBold,
+                      textAlign: state.lyricsTextAlign,
+                      verticalAlign: state.lyricsVerticalAlign,
+                      verseIndex: _currentVerseIndex,
+                      onPreviousVerse: _previousVerse,
+                      onNextVerse: () => _nextVerse(song),
                     );
                   }
-                  return FutureBuilder<String?>(
-                    future:
-                        cubit.getPdfPath(song.code ?? '', song.number ?? ''),
-                    builder: (context, snapshot) {
-                      final pdfPath = snapshot.data;
-                      if (pdfPath == null) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-                      return SongPdfViewer(
-                        pdfPath: pdfPath,
-                        showChord: state.showChord,
-                        chords: _currentChords,
-                        transposeStep: state.transposeStep,
-                        baseTransposeOffset: state.baseTransposeOffset,
-                        chordAccidentalMode: state.chordAccidentalMode,
-                        onPdfKeyDetected: cubit.updatePdfKey,
-                      );
-                    },
-                  );
+                  return const SizedBox();
                 },
               ),
 
-              // Hidden MIDI Engine WebView
-              MidiEngineWebView(
-                service: cubit.midiEngine,
-              ),
+              // Single persistent PDF viewer (not per-page, WebView/JS is not reloaded on song switch)
+              if (!textMode && _currentPdfPath != null)
+                SongPdfViewer(
+                  key: const ValueKey('pdf_viewer'),
+                  pdfPath: _currentPdfPath,
+                  showChord: state.showChord,
+                  chords: _currentChords,
+                  transposeStep: state.transposeStep,
+                  baseTransposeOffset: state.baseTransposeOffset,
+                  chordAccidentalMode: state.chordAccidentalMode,
+                  twoPageMode: state.pdfTwoPageMode,
+                  verticalScrolling: state.pdfVerticalScrolling,
+                  chordFontSizePercent: state.chordFontSizePercent,
+                  chordFillOpacityPercent: state.chordFillOpacityPercent,
+                  chordPaddingPercent: state.chordPaddingPercent,
+                  onPdfKeyDetected: cubit.updatePdfKey,
+                  onPdfTempoDetected: cubit.setDefaultTempo,
+                ),
 
               // Draggable MIDI Controls
-              if (!showHeaderTransport)
+              if (state.showAudio)
                 AnimatedBuilder(
                   animation: cubit.midiEngine,
                   builder: (context, child) {
@@ -289,13 +291,25 @@ class _SongViewState extends State<SongView> {
                       position: midiState.position,
                       duration: midiState.duration,
                       transposeStep: state.transposeStep,
+                      currentKey: state.activeKeyLabel,
+                      availableKeys: state.transposeKeyOptions,
                       tempoBpm: state.tempoBpm,
+                      midiInstrument: state.midiInstrument,
+                      soundFont: state.soundFont,
+                      availableSoundFonts: const [
+                        'GeneralUser-GS.sf2',
+                        'TimGM6mb.sf2',
+                      ],
+                      availableInstruments: cubit.midiEngine.instruments,
                       onPlayPause: () => cubit.togglePlayPause(),
                       onStop: () => cubit.stop(),
                       onSeek: (seconds) =>
                           cubit.seek(Duration(seconds: seconds.toInt())),
                       onTranspose: (semitones) => cubit.setTranspose(semitones),
+                      onKeySelected: cubit.setTransposeKey,
                       onTempo: (bpm) => cubit.setTempo(bpm),
+                      onInstrument: cubit.setMidiInstrument,
+                      onSoundFont: cubit.setSoundFont,
                     );
                   },
                 ),
@@ -319,6 +333,92 @@ class _SongViewState extends State<SongView> {
     final song = state.songs[currentPageIndex];
     final text = '${song.number} - ${song.title}';
     Share.share(text, subject: song.title);
+  }
+
+  Future<void> _openLyricsSettings() {
+    return showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (context) {
+        return BlocBuilder<SongCubit, SongState>(
+          bloc: cubit,
+          builder: (context, state) {
+            return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              children: [
+                Text(
+                  'Pengaturan lirik',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: state.availableFonts.contains(state.defaultFont)
+                      ? state.defaultFont
+                      : state.availableFonts.first,
+                  decoration: const InputDecoration(labelText: 'Font'),
+                  items: state.availableFonts
+                      .map(
+                        (font) => DropdownMenuItem<String>(
+                          value: font,
+                          child: Text(font),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (font) {
+                    if (font != null) cubit.changeFont(font);
+                  },
+                ),
+                const SizedBox(height: 16),
+                _LyricsSlider(
+                  label: 'Ukuran',
+                  value: state.defaultTextScale,
+                  min: 0.8,
+                  max: 2.4,
+                  divisions: 16,
+                  displayValue: '${(state.defaultTextScale * 100).round()}%',
+                  onChanged: cubit.changeTextScale,
+                ),
+                _LyricsSlider(
+                  label: 'Spacing',
+                  value: state.defaultTextHeight,
+                  min: 1.0,
+                  max: 2.4,
+                  divisions: 14,
+                  displayValue: state.defaultTextHeight.toStringAsFixed(1),
+                  onChanged: cubit.changeTextHeight,
+                ),
+                const SizedBox(height: 8),
+                _LyricsChoiceGroup(
+                  label: 'Horizontal',
+                  value: state.lyricsTextAlign,
+                  options: const {
+                    'left': 'Kiri',
+                    'center': 'Tengah',
+                    'right': 'Kanan',
+                  },
+                  onSelected: cubit.changeLyricsTextAlign,
+                ),
+                const SizedBox(height: 8),
+                _LyricsChoiceGroup(
+                  label: 'Vertikal',
+                  value: state.lyricsVerticalAlign,
+                  options: const {
+                    'top': 'Atas',
+                    'center': 'Tengah',
+                    'bottom': 'Bawah',
+                  },
+                  onSelected: cubit.changeLyricsVerticalAlign,
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
   }
 
   void _openSongSelector() {
@@ -364,174 +464,381 @@ class _SongViewState extends State<SongView> {
     );
   }
 
+  void _previousVerse() {
+    setState(() {
+      if (_currentVerseIndex > 0) _currentVerseIndex--;
+    });
+  }
+
+  void _nextVerse(Song song) {
+    setState(() {
+      if (_currentVerseIndex < song.verses.length - 1) _currentVerseIndex++;
+    });
+  }
+
   void _jumpToSongIndex(int index) {
     if (index < 0 || index >= cubit.state.songs.length) return;
     setState(() {
       currentPageIndex = index;
+      _currentVerseIndex = 0;
     });
     cubit.changePage(index, 0);
     _loadChordData();
     if (!pageController.hasClients) return;
     pageController.jumpToPage(index);
   }
+
+  void _goToPreviousSong() => _animateToSongIndex(currentPageIndex - 1);
+
+  void _goToNextSong() => _animateToSongIndex(currentPageIndex + 1);
+
+  void _animateToSongIndex(int index) {
+    if (index < 0 || index >= cubit.state.songs.length) return;
+    setState(() {
+      currentPageIndex = index;
+    });
+    cubit.changePage(index, 0);
+    _loadChordData();
+    _loadPdfForCurrentSong();
+    if (!pageController.hasClients) return;
+    pageController.animateToPage(
+      index,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
+  }
 }
 
-class _HeaderMidiControls extends StatelessWidget {
-  final bool isPlaying;
-  final bool isLoading;
-  final double position;
-  final double duration;
-  final int transposeStep;
-  final VoidCallback onPlayPause;
-  final VoidCallback onStop;
-  final ValueChanged<double> onSeek;
-  final ValueChanged<int> onTranspose;
+class _SongHeaderTitle extends StatelessWidget {
+  final String? number;
+  final String title;
+  final String? familyChord;
+  final String? pdfKey;
+  final String accidentalMode;
+  final int baseTransposeOffset;
+  final bool canGoPrevious;
+  final bool canGoNext;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
 
-  const _HeaderMidiControls({
-    required this.isPlaying,
-    required this.isLoading,
-    required this.position,
-    required this.duration,
-    required this.transposeStep,
-    required this.onPlayPause,
-    required this.onStop,
-    required this.onSeek,
-    required this.onTranspose,
+  const _SongHeaderTitle({
+    required this.number,
+    required this.title,
+    required this.familyChord,
+    required this.pdfKey,
+    required this.accidentalMode,
+    required this.baseTransposeOffset,
+    required this.canGoPrevious,
+    required this.canGoNext,
+    required this.onPrevious,
+    required this.onNext,
   });
-
-  String _formatTime(double seconds) {
-    final minute = seconds ~/ 60;
-    final second = (seconds % 60).toInt();
-    return '$minute:${second.toString().padLeft(2, '0')}';
-  }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return SizedBox(
-      width: 430,
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          IconButton(
-            tooltip: 'Stop',
-            visualDensity: VisualDensity.compact,
-            onPressed: onStop,
-            icon: const Icon(Icons.stop_rounded),
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Opacity(
+          opacity: canGoPrevious ? 1.0 : 0.0,
+          child: IconButton(
+            tooltip: 'Pujian sebelumnya',
+            onPressed: canGoPrevious ? onPrevious : null,
+            icon: const Icon(Icons.chevron_left_rounded),
           ),
-          IconButton(
-            tooltip: isPlaying ? 'Pause' : 'Play',
-            visualDensity: VisualDensity.compact,
-            onPressed: isLoading ? null : onPlayPause,
-            icon: isLoading
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : Icon(isPlaying ? Icons.pause_rounded : Icons.play_arrow),
-          ),
-          Text(_formatTime(position), style: theme.textTheme.bodySmall),
-          Expanded(
-            child: Slider(
-              value: duration > 0 ? position.clamp(0, duration) : 0,
-              max: duration > 0 ? duration : 1,
-              onChanged: duration > 0 ? onSeek : null,
-            ),
-          ),
-          SizedBox(
-            width: 38,
-            child: Text(
-              _formatTime(duration),
-              textAlign: TextAlign.end,
-              style: theme.textTheme.bodySmall,
-            ),
-          ),
-          const SizedBox(width: 6),
-          IconButton(
-            tooltip: 'Transpose turun',
-            visualDensity: VisualDensity.compact,
-            onPressed: () => onTranspose(transposeStep - 1),
-            icon: const Icon(Icons.remove_circle_outline, size: 18),
-          ),
-          SizedBox(
-            width: 28,
-            child: Text(
-              transposeStep > 0 ? '+$transposeStep' : '$transposeStep',
-              textAlign: TextAlign.center,
-              style: theme.textTheme.labelMedium?.copyWith(
-                color: theme.colorScheme.onPrimaryContainer,
-                fontWeight: FontWeight.w700,
+        ),
+        Flexible(
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 200),
+            transitionBuilder: (child, animation) {
+              return FadeTransition(opacity: animation, child: child);
+            },
+            child: Container(
+              key: ValueKey('$number-$title'),
+              constraints: const BoxConstraints(maxWidth: 420),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+              decoration: BoxDecoration(
+                color: colors.surface.withValues(alpha: 0.46),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: colors.onPrimaryContainer.withValues(alpha: 0.1),
+                ),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    [
+                      if ((number ?? '').isNotEmpty) number,
+                      title,
+                    ].whereType<String>().join(' - '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (familyChord != null)
+                    Text(
+                      'Family ${ChordService.formatChordForDisplay(familyChord!, accidentalMode: accidentalMode, baseTransposeOffset: baseTransposeOffset)}${pdfKey == null ? '' : ' / PDF $pdfKey'}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: colors.onPrimaryContainer.withValues(
+                          alpha: 0.72,
+                        ),
+                      ),
+                    ),
+                ],
               ),
             ),
           ),
-          IconButton(
-            tooltip: 'Transpose naik',
-            visualDensity: VisualDensity.compact,
-            onPressed: () => onTranspose(transposeStep + 1),
-            icon: const Icon(Icons.add_circle_outline, size: 18),
+        ),
+        Opacity(
+          opacity: canGoNext ? 1.0 : 0.0,
+          child: IconButton(
+            tooltip: 'Pujian berikutnya',
+            onPressed: canGoNext ? onNext : null,
+            icon: const Icon(Icons.chevron_right_rounded),
           ),
-          const SizedBox(width: 8),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _SongTextPage extends StatelessWidget {
   final Song song;
+  final String fontFamily;
   final double textScale;
   final double textHeight;
   final bool fontBold;
+  final String textAlign;
+  final String verticalAlign;
+  final int verseIndex;
+  final VoidCallback? onPreviousVerse;
+  final VoidCallback? onNextVerse;
 
   const _SongTextPage({
     required this.song,
+    required this.fontFamily,
     required this.textScale,
     required this.textHeight,
     required this.fontBold,
+    required this.textAlign,
+    required this.verticalAlign,
+    required this.verseIndex,
+    this.onPreviousVerse,
+    this.onNextVerse,
   });
+
+  TextAlign _resolveTextAlign() {
+    switch (textAlign) {
+      case 'center':
+        return TextAlign.center;
+      case 'right':
+        return TextAlign.right;
+      default:
+        return TextAlign.left;
+    }
+  }
+
+  MainAxisAlignment _resolveVerticalAlign() {
+    switch (verticalAlign) {
+      case 'center':
+        return MainAxisAlignment.center;
+      case 'bottom':
+        return MainAxisAlignment.end;
+      default:
+        return MainAxisAlignment.start;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final verses = song.verses;
-    return SelectionArea(
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(
-          20,
-          20,
-          20,
-          32 + MediaQuery.paddingOf(context).bottom,
-        ),
-        children: [
-          Text(
-            '${song.number ?? ''} - ${song.title ?? ''}',
-            style: theme.textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 20),
-          if (verses.isEmpty)
-            Text(
-              'Teks lagu belum tersedia.',
-              style: theme.textTheme.bodyMedium,
-            )
-          else
-            ...verses.indexed.map(
-              (entry) => Padding(
-                padding: const EdgeInsets.only(bottom: 18),
-                child: Text(
-                  entry.$2,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontSize: 16 * textScale,
-                    height: textHeight,
-                    fontWeight: fontBold ? FontWeight.w700 : FontWeight.w400,
-                  ),
-                ),
+    final hasVerses = verses.isNotEmpty;
+    final safeIndex = hasVerses ? verseIndex.clamp(0, verses.length - 1) : 0;
+    final currentVerse = hasVerses ? verses[safeIndex] : null;
+
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onVerticalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity < -160) {
+          onNextVerse?.call();
+        } else if (velocity > 160) {
+          onPreviousVerse?.call();
+        }
+      },
+      child: SelectionArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: (constraints.maxHeight - 28)
+                            .clamp(0, double.infinity)
+                            .toDouble(),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: _resolveVerticalAlign(),
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (hasVerses) ...[
+                            Text(
+                              'Bait ${safeIndex + 1} dari ${verses.length}',
+                              textAlign: _resolveTextAlign(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              currentVerse!,
+                              textAlign: _resolveTextAlign(),
+                              style: theme.textTheme.bodyLarge?.copyWith(
+                                fontFamily: fontFamily,
+                                fontSize: 16 * textScale,
+                                height: textHeight,
+                                fontWeight: fontBold
+                                    ? FontWeight.w700
+                                    : FontWeight.w400,
+                              ),
+                            ),
+                          ] else
+                            Text(
+                              'Teks lagu belum tersedia.',
+                              textAlign: _resolveTextAlign(),
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
-        ],
+            if (hasVerses && verses.length > 1)
+              Container(
+                padding: EdgeInsets.only(
+                  bottom: 12 + MediaQuery.paddingOf(context).bottom,
+                  left: 20,
+                  right: 20,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton.icon(
+                      onPressed: safeIndex > 0 ? onPreviousVerse : null,
+                      icon: const Icon(Icons.keyboard_arrow_up, size: 20),
+                      label: const Text('Atas'),
+                    ),
+                    TextButton.icon(
+                      onPressed: safeIndex < verses.length - 1
+                          ? onNextVerse
+                          : null,
+                      icon: const Icon(Icons.keyboard_arrow_down, size: 20),
+                      label: const Text('Bawah'),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
       ),
+    );
+  }
+}
+
+class _LyricsSlider extends StatelessWidget {
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final int divisions;
+  final String displayValue;
+  final ValueChanged<double> onChanged;
+
+  const _LyricsSlider({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.divisions,
+    required this.displayValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(child: Text(label, style: textTheme.bodyMedium)),
+            Text(displayValue, style: textTheme.bodySmall),
+          ],
+        ),
+        Slider(
+          value: value.clamp(min, max).toDouble(),
+          min: min,
+          max: max,
+          divisions: divisions,
+          onChanged: onChanged,
+        ),
+      ],
+    );
+  }
+}
+
+class _LyricsChoiceGroup extends StatelessWidget {
+  final String label;
+  final String value;
+  final Map<String, String> options;
+  final ValueChanged<String> onSelected;
+
+  const _LyricsChoiceGroup({
+    required this.label,
+    required this.value,
+    required this.options,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: Theme.of(context).textTheme.bodyMedium),
+        const SizedBox(height: 8),
+        Wrap(
+          spacing: 8,
+          children: options.entries
+              .map(
+                (entry) => ChoiceChip(
+                  label: Text(entry.value),
+                  selected: value == entry.key,
+                  onSelected: (_) => onSelected(entry.key),
+                ),
+              )
+              .toList(),
+        ),
+      ],
     );
   }
 }

@@ -198,40 +198,40 @@ class BibleCubit extends HydratedCubit<BibleState> {
       verses = List.from(state.verses);
     }
     for (var verse in verses) {
-      if (state.isSpeaking) {
-        List<Pericope>? pericope = state.pericopes.getById(verse.id);
-        String sentence = '';
-        if (pericope.isNotEmpty) {
-          sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
-        }
-        sentence += (verse.verse ?? '').replaceAll('  ', ' ');
-        sentence = sentence.replaceAll('Allah', 'Alla');
-        sentence = sentence.replaceAll('allah', 'alla');
-        sentence = sentence.replaceAll('Demikian', 'Demi kian');
-        sentence = sentence.replaceAll('demikian', 'demi kian');
-        sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
-        sentence = sentence.replaceAll('pentakosta', 'penta kosta');
-        sentence = removeTextBetweenTags(sentence, 'f');
-        sentence = sentence.replaceAll('<pb/>', '    ');
-        sentence = sentence.replaceAll('<t>', '');
-        sentence = sentence.replaceAll('</t>', '');
-        sentence = sentence.replaceAll('<i>', '');
-        sentence = sentence.replaceAll('</i>', '');
-        sentence = sentence.replaceAll('<J>', '');
-        sentence = sentence.replaceAll('</J>', '');
-        emit(state.copyWith(currentBible: verse));
-        await Future.delayed(
-          Duration(milliseconds: 600),
-        );
-        try {
-          await tts.speak(sentence);
-        } catch (e) {
-          log('TTS speak failed: $e', name: 'BibleCubit');
-          emit(state.copyWith(isSpeaking: false));
-          return;
-        }
-        emit(state.copyWith(currentStartWord: 0, currentEndWord: 0));
+      if (!state.isSpeaking) break;
+      List<Pericope>? pericope = state.pericopes.getById(verse.id);
+      String sentence = '';
+      if (pericope.isNotEmpty) {
+        sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
       }
+      sentence += (verse.verse ?? '').replaceAll('  ', ' ');
+      sentence = sentence.replaceAll('Allah', 'Alla');
+      sentence = sentence.replaceAll('allah', 'alla');
+      sentence = sentence.replaceAll('Demikian', 'Demi kian');
+      sentence = sentence.replaceAll('demikian', 'demi kian');
+      sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
+      sentence = sentence.replaceAll('pentakosta', 'penta kosta');
+      sentence = removeTextBetweenTags(sentence, 'f');
+      sentence = sentence.replaceAll('<pb/>', '    ');
+      sentence = sentence.replaceAll('<t>', '');
+      sentence = sentence.replaceAll('</t>', '');
+      sentence = sentence.replaceAll('<i>', '');
+      sentence = sentence.replaceAll('</i>', '');
+      sentence = sentence.replaceAll('<J>', '');
+      sentence = sentence.replaceAll('</J>', '');
+      emit(state.copyWith(currentBible: verse));
+      await Future.delayed(
+        Duration(milliseconds: 600),
+      );
+      if (!state.isSpeaking) break;
+      try {
+        await tts.speak(sentence);
+      } catch (e) {
+        log('TTS speak failed: $e', name: 'BibleCubit');
+        emit(state.copyWith(isSpeaking: false));
+        return;
+      }
+      emit(state.copyWith(currentStartWord: 0, currentEndWord: 0));
     }
     emit(state.copyWith(isSpeaking: false));
   }
@@ -414,10 +414,15 @@ class BibleCubit extends HydratedCubit<BibleState> {
       folder.createSync(recursive: true);
     }
     var files = folder.listSync();
-    var bibles = files.map((e) => basename(e.path)).toList();
-    bibles.removeWhere((element) => element.split('.').last != 'db');
-    bibles.addAll(await bibleAssetService.getBundledBibleCodes());
-    emit(state.copyWith(bibleCodes: bibles.toSet().toList()));
+    final bibles = <String>{
+      for (final file in files)
+        if (file is File && basename(file.path).toLowerCase().endsWith('.db'))
+          basenameWithoutExtension(file.path),
+      for (final code in await bibleAssetService.getBundledBibleCodes())
+        code.split('.').first,
+    }.toList()
+      ..sort();
+    emit(state.copyWith(bibleCodes: bibles));
   }
 
   Future<List<Verse>> getVersesByBook(int bookId, int chapterId) async {

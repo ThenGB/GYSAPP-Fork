@@ -7,9 +7,9 @@ part of 'appconfig.dart';
 // **************************************************************************
 
 _AppConfig _$AppConfigFromJson(Map<String, dynamic> json) => _AppConfig(
-      appName: json['appName'] as String,
-      baseUrlApi: json['baseUrlApi'] as String,
-    );
+  appName: json['appName'] as String,
+  baseUrlApi: json['baseUrlApi'] as String,
+);
 
 Map<String, dynamic> _$AppConfigToJson(_AppConfig instance) =>
     <String, dynamic>{

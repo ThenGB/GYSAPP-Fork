@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../data/data.dart';
 import '../../../domain/entity/song/song_entity.dart';
@@ -50,10 +51,10 @@ class SongListView extends StatefulWidget {
 
 class _SongListViewState extends State<SongListView>
     with SingleTickerProviderStateMixin {
-  late final TextEditingController searchController =
-      TextEditingController(text: widget.initialSearchText)
-        ..addListener(searchListener);
-  late final TabController tabController = TabController(length: 2, vsync: this)
+  late final TextEditingController searchController = TextEditingController(
+    text: widget.initialSearchText,
+  )..addListener(searchListener);
+  late final TabController tabController = TabController(length: 3, vsync: this)
     ..addListener(tabListener);
   @override
   void dispose() {
@@ -106,20 +107,19 @@ class _SongListViewState extends State<SongListView>
 
     if (value.isNotEmpty) {
       result = List.from(
-        data.where(
-          (element) {
-            var title = element.title?.toLowerCase() ?? '';
-            var lyric = element.verses.join().toLowerCase();
-            var search = value.toLowerCase();
+        data.where((element) {
+          var title = element.title?.toLowerCase() ?? '';
+          var lyric = element.verses.join().toLowerCase();
+          var search = value.toLowerCase();
 
-            bool containNumber = element.number != null &&
-                isMatch(element.number.toString().toLowerCase(), search);
-            bool containTitle = isMatch(title, search);
-            bool containLyric = isMatch(lyric, search);
+          bool containNumber =
+              element.number != null &&
+              isMatch(element.number.toString().toLowerCase(), search);
+          bool containTitle = isMatch(title, search);
+          bool containLyric = isMatch(lyric, search);
 
-            return containNumber || containTitle || containLyric;
-          },
-        ),
+          return containNumber || containTitle || containLyric;
+        }),
       );
     } else {
       result = List.from(data);
@@ -147,10 +147,7 @@ class _SongListViewState extends State<SongListView>
                 shape: BoxShape.circle,
                 color: context.theme.canvasColor,
               ),
-              child: Icon(
-                Icons.home,
-                color: context.theme.disabledColor,
-              ),
+              child: Icon(Icons.home, color: context.theme.disabledColor),
             ),
           ),
         ),
@@ -161,81 +158,61 @@ class _SongListViewState extends State<SongListView>
               builder: (context, state) => IconButton(
                 visualDensity: VisualDensity.compact,
                 onPressed: widget.onPlayFavorite,
-                icon: Icon(state.isAudioPlaying
-                    ? Icons.pause_circle
-                    : Icons.play_circle),
+                icon: Icon(
+                  state.isAudioPlaying ? Icons.pause_circle : Icons.play_circle,
+                ),
               ),
             ),
             BlocBuilder<SongCubit, SongState>(
               builder: (context, state) => IconButton(
-                  visualDensity: VisualDensity.compact,
-                  onPressed: () {
-                    context.read<SongCubit>().toggleShuffle();
-                  },
-                  icon: Icon(
-                    state.shuffleMode
-                        ? Icons.shuffle_on_rounded
-                        : Icons.shuffle_rounded,
-                    color: context.colorScheme.primary,
-                  )),
+                visualDensity: VisualDensity.compact,
+                onPressed: () {
+                  context.read<SongCubit>().toggleShuffle();
+                },
+                icon: Icon(
+                  state.shuffleMode
+                      ? Icons.shuffle_on_rounded
+                      : Icons.shuffle_rounded,
+                  color: context.colorScheme.primary,
+                ),
+              ),
             ),
-            SizedBox(
-              width: 8,
+            SizedBox(width: 8),
+          ] else if (tabController.index == 2) ...[
+            IconButton(
+              visualDensity: VisualDensity.compact,
+              onPressed: () => _showCreatePlaylistDialog(context),
+              icon: const Icon(Icons.playlist_add_rounded),
             ),
+            const SizedBox(width: 8),
           ],
         ],
         title: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(100),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(100)),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                    fixedSize: const Size(100, 32),
-                    backgroundColor: tabController.index == 0
-                        ? context.colorScheme.primaryContainer
-                        : Colors.transparent,
-                    side: BorderSide(
-                      strokeAlign: BorderSide.strokeAlignCenter,
-                      width: 1,
-                      color: tabController.index == 0
-                          ? context.colorScheme.primary
-                          : context.theme.disabledColor,
-                    ),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.horizontal(
-                        left: Radius.circular(100),
-                      ),
-                    )),
-                onPressed: () {
-                  tabController.animateTo(0);
-                },
-                child: Text('Lists'.tr()),
+              _SongListTabButton(
+                selected: tabController.index == 0,
+                label: 'Lists'.tr(),
+                borderRadius: const BorderRadius.horizontal(
+                  left: Radius.circular(100),
+                ),
+                onPressed: () => tabController.animateTo(0),
               ),
-              OutlinedButton(
-                style: OutlinedButton.styleFrom(
-                    fixedSize: const Size(100, 32),
-                    backgroundColor: tabController.index == 1
-                        ? context.colorScheme.primaryContainer
-                        : Colors.transparent,
-                    side: BorderSide(
-                      strokeAlign: BorderSide.strokeAlignCenter,
-                      width: 1,
-                      color: tabController.index == 1
-                          ? context.colorScheme.primary
-                          : context.theme.disabledColor,
-                    ),
-                    shape: const RoundedRectangleBorder(
-                      borderRadius: BorderRadius.horizontal(
-                        right: Radius.circular(100),
-                      ),
-                    )),
-                onPressed: () {
-                  tabController.animateTo(1);
-                },
-                child: Text('Favorite'.tr()),
+              _SongListTabButton(
+                selected: tabController.index == 1,
+                label: 'Favorite'.tr(),
+                borderRadius: BorderRadius.zero,
+                onPressed: () => tabController.animateTo(1),
+              ),
+              _SongListTabButton(
+                selected: tabController.index == 2,
+                label: 'Playlist',
+                borderRadius: const BorderRadius.horizontal(
+                  right: Radius.circular(100),
+                ),
+                onPressed: () => tabController.animateTo(2),
               ),
             ],
           ),
@@ -246,74 +223,82 @@ class _SongListViewState extends State<SongListView>
         children: [
           Container(
             color: context.colorScheme.surface,
-            child: Column(children: [
-              const Divider(
-                height: 1,
-              ),
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                child: Stack(
-                  children: [
-                    TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        isDense: true,
-                        prefixIcon: const Icon(Icons.search),
-                        contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 4, vertical: 8)
-                            .add(
-                          const EdgeInsets.only(right: 100 + 48),
+            child: Column(
+              children: [
+                const Divider(height: 1),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  child: Stack(
+                    children: [
+                      TextFormField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          isDense: true,
+                          prefixIcon: const Icon(Icons.search),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 8,
+                          ).add(const EdgeInsets.only(right: 100 + 48)),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          hintText: 'Search number or keyword'.tr(),
                         ),
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        hintText: 'Search number or keyword'.tr(),
                       ),
-                    ),
-                    Positioned.fill(
-                      child: Align(
-                        alignment: Alignment.centerRight,
-                        child: PopupMenuButton(
-                          offset: Offset(0, 48),
-                          onSelected: (value) async {
-                            await widget.onChangeBookCode(value);
-                            await Future.delayed(
-                                const Duration(milliseconds: 100));
-                            setState(() {
-                              forceRefresh++;
-                            });
-                          },
-                          initialValue: widget.currentBook().code,
-                          itemBuilder: (context) {
-                            return widget
-                                .books()
-                                .map((e) => PopupMenuItem(
-                                    value: e.code, child: Text(e.code ?? '')))
-                                .toList();
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AnimatedBuilder(
-                                animation: searchController,
-                                builder: (context, child) =>
-                                    searchController.text.isEmpty
-                                        ? SizedBox.shrink()
-                                        : CloseButton(
-                                            onPressed: () {
-                                              searchController.clear();
-                                            },
-                                          ),
-                              ),
-                              Container(
+                      Positioned.fill(
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: PopupMenuButton(
+                            offset: Offset(0, 48),
+                            onSelected: (value) async {
+                              await widget.onChangeBookCode(value);
+                              await Future.delayed(
+                                const Duration(milliseconds: 100),
+                              );
+                              setState(() {
+                                forceRefresh++;
+                              });
+                            },
+                            initialValue: widget.currentBook().code,
+                            itemBuilder: (context) {
+                              return widget
+                                  .books()
+                                  .map(
+                                    (e) => PopupMenuItem(
+                                      value: e.code,
+                                      child: Text(e.code ?? ''),
+                                    ),
+                                  )
+                                  .toList();
+                            },
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                AnimatedBuilder(
+                                  animation: searchController,
+                                  builder: (context, child) =>
+                                      searchController.text.isEmpty
+                                      ? SizedBox.shrink()
+                                      : CloseButton(
+                                          onPressed: () {
+                                            searchController.clear();
+                                          },
+                                        ),
+                                ),
+                                Container(
                                   width: 100,
                                   alignment: Alignment.center,
                                   margin: const EdgeInsets.all(2),
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 16),
+                                    horizontal: 16,
+                                  ),
                                   decoration: BoxDecoration(
                                     borderRadius: const BorderRadius.horizontal(
-                                        right: Radius.circular(7)),
+                                      right: Radius.circular(7),
+                                    ),
                                     color:
                                         context.colorScheme.secondaryContainer,
                                   ),
@@ -323,71 +308,100 @@ class _SongListViewState extends State<SongListView>
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
                                     ),
-                                  )),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Divider(
-                height: 1,
-              ),
-              Expanded(
-                child: ListView.builder(
-                  itemCount:
-                      getFilteredItems(widget.currentBook().songs).length,
-                  itemBuilder: (context, index) {
-                    var item =
-                        getFilteredItems(widget.currentBook().songs)[index];
-                    return Column(
-                      children: [
-                        Material(
-                          child: ListTile(
-                            onTap: () {
-                              FocusManager.instance.primaryFocus?.unfocus();
-                              widget
-                                  .onSearchTermsChanged(searchController.text);
-                              widget.onTapPageNumber(item.number!);
-                            },
-                            leading: Text(item.number ?? ''),
-                            trailing: IconButton(
-                                onPressed: () async {
-                                  widget.onFavorite(item);
-                                  await Future.delayed(
-                                      const Duration(milliseconds: 100));
-                                  setState(() {
-                                    forceRefresh++;
-                                  });
-                                },
-                                icon: Icon(
-                                  widget.isFavorite(item)
-                                      ? Icons.star_rounded
-                                      : Icons.star_border_rounded,
-                                  color: widget.isFavorite(item)
-                                      ? Colors.amber
-                                      : null,
-                                )),
-                            title: Text(
-                              (item.title ?? '').capitalizeEachWord(),
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                        const Divider(height: 1),
-                      ],
-                    );
-                  },
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ]),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: getFilteredItems(
+                      widget.currentBook().songs,
+                    ).length,
+                    itemBuilder: (context, index) {
+                      var item = getFilteredItems(
+                        widget.currentBook().songs,
+                      )[index];
+                      return Column(
+                        children: [
+                          Material(
+                            child: ListTile(
+                              onTap: () {
+                                FocusManager.instance.primaryFocus?.unfocus();
+                                widget.onSearchTermsChanged(
+                                  searchController.text,
+                                );
+                                widget.onTapPageNumber(item.number!);
+                              },
+                              leading: Text(item.number ?? ''),
+                              trailing: SizedBox(
+                                width: 96,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Tambah ke playlist',
+                                      onPressed: () {
+                                        context
+                                            .read<SongCubit>()
+                                            .addSongToActivePlaylist(item);
+                                        Fluttertoast.showToast(
+                                          msg: 'Ditambahkan ke playlist',
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.playlist_add_rounded,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () async {
+                                        widget.onFavorite(item);
+                                        await Future.delayed(
+                                          const Duration(milliseconds: 100),
+                                        );
+                                        setState(() {
+                                          forceRefresh++;
+                                        });
+                                      },
+                                      icon: Icon(
+                                        widget.isFavorite(item)
+                                            ? Icons.star_rounded
+                                            : Icons.star_border_rounded,
+                                        color: widget.isFavorite(item)
+                                            ? Colors.amber
+                                            : null,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              title: Text(
+                                (item.title ?? '').capitalizeEachWord(),
+                              ),
+                            ),
+                          ),
+                          const Divider(height: 1),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
           Visibility(
-            visible: widget.favoriteBooks().fold<int>(
-                    0,
-                    (previousValue, element) =>
-                        previousValue + element.songs.length) >
+            visible:
+                widget.favoriteBooks().fold<int>(
+                  0,
+                  (previousValue, element) =>
+                      previousValue + element.songs.length,
+                ) >
                 0,
             replacement: NoDataFound(
               title: 'No favorite',
@@ -400,9 +414,7 @@ class _SongListViewState extends State<SongListView>
                 if (book.songs.isEmpty) return const SizedBox();
                 return Column(
                   children: [
-                    ListTile(
-                      title: Text(book.code ?? ''),
-                    ),
+                    ListTile(title: Text(book.code ?? '')),
                     ListView.builder(
                       shrinkWrap: true,
                       itemCount: book.songs.length,
@@ -414,45 +426,311 @@ class _SongListViewState extends State<SongListView>
                             ListTile(
                               onTap: () {
                                 widget.onSearchTermsChanged(
-                                    searchController.text);
+                                  searchController.text,
+                                );
                                 FocusManager.instance.primaryFocus?.unfocus();
                                 widget.onTapFavorite(item);
                               },
                               leading: Text(item.number ?? ''),
                               trailing: IconButton(
-                                  onPressed: () async {
-                                    widget.onFavorite(item);
-                                    await Future.delayed(
-                                        const Duration(milliseconds: 100));
-                                    setState(() {
-                                      forceRefresh++;
-                                    });
-                                  },
-                                  icon: Icon(
-                                    widget.isFavorite(item)
-                                        ? Icons.star_rounded
-                                        : Icons.star_border_rounded,
-                                    color: widget.isFavorite(item)
-                                        ? Colors.amber
-                                        : null,
-                                  )),
-                              title: Text(
-                                item.title ?? '',
+                                onPressed: () async {
+                                  widget.onFavorite(item);
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 100),
+                                  );
+                                  setState(() {
+                                    forceRefresh++;
+                                  });
+                                },
+                                icon: Icon(
+                                  widget.isFavorite(item)
+                                      ? Icons.star_rounded
+                                      : Icons.star_border_rounded,
+                                  color: widget.isFavorite(item)
+                                      ? Colors.amber
+                                      : null,
+                                ),
                               ),
+                              title: Text(item.title ?? ''),
                             ),
                             const Divider(height: 1),
                           ],
                         );
                       },
-                    )
+                    ),
                   ],
                 );
               },
             ),
           ),
+          _PlaylistTab(
+            books: widget.books,
+            onOpenSong: (song) {
+              widget.onSearchTermsChanged(searchController.text);
+              FocusManager.instance.primaryFocus?.unfocus();
+              widget.onTapFavorite(song);
+            },
+            onCreatePlaylist: () => _showCreatePlaylistDialog(context),
+          ),
         ],
       ),
     );
+  }
+
+  Future<void> _showCreatePlaylistDialog(BuildContext context) async {
+    final cubit = context.read<SongCubit>();
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Buat Playlist'),
+        content: TextField(
+          controller: controller,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Nama playlist'),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(controller.text),
+            child: const Text('Buat'),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || name == null) return;
+    cubit.createPlaylist(name);
+  }
+}
+
+class _SongListTabButton extends StatelessWidget {
+  final bool selected;
+  final String label;
+  final BorderRadius borderRadius;
+  final VoidCallback onPressed;
+
+  const _SongListTabButton({
+    required this.selected,
+    required this.label,
+    required this.borderRadius,
+    required this.onPressed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        fixedSize: const Size(86, 32),
+        backgroundColor: selected
+            ? context.colorScheme.primaryContainer
+            : Colors.transparent,
+        side: BorderSide(
+          strokeAlign: BorderSide.strokeAlignCenter,
+          width: 1,
+          color: selected
+              ? context.colorScheme.primary
+              : context.theme.disabledColor,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: borderRadius),
+      ),
+      onPressed: onPressed,
+      child: FittedBox(child: Text(label)),
+    );
+  }
+}
+
+class _PlaylistTab extends StatelessWidget {
+  final List<SongBook> Function() books;
+  final ValueChanged<Song> onOpenSong;
+  final VoidCallback onCreatePlaylist;
+
+  const _PlaylistTab({
+    required this.books,
+    required this.onOpenSong,
+    required this.onCreatePlaylist,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SongCubit, SongState>(
+      builder: (context, state) {
+        final cubit = context.read<SongCubit>();
+        if (state.playlists.isEmpty) {
+          return NoDataFound(
+            title: 'Belum ada playlist',
+            description: 'Buat playlist lalu tambahkan lagu dari tab Lists.',
+            action: FilledButton.icon(
+              onPressed: onCreatePlaylist,
+              icon: const Icon(Icons.playlist_add_rounded),
+              label: const Text('Buat Playlist'),
+            ),
+          );
+        }
+
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          children: [
+            _AutoNextModeSelector(
+              selectedMode: state.playlistAutoNextMode,
+              onSelected: cubit.setPlaylistAutoNextMode,
+            ),
+            const SizedBox(height: 12),
+            ...state.playlists.map(
+              (playlist) => _PlaylistCard(
+                playlist: playlist,
+                active: playlist.id == state.activePlaylistId,
+                books: books,
+                onActivate: () => cubit.setActivePlaylist(playlist.id),
+                onDelete: () => cubit.deletePlaylist(playlist.id),
+                onRemoveSong: (index) =>
+                    cubit.removeSongFromPlaylist(playlist.id, index),
+                onOpenSong: onOpenSong,
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _AutoNextModeSelector extends StatelessWidget {
+  final String selectedMode;
+  final ValueChanged<String> onSelected;
+
+  const _AutoNextModeSelector({
+    required this.selectedMode,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    const options = {
+      SongPlaylistAutoNextMode.off: 'Mati',
+      SongPlaylistAutoNextMode.one: '1 Lagu',
+      SongPlaylistAutoNextMode.number: 'Nomor',
+      SongPlaylistAutoNextMode.playlist: 'Playlist',
+      SongPlaylistAutoNextMode.shuffleAll: 'Shuffle',
+      SongPlaylistAutoNextMode.shufflePlaylist: 'Shuffle PL',
+    };
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: options.entries
+          .map(
+            (entry) => ChoiceChip(
+              label: Text(entry.value),
+              selected: selectedMode == entry.key,
+              onSelected: (_) => onSelected(entry.key),
+            ),
+          )
+          .toList(),
+    );
+  }
+}
+
+class _PlaylistCard extends StatelessWidget {
+  final SongPlaylist playlist;
+  final bool active;
+  final List<SongBook> Function() books;
+  final VoidCallback onActivate;
+  final VoidCallback onDelete;
+  final ValueChanged<int> onRemoveSong;
+  final ValueChanged<Song> onOpenSong;
+
+  const _PlaylistCard({
+    required this.playlist,
+    required this.active,
+    required this.books,
+    required this.onActivate,
+    required this.onDelete,
+    required this.onRemoveSong,
+    required this.onOpenSong,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final songs = playlist.songs
+        .map((item) => _resolveSong(item, books()))
+        .whereType<Song>()
+        .toList();
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: Column(
+        children: [
+          ListTile(
+            leading: Icon(
+              active ? Icons.playlist_play_rounded : Icons.queue_music_rounded,
+              color: active ? context.colorScheme.primary : null,
+            ),
+            title: Text(playlist.name),
+            subtitle: Text('${songs.length} lagu${active ? ' • Aktif' : ''}'),
+            trailing: PopupMenuButton<String>(
+              onSelected: (value) {
+                if (value == 'active') onActivate();
+                if (value == 'delete') onDelete();
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'active',
+                  child: Text('Jadikan aktif'),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Text('Hapus playlist'),
+                ),
+              ],
+            ),
+          ),
+          if (songs.isEmpty)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: Text('Playlist kosong'),
+              ),
+            )
+          else
+            ...songs.indexed.map((entry) {
+              final index = entry.$1;
+              final song = entry.$2;
+              return Column(
+                children: [
+                  const Divider(height: 1),
+                  ListTile(
+                    dense: true,
+                    leading: Text(song.number ?? ''),
+                    title: Text(song.title ?? ''),
+                    onTap: () {
+                      onActivate();
+                      onOpenSong(song);
+                    },
+                    trailing: IconButton(
+                      tooltip: 'Hapus dari playlist',
+                      icon: const Icon(Icons.remove_circle_outline),
+                      onPressed: () => onRemoveSong(index),
+                    ),
+                  ),
+                ],
+              );
+            }),
+        ],
+      ),
+    );
+  }
+
+  Song? _resolveSong(SongPlaylistItem item, List<SongBook> books) {
+    for (final book in books) {
+      for (final song in book.songs) {
+        if (item.matches(song)) return song;
+      }
+    }
+    return null;
   }
 }
 
@@ -492,8 +770,9 @@ class _PageTurnWidgetState extends State<PageTurnWidget> {
 
   void _captureImage(Duration timeStamp) async {
     final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final boundary = _boundaryKey.currentContext?.findRenderObject()
-        as RenderRepaintBoundary;
+    final boundary =
+        _boundaryKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary;
     final image = await boundary.toImage(pixelRatio: pixelRatio);
     setState(() => _image = image);
   }
@@ -522,10 +801,7 @@ class _PageTurnWidgetState extends State<PageTurnWidget> {
                 top: 1 + size.height,
                 width: size.width,
                 height: size.height,
-                child: RepaintBoundary(
-                  key: _boundaryKey,
-                  child: widget.child,
-                ),
+                child: RepaintBoundary(key: _boundaryKey, child: widget.child),
               ),
             ],
           );
@@ -560,8 +836,9 @@ class _PageTurnEffect extends CustomPainter {
     final h = size.height.toDouble();
     final c = canvas;
     final shadowXf = (wHRatio - movX);
-    final shadowSigma =
-        Shadow.convertRadiusToSigma(8.0 + (32.0 * (1.0 - shadowXf)));
+    final shadowSigma = Shadow.convertRadiusToSigma(
+      8.0 + (32.0 * (1.0 - shadowXf)),
+    );
     final pageRect = Rect.fromLTRB(0.0, 0.0, w * shadowXf, h);
     c.drawRect(pageRect, Paint()..color = backgroundColor);
     c.drawRect(
@@ -574,7 +851,8 @@ class _PageTurnEffect extends CustomPainter {
     final ip = Paint();
     for (double x = 0; x < size.width; x++) {
       final xf = (x / w);
-      final v = (calcR * (math.sin(math.pi / 0.5 * (xf - (1.0 - pos)))) +
+      final v =
+          (calcR * (math.sin(math.pi / 0.5 * (xf - (1.0 - pos)))) +
           (calcR * 1.1));
       final xv = (xf * wHRatio) - movX;
       final sx = (xf * image.width);
@@ -592,4 +870,3 @@ class _PageTurnEffect extends CustomPainter {
         oldDelegate.amount.value != amount.value;
   }
 }
-

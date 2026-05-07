@@ -8,6 +8,8 @@ import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../router/router.dart';
+import 'song_playback_defaults.dart';
+import 'song_playlist.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -33,6 +35,10 @@ abstract class SongState with _$SongState {
     @Default(false) bool playOnlyFavorite,
     @Default(false) bool shuffleMode,
     @Default([]) List<int> shuffleIndex,
+    @Default([]) List<SongPlaylist> playlists,
+    String? activePlaylistId,
+    @Default(SongPlaylistAutoNextMode.off) String playlistAutoNextMode,
+    @Default([]) List<int> playlistShuffleIndex,
     @Default(false) bool showAudio,
     @Default(false) bool showChord,
     @Default('') String searchTerms,
@@ -53,11 +59,33 @@ abstract class SongState with _$SongState {
     int? midiInstrument,
     @Default('GeneralUser-GS.sf2') String soundFont,
     @Default(false) bool isAudioPlaying,
+    @Default(false) bool pdfTwoPageMode,
+    @Default(false) bool pdfVerticalScrolling,
+    @Default('left') String lyricsTextAlign,
+    @Default('top') String lyricsVerticalAlign,
+    @Default(100) int chordFontSizePercent,
+    @Default(94) int chordFillOpacityPercent,
+    @Default(100) int chordPaddingPercent,
   }) = _SongState;
 
   SongBook? get currentSong {
     return songBook.firstWhereOrNull((element) => element.code == bookCode);
   }
+
+  SongPlaybackDefaults get playbackDefaults => SongPlaybackDefaults(
+    transposeStep: transposeStep,
+    tempoBpm: tempoBpm,
+    defaultTempoBpm: defaultTempoBpm,
+    originalFamilyChord: originalFamilyChord,
+    originalPdfKey: originalPdfKey,
+    baseTransposeOffset: baseTransposeOffset,
+  );
+
+  String get activeKeyLabel =>
+      playbackDefaults.activeKeyLabel(accidentalMode: chordAccidentalMode);
+
+  List<String> get transposeKeyOptions =>
+      playbackDefaults.keyOptions(accidentalMode: chordAccidentalMode);
 
   TextTheme getTextThemeByFontName(String font) {
     switch (font) {
@@ -103,7 +131,8 @@ abstract class SongState with _$SongState {
         break;
     }
     return result.apply(
-        bodyColor: router.navigatorKey.currentContext?.textColor);
+      bodyColor: router.navigatorKey.currentContext?.textColor,
+    );
   }
 
   List<String> get availableFonts {

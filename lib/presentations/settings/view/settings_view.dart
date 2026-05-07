@@ -31,9 +31,7 @@ class SettingsView extends StatelessWidget {
                   horizontal: 16,
                   vertical: 8,
                 ).add(EdgeInsets.only(top: context.mediaQuery.padding.top)),
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                ),
+                decoration: BoxDecoration(color: context.colorScheme.surface),
                 child: Row(
                   children: [
                     CircleAvatar(
@@ -42,13 +40,11 @@ class SettingsView extends StatelessWidget {
                           ? Image.asset(Assets.assetsImagesAppicon)
                           : ClipOval(
                               child: CachedNetworkImage(
-                                  imageUrl:
-                                      state.account?.profilePicture ?? ''),
+                                imageUrl: state.account?.profilePicture ?? '',
+                              ),
                             )),
                     ),
-                    SizedBox(
-                      width: 12,
-                    ),
+                    SizedBox(width: 12),
                     Expanded(
                       child: state.idToken == null
                           ? Text(
@@ -79,18 +75,19 @@ class SettingsView extends StatelessWidget {
                             ),
                     ),
                     ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: state.idToken == null
-                              ? context.colorScheme.primaryContainer
-                              : context.colorScheme.errorContainer,
-                          foregroundColor: state.idToken == null
-                              ? context.colorScheme.onPrimaryContainer
-                              : context.colorScheme.onErrorContainer,
-                        ),
-                        onPressed: () async {
-                          if (context.read<DashboardCubit>().state.idToken ==
-                              null) {
-                            router.push(LoginRoute(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: state.idToken == null
+                            ? context.colorScheme.primaryContainer
+                            : context.colorScheme.errorContainer,
+                        foregroundColor: state.idToken == null
+                            ? context.colorScheme.onPrimaryContainer
+                            : context.colorScheme.onErrorContainer,
+                      ),
+                      onPressed: () async {
+                        if (context.read<DashboardCubit>().state.idToken ==
+                            null) {
+                          router.push(
+                            LoginRoute(
                               onLoggedIn: (token) {
                                 router.maybePop();
                                 context
@@ -99,422 +96,535 @@ class SettingsView extends StatelessWidget {
                                 Fluttertoast.cancel();
                                 Fluttertoast.showToast(msg: 'BERHASIL LOGIN!');
                               },
-                            ));
-                          } else {
-                            final yes = await context.showConfirmation(
-                                'Are you sure want to logout?'.tr());
-                            if (!context.mounted || !yes) {
-                              return;
-                            }
-                            context
-                                .read<DashboardCubit>()
-                                .loginSuccessCallback(null);
+                            ),
+                          );
+                        } else {
+                          final yes = await context.showConfirmation(
+                            'Are you sure want to logout?'.tr(),
+                          );
+                          if (!context.mounted || !yes) {
+                            return;
                           }
-                        },
-                        child: Text(
-                            (state.idToken == null ? 'Login' : 'Logout').tr())),
+                          context.read<DashboardCubit>().loginSuccessCallback(
+                            null,
+                          );
+                        }
+                      },
+                      child: Text(
+                        (state.idToken == null ? 'Login' : 'Logout').tr(),
+                      ),
+                    ),
                   ],
                 ),
               ),
             ),
             Expanded(
-                child: SingleChildScrollView(
-              child: Column(
-                children: [
-                  BlocBuilder<BibleCubit, BibleState>(
-                    builder: (context, state) => Section(
-                      label: 'Verse'.tr(),
-                      child: (gap) => Material(
-                        child: Column(
-                          children: [
-                            {
-                              'label': '📖 ${'Version'.tr()}',
-                              'desc': 'bible_version_desc'.tr(),
-                              'onTap': null,
-                              'trailing': Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () {
-                                      router.push(BibleVersionRoute(
-                                        dashboardCubit: context.read(),
-                                      ));
-                                    },
-                                    icon: Icon(Icons.settings),
-                                  ),
-                                  SizedBox(
-                                    width: 4,
-                                  ),
-                                  ElevatedButton(
-                                    style: ElevatedButton.styleFrom(
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                    onPressed: () async {
-                                      log('onTapSelectBible');
-                                      context.read<BibleCubit>().getBibles();
-                                      var bibleCodes = context
-                                          .read<BibleCubit>()
-                                          .state
-                                          .bibleCodes
-                                          .map((e) =>
-                                              e.split('.').first.toUpperCase())
-                                          .toList();
-                                      await showModalBottomSheet(
-                                        context: context,
-                                        backgroundColor: Colors.transparent,
-                                        isScrollControlled: true,
-                                        useSafeArea: true,
-                                        builder: (ctx) => BibleSelectWidget(
-                                          bibleCodes: bibleCodes,
-                                          onTap: (index) async {
-                                            await context
-                                                .read<BibleCubit>()
-                                                .selectBibleCode(index);
-                                            router.maybePop();
-                                          },
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    BlocBuilder<BibleCubit, BibleState>(
+                      builder: (context, state) => Section(
+                        label: 'Verse'.tr(),
+                        child: (gap) => Material(
+                          child: Column(
+                            children:
+                                [
+                                      {
+                                        'label': '📖 ${'Version'.tr()}',
+                                        'desc': 'bible_version_desc'.tr(),
+                                        'onTap': null,
+                                        'trailing': Row(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            IconButton(
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              onPressed: () {
+                                                router.push(
+                                                  BibleVersionRoute(
+                                                    dashboardCubit: context
+                                                        .read(),
+                                                  ),
+                                                );
+                                              },
+                                              icon: Icon(Icons.settings),
+                                            ),
+                                            SizedBox(width: 4),
+                                            ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                              onPressed: () async {
+                                                log('onTapSelectBible');
+                                                await context
+                                                    .read<BibleCubit>()
+                                                    .getBibles();
+                                                if (!context.mounted) return;
+                                                final state = context
+                                                    .read<BibleCubit>()
+                                                    .state;
+                                                var bibleCodes = state
+                                                    .bibleCodes
+                                                    .map(
+                                                      (e) => e.split('.').first,
+                                                    )
+                                                    .toList();
+                                                if (bibleCodes.isEmpty) {
+                                                  Fluttertoast.showToast(
+                                                    msg:
+                                                        'No Bible versions available'
+                                                            .tr(),
+                                                  );
+                                                  return;
+                                                }
+                                                var currentIndex = bibleCodes
+                                                    .indexOf(
+                                                      state.currentBibleCode,
+                                                    );
+                                                if (currentIndex < 0) {
+                                                  currentIndex = 0;
+                                                }
+                                                await showModalBottomSheet(
+                                                  context: context,
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  isScrollControlled: true,
+                                                  useSafeArea: true,
+                                                  builder: (ctx) =>
+                                                      BibleSelectWidget(
+                                                        bibleCodes: bibleCodes,
+                                                        initialIndex:
+                                                            currentIndex,
+                                                        onTap: (index) async {
+                                                          await context
+                                                              .read<
+                                                                BibleCubit
+                                                              >()
+                                                              .selectBibleCode(
+                                                                index,
+                                                              );
+                                                          if (!ctx.mounted) {
+                                                            return;
+                                                          }
+                                                          router.maybePop();
+                                                        },
+                                                      ),
+                                                );
+                                              },
+                                              child: Text(
+                                                (state.currentBibleCode
+                                                        .split('_')
+                                                        .last)
+                                                    .toUpperCase(),
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                      );
-                                    },
-                                    child: Text(
-                                        (state.currentBibleCode.split('_').last)
-                                            .toUpperCase()),
-                                  ),
-                                ],
-                              )
-                            },
-                            {
-                              'label': '📅 ${'Today Reading'.tr()}',
-                              'desc': 'today_reading_desc'.tr(),
-                              'onTap': null,
-                              'trailing': ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                onPressed: () {
-                                  router.push(BibleListRoute(
-                                    bibleCode: state.currentBibleCode,
-                                    textScale: state.defaultTextScale,
-                                    onSelected: (newBible) {
-                                      context
-                                          .read<BibleCubit>()
-                                          .setTodayReading(newBible);
-                                      router.maybePop();
-                                    },
-                                    getBibles: (bookId, chapterId) async {
-                                      if (bookId == null || chapterId == null) {
-                                        return [];
-                                      }
-                                      return await context
-                                          .read<BibleCubit>()
-                                          .getVersesByBook(bookId, chapterId);
-                                    },
-                                    books: state.books,
-                                  ));
-                                },
-                                child: FutureBuilder<String>(
-                                    future: context
-                                        .read<BibleCubit>()
-                                        .getBibleTitle([state.todayReading]),
-                                    builder: (context, snapshot) =>
-                                        Text(snapshot.data ?? 'None'.tr())),
-                              ),
-                            },
-                            {
-                              'label': '🕰️ ${'Bible Reminder'.tr()}',
-                              'desc': 'bible_reminder_desc'.tr(),
-                              'onTap': null,
-                              'trailing': ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                ),
-                                onPressed: () async {
-                                  var settingCubit =
-                                      context.read<SettingsCubit>();
+                                      },
+                                      {
+                                        'label': '📅 ${'Today Reading'.tr()}',
+                                        'desc': 'today_reading_desc'.tr(),
+                                        'onTap': null,
+                                        'trailing': ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                          onPressed: () {
+                                            router.push(
+                                              BibleListRoute(
+                                                bibleCode:
+                                                    state.currentBibleCode,
+                                                textScale:
+                                                    state.defaultTextScale,
+                                                onSelected: (newBible) {
+                                                  context
+                                                      .read<BibleCubit>()
+                                                      .setTodayReading(
+                                                        newBible,
+                                                      );
+                                                  router.maybePop();
+                                                },
+                                                getBibles:
+                                                    (bookId, chapterId) async {
+                                                      if (bookId == null ||
+                                                          chapterId == null) {
+                                                        return [];
+                                                      }
+                                                      return await context
+                                                          .read<BibleCubit>()
+                                                          .getVersesByBook(
+                                                            bookId,
+                                                            chapterId,
+                                                          );
+                                                    },
+                                                books: state.books,
+                                              ),
+                                            );
+                                          },
+                                          child: FutureBuilder<String>(
+                                            future: context
+                                                .read<BibleCubit>()
+                                                .getBibleTitle([
+                                                  state.todayReading,
+                                                ]),
+                                            builder: (context, snapshot) =>
+                                                Text(
+                                                  snapshot.data ?? 'None'.tr(),
+                                                ),
+                                          ),
+                                        ),
+                                      },
+                                      {
+                                        'label': '🕰️ ${'Bible Reminder'.tr()}',
+                                        'desc': 'bible_reminder_desc'.tr(),
+                                        'onTap': null,
+                                        'trailing': ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                          ),
+                                          onPressed: () async {
+                                            var settingCubit = context
+                                                .read<SettingsCubit>();
 
-                                  var weekdays =
-                                      List.generate(7, (index) => index + 1);
-                                  await showModalBottomSheet(
-                                    backgroundColor: Colors.transparent,
-                                    elevation: 0,
-                                    isScrollControlled: true,
-                                    context: context,
-                                    builder: (context) {
-                                      return BibleReminderDialog(
-                                          weekdays: weekdays,
-                                          settingCubit: settingCubit);
-                                    },
-                                  );
-                                },
-                                child: Text((context
-                                            .watch<SettingsCubit>()
-                                            .state
-                                            .isBibleReminderNotificationActive
-                                        ? 'On'
-                                        : 'Off')
-                                    .tr()),
-                              ),
-                            },
-                            {
-                              'label': '🎧 ${'Audio Bible Config'.tr()}',
-                              'desc': 'audio_bible_desc'.tr(),
-                              'onTap': () {
-                                router.push(
-                                  BibleAudioSettingRoute(
-                                    onSave: (voices, pitch, speed) {
-                                      context
-                                          .read<BibleCubit>()
-                                          .applyTtsSetting(
-                                              voices, pitch, speed);
-                                    },
-                                    initialPitchRate: context
-                                        .read<BibleCubit>()
-                                        .state
-                                        .pitchRate,
-                                    initialSpeedRate: context
-                                        .read<BibleCubit>()
-                                        .state
-                                        .speedRate,
-                                    initialVoices:
-                                        context.read<BibleCubit>().state.voices,
-                                  ),
-                                );
-                              },
-                            },
-                          ]
-                              .map((e) => ListTile(
-                                    dense: true,
-                                    style: ListTileStyle.list,
-                                    visualDensity: VisualDensity.compact,
-                                    title: Text(
-                                      e['label'] as String,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14,
+                                            var weekdays = List.generate(
+                                              7,
+                                              (index) => index + 1,
+                                            );
+                                            await showModalBottomSheet(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              elevation: 0,
+                                              isScrollControlled: true,
+                                              context: context,
+                                              builder: (context) {
+                                                return BibleReminderDialog(
+                                                  weekdays: weekdays,
+                                                  settingCubit: settingCubit,
+                                                );
+                                              },
+                                            );
+                                          },
+                                          child: Text(
+                                            (context
+                                                        .watch<SettingsCubit>()
+                                                        .state
+                                                        .isBibleReminderNotificationActive
+                                                    ? 'On'
+                                                    : 'Off')
+                                                .tr(),
+                                          ),
+                                        ),
+                                      },
+                                      {
+                                        'label':
+                                            '🎧 ${'Audio Bible Config'.tr()}',
+                                        'desc': 'audio_bible_desc'.tr(),
+                                        'onTap': () {
+                                          router.push(
+                                            BibleAudioSettingRoute(
+                                              onSave: (voices, pitch, speed) {
+                                                context
+                                                    .read<BibleCubit>()
+                                                    .applyTtsSetting(
+                                                      voices,
+                                                      pitch,
+                                                      speed,
+                                                    );
+                                              },
+                                              initialPitchRate: context
+                                                  .read<BibleCubit>()
+                                                  .state
+                                                  .pitchRate,
+                                              initialSpeedRate: context
+                                                  .read<BibleCubit>()
+                                                  .state
+                                                  .speedRate,
+                                              initialVoices: context
+                                                  .read<BibleCubit>()
+                                                  .state
+                                                  .voices,
+                                            ),
+                                          );
+                                        },
+                                      },
+                                    ]
+                                    .map(
+                                      (e) => ListTile(
+                                        dense: true,
+                                        style: ListTileStyle.list,
+                                        visualDensity: VisualDensity.compact,
+                                        title: Text(
+                                          e['label'] as String,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        trailing: e['trailing'] as Widget?,
+                                        onTap: e['onTap'] as Function()?,
+                                        subtitle: e['desc'] == null
+                                            ? null
+                                            : Text(e['desc'] as String),
                                       ),
-                                    ),
-                                    trailing: e['trailing'] as Widget?,
-                                    onTap: e['onTap'] as Function()?,
-                                    subtitle: e['desc'] == null
-                                        ? null
-                                        : Text(e['desc'] as String),
-                                  ))
-                              .toList(),
+                                    )
+                                    .toList(),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const _SongSettingsSection(),
-                  Section(
-                    label: 'Notification'.tr(),
-                    child: (gap) => Material(
-                      child: Column(
-                        children: [
-                          {
-                            'label': '🔔 ${'Sabat Notification'.tr()}',
-                            'desc': state.isSabatNotificationActive
-                                ? 'sabat_notification_enabled_desc'.tr()
-                                : 'sabat_notification_disabled_desc'.tr(),
-                            'onTap': null,
-                            'trailing': ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: state.isSabatNotificationActive
-                                    ? context.colorScheme.primaryContainer
-                                    : context.colorScheme.errorContainer,
-                                foregroundColor: state.isSabatNotificationActive
-                                    ? context.colorScheme.onPrimaryContainer
-                                    : context.colorScheme.onErrorContainer,
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              onPressed: () {
-                                context
-                                    .read<SettingsCubit>()
-                                    .toggleSabatNotification();
-                              },
-                              child: Text(
-                                (state.isSabatNotificationActive ? 'On' : 'Off')
-                                    .tr(),
-                              ),
-                            ),
-                          },
-                        ]
-                            .map((e) => ListTile(
-                                  dense: true,
-                                  style: ListTileStyle.list,
-                                  visualDensity: VisualDensity.compact,
-                                  title: Text(
-                                    e['label'] as String,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
+                    const _SongSettingsSection(),
+                    Section(
+                      label: 'Notification'.tr(),
+                      child: (gap) => Material(
+                        child: Column(
+                          children:
+                              [
+                                    {
+                                      'label':
+                                          '🔔 ${'Sabat Notification'.tr()}',
+                                      'desc': state.isSabatNotificationActive
+                                          ? 'sabat_notification_enabled_desc'
+                                                .tr()
+                                          : 'sabat_notification_disabled_desc'
+                                                .tr(),
+                                      'onTap': null,
+                                      'trailing': ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              state.isSabatNotificationActive
+                                              ? context
+                                                    .colorScheme
+                                                    .primaryContainer
+                                              : context
+                                                    .colorScheme
+                                                    .errorContainer,
+                                          foregroundColor:
+                                              state.isSabatNotificationActive
+                                              ? context
+                                                    .colorScheme
+                                                    .onPrimaryContainer
+                                              : context
+                                                    .colorScheme
+                                                    .onErrorContainer,
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        onPressed: () {
+                                          context
+                                              .read<SettingsCubit>()
+                                              .toggleSabatNotification();
+                                        },
+                                        child: Text(
+                                          (state.isSabatNotificationActive
+                                                  ? 'On'
+                                                  : 'Off')
+                                              .tr(),
+                                        ),
+                                      ),
+                                    },
+                                  ]
+                                  .map(
+                                    (e) => ListTile(
+                                      dense: true,
+                                      style: ListTileStyle.list,
+                                      visualDensity: VisualDensity.compact,
+                                      title: Text(
+                                        e['label'] as String,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      trailing: e['trailing'] as Widget?,
+                                      onTap: e['onTap'] as Function()?,
+                                      subtitle: e['desc'] == null
+                                          ? null
+                                          : Text(e['desc'] as String),
                                     ),
-                                  ),
-                                  trailing: e['trailing'] as Widget?,
-                                  onTap: e['onTap'] as Function()?,
-                                  subtitle: e['desc'] == null
-                                      ? null
-                                      : Text(e['desc'] as String),
-                                ))
-                            .toList(),
+                                  )
+                                  .toList(),
+                        ),
                       ),
                     ),
-                  ),
-                  Section(
-                    label: 'Others'.tr(),
-                    child: (gap) => Material(
-                      child: Column(
-                        children: [
-                          {
-                            'label': '🎨 ${'Theme'.tr()}',
-                            'desc': 'theme_desc'.tr(),
-                            'onTap': null,
-                            'trailing': ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              onPressed: () {
-                                context.read<InitialCubit>().toggleTheme(
-                                      context.theme.brightness ==
-                                              Brightness.light
-                                          ? ThemeMode.dark
-                                          : ThemeMode.light,
-                                      () => context,
-                                    );
-                              },
-                              child: Text(context
-                                  .read<InitialCubit>()
-                                  .state
-                                  .themeMode
-                                  .capitalize()
-                                  .tr()),
-                            ),
-                          },
-                          {
-                            'label': '🌐 ${'Language'.tr()}',
-                            'desc': 'language_desc'.tr(),
-                            'onTap': null,
-                            'trailing': ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              onPressed: () async {
-                                showModalBottomSheet(
-                                  context: context,
-                                  isScrollControlled: true,
-                                  backgroundColor: Colors.transparent,
-                                  elevation: 0,
-                                  builder: (c) => BlocProvider.value(
-                                      value: context.read<BibleCubit>(),
-                                      child: SelectLanguageDialog()),
-                                );
-                              },
-                              child: Text(context.locale.languageName),
-                            ),
-                          },
-                          {
-                            'label': '💾 ${'Backup'.tr()}',
-                            'desc': 'backup_desc'.tr(),
-                            'onTap': () {
-                              router.push(
-                                BackupRoute(
-                                  onSynced: (data) {
-                                    if (data.bibleState != null) {
-                                      context
-                                          .read<BibleCubit>()
-                                          .sync(data.bibleState!);
-                                    }
-                                    if (data.songState != null) {
-                                      context
-                                          .read<SongCubit>()
-                                          .sync(data.songState!);
-                                    }
-                                    if (data.faithState != null) {
-                                      context
-                                          .read<FaithCubit>()
-                                          .sync(data.faithState!);
-                                    }
-                                    if (data.settingsState != null) {
-                                      context
-                                          .read<SettingsCubit>()
-                                          .sync(data.settingsState!);
-                                    }
+                    Section(
+                      label: 'Others'.tr(),
+                      child: (gap) => Material(
+                        child: Column(
+                          children:
+                              [
+                                    {
+                                      'label': '🎨 ${'Theme'.tr()}',
+                                      'desc': 'theme_desc'.tr(),
+                                      'onTap': null,
+                                      'trailing': ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        onPressed: () {
+                                          context
+                                              .read<InitialCubit>()
+                                              .toggleTheme(
+                                                context.theme.brightness ==
+                                                        Brightness.light
+                                                    ? ThemeMode.dark
+                                                    : ThemeMode.light,
+                                                () => context,
+                                              );
+                                        },
+                                        child: Text(
+                                          context
+                                              .read<InitialCubit>()
+                                              .state
+                                              .themeMode
+                                              .capitalize()
+                                              .tr(),
+                                        ),
+                                      ),
+                                    },
+                                    {
+                                      'label': '🌐 ${'Language'.tr()}',
+                                      'desc': 'language_desc'.tr(),
+                                      'onTap': null,
+                                      'trailing': ElevatedButton(
+                                        style: ElevatedButton.styleFrom(
+                                          visualDensity: VisualDensity.compact,
+                                        ),
+                                        onPressed: () async {
+                                          showModalBottomSheet(
+                                            context: context,
+                                            isScrollControlled: true,
+                                            backgroundColor: Colors.transparent,
+                                            elevation: 0,
+                                            builder: (c) => BlocProvider.value(
+                                              value: context.read<BibleCubit>(),
+                                              child: SelectLanguageDialog(),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          context.locale.languageName,
+                                        ),
+                                      ),
+                                    },
+                                    {
+                                      'label': '💾 ${'Backup'.tr()}',
+                                      'desc': 'backup_desc'.tr(),
+                                      'onTap': () {
+                                        router.push(
+                                          BackupRoute(
+                                            onSynced: (data) {
+                                              if (data.bibleState != null) {
+                                                context.read<BibleCubit>().sync(
+                                                  data.bibleState!,
+                                                );
+                                              }
+                                              if (data.songState != null) {
+                                                context.read<SongCubit>().sync(
+                                                  data.songState!,
+                                                );
+                                              }
+                                              if (data.faithState != null) {
+                                                context.read<FaithCubit>().sync(
+                                                  data.faithState!,
+                                                );
+                                              }
+                                              if (data.settingsState != null) {
+                                                context
+                                                    .read<SettingsCubit>()
+                                                    .sync(data.settingsState!);
+                                              }
 
-                                    Fluttertoast.cancel();
-                                    Fluttertoast.showToast(
-                                        msg: 'Sync success'.tr());
-                                  },
-                                  data: AppBackupData(
-                                    bibleState:
-                                        context.read<BibleCubit>().state,
-                                    faithState:
-                                        context.read<FaithCubit>().state,
-                                    settingsState:
-                                        context.read<SettingsCubit>().state,
-                                    songState: context.read<SongCubit>().state,
-                                  ),
-                                ),
-                              );
-                            },
-                          },
-                          {
-                            'label': '📢 ${'Report'.tr()}',
-                            'desc': 'report_desc'.tr(),
-                            'onTap': () {
-                              router.push(ReportRoute(
-                                account: context
-                                    .read<DashboardCubit>()
-                                    .state
-                                    .account,
-                                onLoggedIn: (token) async {
-                                  await context
-                                      .read<DashboardCubit>()
-                                      .loginSuccessCallback(token);
-                                  router.maybePop();
-                                  Fluttertoast.cancel();
-                                  Fluttertoast.showToast(
-                                      msg: 'BERHASIL LOGIN!');
-                                  // ignore: use_build_context_synchronously
-                                  return context
-                                      .read<DashboardCubit>()
-                                      .state
-                                      .account;
-                                },
-                              ));
-                            },
-                          },
-                          {
-                            'label': '🔤 ${'Font Settings'.tr()}',
-                            'desc': 'font_desc'.tr(),
-                            'onTap': () {
-                              router.push(FontSettingRoute());
-                            },
-                          },
-                        ]
-                            .map((e) => ListTile(
-                                  dense: true,
-                                  style: ListTileStyle.list,
-                                  visualDensity: VisualDensity.compact,
-                                  title: Text(
-                                    e['label'] as String,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 14,
+                                              Fluttertoast.cancel();
+                                              Fluttertoast.showToast(
+                                                msg: 'Sync success'.tr(),
+                                              );
+                                            },
+                                            data: AppBackupData(
+                                              bibleState: context
+                                                  .read<BibleCubit>()
+                                                  .state,
+                                              faithState: context
+                                                  .read<FaithCubit>()
+                                                  .state,
+                                              settingsState: context
+                                                  .read<SettingsCubit>()
+                                                  .state,
+                                              songState: context
+                                                  .read<SongCubit>()
+                                                  .state,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    },
+                                    {
+                                      'label': '📢 ${'Report'.tr()}',
+                                      'desc': 'report_desc'.tr(),
+                                      'onTap': () {
+                                        router.push(
+                                          ReportRoute(
+                                            account: context
+                                                .read<DashboardCubit>()
+                                                .state
+                                                .account,
+                                            onLoggedIn: (token) async {
+                                              await context
+                                                  .read<DashboardCubit>()
+                                                  .loginSuccessCallback(token);
+                                              router.maybePop();
+                                              Fluttertoast.cancel();
+                                              Fluttertoast.showToast(
+                                                msg: 'BERHASIL LOGIN!',
+                                              );
+                                              // ignore: use_build_context_synchronously
+                                              return context
+                                                  .read<DashboardCubit>()
+                                                  .state
+                                                  .account;
+                                            },
+                                          ),
+                                        );
+                                      },
+                                    },
+                                    {
+                                      'label': '🔤 ${'Font Settings'.tr()}',
+                                      'desc': 'font_desc'.tr(),
+                                      'onTap': () {
+                                        router.push(FontSettingRoute());
+                                      },
+                                    },
+                                  ]
+                                  .map(
+                                    (e) => ListTile(
+                                      dense: true,
+                                      style: ListTileStyle.list,
+                                      visualDensity: VisualDensity.compact,
+                                      title: Text(
+                                        e['label'] as String,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                          fontSize: 14,
+                                        ),
+                                      ),
+                                      trailing: e['trailing'] as Widget?,
+                                      onTap: e['onTap'] as Function()?,
+                                      subtitle: e['desc'] == null
+                                          ? null
+                                          : Text(e['desc'] as String),
                                     ),
-                                  ),
-                                  trailing: e['trailing'] as Widget?,
-                                  onTap: e['onTap'] as Function()?,
-                                  subtitle: e['desc'] == null
-                                      ? null
-                                      : Text(e['desc'] as String),
-                                ))
-                            .toList(),
+                                  )
+                                  .toList(),
+                        ),
                       ),
                     ),
-                  )
-                ],
+                  ],
+                ),
               ),
-            ))
+            ),
           ],
         ),
       ),
@@ -524,18 +634,6 @@ class SettingsView extends StatelessWidget {
 
 class _SongSettingsSection extends StatelessWidget {
   const _SongSettingsSection();
-
-  static const _instruments = <int, String>{
-    0: 'Piano',
-    6: 'Harpsichord',
-    19: 'Church organ',
-    24: 'Nylon guitar',
-    40: 'Violin',
-    48: 'Strings',
-    52: 'Choir',
-    56: 'Trumpet',
-    73: 'Flute',
-  };
 
   @override
   Widget build(BuildContext context) {
@@ -554,8 +652,9 @@ class _SongSettingsSection extends StatelessWidget {
                     'Tampilkan chord',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                   ),
-                  subtitle:
-                      const Text('Default overlay chord seperti gyschordweb'),
+                  subtitle: const Text(
+                    'Default overlay chord seperti gyschordweb',
+                  ),
                   value: state.showChord,
                   onChanged: songCubit.toggleChord,
                 ),
@@ -566,153 +665,11 @@ class _SongSettingsSection extends StatelessWidget {
                     'Aktifkan MIDI player',
                     style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
                   ),
-                  subtitle:
-                      const Text('Tampilkan kontrol player di halaman pujian'),
+                  subtitle: const Text(
+                    'Tampilkan kontrol player di halaman pujian',
+                  ),
                   value: state.showAudio,
                   onChanged: songCubit.toggleAudio,
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Transpose',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Nada dasar chord dan MIDI'),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: songCubit.transposeDown,
-                        icon: const Icon(Icons.remove),
-                      ),
-                      SizedBox(
-                        width: 36,
-                        child: Text(
-                          state.transposeStep > 0
-                              ? '+${state.transposeStep}'
-                              : '${state.transposeStep}',
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                      IconButton(
-                        visualDensity: VisualDensity.compact,
-                        onPressed: songCubit.transposeUp,
-                        icon: const Icon(Icons.add),
-                      ),
-                    ],
-                  ),
-                ),
-                SwitchListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Hindari chord kres/mol',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: Text(
-                    state.originalFamilyChord == null
-                        ? 'Otomatis saat family chord asli terdeteksi'
-                        : 'Family asli: ${ChordService.formatChordForDisplay(
-                            state.originalFamilyChord!,
-                            accidentalMode: state.chordAccidentalMode,
-                            baseTransposeOffset: state.baseTransposeOffset,
-                          )}',
-                  ),
-                  value: state.preferNaturalChords,
-                  onChanged: songCubit.togglePreferNaturalChords,
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Penulisan chord',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle:
-                      const Text('Pilih preferensi kres (#) atau mol (b)'),
-                  trailing: SegmentedButton<String>(
-                    showSelectedIcon: false,
-                    segments: const [
-                      ButtonSegment(
-                        value: ChordService.accidentalSharp,
-                        label: Text('#'),
-                      ),
-                      ButtonSegment(
-                        value: ChordService.accidentalFlat,
-                        label: Text('b'),
-                      ),
-                    ],
-                    selected: {state.chordAccidentalMode},
-                    onSelectionChanged: (selection) {
-                      songCubit.setChordAccidentalMode(selection.first);
-                    },
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Tempo default',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Kecepatan playback MIDI'),
-                  trailing: SizedBox(
-                    width: 168,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Expanded(
-                          child: Slider(
-                            min: 40,
-                            max: 180,
-                            divisions: 140,
-                            value: state.defaultTempoBpm.clamp(40, 180),
-                            onChanged: songCubit.setDefaultTempo,
-                          ),
-                        ),
-                        SizedBox(
-                          width: 44,
-                          child: Text(
-                            '${state.defaultTempoBpm.round()}',
-                            textAlign: TextAlign.end,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Instrumen MIDI',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text('Program instrumen SoundFont'),
-                  trailing: PopupMenuButton<int?>(
-                    initialValue: state.midiInstrument,
-                    onSelected: songCubit.setMidiInstrument,
-                    itemBuilder: (context) => [
-                      const PopupMenuItem<int?>(
-                        value: null,
-                        child: Text('Default'),
-                      ),
-                      ..._instruments.entries.map(
-                        (entry) => PopupMenuItem<int?>(
-                          value: entry.key,
-                          child: Text('${entry.value} (${entry.key})'),
-                        ),
-                      ),
-                    ],
-                    child: Text(
-                      state.midiInstrument == null
-                          ? 'Default'
-                          : _instruments[state.midiInstrument] ??
-                              'Program ${state.midiInstrument}',
-                    ),
-                  ),
                 ),
                 ListTile(
                   dense: true,
@@ -736,24 +693,10 @@ class _SongSettingsSection extends StatelessWidget {
                       ),
                     ],
                     child: Text(
-                      state.soundFont == 'TimGM6mb.sf2'
-                          ? 'TimGM6mb'
-                          : 'GeneralUser GS',
+                      state.soundFont == 'GeneralUser-GS.sf2'
+                          ? 'GeneralUser GS'
+                          : 'TimGM6mb',
                     ),
-                  ),
-                ),
-                ListTile(
-                  dense: true,
-                  visualDensity: VisualDensity.compact,
-                  title: const Text(
-                    'Reset pengaturan pujian',
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                  subtitle: const Text(
-                      'Kembalikan chord, MIDI, tempo, dan instrumen'),
-                  trailing: TextButton(
-                    onPressed: songCubit.resetPlaybackSettings,
-                    child: const Text('Reset'),
                   ),
                 ),
               ],
@@ -766,9 +709,7 @@ class _SongSettingsSection extends StatelessWidget {
 }
 
 class SelectLanguageDialog extends StatefulWidget {
-  const SelectLanguageDialog({
-    super.key,
-  });
+  const SelectLanguageDialog({super.key});
 
   @override
   State<SelectLanguageDialog> createState() => _SelectLanguageDialogState();
@@ -807,9 +748,7 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(12),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -824,50 +763,53 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                     label: 'Select Language'.tr(),
                     child: (gap) => Column(
                       children: [
-                        ...context.supportedLocales.map((e) => Material(
-                              color: Colors.transparent,
-                              child: Column(
-                                children: [
-                                  ListTile(
-                                    onTap: () async {
-                                      await context.setLocale(e).then((value) {
-                                        timeago.LookupMessages message =
-                                            timeago.EnShortMessages();
-                                        switch (e.languageCode) {
-                                          case 'id':
-                                            message = timeago.IdShortMessages();
-                                            break;
-                                          case 'zh':
-                                            message = timeago.ZhCnMessages();
-                                            break;
-                                          default:
-                                        }
-                                        timeago.setLocaleMessages(
-                                            e.languageCode, message);
-                                        router.maybePop();
-                                        Fluttertoast.cancel();
-                                        Fluttertoast.showToast(
-                                          msg: 'Language switched'.tr(),
-                                        );
-                                      });
-                                    },
-                                    title: Row(
-                                      children: [
-                                        Image.asset(
-                                            'assets/images/${e.languageCode}_flag.png',
-                                            width: 20,
-                                            fit: BoxFit.cover,
-                                            height: 14),
-                                        SizedBox(
-                                          width: 8,
-                                        ),
-                                        Text(e.languageName),
-                                      ],
-                                    ),
+                        ...context.supportedLocales.map(
+                          (e) => Material(
+                            color: Colors.transparent,
+                            child: Column(
+                              children: [
+                                ListTile(
+                                  onTap: () async {
+                                    await context.setLocale(e).then((value) {
+                                      timeago.LookupMessages message =
+                                          timeago.EnShortMessages();
+                                      switch (e.languageCode) {
+                                        case 'id':
+                                          message = timeago.IdShortMessages();
+                                          break;
+                                        case 'zh':
+                                          message = timeago.ZhCnMessages();
+                                          break;
+                                        default:
+                                      }
+                                      timeago.setLocaleMessages(
+                                        e.languageCode,
+                                        message,
+                                      );
+                                      router.maybePop();
+                                      Fluttertoast.cancel();
+                                      Fluttertoast.showToast(
+                                        msg: 'Language switched'.tr(),
+                                      );
+                                    });
+                                  },
+                                  title: Row(
+                                    children: [
+                                      Image.asset(
+                                        'assets/images/${e.languageCode}_flag.png',
+                                        width: 20,
+                                        fit: BoxFit.cover,
+                                        height: 14,
+                                      ),
+                                      SizedBox(width: 8),
+                                      Text(e.languageName),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            )),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                         // SizedBox(height: 24),
                       ],
                     ),
@@ -897,8 +839,9 @@ class BibleReminderDialog extends StatefulWidget {
 }
 
 class _BibleReminderDialogState extends State<BibleReminderDialog> {
-  late Map<int, DateTime> data =
-      Map<int, DateTime>.from(widget.settingCubit.state.bibleReminders);
+  late Map<int, DateTime> data = Map<int, DateTime>.from(
+    widget.settingCubit.state.bibleReminders,
+  );
   double childHeight = 0.00001;
   final GlobalKey widgetKey = GlobalKey();
   final GlobalKey handlerKey = GlobalKey();
@@ -929,132 +872,132 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
         snapSizes: [childHeight],
         builder: (context, scrollController) => Material(
           color: context.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           child: SingleChildScrollView(
             controller: scrollController,
-            child: Column(children: [
-              DragHandler(
-                key: handlerKey,
-              ),
-              Section(
-                key: widgetKey,
-                label: 'Bible Reminder'.tr(),
-                child: (gap) => SafeArea(
-                  child: Column(
-                    children: [
-                      ...List.generate(widget.weekdays.length, (index) {
-                        var item = widget.weekdays[index];
-                        return ListTile(
-                          onTap: () async {
-                            if (data[item] != null) {
-                              if (await context.showConfirmation(
+            child: Column(
+              children: [
+                DragHandler(key: handlerKey),
+                Section(
+                  key: widgetKey,
+                  label: 'Bible Reminder'.tr(),
+                  child: (gap) => SafeArea(
+                    child: Column(
+                      children: [
+                        ...List.generate(widget.weekdays.length, (index) {
+                          var item = widget.weekdays[index];
+                          return ListTile(
+                            onTap: () async {
+                              if (data[item] != null) {
+                                if (await context.showConfirmation(
                                   'This will destroy the schedule. Tap Yes to destroy'
-                                      .tr())) {
-                                data.remove(item);
-                                setState(() {});
+                                      .tr(),
+                                )) {
+                                  data.remove(item);
+                                  setState(() {});
+                                  return;
+                                }
+                              }
+                              if (!context.mounted) {
                                 return;
                               }
-                            }
-                            if (!context.mounted) {
-                              return;
-                            }
-                            var time = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.fromDateTime(
-                                data[item] ?? DateTime.now(),
-                              ),
-                            );
-                            if (time != null) {
-                              /// kenapa 2023,05,01?
-                              /// karena pada tanggal itu hari senin adalah tanggal 1
-                              /// biar memudahkan aja, soalnya weekday di flutter itu senin = 1
-                              data[item] = DateTime(2023, 5, 1).copyWith(
-                                day: item,
-                                hour: time.hour,
-                                minute: time.minute,
-                                second: 00,
+                              var time = await showTimePicker(
+                                context: context,
+                                initialTime: TimeOfDay.fromDateTime(
+                                  data[item] ?? DateTime.now(),
+                                ),
                               );
-                              setState(() {});
-                            }
-                          },
-                          title: Text(
-                            widget.weekdays[index].toWeekdayName.tr(),
-                            style: TextStyle(
-                              fontWeight: data[item] != null
-                                  ? FontWeight.w600
-                                  : FontWeight.normal,
+                              if (time != null) {
+                                /// kenapa 2023,05,01?
+                                /// karena pada tanggal itu hari senin adalah tanggal 1
+                                /// biar memudahkan aja, soalnya weekday di flutter itu senin = 1
+                                data[item] = DateTime(2023, 5, 1).copyWith(
+                                  day: item,
+                                  hour: time.hour,
+                                  minute: time.minute,
+                                  second: 00,
+                                );
+                                setState(() {});
+                              }
+                            },
+                            title: Text(
+                              widget.weekdays[index].toWeekdayName.tr(),
+                              style: TextStyle(
+                                fontWeight: data[item] != null
+                                    ? FontWeight.w600
+                                    : FontWeight.normal,
+                              ),
                             ),
-                          ),
-                          trailing: Container(
-                            padding: data[item] == null
-                                ? null
-                                : EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: data[item] != null
-                                  ? context.colorScheme.primary
-                                  : null,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                if (data[item] != null)
-                                  Icon(Icons.notifications,
-                                      size: 14, color: Colors.white),
-                                SizedBox(
-                                  width: 8,
-                                ),
-                                Text(
-                                  widget.settingCubit.getTimeByWeekday(
-                                    item,
-                                    data,
+                            trailing: Container(
+                              padding: data[item] == null
+                                  ? null
+                                  : EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                              decoration: BoxDecoration(
+                                color: data[item] != null
+                                    ? context.colorScheme.primary
+                                    : null,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  if (data[item] != null)
+                                    Icon(
+                                      Icons.notifications,
+                                      size: 14,
+                                      color: Colors.white,
+                                    ),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    widget.settingCubit.getTimeByWeekday(
+                                      item,
+                                      data,
+                                    ),
+                                    style: TextStyle(
+                                      color: data[item] != null
+                                          ? Colors.white
+                                          : context.theme.disabledColor,
+                                      fontSize: 14,
+                                    ),
                                   ),
-                                  style: TextStyle(
-                                    color: data[item] != null
-                                        ? Colors.white
-                                        : context.theme.disabledColor,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        );
-                      }),
-                      Container(
-                        width: double.infinity,
-                        color: context.colorScheme.surface,
-                        padding: const EdgeInsets.all(16),
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: context.colorScheme.primary,
-                            foregroundColor: context.colorScheme.onPrimary,
-                            minimumSize: Size.fromHeight(56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                          );
+                        }),
+                        Container(
+                          width: double.infinity,
+                          color: context.colorScheme.surface,
+                          padding: const EdgeInsets.all(16),
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: context.colorScheme.primary,
+                              foregroundColor: context.colorScheme.onPrimary,
+                              minimumSize: Size.fromHeight(56),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
                             ),
-                          ),
-                          onPressed: () async {
-                            await widget.settingCubit
-                                .setBibleReminderDailyNotification(data);
-                            if (!context.mounted) {
-                              return;
-                            }
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Set Reminder'.tr(),
+                            onPressed: () async {
+                              await widget.settingCubit
+                                  .setBibleReminderDailyNotification(data);
+                              if (!context.mounted) {
+                                return;
+                              }
+                              Navigator.pop(context);
+                            },
+                            child: Text('Set Reminder'.tr()),
                           ),
                         ),
-                      )
-                    ],
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ]),
+              ],
+            ),
           ),
         ),
       ),

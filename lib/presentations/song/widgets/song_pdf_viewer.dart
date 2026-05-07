@@ -7,6 +7,13 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
 import '../../../data/services/chord_service.dart';
 
+/// Controller for programmatic zoom control on the active PDF viewer.
+class PdfViewerController {
+  VoidCallback? zoomIn;
+  VoidCallback? zoomOut;
+  VoidCallback? fitToPage;
+}
+
 /// PDF.js-backed viewer that renders bundled PDF assets inside a WebView.
 class SongPdfViewer extends StatefulWidget {
   final String? pdfPath;
@@ -15,8 +22,17 @@ class SongPdfViewer extends StatefulWidget {
   final int transposeStep;
   final int baseTransposeOffset;
   final String chordAccidentalMode;
+  final bool twoPageMode;
+  final bool verticalScrolling;
+  final int chordFontSizePercent;
+  final int chordFillOpacityPercent;
+  final int chordPaddingPercent;
+  final PdfViewerController? viewerController;
   final ValueChanged<String?>? onPdfKeyDetected;
+  final ValueChanged<double>? onPdfTempoDetected;
   final VoidCallback? onPageChanged;
+  final VoidCallback? onPreviousSong;
+  final VoidCallback? onNextSong;
 
   const SongPdfViewer({
     super.key,
@@ -26,8 +42,17 @@ class SongPdfViewer extends StatefulWidget {
     this.transposeStep = 0,
     this.baseTransposeOffset = 0,
     this.chordAccidentalMode = ChordService.accidentalSharp,
+    this.twoPageMode = false,
+    this.verticalScrolling = false,
+    this.chordFontSizePercent = 100,
+    this.chordFillOpacityPercent = 94,
+    this.chordPaddingPercent = 100,
+    this.viewerController,
     this.onPdfKeyDetected,
+    this.onPdfTempoDetected,
     this.onPageChanged,
+    this.onPreviousSong,
+    this.onNextSong,
   });
 
   @override
@@ -41,8 +66,18 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
   bool _isWebViewLoaded = false;
 
   @override
+  void initState() {
+    super.initState();
+    _wireController();
+    _loadPdf();
+  }
+
+  @override
   void didUpdateWidget(SongPdfViewer oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (widget.viewerController != oldWidget.viewerController) {
+      _wireController();
+    }
     if (oldWidget.pdfPath != widget.pdfPath) {
       _loadPdf();
     }
@@ -53,12 +88,49 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
         oldWidget.chordAccidentalMode != widget.chordAccidentalMode) {
       _syncChords();
     }
+    if (oldWidget.twoPageMode != widget.twoPageMode ||
+        oldWidget.verticalScrolling != widget.verticalScrolling) {
+      _syncViewOptions();
+    }
+    if (oldWidget.chordFontSizePercent != widget.chordFontSizePercent ||
+        oldWidget.chordFillOpacityPercent != widget.chordFillOpacityPercent ||
+        oldWidget.chordPaddingPercent != widget.chordPaddingPercent) {
+      _syncChordUiPrefs();
+    }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _loadPdf();
+  void _wireController() {
+    final ctrl = widget.viewerController;
+    if (ctrl == null) return;
+    ctrl.zoomIn = _zoomIn;
+    ctrl.zoomOut = _zoomOut;
+    ctrl.fitToPage = _fitToPage;
+  }
+
+  Future<void> _zoomIn() async {
+    final controller = _controller;
+    if (controller == null || !_isWebViewLoaded) return;
+    await controller.evaluateJavascript(
+      source:
+          'if (window.getZoom) { window.setZoom(window.getZoom() + 0.15); }',
+    );
+  }
+
+  Future<void> _zoomOut() async {
+    final controller = _controller;
+    if (controller == null || !_isWebViewLoaded) return;
+    await controller.evaluateJavascript(
+      source:
+          'if (window.getZoom) { window.setZoom(Math.max(window.getZoom() - 0.15, 1)); }',
+    );
+  }
+
+  Future<void> _fitToPage() async {
+    final controller = _controller;
+    if (controller == null || !_isWebViewLoaded) return;
+    await controller.evaluateJavascript(
+      source: 'if (window.fitToPage) { window.fitToPage(); }',
+    );
   }
 
   Future<void> _loadPdf() async {
@@ -129,11 +201,32 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
               },
             );
             controller.addJavaScriptHandler(
+              handlerName: 'pdfSwipeSong',
+              callback: (args) {
+                final direction = args.isEmpty ? null : args.first?.toString();
+                if (direction == 'previous') {
+                  widget.onPreviousSong?.call();
+                } else if (direction == 'next') {
+                  widget.onNextSong?.call();
+                }
+              },
+            );
+            controller.addJavaScriptHandler(
               handlerName: 'pdfKeyDetected',
               callback: (args) {
                 final key = args.isEmpty ? null : args.first?.toString();
                 widget.onPdfKeyDetected
                     ?.call(key?.isEmpty == true ? null : key);
+              },
+            );
+            controller.addJavaScriptHandler(
+              handlerName: 'pdfTempoDetected',
+              callback: (args) {
+                if (args.isEmpty) return;
+                final tempo = (args.first as num?)?.toDouble();
+                if (tempo != null && tempo > 0) {
+                  widget.onPdfTempoDetected?.call(tempo);
+                }
               },
             );
             controller.addJavaScriptHandler(
@@ -151,6 +244,7 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
             _isWebViewLoaded = true;
             _renderPdf();
             _syncChords();
+            _syncViewOptions();
           },
           onConsoleMessage: (controller, consoleMessage) {
             log('PDF.js: ${consoleMessage.message}', name: 'SongPdfViewer');
@@ -178,6 +272,16 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
     );
   }
 
+  Future<void> _syncViewOptions() async {
+    final controller = _controller;
+    if (controller == null || !_isWebViewLoaded) return;
+
+    await controller.evaluateJavascript(
+      source:
+          'if (window.setPdfViewOptions) { window.setPdfViewOptions({ twoPageMode: ${jsonEncode(widget.twoPageMode)}, verticalScrolling: ${jsonEncode(widget.verticalScrolling)} }); }',
+    );
+  }
+
   Future<void> _syncChords() async {
     final controller = _controller;
     if (controller == null || !_isWebViewLoaded) return;
@@ -187,6 +291,21 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
       source:
           'if (window.setChordData) { window.setChordData(${jsonEncode(widget.showChord)}, ${jsonEncode(chordPayload)}); }',
     );
+  }
+
+  Future<void> _syncChordUiPrefs() async {
+    final controller = _controller;
+    if (controller == null || !_isWebViewLoaded) return;
+
+    await controller.evaluateJavascript(source: '''
+      if (window.setChordUiPrefs) {
+        window.setChordUiPrefs({
+          fontSizePercent: ${widget.chordFontSizePercent},
+          fillOpacityPercent: ${widget.chordFillOpacityPercent},
+          paddingPercent: ${widget.chordPaddingPercent}
+        });
+      }
+    ''');
   }
 
   Map<String, List<Map<String, Object>>> _buildChordPayload() {

@@ -7,11 +7,11 @@ part of 'kesaksian_entity.dart';
 // **************************************************************************
 
 _Kesaksian _$KesaksianFromJson(Map<String, dynamic> json) => _Kesaksian(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      url: json['url'] as String,
-      imageUrl: json['imageUrl'] as String,
-    );
+  title: json['title'] as String,
+  description: json['description'] as String,
+  url: json['url'] as String,
+  imageUrl: json['imageUrl'] as String,
+);
 
 Map<String, dynamic> _$KesaksianToJson(_Kesaksian instance) =>
     <String, dynamic>{

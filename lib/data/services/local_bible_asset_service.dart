@@ -18,7 +18,7 @@ class LocalBibleAssetService {
   bool isBundledCode(String code) => _normalizeCode(code) == 'b_tb';
 
   Future<List<String>> getBundledBibleCodes() async {
-    return const ['b_tb.db'];
+    return const ['b_tb'];
   }
 
   Future<List<BibleBook>> getBooks(String code, {int? bookId}) async {

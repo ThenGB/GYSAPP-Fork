@@ -12,7 +12,8 @@ _SettingsState _$SettingsStateFromJson(Map<String, dynamic> json) =>
           json['isSabatNotificationActive'] as bool? ?? false,
       isBibleReminderNotificationActive:
           json['isBibleReminderNotificationActive'] as bool? ?? false,
-      bibleReminders: (json['bibleReminders'] as Map<String, dynamic>?)?.map(
+      bibleReminders:
+          (json['bibleReminders'] as Map<String, dynamic>?)?.map(
             (k, e) => MapEntry(int.parse(k), DateTime.parse(e as String)),
           ) ??
           const {},
@@ -23,6 +24,7 @@ Map<String, dynamic> _$SettingsStateToJson(_SettingsState instance) =>
       'isSabatNotificationActive': instance.isSabatNotificationActive,
       'isBibleReminderNotificationActive':
           instance.isBibleReminderNotificationActive,
-      'bibleReminders': instance.bibleReminders
-          .map((k, e) => MapEntry(k.toString(), e.toIso8601String())),
+      'bibleReminders': instance.bibleReminders.map(
+        (k, e) => MapEntry(k.toString(), e.toIso8601String()),
+      ),
     };

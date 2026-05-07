@@ -120,7 +120,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       return Future.error("Firebase Storage isn't configured for Windows");
     }
     try {
-      if (isListing || reload) {
+      if (isListing || (!reload && lastContent.isNotEmpty)) {
         return lastContent;
       }
       isListing = true;
@@ -142,12 +142,15 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       lastContent = List.from(contents);
       return contents;
     } catch (e) {
-      ftp!.disconnect();
+      try {
+        ftp?.disconnect();
+      } catch (_) {}
       if (e is FTPConnectException) {
         Fluttertoast.cancel();
         Fluttertoast.showToast(msg: e.message);
       }
-      return Future.error("Can't connect to the network");
+      log('Error listNetworkBibles: $e');
+      return Future.error("Can't connect to the network: $e");
     } finally {
       isListing = false;
     }
@@ -230,7 +233,6 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future initRemoteConfig() async {
-    emit(state.copyWith(isLoading: true));
     try {
       if (isFirebaseConfiguredForCurrentPlatform) {
         log(FirebaseRemoteConfig.instance.getAll().toString(),
@@ -242,7 +244,6 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     } catch (e) {
       log(e.toString());
     }
-    emit(state.copyWith(isLoading: false));
   }
 
   @override
@@ -255,4 +256,3 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     return state.toJson();
   }
 }
-
