@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,57 +9,165 @@ part of 'song_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-SongState _$SongStateFromJson(Map<String, dynamic> json) {
-  return _SongState.fromJson(json);
-}
 
 /// @nodoc
 mixin _$SongState {
-  bool get isLoading => throw _privateConstructorUsedError;
-  bool get isAudioLoading => throw _privateConstructorUsedError;
-  List<SongBook> get songBook => throw _privateConstructorUsedError;
-  List<SongBook> get favoriteSongBook => throw _privateConstructorUsedError;
-  String get bookCode => throw _privateConstructorUsedError;
-  int get pageIndex => throw _privateConstructorUsedError;
-  int get verseIndex => throw _privateConstructorUsedError;
-  dynamic get isImageMode => throw _privateConstructorUsedError;
-  bool get showSizer => throw _privateConstructorUsedError;
-  String get defaultAudioFormat => throw _privateConstructorUsedError;
-  Song? get selectedSong => throw _privateConstructorUsedError;
-  List<SongNote> get notes => throw _privateConstructorUsedError;
-  String get sortNotesBy => throw _privateConstructorUsedError;
-  List<SongHistory> get histories => throw _privateConstructorUsedError;
-  bool get playOnlyFavorite => throw _privateConstructorUsedError;
-  bool get shuffleMode => throw _privateConstructorUsedError;
-  List<int> get shuffleIndex => throw _privateConstructorUsedError;
-  bool get showAudio => throw _privateConstructorUsedError;
-  String get searchTerms => throw _privateConstructorUsedError;
-  String get defaultFont => throw _privateConstructorUsedError;
-  double get defaultTextScale => throw _privateConstructorUsedError;
-  double get defaultTextHeight => throw _privateConstructorUsedError;
-  Map<String, DateTime> get lastSync => throw _privateConstructorUsedError;
-  Map<String, DateTime> get remoteLyricsUpdateAt =>
-      throw _privateConstructorUsedError;
-
-  /// Serializes this SongState to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  bool get isLoading;
+  bool get isAudioLoading;
+  List<SongBook> get songBook;
+  List<SongBook> get favoriteSongBook;
+  String get bookCode;
+  int get pageIndex;
+  int get verseIndex;
+  dynamic get isImageMode;
+  bool get showSizer;
+  String get defaultAudioFormat;
+  Song? get selectedSong;
+  List<SongNote> get notes;
+  String get sortNotesBy;
+  List<SongHistory> get histories;
+  bool get playOnlyFavorite;
+  bool get shuffleMode;
+  List<int> get shuffleIndex;
+  bool get showAudio;
+  bool get showChord;
+  String get searchTerms;
+  String get defaultFont;
+  double get defaultTextScale;
+  double get defaultTextHeight;
+  Map<String, DateTime> get lastSync;
+  Map<String, DateTime> get remoteLyricsUpdateAt; // New gyschordweb fields
+  int get transposeStep;
+  double get tempoBpm;
+  double get defaultTempoBpm;
+  int? get midiInstrument;
+  String get soundFont;
+  bool get isAudioPlaying;
 
   /// Create a copy of SongState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $SongStateCopyWith<SongState> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$SongStateCopyWithImpl<SongState>(this as SongState, _$identity);
+
+  /// Serializes this SongState to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is SongState &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.isAudioLoading, isAudioLoading) ||
+                other.isAudioLoading == isAudioLoading) &&
+            const DeepCollectionEquality().equals(other.songBook, songBook) &&
+            const DeepCollectionEquality()
+                .equals(other.favoriteSongBook, favoriteSongBook) &&
+            (identical(other.bookCode, bookCode) ||
+                other.bookCode == bookCode) &&
+            (identical(other.pageIndex, pageIndex) ||
+                other.pageIndex == pageIndex) &&
+            (identical(other.verseIndex, verseIndex) ||
+                other.verseIndex == verseIndex) &&
+            const DeepCollectionEquality()
+                .equals(other.isImageMode, isImageMode) &&
+            (identical(other.showSizer, showSizer) ||
+                other.showSizer == showSizer) &&
+            (identical(other.defaultAudioFormat, defaultAudioFormat) ||
+                other.defaultAudioFormat == defaultAudioFormat) &&
+            (identical(other.selectedSong, selectedSong) ||
+                other.selectedSong == selectedSong) &&
+            const DeepCollectionEquality().equals(other.notes, notes) &&
+            (identical(other.sortNotesBy, sortNotesBy) ||
+                other.sortNotesBy == sortNotesBy) &&
+            const DeepCollectionEquality().equals(other.histories, histories) &&
+            (identical(other.playOnlyFavorite, playOnlyFavorite) ||
+                other.playOnlyFavorite == playOnlyFavorite) &&
+            (identical(other.shuffleMode, shuffleMode) ||
+                other.shuffleMode == shuffleMode) &&
+            const DeepCollectionEquality()
+                .equals(other.shuffleIndex, shuffleIndex) &&
+            (identical(other.showAudio, showAudio) ||
+                other.showAudio == showAudio) &&
+            (identical(other.showChord, showChord) ||
+                other.showChord == showChord) &&
+            (identical(other.searchTerms, searchTerms) ||
+                other.searchTerms == searchTerms) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultTextHeight, defaultTextHeight) ||
+                other.defaultTextHeight == defaultTextHeight) &&
+            const DeepCollectionEquality().equals(other.lastSync, lastSync) &&
+            const DeepCollectionEquality()
+                .equals(other.remoteLyricsUpdateAt, remoteLyricsUpdateAt) &&
+            (identical(other.transposeStep, transposeStep) ||
+                other.transposeStep == transposeStep) &&
+            (identical(other.tempoBpm, tempoBpm) ||
+                other.tempoBpm == tempoBpm) &&
+            (identical(other.defaultTempoBpm, defaultTempoBpm) ||
+                other.defaultTempoBpm == defaultTempoBpm) &&
+            (identical(other.midiInstrument, midiInstrument) ||
+                other.midiInstrument == midiInstrument) &&
+            (identical(other.soundFont, soundFont) ||
+                other.soundFont == soundFont) &&
+            (identical(other.isAudioPlaying, isAudioPlaying) ||
+                other.isAudioPlaying == isAudioPlaying));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        isLoading,
+        isAudioLoading,
+        const DeepCollectionEquality().hash(songBook),
+        const DeepCollectionEquality().hash(favoriteSongBook),
+        bookCode,
+        pageIndex,
+        verseIndex,
+        const DeepCollectionEquality().hash(isImageMode),
+        showSizer,
+        defaultAudioFormat,
+        selectedSong,
+        const DeepCollectionEquality().hash(notes),
+        sortNotesBy,
+        const DeepCollectionEquality().hash(histories),
+        playOnlyFavorite,
+        shuffleMode,
+        const DeepCollectionEquality().hash(shuffleIndex),
+        showAudio,
+        showChord,
+        searchTerms,
+        defaultFont,
+        defaultTextScale,
+        defaultTextHeight,
+        const DeepCollectionEquality().hash(lastSync),
+        const DeepCollectionEquality().hash(remoteLyricsUpdateAt),
+        transposeStep,
+        tempoBpm,
+        defaultTempoBpm,
+        midiInstrument,
+        soundFont,
+        isAudioPlaying
+      ]);
+
+  @override
+  String toString() {
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
+  }
 }
 
 /// @nodoc
-abstract class $SongStateCopyWith<$Res> {
-  factory $SongStateCopyWith(SongState value, $Res Function(SongState) then) =
-      _$SongStateCopyWithImpl<$Res, SongState>;
+abstract mixin class $SongStateCopyWith<$Res> {
+  factory $SongStateCopyWith(SongState value, $Res Function(SongState) _then) =
+      _$SongStateCopyWithImpl;
   @useResult
   $Res call(
       {bool isLoading,
@@ -80,25 +188,29 @@ abstract class $SongStateCopyWith<$Res> {
       bool shuffleMode,
       List<int> shuffleIndex,
       bool showAudio,
+      bool showChord,
       String searchTerms,
       String defaultFont,
       double defaultTextScale,
       double defaultTextHeight,
       Map<String, DateTime> lastSync,
-      Map<String, DateTime> remoteLyricsUpdateAt});
+      Map<String, DateTime> remoteLyricsUpdateAt,
+      int transposeStep,
+      double tempoBpm,
+      double defaultTempoBpm,
+      int? midiInstrument,
+      String soundFont,
+      bool isAudioPlaying});
 
   $SongCopyWith<$Res>? get selectedSong;
 }
 
 /// @nodoc
-class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
-    implements $SongStateCopyWith<$Res> {
-  _$SongStateCopyWithImpl(this._value, this._then);
+class _$SongStateCopyWithImpl<$Res> implements $SongStateCopyWith<$Res> {
+  _$SongStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final SongState _self;
+  final $Res Function(SongState) _then;
 
   /// Create a copy of SongState
   /// with the given fields replaced by the non-null parameter values.
@@ -123,111 +235,146 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
     Object? shuffleMode = null,
     Object? shuffleIndex = null,
     Object? showAudio = null,
+    Object? showChord = null,
     Object? searchTerms = null,
     Object? defaultFont = null,
     Object? defaultTextScale = null,
     Object? defaultTextHeight = null,
     Object? lastSync = null,
     Object? remoteLyricsUpdateAt = null,
+    Object? transposeStep = null,
+    Object? tempoBpm = null,
+    Object? defaultTempoBpm = null,
+    Object? midiInstrument = freezed,
+    Object? soundFont = null,
+    Object? isAudioPlaying = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       isLoading: null == isLoading
-          ? _value.isLoading
+          ? _self.isLoading
           : isLoading // ignore: cast_nullable_to_non_nullable
               as bool,
       isAudioLoading: null == isAudioLoading
-          ? _value.isAudioLoading
+          ? _self.isAudioLoading
           : isAudioLoading // ignore: cast_nullable_to_non_nullable
               as bool,
       songBook: null == songBook
-          ? _value.songBook
+          ? _self.songBook
           : songBook // ignore: cast_nullable_to_non_nullable
               as List<SongBook>,
       favoriteSongBook: null == favoriteSongBook
-          ? _value.favoriteSongBook
+          ? _self.favoriteSongBook
           : favoriteSongBook // ignore: cast_nullable_to_non_nullable
               as List<SongBook>,
       bookCode: null == bookCode
-          ? _value.bookCode
+          ? _self.bookCode
           : bookCode // ignore: cast_nullable_to_non_nullable
               as String,
       pageIndex: null == pageIndex
-          ? _value.pageIndex
+          ? _self.pageIndex
           : pageIndex // ignore: cast_nullable_to_non_nullable
               as int,
       verseIndex: null == verseIndex
-          ? _value.verseIndex
+          ? _self.verseIndex
           : verseIndex // ignore: cast_nullable_to_non_nullable
               as int,
       isImageMode: freezed == isImageMode
-          ? _value.isImageMode
+          ? _self.isImageMode
           : isImageMode // ignore: cast_nullable_to_non_nullable
               as dynamic,
       showSizer: null == showSizer
-          ? _value.showSizer
+          ? _self.showSizer
           : showSizer // ignore: cast_nullable_to_non_nullable
               as bool,
       defaultAudioFormat: null == defaultAudioFormat
-          ? _value.defaultAudioFormat
+          ? _self.defaultAudioFormat
           : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
               as String,
       selectedSong: freezed == selectedSong
-          ? _value.selectedSong
+          ? _self.selectedSong
           : selectedSong // ignore: cast_nullable_to_non_nullable
               as Song?,
       notes: null == notes
-          ? _value.notes
+          ? _self.notes
           : notes // ignore: cast_nullable_to_non_nullable
               as List<SongNote>,
       sortNotesBy: null == sortNotesBy
-          ? _value.sortNotesBy
+          ? _self.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
               as String,
       histories: null == histories
-          ? _value.histories
+          ? _self.histories
           : histories // ignore: cast_nullable_to_non_nullable
               as List<SongHistory>,
       playOnlyFavorite: null == playOnlyFavorite
-          ? _value.playOnlyFavorite
+          ? _self.playOnlyFavorite
           : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
               as bool,
       shuffleMode: null == shuffleMode
-          ? _value.shuffleMode
+          ? _self.shuffleMode
           : shuffleMode // ignore: cast_nullable_to_non_nullable
               as bool,
       shuffleIndex: null == shuffleIndex
-          ? _value.shuffleIndex
+          ? _self.shuffleIndex
           : shuffleIndex // ignore: cast_nullable_to_non_nullable
               as List<int>,
       showAudio: null == showAudio
-          ? _value.showAudio
+          ? _self.showAudio
           : showAudio // ignore: cast_nullable_to_non_nullable
               as bool,
+      showChord: null == showChord
+          ? _self.showChord
+          : showChord // ignore: cast_nullable_to_non_nullable
+              as bool,
       searchTerms: null == searchTerms
-          ? _value.searchTerms
+          ? _self.searchTerms
           : searchTerms // ignore: cast_nullable_to_non_nullable
               as String,
       defaultFont: null == defaultFont
-          ? _value.defaultFont
+          ? _self.defaultFont
           : defaultFont // ignore: cast_nullable_to_non_nullable
               as String,
       defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
+          ? _self.defaultTextScale
           : defaultTextScale // ignore: cast_nullable_to_non_nullable
               as double,
       defaultTextHeight: null == defaultTextHeight
-          ? _value.defaultTextHeight
+          ? _self.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
       lastSync: null == lastSync
-          ? _value.lastSync
+          ? _self.lastSync
           : lastSync // ignore: cast_nullable_to_non_nullable
               as Map<String, DateTime>,
       remoteLyricsUpdateAt: null == remoteLyricsUpdateAt
-          ? _value.remoteLyricsUpdateAt
+          ? _self.remoteLyricsUpdateAt
           : remoteLyricsUpdateAt // ignore: cast_nullable_to_non_nullable
               as Map<String, DateTime>,
-    ) as $Val);
+      transposeStep: null == transposeStep
+          ? _self.transposeStep
+          : transposeStep // ignore: cast_nullable_to_non_nullable
+              as int,
+      tempoBpm: null == tempoBpm
+          ? _self.tempoBpm
+          : tempoBpm // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTempoBpm: null == defaultTempoBpm
+          ? _self.defaultTempoBpm
+          : defaultTempoBpm // ignore: cast_nullable_to_non_nullable
+              as double,
+      midiInstrument: freezed == midiInstrument
+          ? _self.midiInstrument
+          : midiInstrument // ignore: cast_nullable_to_non_nullable
+              as int?,
+      soundFont: null == soundFont
+          ? _self.soundFont
+          : soundFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAudioPlaying: null == isAudioPlaying
+          ? _self.isAudioPlaying
+          : isAudioPlaying // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
   }
 
   /// Create a copy of SongState
@@ -235,194 +382,366 @@ class _$SongStateCopyWithImpl<$Res, $Val extends SongState>
   @override
   @pragma('vm:prefer-inline')
   $SongCopyWith<$Res>? get selectedSong {
-    if (_value.selectedSong == null) {
+    if (_self.selectedSong == null) {
       return null;
     }
 
-    return $SongCopyWith<$Res>(_value.selectedSong!, (value) {
-      return _then(_value.copyWith(selectedSong: value) as $Val);
+    return $SongCopyWith<$Res>(_self.selectedSong!, (value) {
+      return _then(_self.copyWith(selectedSong: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$SongStateImplCopyWith<$Res>
-    implements $SongStateCopyWith<$Res> {
-  factory _$$SongStateImplCopyWith(
-          _$SongStateImpl value, $Res Function(_$SongStateImpl) then) =
-      __$$SongStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {bool isLoading,
-      bool isAudioLoading,
-      List<SongBook> songBook,
-      List<SongBook> favoriteSongBook,
-      String bookCode,
-      int pageIndex,
-      int verseIndex,
-      dynamic isImageMode,
-      bool showSizer,
-      String defaultAudioFormat,
-      Song? selectedSong,
-      List<SongNote> notes,
-      String sortNotesBy,
-      List<SongHistory> histories,
-      bool playOnlyFavorite,
-      bool shuffleMode,
-      List<int> shuffleIndex,
-      bool showAudio,
-      String searchTerms,
-      String defaultFont,
-      double defaultTextScale,
-      double defaultTextHeight,
-      Map<String, DateTime> lastSync,
-      Map<String, DateTime> remoteLyricsUpdateAt});
+/// Adds pattern-matching-related methods to [SongState].
+extension SongStatePatterns on SongState {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $SongCopyWith<$Res>? get selectedSong;
-}
-
-/// @nodoc
-class __$$SongStateImplCopyWithImpl<$Res>
-    extends _$SongStateCopyWithImpl<$Res, _$SongStateImpl>
-    implements _$$SongStateImplCopyWith<$Res> {
-  __$$SongStateImplCopyWithImpl(
-      _$SongStateImpl _value, $Res Function(_$SongStateImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of SongState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isLoading = null,
-    Object? isAudioLoading = null,
-    Object? songBook = null,
-    Object? favoriteSongBook = null,
-    Object? bookCode = null,
-    Object? pageIndex = null,
-    Object? verseIndex = null,
-    Object? isImageMode = freezed,
-    Object? showSizer = null,
-    Object? defaultAudioFormat = null,
-    Object? selectedSong = freezed,
-    Object? notes = null,
-    Object? sortNotesBy = null,
-    Object? histories = null,
-    Object? playOnlyFavorite = null,
-    Object? shuffleMode = null,
-    Object? shuffleIndex = null,
-    Object? showAudio = null,
-    Object? searchTerms = null,
-    Object? defaultFont = null,
-    Object? defaultTextScale = null,
-    Object? defaultTextHeight = null,
-    Object? lastSync = null,
-    Object? remoteLyricsUpdateAt = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_SongState value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$SongStateImpl(
-      isLoading: null == isLoading
-          ? _value.isLoading
-          : isLoading // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isAudioLoading: null == isAudioLoading
-          ? _value.isAudioLoading
-          : isAudioLoading // ignore: cast_nullable_to_non_nullable
-              as bool,
-      songBook: null == songBook
-          ? _value._songBook
-          : songBook // ignore: cast_nullable_to_non_nullable
-              as List<SongBook>,
-      favoriteSongBook: null == favoriteSongBook
-          ? _value._favoriteSongBook
-          : favoriteSongBook // ignore: cast_nullable_to_non_nullable
-              as List<SongBook>,
-      bookCode: null == bookCode
-          ? _value.bookCode
-          : bookCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      pageIndex: null == pageIndex
-          ? _value.pageIndex
-          : pageIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      verseIndex: null == verseIndex
-          ? _value.verseIndex
-          : verseIndex // ignore: cast_nullable_to_non_nullable
-              as int,
-      isImageMode: freezed == isImageMode ? _value.isImageMode! : isImageMode,
-      showSizer: null == showSizer
-          ? _value.showSizer
-          : showSizer // ignore: cast_nullable_to_non_nullable
-              as bool,
-      defaultAudioFormat: null == defaultAudioFormat
-          ? _value.defaultAudioFormat
-          : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
-              as String,
-      selectedSong: freezed == selectedSong
-          ? _value.selectedSong
-          : selectedSong // ignore: cast_nullable_to_non_nullable
-              as Song?,
-      notes: null == notes
-          ? _value._notes
-          : notes // ignore: cast_nullable_to_non_nullable
-              as List<SongNote>,
-      sortNotesBy: null == sortNotesBy
-          ? _value.sortNotesBy
-          : sortNotesBy // ignore: cast_nullable_to_non_nullable
-              as String,
-      histories: null == histories
-          ? _value._histories
-          : histories // ignore: cast_nullable_to_non_nullable
-              as List<SongHistory>,
-      playOnlyFavorite: null == playOnlyFavorite
-          ? _value.playOnlyFavorite
-          : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
-              as bool,
-      shuffleMode: null == shuffleMode
-          ? _value.shuffleMode
-          : shuffleMode // ignore: cast_nullable_to_non_nullable
-              as bool,
-      shuffleIndex: null == shuffleIndex
-          ? _value._shuffleIndex
-          : shuffleIndex // ignore: cast_nullable_to_non_nullable
-              as List<int>,
-      showAudio: null == showAudio
-          ? _value.showAudio
-          : showAudio // ignore: cast_nullable_to_non_nullable
-              as bool,
-      searchTerms: null == searchTerms
-          ? _value.searchTerms
-          : searchTerms // ignore: cast_nullable_to_non_nullable
-              as String,
-      defaultFont: null == defaultFont
-          ? _value.defaultFont
-          : defaultFont // ignore: cast_nullable_to_non_nullable
-              as String,
-      defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
-          : defaultTextScale // ignore: cast_nullable_to_non_nullable
-              as double,
-      defaultTextHeight: null == defaultTextHeight
-          ? _value.defaultTextHeight
-          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
-              as double,
-      lastSync: null == lastSync
-          ? _value._lastSync
-          : lastSync // ignore: cast_nullable_to_non_nullable
-              as Map<String, DateTime>,
-      remoteLyricsUpdateAt: null == remoteLyricsUpdateAt
-          ? _value._remoteLyricsUpdateAt
-          : remoteLyricsUpdateAt // ignore: cast_nullable_to_non_nullable
-              as Map<String, DateTime>,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _SongState() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_SongState value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _SongState():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_SongState value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _SongState() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            bool isLoading,
+            bool isAudioLoading,
+            List<SongBook> songBook,
+            List<SongBook> favoriteSongBook,
+            String bookCode,
+            int pageIndex,
+            int verseIndex,
+            dynamic isImageMode,
+            bool showSizer,
+            String defaultAudioFormat,
+            Song? selectedSong,
+            List<SongNote> notes,
+            String sortNotesBy,
+            List<SongHistory> histories,
+            bool playOnlyFavorite,
+            bool shuffleMode,
+            List<int> shuffleIndex,
+            bool showAudio,
+            bool showChord,
+            String searchTerms,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            Map<String, DateTime> lastSync,
+            Map<String, DateTime> remoteLyricsUpdateAt,
+            int transposeStep,
+            double tempoBpm,
+            double defaultTempoBpm,
+            int? midiInstrument,
+            String soundFont,
+            bool isAudioPlaying)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _SongState() when $default != null:
+        return $default(
+            _that.isLoading,
+            _that.isAudioLoading,
+            _that.songBook,
+            _that.favoriteSongBook,
+            _that.bookCode,
+            _that.pageIndex,
+            _that.verseIndex,
+            _that.isImageMode,
+            _that.showSizer,
+            _that.defaultAudioFormat,
+            _that.selectedSong,
+            _that.notes,
+            _that.sortNotesBy,
+            _that.histories,
+            _that.playOnlyFavorite,
+            _that.shuffleMode,
+            _that.shuffleIndex,
+            _that.showAudio,
+            _that.showChord,
+            _that.searchTerms,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.lastSync,
+            _that.remoteLyricsUpdateAt,
+            _that.transposeStep,
+            _that.tempoBpm,
+            _that.defaultTempoBpm,
+            _that.midiInstrument,
+            _that.soundFont,
+            _that.isAudioPlaying);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            bool isLoading,
+            bool isAudioLoading,
+            List<SongBook> songBook,
+            List<SongBook> favoriteSongBook,
+            String bookCode,
+            int pageIndex,
+            int verseIndex,
+            dynamic isImageMode,
+            bool showSizer,
+            String defaultAudioFormat,
+            Song? selectedSong,
+            List<SongNote> notes,
+            String sortNotesBy,
+            List<SongHistory> histories,
+            bool playOnlyFavorite,
+            bool shuffleMode,
+            List<int> shuffleIndex,
+            bool showAudio,
+            bool showChord,
+            String searchTerms,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            Map<String, DateTime> lastSync,
+            Map<String, DateTime> remoteLyricsUpdateAt,
+            int transposeStep,
+            double tempoBpm,
+            double defaultTempoBpm,
+            int? midiInstrument,
+            String soundFont,
+            bool isAudioPlaying)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _SongState():
+        return $default(
+            _that.isLoading,
+            _that.isAudioLoading,
+            _that.songBook,
+            _that.favoriteSongBook,
+            _that.bookCode,
+            _that.pageIndex,
+            _that.verseIndex,
+            _that.isImageMode,
+            _that.showSizer,
+            _that.defaultAudioFormat,
+            _that.selectedSong,
+            _that.notes,
+            _that.sortNotesBy,
+            _that.histories,
+            _that.playOnlyFavorite,
+            _that.shuffleMode,
+            _that.shuffleIndex,
+            _that.showAudio,
+            _that.showChord,
+            _that.searchTerms,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.lastSync,
+            _that.remoteLyricsUpdateAt,
+            _that.transposeStep,
+            _that.tempoBpm,
+            _that.defaultTempoBpm,
+            _that.midiInstrument,
+            _that.soundFont,
+            _that.isAudioPlaying);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            bool isLoading,
+            bool isAudioLoading,
+            List<SongBook> songBook,
+            List<SongBook> favoriteSongBook,
+            String bookCode,
+            int pageIndex,
+            int verseIndex,
+            dynamic isImageMode,
+            bool showSizer,
+            String defaultAudioFormat,
+            Song? selectedSong,
+            List<SongNote> notes,
+            String sortNotesBy,
+            List<SongHistory> histories,
+            bool playOnlyFavorite,
+            bool shuffleMode,
+            List<int> shuffleIndex,
+            bool showAudio,
+            bool showChord,
+            String searchTerms,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            Map<String, DateTime> lastSync,
+            Map<String, DateTime> remoteLyricsUpdateAt,
+            int transposeStep,
+            double tempoBpm,
+            double defaultTempoBpm,
+            int? midiInstrument,
+            String soundFont,
+            bool isAudioPlaying)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _SongState() when $default != null:
+        return $default(
+            _that.isLoading,
+            _that.isAudioLoading,
+            _that.songBook,
+            _that.favoriteSongBook,
+            _that.bookCode,
+            _that.pageIndex,
+            _that.verseIndex,
+            _that.isImageMode,
+            _that.showSizer,
+            _that.defaultAudioFormat,
+            _that.selectedSong,
+            _that.notes,
+            _that.sortNotesBy,
+            _that.histories,
+            _that.playOnlyFavorite,
+            _that.shuffleMode,
+            _that.shuffleIndex,
+            _that.showAudio,
+            _that.showChord,
+            _that.searchTerms,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.lastSync,
+            _that.remoteLyricsUpdateAt,
+            _that.transposeStep,
+            _that.tempoBpm,
+            _that.defaultTempoBpm,
+            _that.midiInstrument,
+            _that.soundFont,
+            _that.isAudioPlaying);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$SongStateImpl extends _SongState {
-  const _$SongStateImpl(
+class _SongState extends SongState {
+  const _SongState(
       {this.isLoading = false,
       this.isAudioLoading = false,
       final List<SongBook> songBook = const [],
@@ -441,12 +760,19 @@ class _$SongStateImpl extends _SongState {
       this.shuffleMode = false,
       final List<int> shuffleIndex = const [],
       this.showAudio = false,
+      this.showChord = false,
       this.searchTerms = '',
       this.defaultFont = 'Roboto',
       this.defaultTextScale = 1.2,
       this.defaultTextHeight = 1.5,
       final Map<String, DateTime> lastSync = const {},
-      final Map<String, DateTime> remoteLyricsUpdateAt = const {}})
+      final Map<String, DateTime> remoteLyricsUpdateAt = const {},
+      this.transposeStep = 0,
+      this.tempoBpm = 76.0,
+      this.defaultTempoBpm = 76.0,
+      this.midiInstrument,
+      this.soundFont = 'GeneralUser-GS.sf2',
+      this.isAudioPlaying = false})
       : _songBook = songBook,
         _favoriteSongBook = favoriteSongBook,
         _notes = notes,
@@ -455,9 +781,8 @@ class _$SongStateImpl extends _SongState {
         _lastSync = lastSync,
         _remoteLyricsUpdateAt = remoteLyricsUpdateAt,
         super._();
-
-  factory _$SongStateImpl.fromJson(Map<String, dynamic> json) =>
-      _$$SongStateImplFromJson(json);
+  factory _SongState.fromJson(Map<String, dynamic> json) =>
+      _$SongStateFromJson(json);
 
   @override
   @JsonKey()
@@ -545,6 +870,9 @@ class _$SongStateImpl extends _SongState {
   final bool showAudio;
   @override
   @JsonKey()
+  final bool showChord;
+  @override
+  @JsonKey()
   final String searchTerms;
   @override
   @JsonKey()
@@ -574,16 +902,45 @@ class _$SongStateImpl extends _SongState {
     return EqualUnmodifiableMapView(_remoteLyricsUpdateAt);
   }
 
+// New gyschordweb fields
   @override
-  String toString() {
-    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt)';
+  @JsonKey()
+  final int transposeStep;
+  @override
+  @JsonKey()
+  final double tempoBpm;
+  @override
+  @JsonKey()
+  final double defaultTempoBpm;
+  @override
+  final int? midiInstrument;
+  @override
+  @JsonKey()
+  final String soundFont;
+  @override
+  @JsonKey()
+  final bool isAudioPlaying;
+
+  /// Create a copy of SongState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$SongStateCopyWith<_SongState> get copyWith =>
+      __$SongStateCopyWithImpl<_SongState>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$SongStateToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$SongStateImpl &&
+            other is _SongState &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isAudioLoading, isAudioLoading) ||
@@ -618,6 +975,8 @@ class _$SongStateImpl extends _SongState {
                 .equals(other._shuffleIndex, _shuffleIndex) &&
             (identical(other.showAudio, showAudio) ||
                 other.showAudio == showAudio) &&
+            (identical(other.showChord, showChord) ||
+                other.showChord == showChord) &&
             (identical(other.searchTerms, searchTerms) ||
                 other.searchTerms == searchTerms) &&
             (identical(other.defaultFont, defaultFont) ||
@@ -628,7 +987,19 @@ class _$SongStateImpl extends _SongState {
                 other.defaultTextHeight == defaultTextHeight) &&
             const DeepCollectionEquality().equals(other._lastSync, _lastSync) &&
             const DeepCollectionEquality()
-                .equals(other._remoteLyricsUpdateAt, _remoteLyricsUpdateAt));
+                .equals(other._remoteLyricsUpdateAt, _remoteLyricsUpdateAt) &&
+            (identical(other.transposeStep, transposeStep) ||
+                other.transposeStep == transposeStep) &&
+            (identical(other.tempoBpm, tempoBpm) ||
+                other.tempoBpm == tempoBpm) &&
+            (identical(other.defaultTempoBpm, defaultTempoBpm) ||
+                other.defaultTempoBpm == defaultTempoBpm) &&
+            (identical(other.midiInstrument, midiInstrument) ||
+                other.midiInstrument == midiInstrument) &&
+            (identical(other.soundFont, soundFont) ||
+                other.soundFont == soundFont) &&
+            (identical(other.isAudioPlaying, isAudioPlaying) ||
+                other.isAudioPlaying == isAudioPlaying));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -653,114 +1024,257 @@ class _$SongStateImpl extends _SongState {
         shuffleMode,
         const DeepCollectionEquality().hash(_shuffleIndex),
         showAudio,
+        showChord,
         searchTerms,
         defaultFont,
         defaultTextScale,
         defaultTextHeight,
         const DeepCollectionEquality().hash(_lastSync),
-        const DeepCollectionEquality().hash(_remoteLyricsUpdateAt)
+        const DeepCollectionEquality().hash(_remoteLyricsUpdateAt),
+        transposeStep,
+        tempoBpm,
+        defaultTempoBpm,
+        midiInstrument,
+        soundFont,
+        isAudioPlaying
       ]);
 
-  /// Create a copy of SongState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$SongStateImplCopyWith<_$SongStateImpl> get copyWith =>
-      __$$SongStateImplCopyWithImpl<_$SongStateImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$SongStateImplToJson(
-      this,
-    );
+  String toString() {
+    return 'SongState(isLoading: $isLoading, isAudioLoading: $isAudioLoading, songBook: $songBook, favoriteSongBook: $favoriteSongBook, bookCode: $bookCode, pageIndex: $pageIndex, verseIndex: $verseIndex, isImageMode: $isImageMode, showSizer: $showSizer, defaultAudioFormat: $defaultAudioFormat, selectedSong: $selectedSong, notes: $notes, sortNotesBy: $sortNotesBy, histories: $histories, playOnlyFavorite: $playOnlyFavorite, shuffleMode: $shuffleMode, shuffleIndex: $shuffleIndex, showAudio: $showAudio, showChord: $showChord, searchTerms: $searchTerms, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, lastSync: $lastSync, remoteLyricsUpdateAt: $remoteLyricsUpdateAt, transposeStep: $transposeStep, tempoBpm: $tempoBpm, defaultTempoBpm: $defaultTempoBpm, midiInstrument: $midiInstrument, soundFont: $soundFont, isAudioPlaying: $isAudioPlaying)';
   }
 }
 
-abstract class _SongState extends SongState {
-  const factory _SongState(
-      {final bool isLoading,
-      final bool isAudioLoading,
-      final List<SongBook> songBook,
-      final List<SongBook> favoriteSongBook,
-      final String bookCode,
-      final int pageIndex,
-      final int verseIndex,
-      final dynamic isImageMode,
-      final bool showSizer,
-      final String defaultAudioFormat,
-      final Song? selectedSong,
-      final List<SongNote> notes,
-      final String sortNotesBy,
-      final List<SongHistory> histories,
-      final bool playOnlyFavorite,
-      final bool shuffleMode,
-      final List<int> shuffleIndex,
-      final bool showAudio,
-      final String searchTerms,
-      final String defaultFont,
-      final double defaultTextScale,
-      final double defaultTextHeight,
-      final Map<String, DateTime> lastSync,
-      final Map<String, DateTime> remoteLyricsUpdateAt}) = _$SongStateImpl;
-  const _SongState._() : super._();
+/// @nodoc
+abstract mixin class _$SongStateCopyWith<$Res>
+    implements $SongStateCopyWith<$Res> {
+  factory _$SongStateCopyWith(
+          _SongState value, $Res Function(_SongState) _then) =
+      __$SongStateCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {bool isLoading,
+      bool isAudioLoading,
+      List<SongBook> songBook,
+      List<SongBook> favoriteSongBook,
+      String bookCode,
+      int pageIndex,
+      int verseIndex,
+      dynamic isImageMode,
+      bool showSizer,
+      String defaultAudioFormat,
+      Song? selectedSong,
+      List<SongNote> notes,
+      String sortNotesBy,
+      List<SongHistory> histories,
+      bool playOnlyFavorite,
+      bool shuffleMode,
+      List<int> shuffleIndex,
+      bool showAudio,
+      bool showChord,
+      String searchTerms,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight,
+      Map<String, DateTime> lastSync,
+      Map<String, DateTime> remoteLyricsUpdateAt,
+      int transposeStep,
+      double tempoBpm,
+      double defaultTempoBpm,
+      int? midiInstrument,
+      String soundFont,
+      bool isAudioPlaying});
 
-  factory _SongState.fromJson(Map<String, dynamic> json) =
-      _$SongStateImpl.fromJson;
+  @override
+  $SongCopyWith<$Res>? get selectedSong;
+}
 
-  @override
-  bool get isLoading;
-  @override
-  bool get isAudioLoading;
-  @override
-  List<SongBook> get songBook;
-  @override
-  List<SongBook> get favoriteSongBook;
-  @override
-  String get bookCode;
-  @override
-  int get pageIndex;
-  @override
-  int get verseIndex;
-  @override
-  dynamic get isImageMode;
-  @override
-  bool get showSizer;
-  @override
-  String get defaultAudioFormat;
-  @override
-  Song? get selectedSong;
-  @override
-  List<SongNote> get notes;
-  @override
-  String get sortNotesBy;
-  @override
-  List<SongHistory> get histories;
-  @override
-  bool get playOnlyFavorite;
-  @override
-  bool get shuffleMode;
-  @override
-  List<int> get shuffleIndex;
-  @override
-  bool get showAudio;
-  @override
-  String get searchTerms;
-  @override
-  String get defaultFont;
-  @override
-  double get defaultTextScale;
-  @override
-  double get defaultTextHeight;
-  @override
-  Map<String, DateTime> get lastSync;
-  @override
-  Map<String, DateTime> get remoteLyricsUpdateAt;
+/// @nodoc
+class __$SongStateCopyWithImpl<$Res> implements _$SongStateCopyWith<$Res> {
+  __$SongStateCopyWithImpl(this._self, this._then);
+
+  final _SongState _self;
+  final $Res Function(_SongState) _then;
 
   /// Create a copy of SongState
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$SongStateImplCopyWith<_$SongStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? isLoading = null,
+    Object? isAudioLoading = null,
+    Object? songBook = null,
+    Object? favoriteSongBook = null,
+    Object? bookCode = null,
+    Object? pageIndex = null,
+    Object? verseIndex = null,
+    Object? isImageMode = freezed,
+    Object? showSizer = null,
+    Object? defaultAudioFormat = null,
+    Object? selectedSong = freezed,
+    Object? notes = null,
+    Object? sortNotesBy = null,
+    Object? histories = null,
+    Object? playOnlyFavorite = null,
+    Object? shuffleMode = null,
+    Object? shuffleIndex = null,
+    Object? showAudio = null,
+    Object? showChord = null,
+    Object? searchTerms = null,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
+    Object? lastSync = null,
+    Object? remoteLyricsUpdateAt = null,
+    Object? transposeStep = null,
+    Object? tempoBpm = null,
+    Object? defaultTempoBpm = null,
+    Object? midiInstrument = freezed,
+    Object? soundFont = null,
+    Object? isAudioPlaying = null,
+  }) {
+    return _then(_SongState(
+      isLoading: null == isLoading
+          ? _self.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isAudioLoading: null == isAudioLoading
+          ? _self.isAudioLoading
+          : isAudioLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      songBook: null == songBook
+          ? _self._songBook
+          : songBook // ignore: cast_nullable_to_non_nullable
+              as List<SongBook>,
+      favoriteSongBook: null == favoriteSongBook
+          ? _self._favoriteSongBook
+          : favoriteSongBook // ignore: cast_nullable_to_non_nullable
+              as List<SongBook>,
+      bookCode: null == bookCode
+          ? _self.bookCode
+          : bookCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      pageIndex: null == pageIndex
+          ? _self.pageIndex
+          : pageIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      verseIndex: null == verseIndex
+          ? _self.verseIndex
+          : verseIndex // ignore: cast_nullable_to_non_nullable
+              as int,
+      isImageMode: freezed == isImageMode
+          ? _self.isImageMode
+          : isImageMode // ignore: cast_nullable_to_non_nullable
+              as dynamic,
+      showSizer: null == showSizer
+          ? _self.showSizer
+          : showSizer // ignore: cast_nullable_to_non_nullable
+              as bool,
+      defaultAudioFormat: null == defaultAudioFormat
+          ? _self.defaultAudioFormat
+          : defaultAudioFormat // ignore: cast_nullable_to_non_nullable
+              as String,
+      selectedSong: freezed == selectedSong
+          ? _self.selectedSong
+          : selectedSong // ignore: cast_nullable_to_non_nullable
+              as Song?,
+      notes: null == notes
+          ? _self._notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as List<SongNote>,
+      sortNotesBy: null == sortNotesBy
+          ? _self.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
+      histories: null == histories
+          ? _self._histories
+          : histories // ignore: cast_nullable_to_non_nullable
+              as List<SongHistory>,
+      playOnlyFavorite: null == playOnlyFavorite
+          ? _self.playOnlyFavorite
+          : playOnlyFavorite // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shuffleMode: null == shuffleMode
+          ? _self.shuffleMode
+          : shuffleMode // ignore: cast_nullable_to_non_nullable
+              as bool,
+      shuffleIndex: null == shuffleIndex
+          ? _self._shuffleIndex
+          : shuffleIndex // ignore: cast_nullable_to_non_nullable
+              as List<int>,
+      showAudio: null == showAudio
+          ? _self.showAudio
+          : showAudio // ignore: cast_nullable_to_non_nullable
+              as bool,
+      showChord: null == showChord
+          ? _self.showChord
+          : showChord // ignore: cast_nullable_to_non_nullable
+              as bool,
+      searchTerms: null == searchTerms
+          ? _self.searchTerms
+          : searchTerms // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultFont: null == defaultFont
+          ? _self.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _self.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _self.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      lastSync: null == lastSync
+          ? _self._lastSync
+          : lastSync // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
+      remoteLyricsUpdateAt: null == remoteLyricsUpdateAt
+          ? _self._remoteLyricsUpdateAt
+          : remoteLyricsUpdateAt // ignore: cast_nullable_to_non_nullable
+              as Map<String, DateTime>,
+      transposeStep: null == transposeStep
+          ? _self.transposeStep
+          : transposeStep // ignore: cast_nullable_to_non_nullable
+              as int,
+      tempoBpm: null == tempoBpm
+          ? _self.tempoBpm
+          : tempoBpm // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTempoBpm: null == defaultTempoBpm
+          ? _self.defaultTempoBpm
+          : defaultTempoBpm // ignore: cast_nullable_to_non_nullable
+              as double,
+      midiInstrument: freezed == midiInstrument
+          ? _self.midiInstrument
+          : midiInstrument // ignore: cast_nullable_to_non_nullable
+              as int?,
+      soundFont: null == soundFont
+          ? _self.soundFont
+          : soundFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      isAudioPlaying: null == isAudioPlaying
+          ? _self.isAudioPlaying
+          : isAudioPlaying // ignore: cast_nullable_to_non_nullable
+              as bool,
+    ));
+  }
+
+  /// Create a copy of SongState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $SongCopyWith<$Res>? get selectedSong {
+    if (_self.selectedSong == null) {
+      return null;
+    }
+
+    return $SongCopyWith<$Res>(_self.selectedSong!, (value) {
+      return _then(_self.copyWith(selectedSong: value));
+    });
+  }
 }
+
+// dart format on

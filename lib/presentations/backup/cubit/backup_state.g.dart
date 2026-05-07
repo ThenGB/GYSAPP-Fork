@@ -6,8 +6,7 @@ part of 'backup_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$BackupStateImpl _$$BackupStateImplFromJson(Map<String, dynamic> json) =>
-    _$BackupStateImpl(
+_BackupState _$BackupStateFromJson(Map<String, dynamic> json) => _BackupState(
       isLoading: json['isLoading'] as bool? ?? false,
       isBackuping: json['isBackuping'] as bool? ?? false,
       isSyncing: json['isSyncing'] as bool? ?? false,
@@ -23,7 +22,7 @@ _$BackupStateImpl _$$BackupStateImplFromJson(Map<String, dynamic> json) =>
               json['appBackupData'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$BackupStateImplToJson(_$BackupStateImpl instance) =>
+Map<String, dynamic> _$BackupStateToJson(_BackupState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'isBackuping': instance.isBackuping,

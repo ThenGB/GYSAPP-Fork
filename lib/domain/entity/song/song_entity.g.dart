@@ -6,8 +6,7 @@ part of 'song_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$SongBookImpl _$$SongBookImplFromJson(Map<String, dynamic> json) =>
-    _$SongBookImpl(
+_SongBook _$SongBookFromJson(Map<String, dynamic> json) => _SongBook(
       code: json['code'] as String?,
       songs: (json['songs'] as List<dynamic>?)
               ?.map((e) => Song.fromJson(e as Map<String, dynamic>))
@@ -15,13 +14,12 @@ _$SongBookImpl _$$SongBookImplFromJson(Map<String, dynamic> json) =>
           const [],
     );
 
-Map<String, dynamic> _$$SongBookImplToJson(_$SongBookImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SongBookToJson(_SongBook instance) => <String, dynamic>{
       'code': instance.code,
       'songs': instance.songs,
     };
 
-_$SongImpl _$$SongImplFromJson(Map<String, dynamic> json) => _$SongImpl(
+_Song _$SongFromJson(Map<String, dynamic> json) => _Song(
       code: json['code'] as String?,
       number: json['number'] as String?,
       number2: json['number2'] as String?,
@@ -35,8 +33,7 @@ _$SongImpl _$$SongImplFromJson(Map<String, dynamic> json) => _$SongImpl(
           const [],
     );
 
-Map<String, dynamic> _$$SongImplToJson(_$SongImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$SongToJson(_Song instance) => <String, dynamic>{
       'code': instance.code,
       'number': instance.number,
       'number2': instance.number2,

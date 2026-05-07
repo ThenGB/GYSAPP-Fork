@@ -311,3 +311,4 @@ double convertToPercentage(double value, double minValue, double maxValue) =>
     ((value - minValue) / (maxValue - minValue)).clamp(0, 1);
 double convertToValue(double percentage, double minValue, double maxValue) =>
     ((percentage * (maxValue - minValue)) + minValue);
+

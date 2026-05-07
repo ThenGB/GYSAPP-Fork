@@ -44,3 +44,4 @@ TextSpan buildHighlightedText(
     children: textSpans,
   );
 }
+

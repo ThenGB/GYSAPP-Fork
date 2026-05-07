@@ -6,7 +6,7 @@ part 'app_backup_data.freezed.dart';
 part 'app_backup_data.g.dart';
 
 @freezed
-class AppBackupData with _$AppBackupData {
+abstract class AppBackupData with _$AppBackupData {
   const AppBackupData._();
   const factory AppBackupData({
     @JsonKey(name: 'bible_state') BibleState? bibleState,
@@ -18,3 +18,4 @@ class AppBackupData with _$AppBackupData {
   factory AppBackupData.fromJson(Map<String, dynamic> json) =>
       _$AppBackupDataFromJson(json);
 }
+

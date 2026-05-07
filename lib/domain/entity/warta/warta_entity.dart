@@ -4,7 +4,7 @@ part 'warta_entity.freezed.dart';
 part 'warta_entity.g.dart';
 
 @freezed
-class Warta with _$Warta {
+abstract class Warta with _$Warta {
   const Warta._();
   const factory Warta({
     required String title,
@@ -15,3 +15,4 @@ class Warta with _$Warta {
 
   factory Warta.fromJson(Map<String, dynamic> json) => _$WartaFromJson(json);
 }
+

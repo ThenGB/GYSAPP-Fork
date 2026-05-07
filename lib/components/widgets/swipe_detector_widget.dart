@@ -30,3 +30,4 @@ class SwipeDetectorWidget extends StatelessWidget {
     }
   }
 }
+

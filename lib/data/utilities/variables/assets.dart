@@ -2281,3 +2281,4 @@ class Assets {
   /// assets/translations/zh.json
   static const String assetsTranslationsZh = "assets/translations/zh.json";
 }
+

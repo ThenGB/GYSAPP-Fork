@@ -12,3 +12,4 @@ class GoogleAuthClient extends BaseClient {
     return _client.send(request);
   }
 }
+

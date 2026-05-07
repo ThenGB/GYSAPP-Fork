@@ -6,9 +6,9 @@ part of 'literature_warta_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$LiteratureWartaStateImpl _$$LiteratureWartaStateImplFromJson(
+_LiteratureWartaState _$LiteratureWartaStateFromJson(
         Map<String, dynamic> json) =>
-    _$LiteratureWartaStateImpl(
+    _LiteratureWartaState(
       isLoading: json['isLoading'] as bool? ?? false,
       items: (json['items'] as List<dynamic>?)
               ?.map((e) => Warta.fromJson(e as Map<String, dynamic>))
@@ -16,8 +16,8 @@ _$LiteratureWartaStateImpl _$$LiteratureWartaStateImplFromJson(
           const [],
     );
 
-Map<String, dynamic> _$$LiteratureWartaStateImplToJson(
-        _$LiteratureWartaStateImpl instance) =>
+Map<String, dynamic> _$LiteratureWartaStateToJson(
+        _LiteratureWartaState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'items': instance.items,

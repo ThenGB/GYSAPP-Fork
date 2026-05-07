@@ -6,3 +6,4 @@ abstract class AuthRepository {
   Future<Either<Failure, String>> loginGoogle(String idToken);
   Future<Either<Failure, String>> loginApple(String idToken);
 }
+

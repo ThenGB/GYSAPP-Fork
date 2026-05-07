@@ -6,7 +6,7 @@ part 'backup_state.freezed.dart';
 part 'backup_state.g.dart';
 
 @freezed
-class BackupState with _$BackupState {
+abstract class BackupState with _$BackupState {
   const BackupState._();
   const factory BackupState({
     @Default(false) bool isLoading,
@@ -21,3 +21,4 @@ class BackupState with _$BackupState {
   factory BackupState.fromJson(Map<String, dynamic> json) =>
       _$BackupStateFromJson(json);
 }
+

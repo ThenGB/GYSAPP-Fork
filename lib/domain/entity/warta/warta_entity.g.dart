@@ -6,15 +6,14 @@ part of 'warta_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$WartaImpl _$$WartaImplFromJson(Map<String, dynamic> json) => _$WartaImpl(
+_Warta _$WartaFromJson(Map<String, dynamic> json) => _Warta(
       title: json['title'] as String,
       description: json['description'] as String,
       url: json['url'] as String,
       imageUrl: json['imageUrl'] as String,
     );
 
-Map<String, dynamic> _$$WartaImplToJson(_$WartaImpl instance) =>
-    <String, dynamic>{
+Map<String, dynamic> _$WartaToJson(_Warta instance) => <String, dynamic>{
       'title': instance.title,
       'description': instance.description,
       'url': instance.url,

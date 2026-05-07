@@ -2,11 +2,10 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cached_pdfview/flutter_cached_pdfview.dart';
-
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
+import '../../../router/router.dart';
 import '../cubit/panduan/literature_panduan_cubit.dart';
 
 @RoutePage()
@@ -97,36 +96,7 @@ class LiteraturePanduanKitabView extends StatelessWidget {
                                   color: Colors.transparent,
                                   child: InkWell(
                                     onTap: () {
-                                      Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) => Scaffold(
-                                              appBar: AppBar(),
-                                              body: const PDF(
-                                                swipeHorizontal: true,
-                                              ).cachedFromUrl(
-                                                item.url,
-                                                placeholder: (progress) =>
-                                                    Center(
-                                                        child: Column(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    const Text('Downloading'),
-                                                    const SizedBox(
-                                                      height: 16,
-                                                    ),
-                                                    Text('$progress %'),
-                                                  ],
-                                                )),
-                                                errorWidget: (error) => Center(
-                                                    child:
-                                                        Text(error.toString())),
-                                              ),
-                                            ),
-                                          ));
-
-                                      // router.push(WebpageRoute(url: item.url));
+                                      router.push(WebpageRoute(url: item.url));
                                     },
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
@@ -157,3 +127,4 @@ class LiteraturePanduanKitabView extends StatelessWidget {
     );
   }
 }
+

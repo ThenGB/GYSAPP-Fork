@@ -25,3 +25,4 @@ Future<void> measureWidgetSize(BuildContext context,
     callback(result);
   });
 }
+

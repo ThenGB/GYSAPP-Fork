@@ -594,3 +594,4 @@ class StyleBetween {
 
   StyleBetween(this.start, this.end);
 }
+

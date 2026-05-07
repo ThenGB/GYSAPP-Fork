@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,278 +9,38 @@ part of 'initial_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-InitialState _$InitialStateFromJson(Map<String, dynamic> json) {
-  return _InitialState.fromJson(json);
-}
 
 /// @nodoc
 mixin _$InitialState {
-  bool get isLoading => throw _privateConstructorUsedError;
-  bool get isLoaded => throw _privateConstructorUsedError;
-  bool get isFailed => throw _privateConstructorUsedError;
-  String get message => throw _privateConstructorUsedError;
-  bool get isFreshInstall => throw _privateConstructorUsedError;
-  String get themeMode => throw _privateConstructorUsedError;
-  int get configFetchTimeoutSeconds => throw _privateConstructorUsedError;
-  int get configFetchIntervalSeconds => throw _privateConstructorUsedError;
-  double get defaultTextScale => throw _privateConstructorUsedError;
-  String get defaultFont => throw _privateConstructorUsedError;
-
-  /// Serializes this InitialState to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  bool get isLoading;
+  bool get isLoaded;
+  bool get isFailed;
+  String get message;
+  bool get isFreshInstall;
+  String get themeMode;
+  int get configFetchTimeoutSeconds;
+  int get configFetchIntervalSeconds;
+  double get defaultTextScale;
+  String get defaultFont;
 
   /// Create a copy of InitialState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $InitialStateCopyWith<InitialState> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$InitialStateCopyWithImpl<InitialState>(
+          this as InitialState, _$identity);
 
-/// @nodoc
-abstract class $InitialStateCopyWith<$Res> {
-  factory $InitialStateCopyWith(
-          InitialState value, $Res Function(InitialState) then) =
-      _$InitialStateCopyWithImpl<$Res, InitialState>;
-  @useResult
-  $Res call(
-      {bool isLoading,
-      bool isLoaded,
-      bool isFailed,
-      String message,
-      bool isFreshInstall,
-      String themeMode,
-      int configFetchTimeoutSeconds,
-      int configFetchIntervalSeconds,
-      double defaultTextScale,
-      String defaultFont});
-}
-
-/// @nodoc
-class _$InitialStateCopyWithImpl<$Res, $Val extends InitialState>
-    implements $InitialStateCopyWith<$Res> {
-  _$InitialStateCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of InitialState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isLoading = null,
-    Object? isLoaded = null,
-    Object? isFailed = null,
-    Object? message = null,
-    Object? isFreshInstall = null,
-    Object? themeMode = null,
-    Object? configFetchTimeoutSeconds = null,
-    Object? configFetchIntervalSeconds = null,
-    Object? defaultTextScale = null,
-    Object? defaultFont = null,
-  }) {
-    return _then(_value.copyWith(
-      isLoading: null == isLoading
-          ? _value.isLoading
-          : isLoading // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isLoaded: null == isLoaded
-          ? _value.isLoaded
-          : isLoaded // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isFailed: null == isFailed
-          ? _value.isFailed
-          : isFailed // ignore: cast_nullable_to_non_nullable
-              as bool,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      isFreshInstall: null == isFreshInstall
-          ? _value.isFreshInstall
-          : isFreshInstall // ignore: cast_nullable_to_non_nullable
-              as bool,
-      themeMode: null == themeMode
-          ? _value.themeMode
-          : themeMode // ignore: cast_nullable_to_non_nullable
-              as String,
-      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
-          ? _value.configFetchTimeoutSeconds
-          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
-              as int,
-      configFetchIntervalSeconds: null == configFetchIntervalSeconds
-          ? _value.configFetchIntervalSeconds
-          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
-              as int,
-      defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
-          : defaultTextScale // ignore: cast_nullable_to_non_nullable
-              as double,
-      defaultFont: null == defaultFont
-          ? _value.defaultFont
-          : defaultFont // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$InitialStateImplCopyWith<$Res>
-    implements $InitialStateCopyWith<$Res> {
-  factory _$$InitialStateImplCopyWith(
-          _$InitialStateImpl value, $Res Function(_$InitialStateImpl) then) =
-      __$$InitialStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {bool isLoading,
-      bool isLoaded,
-      bool isFailed,
-      String message,
-      bool isFreshInstall,
-      String themeMode,
-      int configFetchTimeoutSeconds,
-      int configFetchIntervalSeconds,
-      double defaultTextScale,
-      String defaultFont});
-}
-
-/// @nodoc
-class __$$InitialStateImplCopyWithImpl<$Res>
-    extends _$InitialStateCopyWithImpl<$Res, _$InitialStateImpl>
-    implements _$$InitialStateImplCopyWith<$Res> {
-  __$$InitialStateImplCopyWithImpl(
-      _$InitialStateImpl _value, $Res Function(_$InitialStateImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of InitialState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? isLoading = null,
-    Object? isLoaded = null,
-    Object? isFailed = null,
-    Object? message = null,
-    Object? isFreshInstall = null,
-    Object? themeMode = null,
-    Object? configFetchTimeoutSeconds = null,
-    Object? configFetchIntervalSeconds = null,
-    Object? defaultTextScale = null,
-    Object? defaultFont = null,
-  }) {
-    return _then(_$InitialStateImpl(
-      isLoading: null == isLoading
-          ? _value.isLoading
-          : isLoading // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isLoaded: null == isLoaded
-          ? _value.isLoaded
-          : isLoaded // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isFailed: null == isFailed
-          ? _value.isFailed
-          : isFailed // ignore: cast_nullable_to_non_nullable
-              as bool,
-      message: null == message
-          ? _value.message
-          : message // ignore: cast_nullable_to_non_nullable
-              as String,
-      isFreshInstall: null == isFreshInstall
-          ? _value.isFreshInstall
-          : isFreshInstall // ignore: cast_nullable_to_non_nullable
-              as bool,
-      themeMode: null == themeMode
-          ? _value.themeMode
-          : themeMode // ignore: cast_nullable_to_non_nullable
-              as String,
-      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
-          ? _value.configFetchTimeoutSeconds
-          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
-              as int,
-      configFetchIntervalSeconds: null == configFetchIntervalSeconds
-          ? _value.configFetchIntervalSeconds
-          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
-              as int,
-      defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
-          : defaultTextScale // ignore: cast_nullable_to_non_nullable
-              as double,
-      defaultFont: null == defaultFont
-          ? _value.defaultFont
-          : defaultFont // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$InitialStateImpl extends _InitialState {
-  const _$InitialStateImpl(
-      {this.isLoading = false,
-      this.isLoaded = false,
-      this.isFailed = false,
-      this.message = '',
-      this.isFreshInstall = true,
-      this.themeMode = 'light',
-      this.configFetchTimeoutSeconds = 5,
-      this.configFetchIntervalSeconds = 10,
-      this.defaultTextScale = 1.2,
-      this.defaultFont = 'Roboto'})
-      : super._();
-
-  factory _$InitialStateImpl.fromJson(Map<String, dynamic> json) =>
-      _$$InitialStateImplFromJson(json);
-
-  @override
-  @JsonKey()
-  final bool isLoading;
-  @override
-  @JsonKey()
-  final bool isLoaded;
-  @override
-  @JsonKey()
-  final bool isFailed;
-  @override
-  @JsonKey()
-  final String message;
-  @override
-  @JsonKey()
-  final bool isFreshInstall;
-  @override
-  @JsonKey()
-  final String themeMode;
-  @override
-  @JsonKey()
-  final int configFetchTimeoutSeconds;
-  @override
-  @JsonKey()
-  final int configFetchIntervalSeconds;
-  @override
-  @JsonKey()
-  final double defaultTextScale;
-  @override
-  @JsonKey()
-  final String defaultFont;
-
-  @override
-  String toString() {
-    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont)';
-  }
+  /// Serializes this InitialState to a JSON map.
+  Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$InitialStateImpl &&
+            other is InitialState &&
             (identical(other.isLoading, isLoading) ||
                 other.isLoading == isLoading) &&
             (identical(other.isLoaded, isLoaded) ||
@@ -320,64 +80,521 @@ class _$InitialStateImpl extends _InitialState {
       defaultTextScale,
       defaultFont);
 
-  /// Create a copy of InitialState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$InitialStateImplCopyWith<_$InitialStateImpl> get copyWith =>
-      __$$InitialStateImplCopyWithImpl<_$InitialStateImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$InitialStateImplToJson(
-      this,
-    );
+  String toString() {
+    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont)';
   }
 }
 
-abstract class _InitialState extends InitialState {
-  const factory _InitialState(
-      {final bool isLoading,
-      final bool isLoaded,
-      final bool isFailed,
-      final String message,
-      final bool isFreshInstall,
-      final String themeMode,
-      final int configFetchTimeoutSeconds,
-      final int configFetchIntervalSeconds,
-      final double defaultTextScale,
-      final String defaultFont}) = _$InitialStateImpl;
-  const _InitialState._() : super._();
+/// @nodoc
+abstract mixin class $InitialStateCopyWith<$Res> {
+  factory $InitialStateCopyWith(
+          InitialState value, $Res Function(InitialState) _then) =
+      _$InitialStateCopyWithImpl;
+  @useResult
+  $Res call(
+      {bool isLoading,
+      bool isLoaded,
+      bool isFailed,
+      String message,
+      bool isFreshInstall,
+      String themeMode,
+      int configFetchTimeoutSeconds,
+      int configFetchIntervalSeconds,
+      double defaultTextScale,
+      String defaultFont});
+}
 
-  factory _InitialState.fromJson(Map<String, dynamic> json) =
-      _$InitialStateImpl.fromJson;
+/// @nodoc
+class _$InitialStateCopyWithImpl<$Res> implements $InitialStateCopyWith<$Res> {
+  _$InitialStateCopyWithImpl(this._self, this._then);
+
+  final InitialState _self;
+  final $Res Function(InitialState) _then;
+
+  /// Create a copy of InitialState
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? isLoading = null,
+    Object? isLoaded = null,
+    Object? isFailed = null,
+    Object? message = null,
+    Object? isFreshInstall = null,
+    Object? themeMode = null,
+    Object? configFetchTimeoutSeconds = null,
+    Object? configFetchIntervalSeconds = null,
+    Object? defaultTextScale = null,
+    Object? defaultFont = null,
+  }) {
+    return _then(_self.copyWith(
+      isLoading: null == isLoading
+          ? _self.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoaded: null == isLoaded
+          ? _self.isLoaded
+          : isLoaded // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isFailed: null == isFailed
+          ? _self.isFailed
+          : isFailed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      message: null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      isFreshInstall: null == isFreshInstall
+          ? _self.isFreshInstall
+          : isFreshInstall // ignore: cast_nullable_to_non_nullable
+              as bool,
+      themeMode: null == themeMode
+          ? _self.themeMode
+          : themeMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
+          ? _self.configFetchTimeoutSeconds
+          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      configFetchIntervalSeconds: null == configFetchIntervalSeconds
+          ? _self.configFetchIntervalSeconds
+          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      defaultTextScale: null == defaultTextScale
+          ? _self.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultFont: null == defaultFont
+          ? _self.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [InitialState].
+extension InitialStatePatterns on InitialState {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_InitialState value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_InitialState value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_InitialState value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            bool isLoading,
+            bool isLoaded,
+            bool isFailed,
+            String message,
+            bool isFreshInstall,
+            String themeMode,
+            int configFetchTimeoutSeconds,
+            int configFetchIntervalSeconds,
+            double defaultTextScale,
+            String defaultFont)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState() when $default != null:
+        return $default(
+            _that.isLoading,
+            _that.isLoaded,
+            _that.isFailed,
+            _that.message,
+            _that.isFreshInstall,
+            _that.themeMode,
+            _that.configFetchTimeoutSeconds,
+            _that.configFetchIntervalSeconds,
+            _that.defaultTextScale,
+            _that.defaultFont);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            bool isLoading,
+            bool isLoaded,
+            bool isFailed,
+            String message,
+            bool isFreshInstall,
+            String themeMode,
+            int configFetchTimeoutSeconds,
+            int configFetchIntervalSeconds,
+            double defaultTextScale,
+            String defaultFont)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState():
+        return $default(
+            _that.isLoading,
+            _that.isLoaded,
+            _that.isFailed,
+            _that.message,
+            _that.isFreshInstall,
+            _that.themeMode,
+            _that.configFetchTimeoutSeconds,
+            _that.configFetchIntervalSeconds,
+            _that.defaultTextScale,
+            _that.defaultFont);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            bool isLoading,
+            bool isLoaded,
+            bool isFailed,
+            String message,
+            bool isFreshInstall,
+            String themeMode,
+            int configFetchTimeoutSeconds,
+            int configFetchIntervalSeconds,
+            double defaultTextScale,
+            String defaultFont)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _InitialState() when $default != null:
+        return $default(
+            _that.isLoading,
+            _that.isLoaded,
+            _that.isFailed,
+            _that.message,
+            _that.isFreshInstall,
+            _that.themeMode,
+            _that.configFetchTimeoutSeconds,
+            _that.configFetchIntervalSeconds,
+            _that.defaultTextScale,
+            _that.defaultFont);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _InitialState extends InitialState {
+  const _InitialState(
+      {this.isLoading = false,
+      this.isLoaded = false,
+      this.isFailed = false,
+      this.message = '',
+      this.isFreshInstall = true,
+      this.themeMode = 'light',
+      this.configFetchTimeoutSeconds = 5,
+      this.configFetchIntervalSeconds = 10,
+      this.defaultTextScale = 1.2,
+      this.defaultFont = 'Roboto'})
+      : super._();
+  factory _InitialState.fromJson(Map<String, dynamic> json) =>
+      _$InitialStateFromJson(json);
 
   @override
-  bool get isLoading;
+  @JsonKey()
+  final bool isLoading;
   @override
-  bool get isLoaded;
+  @JsonKey()
+  final bool isLoaded;
   @override
-  bool get isFailed;
+  @JsonKey()
+  final bool isFailed;
   @override
-  String get message;
+  @JsonKey()
+  final String message;
   @override
-  bool get isFreshInstall;
+  @JsonKey()
+  final bool isFreshInstall;
   @override
-  String get themeMode;
+  @JsonKey()
+  final String themeMode;
   @override
-  int get configFetchTimeoutSeconds;
+  @JsonKey()
+  final int configFetchTimeoutSeconds;
   @override
-  int get configFetchIntervalSeconds;
+  @JsonKey()
+  final int configFetchIntervalSeconds;
   @override
-  double get defaultTextScale;
+  @JsonKey()
+  final double defaultTextScale;
   @override
-  String get defaultFont;
+  @JsonKey()
+  final String defaultFont;
 
   /// Create a copy of InitialState
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$InitialStateImplCopyWith<_$InitialStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$InitialStateCopyWith<_InitialState> get copyWith =>
+      __$InitialStateCopyWithImpl<_InitialState>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$InitialStateToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _InitialState &&
+            (identical(other.isLoading, isLoading) ||
+                other.isLoading == isLoading) &&
+            (identical(other.isLoaded, isLoaded) ||
+                other.isLoaded == isLoaded) &&
+            (identical(other.isFailed, isFailed) ||
+                other.isFailed == isFailed) &&
+            (identical(other.message, message) || other.message == message) &&
+            (identical(other.isFreshInstall, isFreshInstall) ||
+                other.isFreshInstall == isFreshInstall) &&
+            (identical(other.themeMode, themeMode) ||
+                other.themeMode == themeMode) &&
+            (identical(other.configFetchTimeoutSeconds,
+                    configFetchTimeoutSeconds) ||
+                other.configFetchTimeoutSeconds == configFetchTimeoutSeconds) &&
+            (identical(other.configFetchIntervalSeconds,
+                    configFetchIntervalSeconds) ||
+                other.configFetchIntervalSeconds ==
+                    configFetchIntervalSeconds) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hash(
+      runtimeType,
+      isLoading,
+      isLoaded,
+      isFailed,
+      message,
+      isFreshInstall,
+      themeMode,
+      configFetchTimeoutSeconds,
+      configFetchIntervalSeconds,
+      defaultTextScale,
+      defaultFont);
+
+  @override
+  String toString() {
+    return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont)';
+  }
 }
+
+/// @nodoc
+abstract mixin class _$InitialStateCopyWith<$Res>
+    implements $InitialStateCopyWith<$Res> {
+  factory _$InitialStateCopyWith(
+          _InitialState value, $Res Function(_InitialState) _then) =
+      __$InitialStateCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {bool isLoading,
+      bool isLoaded,
+      bool isFailed,
+      String message,
+      bool isFreshInstall,
+      String themeMode,
+      int configFetchTimeoutSeconds,
+      int configFetchIntervalSeconds,
+      double defaultTextScale,
+      String defaultFont});
+}
+
+/// @nodoc
+class __$InitialStateCopyWithImpl<$Res>
+    implements _$InitialStateCopyWith<$Res> {
+  __$InitialStateCopyWithImpl(this._self, this._then);
+
+  final _InitialState _self;
+  final $Res Function(_InitialState) _then;
+
+  /// Create a copy of InitialState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? isLoading = null,
+    Object? isLoaded = null,
+    Object? isFailed = null,
+    Object? message = null,
+    Object? isFreshInstall = null,
+    Object? themeMode = null,
+    Object? configFetchTimeoutSeconds = null,
+    Object? configFetchIntervalSeconds = null,
+    Object? defaultTextScale = null,
+    Object? defaultFont = null,
+  }) {
+    return _then(_InitialState(
+      isLoading: null == isLoading
+          ? _self.isLoading
+          : isLoading // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isLoaded: null == isLoaded
+          ? _self.isLoaded
+          : isLoaded // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isFailed: null == isFailed
+          ? _self.isFailed
+          : isFailed // ignore: cast_nullable_to_non_nullable
+              as bool,
+      message: null == message
+          ? _self.message
+          : message // ignore: cast_nullable_to_non_nullable
+              as String,
+      isFreshInstall: null == isFreshInstall
+          ? _self.isFreshInstall
+          : isFreshInstall // ignore: cast_nullable_to_non_nullable
+              as bool,
+      themeMode: null == themeMode
+          ? _self.themeMode
+          : themeMode // ignore: cast_nullable_to_non_nullable
+              as String,
+      configFetchTimeoutSeconds: null == configFetchTimeoutSeconds
+          ? _self.configFetchTimeoutSeconds
+          : configFetchTimeoutSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      configFetchIntervalSeconds: null == configFetchIntervalSeconds
+          ? _self.configFetchIntervalSeconds
+          : configFetchIntervalSeconds // ignore: cast_nullable_to_non_nullable
+              as int,
+      defaultTextScale: null == defaultTextScale
+          ? _self.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultFont: null == defaultFont
+          ? _self.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+// dart format on

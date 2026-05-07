@@ -194,3 +194,4 @@ class _BibleViewerState extends State<BibleViewer> {
     );
   }
 }
+

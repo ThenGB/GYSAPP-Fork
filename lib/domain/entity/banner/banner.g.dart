@@ -6,8 +6,7 @@ part of 'banner.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ImageBannerImpl _$$ImageBannerImplFromJson(Map<String, dynamic> json) =>
-    _$ImageBannerImpl(
+_ImageBanner _$ImageBannerFromJson(Map<String, dynamic> json) => _ImageBanner(
       description: json['description'] as String?,
       imageUrl: json['imageUrl'] as String?,
       linkUrl: json['linkUrl'] as String?,
@@ -18,7 +17,7 @@ _$ImageBannerImpl _$$ImageBannerImplFromJson(Map<String, dynamic> json) =>
           : DateTime.parse(json['expiredDate'] as String),
     );
 
-Map<String, dynamic> _$$ImageBannerImplToJson(_$ImageBannerImpl instance) =>
+Map<String, dynamic> _$ImageBannerToJson(_ImageBanner instance) =>
     <String, dynamic>{
       'description': instance.description,
       'imageUrl': instance.imageUrl,

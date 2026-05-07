@@ -4,7 +4,7 @@ part 'bible_ref.freezed.dart';
 part 'bible_ref.g.dart';
 
 @freezed
-class BibleRef with _$BibleRef {
+abstract class BibleRef with _$BibleRef {
   const BibleRef._();
   const factory BibleRef({
     @JsonKey(name: 'id') int? id,
@@ -15,3 +15,4 @@ class BibleRef with _$BibleRef {
   factory BibleRef.fromJson(Map<String, dynamic> json) =>
       _$BibleRefFromJson(json);
 }
+

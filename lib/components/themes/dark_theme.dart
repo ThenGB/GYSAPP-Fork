@@ -63,3 +63,4 @@ ThemeData darkTheme(String defaultFont) {
     visualDensity: VisualDensity.compact,
   );
 }
+

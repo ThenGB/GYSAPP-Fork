@@ -4,7 +4,7 @@ part 'pericope_paralel.freezed.dart';
 part 'pericope_paralel.g.dart';
 
 @freezed
-class PericopeParalel with _$PericopeParalel {
+abstract class PericopeParalel with _$PericopeParalel {
   const PericopeParalel._();
   const factory PericopeParalel({
     @JsonKey(name: 'id') int? id,
@@ -16,3 +16,4 @@ class PericopeParalel with _$PericopeParalel {
   factory PericopeParalel.fromJson(Map<String, dynamic> json) =>
       _$PericopeParalelFromJson(json);
 }
+

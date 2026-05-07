@@ -217,3 +217,4 @@ class SmartNetworkAssetLoader extends AssetLoader {
     return File(await getFilenameForLocale(localeName));
   }
 }
+

@@ -1,0 +1,240 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes"
+    />
+    <style>
+      html,
+      body {
+        width: 100%;
+        min-height: 100%;
+        margin: 0;
+        background: #f2f2f2;
+        overflow: auto;
+      }
+
+      #viewer {
+        box-sizing: border-box;
+        width: 100%;
+        min-height: 100vh;
+        padding: 8px;
+      }
+
+      .page-wrap {
+        position: relative;
+        display: block;
+        margin: 0 auto 12px;
+      }
+
+      .page {
+        display: block;
+        width: 100%;
+        height: auto;
+        background: white;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18);
+      }
+
+      .chord-layer {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+
+      .chord-badge {
+        position: absolute;
+        border-radius: 4px;
+        padding: 2px 6px;
+        background: rgba(231, 242, 255, 0.94);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+        color: #0f315f;
+        font: 700 12px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        line-height: 1.2;
+        transform: translate(-50%, -50%);
+        white-space: nowrap;
+      }
+
+      #status {
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        color: #555;
+        font: 14px system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        text-align: center;
+      }
+    </style>
+    <script src="pdfjs/pdf.min.js"></script>
+  </head>
+  <body>
+    <div id="status">Loading PDF...</div>
+    <main id="viewer"></main>
+
+    <script>
+      pdfjsLib.GlobalWorkerOptions.workerSrc = "pdfjs/pdf.worker.min.js";
+
+      const statusEl = document.getElementById("status");
+      const viewerEl = document.getElementById("viewer");
+      let pageObserver = null;
+      let currentChordData = {};
+      let currentShowChord = false;
+
+      function setStatus(message) {
+        statusEl.textContent = message;
+        statusEl.style.display = message ? "flex" : "none";
+      }
+
+      function decodeBase64(base64) {
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let index = 0; index < binary.length; index += 1) {
+          bytes[index] = binary.charCodeAt(index);
+        }
+        return bytes;
+      }
+
+      function calculateChordPosition(noteIdx, width, height) {
+        const line = Math.floor(noteIdx / 20);
+        const col = noteIdx % 5;
+        const top = Math.min(Math.max(line * 30 + 20, 20), height - 28);
+        const left = Math.min(
+          Math.max(col * (width / 5) + 20, 20),
+          width - 40
+        );
+        return { left, top };
+      }
+
+      function renderChordLayers() {
+        const layers = viewerEl.querySelectorAll(".chord-layer");
+        for (const layer of layers) {
+          layer.replaceChildren();
+          if (!currentShowChord) continue;
+
+          const pageNumber = layer.dataset.pageNumber;
+          const pageChords = currentChordData[pageNumber] || [];
+          const pageWrap = layer.parentElement;
+          const width = pageWrap.clientWidth;
+          const height = pageWrap.clientHeight;
+
+          for (const chord of pageChords) {
+            const badge = document.createElement("span");
+            const position = calculateChordPosition(
+              Number(chord.noteIdx || 0),
+              width,
+              height
+            );
+            badge.className = "chord-badge";
+            badge.textContent = String(chord.chord || "");
+            badge.style.left = `${position.left}px`;
+            badge.style.top = `${position.top}px`;
+            layer.appendChild(badge);
+          }
+        }
+      }
+
+      window.setChordData = function setChordData(showChord, chordData) {
+        currentShowChord = Boolean(showChord);
+        currentChordData = chordData || {};
+        renderChordLayers();
+      };
+
+      async function renderPage(pdf, pageNumber) {
+        const page = await pdf.getPage(pageNumber);
+        const baseViewport = page.getViewport({ scale: 1 });
+        const availableWidth = Math.max(document.documentElement.clientWidth - 16, 320);
+        const availableHeight = Math.max(document.documentElement.clientHeight - 28, 320);
+        const scale = Math.min(
+          availableWidth / baseViewport.width,
+          availableHeight / baseViewport.height
+        );
+        const viewport = page.getViewport({ scale });
+        const pageWrap = document.createElement("section");
+        const canvas = document.createElement("canvas");
+        const chordLayer = document.createElement("div");
+        const context = canvas.getContext("2d", { alpha: false });
+
+        pageWrap.className = "page-wrap";
+        pageWrap.dataset.pageNumber = String(pageNumber);
+        pageWrap.style.width = `${Math.floor(viewport.width)}px`;
+        pageWrap.style.height = `${Math.floor(viewport.height)}px`;
+        canvas.className = "page";
+        canvas.dataset.pageNumber = String(pageNumber);
+        canvas.width = Math.floor(viewport.width);
+        canvas.height = Math.floor(viewport.height);
+        chordLayer.className = "chord-layer";
+        chordLayer.dataset.pageNumber = String(pageNumber);
+        pageWrap.appendChild(canvas);
+        pageWrap.appendChild(chordLayer);
+        viewerEl.appendChild(pageWrap);
+
+        await page.render({ canvasContext: context, viewport }).promise;
+      }
+
+      window.loadPdfBase64 = async function loadPdfBase64(base64) {
+        try {
+          setStatus("Loading PDF...");
+          viewerEl.replaceChildren();
+          if (pageObserver) {
+            pageObserver.disconnect();
+          }
+
+          const visibleRatios = new Map();
+          pageObserver = new IntersectionObserver(
+            (entries) => {
+              for (const entry of entries) {
+                const pageNumber = Number(entry.target.dataset.pageNumber);
+                if (!pageNumber) continue;
+                visibleRatios.set(pageNumber, entry.intersectionRatio);
+              }
+              let activePage = 1;
+              let activeRatio = -1;
+              for (const [pageNumber, ratio] of visibleRatios.entries()) {
+                if (ratio > activeRatio) {
+                  activePage = pageNumber;
+                  activeRatio = ratio;
+                }
+              }
+              if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler(
+                  "pdfPageChanged",
+                  activePage,
+                  pdfPageCount
+                );
+              }
+            },
+            { threshold: [0, 0.25, 0.5, 0.75, 1] }
+          );
+
+          const pdf = await pdfjsLib.getDocument({ data: decodeBase64(base64) })
+            .promise;
+          const pdfPageCount = pdf.numPages;
+          setStatus("");
+
+          for (let pageNumber = 1; pageNumber <= pdfPageCount; pageNumber += 1) {
+            await renderPage(pdf, pageNumber);
+            pageObserver.observe(viewerEl.lastElementChild);
+          }
+          renderChordLayers();
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler("pdfRendered", pdfPageCount);
+            window.flutter_inappwebview.callHandler("pdfPageChanged", 1, pdfPageCount);
+          }
+        } catch (error) {
+          console.error(error);
+          setStatus("Failed to load PDF");
+          if (window.flutter_inappwebview) {
+            window.flutter_inappwebview.callHandler(
+              "pdfError",
+              String(error && error.message ? error.message : error)
+            );
+          }
+        }
+      };
+    </script>
+  </body>
+</html>

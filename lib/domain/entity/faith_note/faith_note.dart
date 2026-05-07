@@ -4,7 +4,7 @@ part 'faith_note.freezed.dart';
 part 'faith_note.g.dart';
 
 @freezed
-class FaithNote with _$FaithNote {
+abstract class FaithNote with _$FaithNote {
   const FaithNote._();
   const factory FaithNote({
     required int id,
@@ -26,3 +26,4 @@ class FaithNote with _$FaithNote {
   factory FaithNote.fromJson(Map<String, dynamic> json) =>
       _$FaithNoteFromJson(json);
 }
+

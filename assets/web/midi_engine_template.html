@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MIDI Engine</title>
+  <style>
+    body { margin: 0; padding: 8px; font-family: sans-serif; font-size: 12px; background: #1a1a1a; color: #fff; }
+    #status { padding: 4px; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading MIDI Engine...</div>
+
+  <script>
+    // ─── Worker Blob URL Setup ─────────────────────────────────────────
+    // Intercept Worker creation for midi-render-worker to use inline Blob,
+    // avoiding file:// cross-origin worker restrictions.
+    (function() {
+      const workerCode = `WORKER_CODE_PLACEHOLDER`;
+      const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+      window._midiWorkerBlobUrl = URL.createObjectURL(workerBlob);
+
+      const OriginalWorker = window.Worker;
+      window.Worker = function(url, options) {
+        if (typeof url === 'string' && url.includes('midi-render-worker')) {
+          return new OriginalWorker(window._midiWorkerBlobUrl, options);
+        }
+        return new OriginalWorker(url, options);
+      };
+    })();
+  </script>
+
+  <script src="js/midi-engine.js"></script>
+
+  <script>
+    // ─── Flutter Bridge ────────────────────────────────────────────────
+    // Expose a global API that the Flutter side can call via evaluateJavascript
+    // and receive events via flutter_inappwebview.callHandler.
+
+    window.FlutterMidiBridge = {
+      engine: null,
+      _state: {
+        isPlaying: false,
+        isLoading: false,
+        position: 0,
+        duration: 0,
+        loadProgress: 0,
+        currentSong: null
+      },
+
+      async init(soundFontUrl) {
+        try {
+          this.engine = MidiEngine;
+          this.engine.init(soundFontUrl || 'GeneralUser-GS.sf2', {
+            onStateChange: (playing, time, duration) => {
+              this._state.isPlaying = playing;
+              this._state.position = time;
+              this._state.duration = duration;
+              this._notifyState();
+            },
+            onProgress: (percent) => {
+              this._state.loadProgress = percent;
+              this._notifyState();
+            },
+            onSongEnd: () => {
+              this._state.isPlaying = false;
+              this._state.position = this._state.duration;
+              this._notifyState();
+              if (window.flutter_inappwebview) {
+                window.flutter_inappwebview.callHandler('midiSongEnd', {});
+              }
+            }
+          });
+          this._updateStatus('MIDI Engine Ready');
+          this._notifyState();
+        } catch (err) {
+          this._updateStatus('Error: ' + err.message);
+          console.error('MIDI Engine init error:', err);
+        }
+      },
+
+      async loadMidi(url, options) {
+        if (!this.engine) return;
+        this._state.isLoading = true;
+        this._state.currentSong = url;
+        this._notifyState();
+        try {
+          await this.engine.loadMidi(url, {
+            transpose: options.transpose || 0,
+            instrument: options.instrument || -1,
+            autoplay: options.autoplay || false
+          });
+          this._state.isLoading = false;
+          this._state.duration = this.engine.getDuration() || 0;
+          this._notifyState();
+        } catch (err) {
+          this._state.isLoading = false;
+          this._updateStatus('Load error: ' + err.message);
+          console.error('Load MIDI error:', err);
+        }
+      },
+
+      play() {
+        if (!this.engine) return;
+        this.engine.play();
+      },
+
+      pause() {
+        if (!this.engine) return;
+        this.engine.pause();
+      },
+
+      stop() {
+        if (!this.engine) return;
+        this.engine.stop();
+      },
+
+      seek(seconds) {
+        if (!this.engine) return;
+        this.engine.seek(seconds);
+      },
+
+      setTranspose(semitones) {
+        if (!this.engine) return;
+        this.engine.setTranspose(semitones);
+      },
+
+      setTempoBpm(bpm) {
+        if (!this.engine) return;
+        this.engine.setTempoBpm(bpm);
+      },
+
+      setVolume(volume) {
+        if (!this.engine) return;
+        this.engine.setVolume(volume);
+      },
+
+      changeSoundFont(url) {
+        if (!this.engine) return;
+        this.engine.changeSoundFont(url);
+      },
+
+      getState() {
+        return {
+          ...this._state,
+          position: this.engine ? this.engine.getTime() : 0,
+          duration: this.engine ? this.engine.getDuration() : 0,
+          isPlaying: this.engine ? this.engine.isPlaying() : false,
+          isLoading: this.engine ? this.engine.isLoading() : false
+        };
+      },
+
+      _notifyState() {
+        const state = this.getState();
+        if (window.flutter_inappwebview) {
+          window.flutter_inappwebview.callHandler('midiStateChanged', state);
+        }
+      },
+
+      _updateStatus(text) {
+        const el = document.getElementById('status');
+        if (el) el.textContent = text;
+      }
+    };
+
+    // Auto-init when page loads
+    window.FlutterMidiBridge.init();
+  </script>
+</body>
+</html>

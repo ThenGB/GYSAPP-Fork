@@ -67,3 +67,4 @@ ThemeData defaultTheme(String defaultFont) {
     visualDensity: VisualDensity.compact,
   );
 }
+

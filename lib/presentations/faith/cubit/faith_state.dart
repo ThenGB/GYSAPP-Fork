@@ -11,7 +11,7 @@ part 'faith_state.freezed.dart';
 part 'faith_state.g.dart';
 
 @freezed
-class FaithState with _$FaithState {
+abstract class FaithState with _$FaithState {
   const FaithState._();
   const factory FaithState({
     @Default([]) List<int> selectedFaith,
@@ -131,3 +131,4 @@ class FaithState with _$FaithState {
   factory FaithState.fromJson(Map<String, dynamic> json) =>
       _$FaithStateFromJson(json);
 }
+

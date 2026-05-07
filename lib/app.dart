@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io';
 import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
@@ -16,10 +15,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -43,10 +39,10 @@ Future initApplication() async {
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initLog('flutter binding ready');
-  _setupDatabaseFactory();
-  initLog('database factory ready');
   HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory: await getApplicationSupportDirectory(),
+    storageDirectory: HydratedStorageDirectory(
+      (await getApplicationSupportDirectory()).path,
+    ),
   );
   initLog('hydrated storage ready');
   await EasyLocalization.ensureInitialized();
@@ -79,10 +75,10 @@ Future initApplication() async {
       await FirebaseRemoteConfig.instance.ensureInitialized();
       if (isFirebaseAppCheckConfiguredForCurrentPlatform) {
         await FirebaseAppCheck.instance.activate(
-          androidProvider: kReleaseMode
-              ? AndroidProvider.playIntegrity
-              : AndroidProvider.debug,
-          appleProvider: AppleProvider.appAttest,
+          providerAndroid: kReleaseMode
+              ? const AndroidPlayIntegrityProvider()
+              : const AndroidDebugProvider(),
+          providerApple: const AppleAppAttestProvider(),
         );
       }
       initLog('firebase ready');
@@ -103,32 +99,10 @@ Future initApplication() async {
   log('App Initialization DONE');
 }
 
-void _setupDatabaseFactory() {
-  if (Platform.isWindows || Platform.isLinux) {
-    sqfliteFfiInit();
-    databaseFactory = databaseFactoryFfi;
-  }
-}
-
 Future _setupLocalData() async {
-  AppDirectory localDir = di();
-  for (var item in [
-    [Assets.assetsDataBTb, localDir.bibleFolder],
-    [Assets.assetsDataSong, dirname(localDir.songDbPath)],
-    [Assets.assetsDataSongsASMI, localDir.songLyricFolder],
-    [Assets.assetsDataSongsASMM, localDir.songLyricFolder],
-    [Assets.assetsDataSongsASMP, localDir.songLyricFolder],
-    [Assets.assetsDataSongsKR, localDir.songLyricFolder],
-    [Assets.assetsDataSongsMDR, localDir.songLyricFolder],
-  ]) {
-    if (kDebugMode) {
-      debugPrint('Preparing local asset ${item[0]}');
-    }
-    await assetToStorage(
-      assetFilePath: item[0],
-      localFilePath: '${item[1]}/${basename(item[0])}',
-    );
-  }
+  // Static song and default Bible data are now read lazily from non-SQL
+  // JSON assets, so startup no longer copies large PDFs/DB files.
+  await di<LocalAssetService>().initialize();
 }
 
 Future _setupNotification() async {

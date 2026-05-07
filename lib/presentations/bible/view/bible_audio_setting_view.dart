@@ -522,3 +522,4 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     );
   }
 }
+

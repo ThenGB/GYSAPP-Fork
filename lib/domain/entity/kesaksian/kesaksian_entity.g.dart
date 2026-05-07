@@ -6,15 +6,14 @@ part of 'kesaksian_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$KesaksianImpl _$$KesaksianImplFromJson(Map<String, dynamic> json) =>
-    _$KesaksianImpl(
+_Kesaksian _$KesaksianFromJson(Map<String, dynamic> json) => _Kesaksian(
       title: json['title'] as String,
       description: json['description'] as String,
       url: json['url'] as String,
       imageUrl: json['imageUrl'] as String,
     );
 
-Map<String, dynamic> _$$KesaksianImplToJson(_$KesaksianImpl instance) =>
+Map<String, dynamic> _$KesaksianToJson(_Kesaksian instance) =>
     <String, dynamic>{
       'title': instance.title,
       'description': instance.description,

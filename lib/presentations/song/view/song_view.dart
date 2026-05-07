@@ -1,26 +1,20 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-import 'dart:io';
-
-import 'package:animations/animations.dart';
-import 'package:audioplayers/audioplayers.dart';
 import 'package:auto_route/auto_route.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:simple_animations/simple_animations.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
-import '../../../data/data.dart';
-import '../../../domain/domain.dart';
+import '../../../data/services/chord_service.dart';
+import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
+import '../widgets/draggable_midi_controls.dart';
+import '../widgets/midi_engine_webview.dart';
+import '../widgets/song_pdf_viewer.dart';
 
 @RoutePage()
 class SongView extends StatefulWidget {
@@ -32,7 +26,14 @@ class SongView extends StatefulWidget {
 
 class _SongViewState extends State<SongView> {
   late final cubit = context.read<SongCubit>();
-  late final PageController pageController = PageController(initialPage: () {
+  late final int _initialPageIndex = _resolveInitialPageIndex();
+  late final PageController pageController = PageController(
+    initialPage: _initialPageIndex,
+  )..addListener(pageListener);
+
+  late int currentPageIndex = _initialPageIndex;
+
+  int _resolveInitialPageIndex() {
     try {
       final index = cubit.state.histories.last.index;
       if (cubit.state.songs.length > index) {
@@ -43,1934 +44,262 @@ class _SongViewState extends State<SongView> {
     } catch (e) {
       return 0;
     }
-  }())
-    ..addListener(pageListener);
+  }
 
-  PageController? verseController;
-  late double _baseScale = cubit.state.defaultTextScale;
-  late double _currentScale = cubit.state.defaultTextScale;
+  Map<int, List<ChordData>>? _currentChords;
 
-  late int currentPageIndex = pageController.initialPage;
-  int currentVerseIndex = 0;
-
-  late ValueNotifier<String> songTitle = ValueNotifier(
-      cubit.state.songs.isNotEmpty &&
-              currentPageIndex < cubit.state.songs.length
-          ? (cubit.state.songs[currentPageIndex].title ?? '')
-          : '');
-
-  void pageListener([int? currentPage]) {
-    currentPageIndex =
-        currentPage ?? pageController.page?.toInt() ?? currentPageIndex;
-    if (int.parse(pageController.page.toString().split('.').last) == 0) {
-      currentVerseIndex = 0;
-      cubit.changePage(currentPageIndex, currentVerseIndex);
+  void pageListener() {
+    final newIndex = pageController.page?.round() ?? currentPageIndex;
+    if (newIndex != currentPageIndex) {
+      setState(() {
+        currentPageIndex = newIndex;
+      });
+      cubit.changePage(newIndex, 0);
+      _loadChordData();
     }
-    Future.microtask(() {
-      setState(() {});
-    });
   }
 
   @override
   void dispose() {
-    downloadProgressNotifier.dispose();
     pageController.dispose();
-    songTitle.dispose();
-    isOnListNotifier.dispose();
     super.dispose();
   }
 
-  List<Uint8List>? currentImage;
-
-  Set<int> touches = {};
-
-  bool onScaling = false;
-
-  GlobalKey selectedSongMenuKey = GlobalKey();
-
-  Future<double> get selectedVerseMenuHeight async => await Future.delayed(
-        Duration(milliseconds: 500),
-        () {
-          return selectedSongMenuKey.currentContext?.size?.height ?? 0;
-        },
-      );
-
   @override
   void initState() {
-    cubit.songHandler.initNextFunction(
-      nextFunction: () async {
-        var songs = cubit.state.songs;
-        if (currentPageIndex != (songs.length - 1)) {
-          if (SchedulerBinding.instance.lifecycleState ==
-              AppLifecycleState.resumed) {
-            await pageController.animateToPage(currentPageIndex + 1,
-                duration: kThemeAnimationDuration, curve: Curves.ease);
-          } else {
-            pageController.jumpToPage(currentPageIndex + 1);
-          }
-          pageListener(currentPageIndex + 1);
-          await Future.delayed(Duration(seconds: 1));
-          cubit.play();
-        }
-      },
-    );
-    cubit.checkIsSynced().then((isSynced) => setState(() {
-          allowShowUpdateDialog = !isSynced;
-        }));
     super.initState();
+    _loadChordData();
   }
 
-  late final ValueNotifier<String> downloadProgressNotifier = ValueNotifier('');
-
-  bool allowShowUpdateDialog = false;
-
-  ValueNotifier<bool> isOnListNotifier = ValueNotifier(false);
+  Future<void> _loadChordData() async {
+    if (currentPageIndex >= cubit.state.songs.length) return;
+    final song = cubit.state.songs[currentPageIndex];
+    final chords = await cubit.loadChordData(song);
+    if (mounted) {
+      setState(() {
+        _currentChords = chords;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
-      builder: (context, state) => Scaffold(
-          bottomSheet: Container(
-            color: context.colorScheme.surface,
-            key: selectedSongMenuKey,
-            child: AnimatedSize(
-              curve: Curves.ease,
-              alignment: Alignment.bottomCenter,
-              duration: kThemeAnimationDuration,
-              child: state.selectedSong == null
-                  ? SizedBox(
-                      width: double.infinity,
-                    )
-                  : PlayAnimationBuilder(
-                      curve: Curves.ease,
-                      delay: kThemeAnimationDuration,
-                      duration: kThemeAnimationDuration,
-                      tween: Tween<double>(begin: 0, end: 1),
-                      builder: (c, value, child) => Opacity(
-                        opacity: value,
-                        child: SelectedSongMenu(
-                          item: state.selectedSong!,
-                          viewPadding: context.mediaQuery.viewPadding.vertical,
-                        ),
-                      ),
-                    ),
+      builder: (context, state) {
+        return Scaffold(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.list_alt_rounded),
+              tooltip: 'Selector nomor pujian',
+              onPressed: _openSongSelector,
             ),
-          ),
-          backgroundColor: context.colorScheme.surface,
-          bottomNavigationBar: AnimatedSize(
-            duration: kThemeAnimationDuration,
-            alignment: Alignment.bottomCenter,
-            curve: Curves.ease,
-            child: state.selectedSong != null || !state.showAudio
-                ? SizedBox(
-                    width: double.infinity,
-                  )
-                : SizedBox(
-                    height: 48,
-                    child: ListTile(
-                      tileColor: context.colorScheme.surface,
-                      leading: StreamBuilder<PlayerState>(
-                        initialData: cubit.audioPlayer.state,
-                        stream: context
-                            .read<SongCubit>()
-                            .playerStateStream,
-                        builder: (context, snapshot) => IconButton(
-                          onPressed: () {
-                            // if (state.isAudioLoading) return;
-                            if (snapshot.data == PlayerState.playing) {
-                              cubit.pause();
-                            } else if (snapshot.data == PlayerState.paused) {
-                              cubit.play();
-                            } else {
-                              cubit.play();
-                            }
-                          },
-                          icon: !snapshot.hasData
-                              ? const SizedBox(
-                                  height: 24,
-                                  width: 24,
-                                  child: Center(
-                                      child: CircularProgressIndicator()))
-                              : Opacity(
-                                  opacity: state.isAudioLoading ? .5 : 1,
-                                  child: Icon(
-                                    snapshot.data == PlayerState.playing
-                                        ? Icons.pause_circle
-                                        : Icons.play_circle_rounded,
-                                  ),
-                                ),
+            title: Text(
+              '${state.getSongNumberAt(currentPageIndex) ?? ''} - ${state.getSongTitleAt(currentPageIndex)}',
+              style: const TextStyle(fontSize: 16),
+            ),
+            actions: [
+              // Audio toggle
+              IconButton(
+                icon: Icon(
+                  state.showAudio ? Icons.volume_up : Icons.volume_off,
+                  color: state.showAudio
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).disabledColor,
+                ),
+                onPressed: () => cubit.toggleAudio(),
+              ),
+              // Chord toggle
+              IconButton(
+                icon: Icon(
+                  state.showChord ? Icons.music_note : Icons.music_off,
+                  color: state.showChord
+                      ? Theme.of(context).colorScheme.primary
+                      : Theme.of(context).disabledColor,
+                ),
+                onPressed: () => cubit.toggleChord(),
+              ),
+              // More options
+              PopupMenuButton(
+                onSelected: (value) {
+                  switch (value) {
+                    case 'fav':
+                      if (currentPageIndex < state.songs.length) {
+                        cubit.modifyFavorite(state.songs[currentPageIndex],
+                            playOnlyFav: false);
+                      }
+                      break;
+                    case 'copy':
+                      _copyCurrentVerse(state);
+                      break;
+                    case 'share':
+                      _shareCurrentSong(state);
+                      break;
+                    case 'notes':
+                      router.push(SongNotesListRoute(cubit: context.read()));
+                      break;
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'fav',
+                    child: Row(
+                      children: [
+                        Text('Favorite'.tr()),
+                        const Spacer(),
+                        Icon(
+                          cubit.isSongFavorite(state.songs[currentPageIndex])
+                              ? Icons.star_rounded
+                              : Icons.star_border_rounded,
+                          color: Colors.amber,
                         ),
-                      ),
-                      dense: true,
-                      horizontalTitleGap: 0,
-                      title: FutureBuilder(
-                        future: cubit.audioPlayer.getDuration(),
-                        builder: (context, futureSnapshot) =>
-                            StreamBuilder<Duration>(
-                          stream: context
-                              .read<SongCubit>()
-                              .positionStream,
-                          builder: (context, positionSnapshot) =>
-                              StreamBuilder<Duration>(
-                            stream: context
-                                .read<SongCubit>()
-                                .durationStream,
-                            builder: (context, durationSnapshot) => state
-                                    .isAudioLoading
-                                ? SizedBox(
-                                    height: 48,
-                                    child: Center(
-                                      child: LinearProgressIndicator(
-                                        minHeight: 1,
-                                      ),
-                                    ),
-                                  )
-                                : SliderTheme(
-                                    data: SliderTheme.of(context).copyWith(
-                                      trackHeight: 1,
-                                      thumbShape: RoundSliderThumbShape(
-                                        enabledThumbRadius: 4,
-                                      ),
-                                    ),
-                                    child: Slider(
-                                      value:
-                                          ((positionSnapshot.data?.inSeconds ??
-                                                      0) /
-                                                  (durationSnapshot
-                                                          .data?.inSeconds ??
-                                                      futureSnapshot
-                                                          .data?.inSeconds ??
-                                                      0))
-                                              .clamp(0, 1),
-                                      onChanged: (value) {
-                                        var second =
-                                            (durationSnapshot.data?.inSeconds ??
-                                                    futureSnapshot
-                                                        .data?.inSeconds ??
-                                                    1) *
-                                                value;
-                                        context
-                                            .read<SongCubit>()
-                                            .audioPlayer
-                                            .seek(Duration(
-                                                seconds: second.toInt()));
-                                      },
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ),
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          FutureBuilder(
-                            future: context
-                                .read<SongCubit>()
-                                .audioPlayer
-                                .getDuration(),
-                            builder: (context, durationFuture) =>
-                                StreamBuilder<Duration>(
-                              stream: context
-                                  .read<SongCubit>()
-                                  .positionStream,
-                              builder: (context, positionSnapshot) =>
-                                  StreamBuilder<Duration>(
-                                stream: context
-                                    .read<SongCubit>()
-                                    .durationStream,
-                                builder: (context, durationSnapshot) {
-                                  String durationToString(Duration duration) {
-                                    if (duration.inHours >= 1) {
-                                      final hours = duration.inHours;
-                                      final minutes =
-                                          duration.inMinutes.remainder(60);
-                                      final seconds =
-                                          duration.inSeconds.remainder(60);
-                                      return '$hours:${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
-                                    } else {
-                                      final minutes = duration.inMinutes;
-                                      final seconds =
-                                          duration.inSeconds.remainder(60);
-                                      return '$minutes:${seconds.toString().padLeft(2, '0')}';
-                                    }
-                                  }
-
-                                  var text = '--';
-                                  if (positionSnapshot.data != null) {
-                                    text = durationToString(
-                                        positionSnapshot.data!);
-                                  }
-                                  if (durationSnapshot.data != null ||
-                                      durationFuture.data != null) {
-                                    text =
-                                        '$text/${durationToString(durationFuture.data ?? durationSnapshot.data!)}';
-                                  }
-                                  return Text(
-                                    text,
-                                    style: const TextStyle(
-                                      fontSize: 10,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 8,
-                          ),
-                          PopupMenuButton(
-                            enabled: !Platform.isIOS,
-                            offset: Offset(0, 48),
-                            initialValue: state.defaultAudioFormat,
-                            onSelected: (value) {
-                              context
-                                  .read<SongCubit>()
-                                  .changeAudioFormat(value, true);
-                            },
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: context.colorScheme.primaryContainer,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              padding: const EdgeInsets.all(4),
-                              child: Text(
-                                state.defaultAudioFormat == 'mp3'
-                                    ? 'MP3'
-                                    : 'MIDI',
-                              ),
-                            ),
-                            itemBuilder: (context) {
-                              // return ['mp3', 'mid']
-                              return [
-                                'mid'
-                              ] //.apm:20251219:ref hy:hanya allow midi;
-                                  .map(
-                                    (e) => PopupMenuItem(
-                                      value: e,
-                                      child: Text(e == 'mp3' ? 'MP3' : 'MIDI'),
-                                    ),
-                                  )
-                                  .toList();
-                            },
-                          ),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-          ),
-          body: ValueListenableBuilder(
-            valueListenable: isOnListNotifier,
-            builder: (context, value, child) => PageTransitionSwitcher(
-              reverse: !value,
-              transitionBuilder: (child, animation, secondaryAnimation) =>
-                  SharedAxisTransition(
-                animation: animation,
-                secondaryAnimation: secondaryAnimation,
-                transitionType: SharedAxisTransitionType.vertical,
-                child: child,
-              ),
-              child: IndexedStack(
-                index: value ? 1 : 0,
-                alignment: Alignment.center,
-                // key: Key(value.toString()),
-                children: [
-                  Column(
-                    children: [
-                      PreferredSize(
-                        preferredSize: Size.fromHeight(56),
-                        child: AppBar(
-                          // leadingWidth: 56,
-                          // titleSpacing: 0,
-                          // leading: Center(
-                          //   child: Container(
-                          //     padding: const EdgeInsets.all(4),
-                          //     decoration: BoxDecoration(
-                          //       border: Border.all(
-                          //         color: context.theme.disabledColor,
-                          //       ),
-                          //       shape: BoxShape.circle,
-                          //       color: context.theme.canvasColor,
-                          //     ),
-                          //     child: Icon(
-                          //       Icons.home,
-                          //       color: context.theme.disabledColor,
-                          //     ),
-                          //   ),
-                          // ),
-
-                          title: Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(100),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        strokeAlign:
-                                            BorderSide.strokeAlignCenter,
-                                        width: 1,
-                                        color: context.theme.disabledColor,
-                                      ),
-                                      backgroundColor: (currentPageIndex <
-                                                  state.songs.length &&
-                                              context
-                                                  .read<SongCubit>()
-                                                  .isSongFavorite(state
-                                                      .songs[currentPageIndex]))
-                                          ? context.colorScheme.primaryContainer
-                                          : Colors.transparent,
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.horizontal(
-                                          left: Radius.circular(100),
-                                        ),
-                                      )),
-                                  onPressed: () {
-                                    isOnListNotifier.value = true;
-                                    cubit.removeSelection();
-                                  },
-                                  child: Text(
-                                    state.getSongNumberAt(currentPageIndex) ??
-                                        '',
-                                    style: TextStyle(
-                                      color: (state.isValidSongIndex(
-                                                  currentPageIndex) &&
-                                              context
-                                                  .read<SongCubit>()
-                                                  .isSongFavorite(state
-                                                      .songs[currentPageIndex]))
-                                          ? context
-                                              .colorScheme.onPrimaryContainer
-                                          : null,
-                                    ),
-                                  ),
-                                ),
-                                OutlinedButton(
-                                  style: OutlinedButton.styleFrom(
-                                      side: BorderSide(
-                                        strokeAlign:
-                                            BorderSide.strokeAlignCenter,
-                                        width: 1,
-                                        color: context.theme.disabledColor,
-                                      ),
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.horizontal(
-                                          right: Radius.circular(100),
-                                        ),
-                                      )),
-                                  onPressed: () {},
-                                  child: Text(
-                                      state.getSongCodeAt(currentPageIndex)),
-                                ),
-                                SizedBox(width: 12),
-                                Expanded(
-                                  child: Center(
-                                    child: OrientationBuilder(
-                                      builder: (context, orientation) =>
-                                          MediaQuery.of(context).orientation ==
-                                                  Orientation.portrait
-                                              ? SizedBox()
-                                              : ValueListenableBuilder(
-                                                  valueListenable: songTitle,
-                                                  builder: (context, songTitle,
-                                                          child) =>
-                                                      GestureDetector(
-                                                    onTap: () {
-                                                      if (state.selectedSong ==
-                                                          null) {
-                                                        context
-                                                            .read<SongCubit>()
-                                                            .selectSong(state
-                                                                    .songs[
-                                                                currentPageIndex]);
-                                                      } else {
-                                                        context
-                                                            .read<SongCubit>()
-                                                            .removeSelection();
-                                                      }
-                                                    },
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(songTitle),
-                                                        Icon(
-                                                          state.selectedSong ==
-                                                                  null
-                                                              ? Icons
-                                                                  .keyboard_arrow_down_rounded
-                                                              : Icons
-                                                                  .keyboard_arrow_up_rounded,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          actions: [
-                            /// history button
-                            AnimatedCrossFade(
-                              alignment: Alignment.center,
-                              duration: kThemeAnimationDuration,
-                              crossFadeState: CrossFadeState.showSecond,
-                              firstChild: const SizedBox(
-                                width: 0,
-                                height: 48,
-                              ),
-                              secondChild: IconButton(
-                                visualDensity: VisualDensity.compact,
-                                icon: ColorFiltered(
-                                  colorFilter: ColorFilter.mode(
-                                    context.theme.disabledColor,
-                                    BlendMode.srcIn,
-                                  ),
-                                  child: Image.asset(
-                                    Assets.assetsIconsHistory,
-                                    width: 24,
-                                    height: 24,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
-                                onPressed: () async {
-                                  await showDialog(
-                                    context: context,
-                                    builder: (c) {
-                                      return BlocProvider<SongCubit>.value(
-                                        value: context.read(),
-                                        child:
-                                            BlocBuilder<SongCubit, SongState>(
-                                          builder: (context, state) => Dialog(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            clipBehavior: Clip.antiAlias,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                ListTile(
-                                                  contentPadding:
-                                                      EdgeInsets.only(left: 16),
-                                                  title: Text(
-                                                    'Histories'.tr(),
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                  trailing: CloseButton(),
-                                                ),
-                                                Divider(height: 1),
-                                                Flexible(
-                                                  child: Scrollbar(
-                                                    child:
-                                                        SingleChildScrollView(
-                                                      child:
-                                                          state.histories
-                                                                  .isEmpty
-                                                              ? ListTile(
-                                                                  title: Text(
-                                                                    'Empty'
-                                                                        .tr(),
-                                                                  ),
-                                                                )
-                                                              : Column(
-                                                                  children: state
-                                                                      .histories
-                                                                      .reversed
-                                                                      .toList()
-                                                                      .asMap()
-                                                                      .entries
-                                                                      .map((e) =>
-                                                                          Column(
-                                                                            children: [
-                                                                              ListTile(
-                                                                                // leading:
-                                                                                //     CircleAvatar(
-                                                                                //   radius: 12,
-                                                                                //   child: Text(
-                                                                                //     () {
-                                                                                //       var book = state.songBook.firstWhereOrNull((element) =>
-                                                                                //           element.code ==
-                                                                                //           e.value.bookCode);
-                                                                                //       return book?.songs[e.value.index].number.toString() ??
-                                                                                //           '';
-                                                                                //     }(),
-                                                                                //     style:
-                                                                                //         TextStyle(
-                                                                                //       fontWeight:
-                                                                                //           FontWeight.w600,
-                                                                                //       fontSize:
-                                                                                //           12,
-                                                                                //     ),
-                                                                                //   ),
-                                                                                // ),
-                                                                                contentPadding: EdgeInsets.only(left: 16),
-                                                                                minVerticalPadding: 0,
-                                                                                trailing: Row(
-                                                                                  mainAxisSize: MainAxisSize.min,
-                                                                                  children: [
-                                                                                    Text(
-                                                                                      timeago.format(
-                                                                                        e.value.createdAt,
-                                                                                        locale: context.locale.languageCode,
-                                                                                      ),
-                                                                                      textAlign: TextAlign.right,
-                                                                                    ),
-                                                                                    IconButton(
-                                                                                        onPressed: () async {
-                                                                                          if (await context.showConfirmation('Are you sure want to delete this?'.tr())) {
-                                                                                            cubit.deleteHistory(e.value);
-                                                                                          }
-                                                                                        },
-                                                                                        icon: Icon(Icons.delete)),
-                                                                                  ],
-                                                                                ),
-                                                                                onTap: () async {
-                                                                                  int index = e.value.index;
-                                                                                  var book = cubit.state.songBook.firstWhereOrNull((element) => element.code == e.value.bookCode);
-                                                                                  if ((book?.songs.length ?? 0) <= index) {
-                                                                                    index = 0;
-                                                                                  }
-                                                                                  cubit.changeBookcode(e.value.bookCode);
-                                                                                  var song = cubit.state.currentSong?.songs[index];
-                                                                                  Future.delayed(const Duration(milliseconds: 100)).then((value) {
-                                                                                    /// change the page number
-                                                                                    var index = state.currentSong?.songs.indexWhere((element) => element.number == song?.number);
-                                                                                    if (index == null) {
-                                                                                      return;
-                                                                                    }
-                                                                                    cubit.addToHistory(
-                                                                                      SongHistory(
-                                                                                        index: index,
-                                                                                        bookCode: song?.code ?? '',
-                                                                                        createdAt: DateTime.now(),
-                                                                                      ),
-                                                                                    );
-                                                                                    pageController.animateToPage(index, duration: kThemeAnimationDuration, curve: Curves.ease);
-                                                                                    pageListener(index);
-                                                                                    router.maybePop();
-                                                                                  });
-                                                                                },
-                                                                                subtitle: Text(() {
-                                                                                  var book = state.songBook.firstWhereOrNull((element) => element.code == e.value.bookCode);
-                                                                                  return book?.songs[e.value.index].code.toString() ?? '';
-                                                                                }()),
-                                                                                title: Text(
-                                                                                  () {
-                                                                                    var book = state.songBook.firstWhereOrNull((element) => element.code == e.value.bookCode);
-                                                                                    var song = book?.songs[e.value.index];
-                                                                                    if (song == null) {
-                                                                                      return '';
-                                                                                    }
-                                                                                    return '${song.number!} - ${song.title!}';
-                                                                                  }(),
-                                                                                  maxLines: 2,
-                                                                                  overflow: TextOverflow.ellipsis,
-                                                                                  style: TextStyle(
-                                                                                    fontSize: 14,
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                              Divider(
-                                                                                height: 1,
-                                                                              ),
-                                                                            ],
-                                                                          ))
-                                                                      .toList(),
-                                                                ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                            ),
-
-                            IconButton(
-                              onPressed: () {
-                                currentVerseIndex = 0;
-                                cubit.changeMode();
-                              },
-                              visualDensity: VisualDensity.compact,
-                              icon: ColorFiltered(
-                                colorFilter: ColorFilter.mode(
-                                    context.theme.disabledColor,
-                                    BlendMode.srcIn),
-                                child: Image.asset(
-                                  state.isImageMode
-                                      ? Assets.assetsIconsLyrics
-                                      : Assets.assetsIconsNote,
-                                  width: 24,
-                                  height: 24,
-                                ),
-                              ),
-                            ),
-                            PopupMenuButton(
-                              offset: Offset(0, 48),
-                              onSelected: (value) async {
-                                if (value == 'fav') {
-                                  if (currentPageIndex < state.songs.length) {
-                                    cubit.modifyFavorite(
-                                        state.songs[currentPageIndex],
-                                        playOnlyFav: false);
-                                  }
-                                } else if (value == 'copy') {
-                                  if (currentPageIndex < state.songs.length &&
-                                      currentVerseIndex <
-                                          state.songs[currentPageIndex].verses
-                                              .length) {
-                                    var number =
-                                        state.songs[currentPageIndex].number;
-                                    var title =
-                                        state.songs[currentPageIndex].title;
-                                    var verse = state.songs[currentPageIndex]
-                                        .verses[currentVerseIndex];
-                                    var text =
-                                        '$number - $title\n\n${currentVerseIndex + 1}. $verse';
-                                    await Clipboard.setData(
-                                        ClipboardData(text: text));
-                                    try { Fluttertoast.cancel(); } catch (_) {}
-                                    try { Fluttertoast.showToast(
-                                        msg: 'Copied to clipboard'.tr()); } catch (_) {}
-                                  }
-                                } else if (value == 'size') {
-                                  cubit.toggleSizer();
-                                } else if (value == 'share') {
-                                  if (currentPageIndex < state.songs.length &&
-                                      currentVerseIndex <
-                                          state.songs[currentPageIndex].verses
-                                              .length) {
-                                    var number =
-                                        state.songs[currentPageIndex].number;
-                                    var title =
-                                        state.songs[currentPageIndex].title;
-                                    var verse = state.songs[currentPageIndex]
-                                        .verses[currentVerseIndex];
-                                    var text =
-                                        '$number - $title\n\n${currentVerseIndex + 1}. $verse';
-                                    Share.share(text,
-                                        subject: '$number - $title');
-                                  }
-                                } else if (value == 'notes') {
-                                  router.push(SongNotesListRoute(
-                                      cubit: context.read()));
-                                } else if (value == 'fontsetting') {
-                                  openDefaultBottomSheet(
-                                    context,
-                                    builder: (c) =>
-                                        BlocProvider<SongCubit>.value(
-                                      value: context.read(),
-                                      child: BlocBuilder<SongCubit, SongState>(
-                                        builder: (context, state) =>
-                                            FontSettingWidget(
-                                          getTextStyle: (font) => state
-                                              .getTextThemeByFontName(font)
-                                              .bodyMedium!,
-                                          selectedFont: state.defaultFont,
-                                          availableFonts: state.availableFonts,
-                                          textHeight: state.defaultTextHeight,
-                                          textScale: state.defaultTextScale,
-                                          onTextHeightChanged: (value) {
-                                            context
-                                                .read<SongCubit>()
-                                                .changeTextHeight(value);
-                                          },
-                                          onTextScaleChanged: (value) {
-                                            _currentScale = value;
-
-                                            context
-                                                .read<SongCubit>()
-                                                .changeTextScale(value);
-                                          },
-                                          onFontSelected: (font) {
-                                            context
-                                                .read<SongCubit>()
-                                                .changeFont(font);
-                                          },
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                } else if (value == 'audio') {
-                                  cubit.toggleAudio();
-                                } else if (value == 'sync') {
-                                  context
-                                      .read<SongCubit>()
-                                      .checkIsSynced()
-                                      .then((isSynced) => setState(() {
-                                            allowShowUpdateDialog = !isSynced;
-                                          }));
-                                }
-                              },
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              itemBuilder: (context) => [
-                                // ['Copy'.tr(), 'copy'],
-                                ['Font Settings'.tr(), 'fontsetting'],
-                                [('Favorite').tr(), 'fav'],
-                                // [
-                                //   (state.showSizer ? 'Hide Sizer' : 'Show Sizer').tr(),
-                                //   'size'
-                                // ],
-                                // ['Share'.tr(), 'share'],
-                                ['See all notes'.tr(), 'notes'],
-                                ['Audio'.tr(), 'audio'],
-                                ['Sync Lyric & Song'.tr(), 'sync'],
-                              ]
-                                  .map(
-                                    (e) => PopupMenuItem(
-                                      value: e[1],
-                                      child: Row(
-                                        children: [
-                                          Text(e[0]),
-                                          if (e[1] == 'fav') ...[
-                                            Spacer(),
-                                            SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: Checkbox(
-                                                materialTapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                value: currentPageIndex <
-                                                        state.songs.length &&
-                                                    context
-                                                        .read<SongCubit>()
-                                                        .isSongFavorite(state
-                                                                .songs[
-                                                            currentPageIndex]),
-                                                onChanged: (v) {
-                                                  if (currentPageIndex <
-                                                      state.songs.length) {
-                                                    context
-                                                        .read<SongCubit>()
-                                                        .modifyFavorite(
-                                                            state.songs[
-                                                                currentPageIndex],
-                                                            playOnlyFav: false);
-                                                    router.maybePop();
-                                                  }
-                                                },
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                              ),
-                                            ),
-                                          ],
-                                          if (e[1] == 'audio') ...[
-                                            Spacer(),
-                                            SizedBox(
-                                              width: 24,
-                                              height: 24,
-                                              child: Checkbox(
-                                                materialTapTargetSize:
-                                                    MaterialTapTargetSize
-                                                        .shrinkWrap,
-                                                value: state.showAudio,
-                                                onChanged: (v) {
-                                                  context
-                                                      .read<SongCubit>()
-                                                      .toggleAudio();
-                                                  router.maybePop();
-                                                },
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                              ),
-                                            ),
-                                          ]
-                                        ],
-                                      ),
-                                    ),
-                                  )
-                                  .toList(),
-                              child: CircleAvatar(
-                                backgroundColor: Colors.transparent,
-                                child: Icon(
-                                  Icons.more_vert_rounded,
-                                  color: context.theme.disabledColor,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: Stack(
-                          children: [
-                            Listener(
-                              onPointerUp: (event) {
-                                log(event.pointer.toString());
-                                touches.remove(event.pointer);
-                                if (touches.length <= 1) {
-                                  if (onScaling) {
-                                    setState(() {
-                                      onScaling = false;
-                                    });
-                                  }
-                                }
-                              },
-                              onPointerDown: (event) {
-                                log(event.pointer.toString());
-                                touches.add(event.pointer);
-                                if (touches.length > 1) {
-                                  if (!onScaling) {
-                                    setState(() {
-                                      onScaling = true;
-                                    });
-                                  }
-                                }
-                              },
-                              onPointerCancel: (event) {
-                                touches.remove(event.pointer);
-                                if (touches.length <= 1) {
-                                  if (onScaling) {
-                                    setState(() {
-                                      onScaling = false;
-                                    });
-                                  }
-                                }
-                              },
-                              onPointerMove: (event) {
-                                log(touches.toString());
-                              },
-                              child: Container(
-                                color: context.colorScheme.surface,
-                                child: Stack(
-                                  fit: StackFit.passthrough,
-                                  children: [
-                                    PageView.builder(
-                                      controller: pageController,
-                                      physics: onScaling
-                                          ? NeverScrollableScrollPhysics()
-                                          : AlwaysScrollableScrollPhysics(),
-                                      itemCount: state.songs.length,
-                                      onPageChanged: (value) {
-                                        if (state.playOnlyFavorite) {
-                                          log(currentPageIndex.toString());
-                                        }
-                                        var song = state.songs[value];
-                                        songTitle.value = song.title ?? '';
-                                      },
-                                      itemBuilder: (context, songIndex) {
-                                        var song = state.songs[songIndex];
-
-                                        return GestureDetector(
-                                          onScaleStart:
-                                              (ScaleStartDetails details) {
-                                            _baseScale = _currentScale;
-                                          },
-                                          onScaleUpdate:
-                                              (ScaleUpdateDetails details) {
-                                            log('Scaling');
-                                            setState(() {
-                                              _currentScale =
-                                                  (_baseScale * details.scale)
-                                                      .clamp(.8, 2);
-                                            });
-                                          },
-                                          onScaleEnd: (details) {
-                                            WidgetsBinding.instance
-                                                .addPostFrameCallback(
-                                                    (timeStamp) {
-                                              context
-                                                  .read<SongCubit>()
-                                                  .changeTextScale(
-                                                      _currentScale);
-                                            });
-                                          },
-                                          child: OrientationBuilder(
-                                            builder: (context, orientation) =>
-                                                Column(
-                                              children: [
-                                                if (MediaQuery.of(context)
-                                                        .orientation ==
-                                                    Orientation.portrait)
-                                                  GestureDetector(
-                                                    onTap: () async {
-                                                      if (state.selectedSong ==
-                                                          null) {
-                                                        context
-                                                            .read<SongCubit>()
-                                                            .selectSong(song);
-                                                      } else {
-                                                        context
-                                                            .read<SongCubit>()
-                                                            .removeSelection();
-                                                      }
-                                                    },
-                                                    child: Row(
-                                                      mainAxisSize:
-                                                          MainAxisSize.min,
-                                                      children: [
-                                                        Text(
-                                                          (song.title ?? '')
-                                                              .capitalizeEachWord(),
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style:
-                                                              const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 16,
-                                                          ),
-                                                        ),
-                                                        SizedBox(
-                                                          width: 8,
-                                                        ),
-                                                        Icon(
-                                                          state.selectedSong ==
-                                                                  null
-                                                              ? Icons
-                                                                  .keyboard_arrow_down_rounded
-                                                              : Icons
-                                                                  .keyboard_arrow_up_rounded,
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                const Divider(),
-                                                Expanded(
-                                                  child: Theme(
-                                                    data: Theme.of(context)
-                                                        .copyWith(
-                                                            textTheme: state
-                                                                .defaultTextTheme),
-                                                    child: PageView.builder(
-                                                      physics: onScaling
-                                                          ? NeverScrollableScrollPhysics()
-                                                          : AlwaysScrollableScrollPhysics(),
-                                                      controller: () {
-                                                        verseController =
-                                                            PageController();
-                                                        return verseController;
-                                                      }(),
-                                                      onPageChanged: (value) {
-                                                        currentVerseIndex =
-                                                            value;
-                                                        setState(() {});
-                                                      },
-                                                      scrollDirection:
-                                                          Axis.vertical,
-                                                      itemCount: state
-                                                              .isImageMode
-                                                          ? state
-                                                              .songs[songIndex]
-                                                              .pageLength
-                                                          : state
-                                                              .songs[songIndex]
-                                                              .verses
-                                                              .length,
-                                                      itemBuilder:
-                                                          (context, index) {
-                                                        if (state.isImageMode) {
-                                                          return FutureBuilder(
-                                                            key: ValueKey(
-                                                                'img_${state.bookCode}_${song.pageStart}_${songIndex}_$index'), //ValueKey('${state.bookCode}_${song.pageStart}'),
-                                                            //initialData:
-                                                            //    currentImage,
-                                                            future: //state
-                                                                cubit.getImageLyricPath(
-                                                                    //context,
-                                                                    state.bookCode,
-                                                                    song.pageStart ?? 0,
-                                                                    song.pageLength ?? 0),
-                                                            builder: (context,
-                                                                snapshot) {
-                                                              if (snapshot.data
-                                                                      ?.isNotEmpty ==
-                                                                  true) {
-                                                                precacheImage(
-                                                                    MemoryImage(
-                                                                        snapshot
-                                                                            .data![index]),
-                                                                    context);
-                                                                currentImage =
-                                                                    snapshot
-                                                                        .data!;
-                                                                return OrientationBuilder(
-                                                                  builder: (context,
-                                                                      orientation) {
-                                                                    var child =
-                                                                        Image
-                                                                            .memory(
-                                                                      snapshot.data![
-                                                                          index],
-                                                                      width: double
-                                                                          .infinity,
-                                                                      fit: BoxFit
-                                                                          .fitWidth,
-                                                                      gaplessPlayback:
-                                                                          true,
-                                                                    );
-                                                                    if (orientation ==
-                                                                        Orientation
-                                                                            .portrait) {
-                                                                      return ImageLyric(
-                                                                          onScaled:
-                                                                              (isScaled) {
-                                                                            setState(() {
-                                                                              onScaling = isScaled;
-                                                                            });
-                                                                          },
-                                                                          child:
-                                                                              child);
-                                                                    } else {
-                                                                      return SingleChildScrollView(
-                                                                          child:
-                                                                              child);
-                                                                    }
-                                                                  },
-                                                                );
-                                                              }
-                                                              return const Center(
-                                                                child:
-                                                                    CircularProgressIndicator(),
-                                                              );
-                                                            },
-                                                          );
-                                                        }
-                                                        var item =
-                                                            song.verses[index];
-                                                        return Padding(
-                                                          padding:
-                                                              const EdgeInsets
-                                                                  .all(8.0),
-                                                          child: Text(
-                                                            item,
-                                                            textAlign: TextAlign
-                                                                .center,
-                                                            textScaler:
-                                                                TextScaler.linear(
-                                                                    _currentScale),
-                                                            style: state
-                                                                .defaultTextTheme
-                                                                .bodyMedium
-                                                                ?.copyWith(
-                                                              height: state
-                                                                  .defaultTextHeight,
-                                                              fontWeight: state
-                                                                      .fontBold
-                                                                  ? FontWeight
-                                                                      .w700
-                                                                  : FontWeight
-                                                                      .w500,
-                                                              fontSize: 16,
-                                                            ),
-                                                          ),
-                                                        );
-                                                      },
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                    ),
-                                    Positioned.fill(
-                                      child: Align(
-                                        alignment: Alignment.bottomRight,
-                                        child: AnimatedCrossFade(
-                                          alignment: Alignment.centerLeft,
-                                          duration: Duration(milliseconds: 100),
-                                          crossFadeState: !onScaling
-                                              ? CrossFadeState.showFirst
-                                              : CrossFadeState.showSecond,
-                                          secondChild: Container(
-                                            width: 80,
-                                            height: 48,
-                                            color: Colors.transparent,
-                                          ),
-                                          firstChild: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  pageController.previousPage(
-                                                      duration:
-                                                          kThemeAnimationDuration,
-                                                      curve: Curves.ease);
-                                                },
-                                                icon: const Icon(
-                                                  Icons
-                                                      .keyboard_arrow_left_rounded,
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  pageController.nextPage(
-                                                      duration:
-                                                          kThemeAnimationDuration,
-                                                      curve: Curves.ease);
-                                                },
-                                                icon: const Icon(
-                                                  Icons
-                                                      .keyboard_arrow_right_rounded,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Positioned.fill(
-                                      child: Align(
-                                        alignment: Alignment.bottomLeft,
-                                        child: AnimatedCrossFade(
-                                          alignment: Alignment.centerLeft,
-                                          duration: Duration(milliseconds: 100),
-                                          crossFadeState: !onScaling
-                                              ? CrossFadeState.showFirst
-                                              : CrossFadeState.showSecond,
-                                          secondChild: Container(
-                                            height: 110,
-                                            width: 48,
-                                            color: Colors.transparent,
-                                          ),
-                                          firstChild: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              IconButton(
-                                                onPressed: () {
-                                                  verseController?.previousPage(
-                                                      duration:
-                                                          kThemeAnimationDuration,
-                                                      curve: Curves.ease);
-                                                },
-                                                icon: const Icon(Icons
-                                                    .keyboard_arrow_up_rounded),
-                                              ),
-                                              Text(
-                                                '${currentVerseIndex + 1}/${state.isImageMode ? state.getPageLengthAt(currentPageIndex) : state.getVerseCountAt(currentPageIndex)}',
-                                                style: const TextStyle(
-                                                  color: Colors
-                                                      .grey, // Warna teks hitam
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  verseController?.nextPage(
-                                                      duration:
-                                                          kThemeAnimationDuration,
-                                                      curve: Curves.ease);
-                                                },
-                                                icon: const Icon(Icons
-                                                    .keyboard_arrow_down_rounded),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (state.showSizer)
-                                      Align(
-                                        alignment: Alignment.bottomCenter,
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: Material(
-                                            shape: const StadiumBorder(),
-                                            elevation: 2,
-                                            child: SizedBox(
-                                              height: 32,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [-.1, .1]
-                                                    .map((e) => IconButton(
-                                                        visualDensity:
-                                                            VisualDensity
-                                                                .compact,
-                                                        onPressed: () {
-                                                          context
-                                                              .read<SongCubit>()
-                                                              .modifyTextScaleFactor(
-                                                                  e);
-                                                        },
-                                                        icon: Icon(e.isNegative
-                                                            ? Icons.remove
-                                                            : Icons.add)))
-                                                    .toList(),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                  ],
-                                ),
-                              ),
-                            ),
-                            if (allowShowUpdateDialog)
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.bottomCenter,
-                                  child: Container(
-                                      padding: EdgeInsets.all(8),
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(10),
-                                        ),
-                                        color:
-                                            context.colorScheme.errorContainer,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Expanded(
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                SizedBox(
-                                                  width: 32,
-                                                ),
-                                                Expanded(
-                                                  child: Column(
-                                                    mainAxisSize:
-                                                        MainAxisSize.min,
-                                                    children: [
-                                                      SizedBox(
-                                                        height: 12,
-                                                      ),
-                                                      ValueListenableBuilder(
-                                                        valueListenable:
-                                                            downloadProgressNotifier,
-                                                        builder: (context,
-                                                                value, child) =>
-                                                            Text(
-                                                          value.isNotEmpty
-                                                              ? 'Please wait, downloading.'
-                                                                  .tr()
-                                                              : "Hey there! We need your help to update and include some new data. Please tap 'Sync now'."
-                                                                  .tr(),
-                                                          textAlign:
-                                                              TextAlign.center,
-                                                          style: TextStyle(
-                                                              color: context
-                                                                  .colorScheme
-                                                                  .onErrorContainer,
-                                                              fontSize: 10),
-                                                        ),
-                                                      ),
-                                                      SizedBox(
-                                                        height: 12,
-                                                      ),
-                                                      ValueListenableBuilder(
-                                                        valueListenable:
-                                                            downloadProgressNotifier,
-                                                        builder: (context,
-                                                                value, child) =>
-                                                            value.isNotEmpty
-                                                                ? Text(
-                                                                    value,
-                                                                    style:
-                                                                        TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .bold,
-                                                                      fontSize:
-                                                                          12,
-                                                                    ),
-                                                                  )
-                                                                : ElevatedButton(
-                                                                    style: ElevatedButton.styleFrom(
-                                                                        elevation: 0,
-                                                                        backgroundColor: Colors.green,
-                                                                        foregroundColor: Colors.white,
-                                                                        textStyle: TextStyle(
-                                                                          fontSize:
-                                                                              10,
-                                                                          fontWeight:
-                                                                              FontWeight.normal,
-                                                                        )),
-                                                                    onPressed:
-                                                                        () async {
-                                                                      context
-                                                                          .read<
-                                                                              SongCubit>()
-                                                                          .syncDbAndLyric(
-                                                                        onProgress:
-                                                                            (status) {
-                                                                          downloadProgressNotifier.value =
-                                                                              status;
-                                                                        },
-                                                                      );
-                                                                    },
-                                                                    child: Text(
-                                                                      'Sync now'
-                                                                          .tr(),
-                                                                    ),
-                                                                  ),
-                                                      )
-                                                    ],
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                          ValueListenableBuilder(
-                                            valueListenable:
-                                                downloadProgressNotifier,
-                                            builder: (context, value, child) =>
-                                                value.isNotEmpty
-                                                    ? SizedBox(
-                                                        width: 32,
-                                                      )
-                                                    : CloseButton(
-                                                        style: ButtonStyle(
-                                                          visualDensity:
-                                                              VisualDensity
-                                                                  .compact,
-                                                          tapTargetSize:
-                                                              MaterialTapTargetSize
-                                                                  .shrinkWrap,
-                                                          fixedSize:
-                                                              WidgetStateProperty
-                                                                  .all(Size(
-                                                                      24, 24)),
-                                                          iconSize:
-                                                              WidgetStateProperty
-                                                                  .all(10),
-                                                        ),
-                                                        color: context
-                                                            .colorScheme
-                                                            .onErrorContainer,
-                                                        onPressed: () {
-                                                          setState(() {
-                                                            allowShowUpdateDialog =
-                                                                false;
-                                                          });
-                                                        },
-                                                      ),
-                                          ),
-                                        ],
-                                      )),
-                                ),
-                              )
-                          ],
-                        ),
-                      ),
-                    ],
+                  PopupMenuItem(
+                    value: 'copy',
+                    child: Text('Copy'.tr()),
                   ),
-                  !value
-                      ? SizedBox()
-                      : SongListView(
-                          onBack: () {
-                            isOnListNotifier.value = false;
-                          },
-                          onPlayFavorite: () async {
-                            if (cubit.audioPlayer.state ==
-                                PlayerState.playing) {
-                              cubit.pause();
-                              return;
-                            }
-                            pageController.jumpToPage(0);
-                            var song = context
-                                .read<SongCubit>()
-                                .state
-                                .favoriteSongBook
-                                .map((e) => e.songs)
-                                .expand((element) => element)
-                                .toList()[0];
-                            cubit.fetchAvailableSong(song);
-                            cubit.changeBookcode(song.code!, isFavorite: true);
-                            await Future.delayed(Duration(milliseconds: 200));
-
-                            cubit.removeSelection();
-
-                            /// change the page number
-                            var index = cubit.state.songs.indexWhere(
-                                (element) => element.number == song.number);
-                            // if (index == null) return;
-                            cubit.addToHistory(
-                              SongHistory(
-                                index: index,
-                                bookCode: song.code!,
-                                createdAt: DateTime.now(),
-                              ),
-                            );
-                            try {
-                              // await pageController.animateToPage(index,
-                              //     duration: kThemeAnimationDuration,
-                              //     curve: Curves.ease);
-                              await Future.delayed(Duration(seconds: 1));
-                              cubit.play();
-                            } catch (e) {
-                              log('$e');
-                            }
-                            // await Future.delayed(Duration(milliseconds: 200));
-                            //
-                            // cubit.removeSelection();
-
-                            // /// change the book
-                            // cubit.changeBookcode(song.code!, true);
-
-                            // /// change the page number
-                            // var index = cubit.state.songs.indexWhere(
-                            //     (element) => element.number == song.number);
-                            // // if (index == null) return;
-                            // cubit.addToHistory(
-                            //       SongHistory(
-                            //         index: index,
-                            //         bookCode: song.code!,
-                            //         createdAt: DateTime.now(),
-                            //       ),
-                            //     );
-                            // try {
-                            //   pageController.animateToPage(index,
-                            //       duration: kThemeAnimationDuration,
-                            //       curve: Curves.ease);
-                            // } catch (e) {
-                            //   log('$e');
-                            // }
-                          },
-                          initialSearchText: state.searchTerms,
-                          onSearchTermsChanged: cubit.onSearchTermsChanged,
-                          onTapFavorite: (song) async {
-                            pageController.jumpToPage(0);
-                            await Future.delayed(Duration(milliseconds: 200));
-
-                            cubit.removeSelection();
-
-                            /// change the book
-                            cubit.changeBookcode(song.code!, isFavorite: true);
-
-                            /// change the page number
-                            var index = cubit.state.songs.indexWhere(
-                                (element) => element.number == song.number);
-                            // if (index == null) return;
-                            cubit.addToHistory(
-                              SongHistory(
-                                index: index,
-                                bookCode: song.code!,
-                                createdAt: DateTime.now(),
-                              ),
-                            );
-                            try {
-                              pageController.animateToPage(index,
-                                  duration: kThemeAnimationDuration,
-                                  curve: Curves.ease);
-                              pageListener(index);
-                              await Future.delayed(
-                                  kThemeAnimationDuration * .5);
-                            } catch (e) {
-                              log('$e');
-                            }
-                            isOnListNotifier.value = false;
-                          },
-                          favoriteBooks: () => cubit.state.favoriteSongBook,
-                          onFavorite: (song) {
-                            cubit.modifyFavorite(song);
-                          },
-                          isFavorite: (song) => cubit.isSongFavorite(song),
-                          currentBook: () => cubit.state.currentSong!,
-                          books: () => cubit.state.songBook,
-                          onChangeBookCode: (bookCode) {
-                            var book = cubit.state.songBook.firstWhereOrNull(
-                                (element) => element.code == bookCode);
-                            if ((book?.songs.length ?? 0) <= currentPageIndex) {
-                              pageController.jumpToPage(0);
-                              pageListener(0);
-                            }
-                            cubit.changeBookcode(bookCode);
-                          },
-                          onTapPageNumber: (pageNumber) async {
-                            pageController.jumpToPage(0);
-                            pageListener(0);
-                            await Future.delayed(Duration(milliseconds: 200));
-                            cubit.removeSelection();
-                            cubit.changeBookcode(
-                                cubit.state.currentSong?.code ?? '');
-                            var index = cubit.state.songs.indexWhere(
-                                (element) => element.number == pageNumber);
-                            // if (index == null) return;
-
-                            cubit.addToHistory(
-                              SongHistory(
-                                index: index,
-                                bookCode: cubit.state.bookCode,
-                                createdAt: DateTime.now(),
-                              ),
-                            );
-                            if (index == 0) {
-                              cubit
-                                  .fetchAvailableSong(cubit.state.songs[index]);
-                            }
-
-                            try {
-                              pageController.jumpToPage(index);
-                              pageListener(index);
-                            } catch (e) {
-                              log('$e');
-                            }
-                            isOnListNotifier.value = false;
-                          })
+                  PopupMenuItem(
+                    value: 'share',
+                    child: Text('Share'.tr()),
+                  ),
+                  PopupMenuItem(
+                    value: 'notes',
+                    child: Text('See all notes'.tr()),
+                  ),
                 ],
               ),
-            ),
-          )),
-    );
-  }
-}
-
-class ImageLyric extends StatefulWidget {
-  final Function(bool isScaled) onScaled;
-  const ImageLyric({
-    super.key,
-    required this.child,
-    required this.onScaled,
-  });
-
-  final Image child;
-
-  @override
-  State<ImageLyric> createState() => _ImageLyricState();
-}
-
-class _ImageLyricState extends State<ImageLyric> {
-  late final TransformationController _transformationController =
-      TransformationController();
-
-  @override
-  void dispose() {
-    _transformationController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onDoubleTap: () {
-        _transformationController.value = Matrix4.identity();
-      },
-      child: InteractiveViewer(
-        transformationController: _transformationController,
-        onInteractionEnd: (details) {
-          double correctScaleValue =
-              _transformationController.value.getMaxScaleOnAxis();
-          widget.onScaled(correctScaleValue != 1);
-          //log('asasd');
-          // details.
-        },
-        child: widget.child,
-      ),
-    );
-  }
-}
-
-class BookPaper extends StatefulWidget {
-  final int itemCount;
-  final IndexedWidgetBuilder builder;
-  final ValueChanged<int>? onPageChanged;
-
-  const BookPaper(
-      {super.key,
-      required this.itemCount,
-      required this.builder,
-      this.onPageChanged});
-
-  @override
-  _BookPaperState createState() => _BookPaperState();
-}
-
-class _BookPaperState extends State<BookPaper>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  late int _currentPage;
-
-  @override
-  void initState() {
-    super.initState();
-    _currentPage = 0;
-    _controller = AnimationController(
-      vsync: this,
-      duration: Duration(milliseconds: 500),
-    );
-    _animation = Tween<double>(begin: 0, end: 1).animate(_controller)
-      ..addListener(() {
-        setState(() {});
-      });
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onSwipeLeft() {
-    if (_currentPage < widget.itemCount - 1) {
-      setState(() {
-        _currentPage++;
-        _controller.reset();
-        _controller.forward();
-      });
-      widget.onPageChanged?.call(_currentPage);
-    }
-  }
-
-  void _onSwipeRight() {
-    if (_currentPage > 0) {
-      setState(() {
-        _currentPage--;
-        _controller.reset();
-        _controller.forward();
-      });
-      widget.onPageChanged?.call(_currentPage);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onHorizontalDragEnd: (details) {
-        if (details.primaryVelocity! > 0) {
-          _onSwipeRight();
-        } else if (details.primaryVelocity! < 0) {
-          _onSwipeLeft();
-        }
-      },
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: Container(
-              alignment: Alignment.center,
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..setEntry(3, 2, 0.001)
-                  ..rotateY(3.14 * _animation.value),
-                origin: Offset(_animation.value < 0.5 ? 0 : 1, 0.5),
-                child: _buildPage(_currentPage),
-              ),
-            ),
+            ],
           ),
-          Positioned.fill(
-            child: IgnorePointer(
-              child: Opacity(
-                opacity:
-                    _animation.value < 0.5 ? 0 : (_animation.value - 0.5) * 2,
-                child: Transform(
-                  transform: Matrix4.identity()..rotateY(3.14),
-                  alignment: Alignment.centerRight,
-                  child: _buildPage(_currentPage + 1),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPage(int index) {
-    if (index >= 0 && index < widget.itemCount) {
-      return widget.builder(context, index);
-    }
-    return Container();
-  }
-}
-
-class SelectedSongMenu extends StatelessWidget {
-  final Song item;
-  final double viewPadding;
-  const SelectedSongMenu({
-    super.key,
-    required this.item,
-    required this.viewPadding,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final cubit = context.read<SongCubit>();
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
-        ],
-        color: context.colorScheme.surface,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        (item.title ?? '').capitalizeEachWord(),
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.close),
-                      visualDensity: VisualDensity.compact,
-                      onPressed: cubit.removeSelection,
-                    ),
-                  ],
-                ),
-                SizedBox(
-                  height: 12,
-                ),
-              ],
-            ),
-          ),
-          SingleChildScrollView(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                    ),
-                    onPressed: () {
-                      var existing = context
-                          .read<SongCubit>()
-                          .state
-                          .notes
-                          .firstWhereOrNull((element) =>
-                              element.song.title ==
-                              context
-                                  .read<SongCubit>()
-                                  .state
-                                  .selectedSong
-                                  ?.title);
-                      router.push(SongNoteRoute(
-                        initialData: existing ??
-                            SongNote.empty(cubit.state.selectedSong!),
-                        cubit: cubit,
-                        mode: NoteMode.write,
-                        onSave: (data) {
-                          cubit.saveNote(data);
-                          router.maybePop();
-                          router
-                              .push(SongNotesListRoute(cubit: context.read()));
-                        },
-                      ));
-                    },
-                    child: Text('Note'.tr())),
-                SizedBox(
-                  width: 8,
-                ),
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: context.colorScheme.primaryContainer,
-                    foregroundColor: context.colorScheme.onPrimaryContainer,
-                  ),
-                  onPressed: () async {
-                    String text = '';
-                    var title = '${(item.title ?? '').capitalizeEachWord()}\n';
-                    var json =
-                        await FirebaseUtils.jsonConfig('footer_copied_text');
-                    var footer = json[context.locale.languageCode];
-                    text = title;
-                    for (var i = 0; i < item.verses.length; i++) {
-                      var verse = item.verses[i];
-                      var number = i + 1;
-                      text += '\n$number. $verse\n';
-                    }
-                    text += '\n\n$footer';
-                    Share.share(text);
-                  },
-                  child: Text(
-                    'Share'.tr(),
-                  ),
-                ),
-                SizedBox(
-                  width: 8,
-                ),
-                TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                    ),
-                    onPressed: () async {
-                      String text = '';
-                      var title =
-                          '${(item.title ?? '').capitalizeEachWord()}\n';
-                      var json =
-                          await FirebaseUtils.jsonConfig('footer_copied_text');
-                      var footer = json[context.locale.languageCode];
-                      text = title;
-                      for (var i = 0; i < item.verses.length; i++) {
-                        var verse = item.verses[i];
-                        var number = i + 1;
-                        text += '\n$number. $verse\n';
+          body: Stack(
+            children: [
+              // PDF Viewer
+              PageView.builder(
+                controller: pageController,
+                itemCount: state.songs.length,
+                itemBuilder: (context, index) {
+                  final song = state.songs[index];
+                  return FutureBuilder<String?>(
+                    future:
+                        cubit.getPdfPath(song.code ?? '', song.number ?? ''),
+                    builder: (context, snapshot) {
+                      final pdfPath = snapshot.data;
+                      if (pdfPath == null) {
+                        return const Center(child: CircularProgressIndicator());
                       }
-                      text += '\n\n$footer';
-                      await Clipboard.setData(ClipboardData(text: text));
-                      try { Fluttertoast.cancel(); } catch (_) {}
-                      try { Fluttertoast.showToast(msg: 'Copied!'.tr()); } catch (_) {}
+                      return SongPdfViewer(
+                        pdfPath: pdfPath,
+                        showChord: state.showChord,
+                        chords: _currentChords,
+                        transposeStep: state.transposeStep,
+                      );
                     },
-                    child: Text('Copy'.tr())),
-                SizedBox(
-                  width: 8,
+                  );
+                },
+              ),
+
+              // Hidden MIDI Engine WebView
+              if (state.showAudio)
+                MidiEngineWebView(
+                  service: cubit.midiEngine,
                 ),
-                // TextButton.icon(
-                //     style: TextButton.styleFrom(
-                //       backgroundColor: context.colorScheme.primaryContainer,
-                //       foregroundColor: context.colorScheme.onPrimaryContainer,
-                //     ),
-                //     onPressed: () async {
-                //       cubit.modifyFavorite(item);
-                //       cubit.removeSelection();
-                //     },
-                //     icon: cubit.isSongFavorite(item)
-                //         ? Icon(
-                //             Icons.check,
-                //             size: 12,
-                //           )
-                //         : SizedBox(),
-                //     label: Text('Favorite'.tr())),
-                // SizedBox(
-                //   width: 8,
-                // ),
-                // TextButton.icon(
-                //     style: TextButton.styleFrom(
-                //       backgroundColor: context.colorScheme.primaryContainer,
-                //       foregroundColor: context.colorScheme.onPrimaryContainer,
-                //     ),
-                //     onPressed: () async {
-                //       cubit.toggleAudio();
-                //       cubit.removeSelection();
-                //     },
-                //     icon: cubit.state.showAudio
-                //         ? Icon(
-                //             Icons.check,
-                //             size: 12,
-                //           )
-                //         : SizedBox(),
-                //     label: Text('Audio'.tr())),
-              ],
-            ),
+
+              // Draggable MIDI Controls
+              if (state.showAudio)
+                AnimatedBuilder(
+                  animation: cubit.midiEngine,
+                  builder: (context, child) {
+                    final midiState = cubit.midiEngine.state;
+                    return DraggableMidiControls(
+                      isPlaying: midiState.isPlaying,
+                      isLoading: midiState.isLoading,
+                      position: midiState.position,
+                      duration: midiState.duration,
+                      transposeStep: state.transposeStep,
+                      tempoBpm: state.tempoBpm,
+                      onPlayPause: () => cubit.togglePlayPause(),
+                      onStop: () => cubit.stop(),
+                      onSeek: (seconds) =>
+                          cubit.seek(Duration(seconds: seconds.toInt())),
+                      onTranspose: (semitones) => cubit.setTranspose(semitones),
+                      onTempo: (bpm) => cubit.setTempo(bpm),
+                    );
+                  },
+                ),
+            ],
           ),
-          SizedBox(height: 8 + 16 + viewPadding),
-        ],
+        );
+      },
+    );
+  }
+
+  Future<void> _copyCurrentVerse(SongState state) async {
+    if (currentPageIndex >= state.songs.length) return;
+    final song = state.songs[currentPageIndex];
+    final text = '${song.number} - ${song.title}';
+    await Clipboard.setData(ClipboardData(text: text));
+    Fluttertoast.showToast(msg: 'Copied to clipboard'.tr());
+  }
+
+  void _shareCurrentSong(SongState state) {
+    if (currentPageIndex >= state.songs.length) return;
+    final song = state.songs[currentPageIndex];
+    final text = '${song.number} - ${song.title}';
+    Share.share(text, subject: song.title);
+  }
+
+  void _openSongSelector() {
+    router.push(
+      SongListRoute(
+        books: () => cubit.state.songBook,
+        currentBook: () =>
+            cubit.state.currentSong ??
+            SongBook(code: cubit.state.bookCode, songs: const []),
+        favoriteBooks: () => cubit.state.favoriteSongBook,
+        initialSearchText: cubit.state.searchTerms,
+        onSearchTermsChanged: cubit.onSearchTermsChanged,
+        onChangeBookCode: (bookCode) {
+          cubit.changeBookcode(bookCode);
+          _jumpToSongIndex(0);
+        },
+        onTapPageNumber: (pageNumber) {
+          final index = cubit.state.songs.indexWhere(
+            (song) => song.number == pageNumber,
+          );
+          router.maybePop();
+          _jumpToSongIndex(index < 0 ? 0 : index);
+        },
+        onTapFavorite: (song) {
+          cubit.changeBookcode(song.code ?? cubit.state.bookCode);
+          final index = cubit.state.songs.indexWhere(
+            (item) => item.code == song.code && item.number == song.number,
+          );
+          router.maybePop();
+          _jumpToSongIndex(index < 0 ? 0 : index);
+        },
+        isFavorite: cubit.isSongFavorite,
+        onFavorite: (song) => cubit.modifyFavorite(song, playOnlyFav: false),
+        onBack: () => router.maybePop(),
+        onPlayFavorite: () {
+          if (cubit.state.isAudioPlaying) {
+            cubit.pause();
+          } else {
+            cubit.play();
+          }
+        },
       ),
     );
+  }
+
+  void _jumpToSongIndex(int index) {
+    if (index < 0 || index >= cubit.state.songs.length) return;
+    setState(() {
+      currentPageIndex = index;
+    });
+    cubit.changePage(index, 0);
+    _loadChordData();
+    if (!pageController.hasClients) return;
+    pageController.jumpToPage(index);
   }
 }

@@ -187,3 +187,4 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
     );
   }
 }
+

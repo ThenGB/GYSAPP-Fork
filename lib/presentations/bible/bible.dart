@@ -17,3 +17,4 @@ export 'widget/bible_selected_verse_menu_widget.dart';
 export 'widget/bible_verse_widget.dart';
 export 'widget/bible_viewer.dart';
 export 'widget/highlighted_text.dart';
+

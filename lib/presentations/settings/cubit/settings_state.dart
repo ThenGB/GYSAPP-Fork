@@ -4,7 +4,7 @@ part 'settings_state.freezed.dart';
 part 'settings_state.g.dart';
 
 @freezed
-class SettingsState with _$SettingsState {
+abstract class SettingsState with _$SettingsState {
   const SettingsState._();
   const factory SettingsState({
     @Default(false) bool isSabatNotificationActive,
@@ -15,3 +15,4 @@ class SettingsState with _$SettingsState {
   factory SettingsState.fromJson(Map<String, dynamic> json) =>
       _$SettingsStateFromJson(json);
 }
+

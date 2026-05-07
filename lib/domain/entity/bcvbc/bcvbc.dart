@@ -4,7 +4,7 @@ part 'bcvbc.freezed.dart';
 part 'bcvbc.g.dart';
 
 @freezed
-class Bcvbc with _$Bcvbc {
+abstract class Bcvbc with _$Bcvbc {
   const Bcvbc._();
   const factory Bcvbc({
     @JsonKey(name: 'b') String? b,
@@ -36,3 +36,4 @@ class Bcvbc with _$Bcvbc {
     );
   }
 }
+

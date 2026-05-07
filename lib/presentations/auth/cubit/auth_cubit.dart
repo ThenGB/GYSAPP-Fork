@@ -74,3 +74,4 @@ class AuthCubit extends HydratedCubit<AuthState> {
     }
   }
 }
+

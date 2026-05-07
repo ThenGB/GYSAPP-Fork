@@ -8,7 +8,7 @@ part 'home_state.freezed.dart';
 part 'home_state.g.dart';
 
 @freezed
-class HomeState with _$HomeState {
+abstract class HomeState with _$HomeState {
   const HomeState._();
   const factory HomeState({
     @Default(false) bool isLoading,
@@ -24,3 +24,4 @@ class HomeState with _$HomeState {
   factory HomeState.fromJson(Map<String, dynamic> json) =>
       _$HomeStateFromJson(json);
 }
+

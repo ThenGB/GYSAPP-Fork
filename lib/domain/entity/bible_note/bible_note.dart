@@ -6,7 +6,7 @@ part 'bible_note.freezed.dart';
 part 'bible_note.g.dart';
 
 @freezed
-class BibleNote with _$BibleNote {
+abstract class BibleNote with _$BibleNote {
   const BibleNote._();
   const factory BibleNote({
     required int id,
@@ -28,3 +28,4 @@ class BibleNote with _$BibleNote {
   factory BibleNote.fromJson(Map<String, dynamic> json) =>
       _$BibleNoteFromJson(json);
 }
+

@@ -5,7 +5,7 @@ part 'initial_state.freezed.dart';
 part 'initial_state.g.dart';
 
 @freezed
-class InitialState with _$InitialState {
+abstract class InitialState with _$InitialState {
   const InitialState._();
   const factory InitialState({
     @Default(false) bool isLoading,
@@ -49,3 +49,4 @@ extension ThemeToString on ThemeMode {
     }
   }
 }
+

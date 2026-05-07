@@ -57,3 +57,4 @@ bool get isAppAuthConfiguredForCurrentPlatform =>
     defaultTargetPlatform == TargetPlatform.android ||
     defaultTargetPlatform == TargetPlatform.iOS ||
     defaultTargetPlatform == TargetPlatform.macOS;
+

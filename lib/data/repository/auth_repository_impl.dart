@@ -14,3 +14,4 @@ class AuthRepositoryImpl implements AuthRepository {
     throw UnimplementedError();
   }
 }
+

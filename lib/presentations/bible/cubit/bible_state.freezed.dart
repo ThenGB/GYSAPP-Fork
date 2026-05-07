@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,74 +9,195 @@ part of 'bible_state.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-BibleState _$BibleStateFromJson(Map<String, dynamic> json) {
-  return _BibleState.fromJson(json);
-}
 
 /// @nodoc
 mixin _$BibleState {
-  String get currentBibleCode => throw _privateConstructorUsedError;
-  String get splitBibleCode => throw _privateConstructorUsedError;
-  List<String> get bibleCodes => throw _privateConstructorUsedError;
-  Verse? get currentBible => throw _privateConstructorUsedError;
-  Verse? get prevBible => throw _privateConstructorUsedError;
-  Verse? get currentBibleSplit => throw _privateConstructorUsedError;
-  Verse? get prevBibleSplit => throw _privateConstructorUsedError;
-  List<BibleBook> get books => throw _privateConstructorUsedError;
-  List<BibleBook> get booksSplit => throw _privateConstructorUsedError;
-  List<Verse> get verses => throw _privateConstructorUsedError;
-  List<BibleBookmark> get bookmarks => throw _privateConstructorUsedError;
-  List<BibleRef> get references => throw _privateConstructorUsedError;
-  List<BibleRef> get referencesSplit => throw _privateConstructorUsedError;
-  List<Verse> get versesSplit => throw _privateConstructorUsedError;
-  Map<DateTime, Verse> get histories => throw _privateConstructorUsedError;
-  List<Pericope> get pericopes => throw _privateConstructorUsedError;
-  List<Pericope> get pericopesSplit => throw _privateConstructorUsedError;
-  List<BibleNote> get notes => throw _privateConstructorUsedError;
-  List<PericopeParalel> get pericopesParalels =>
-      throw _privateConstructorUsedError;
-  List<PericopeParalel> get pericopesParalelsSplit =>
-      throw _privateConstructorUsedError;
-  BibleBook? get currentBook => throw _privateConstructorUsedError;
-  BibleBook? get currentBookSplit => throw _privateConstructorUsedError;
-  List<Verse> get selectedVerse => throw _privateConstructorUsedError;
-  List<Verse> get hightlightedVerse => throw _privateConstructorUsedError;
-  Verse? get todayReading => throw _privateConstructorUsedError;
-  DateTime? get lastOpenBible => throw _privateConstructorUsedError;
-  String get defaultFont => throw _privateConstructorUsedError;
-  double get defaultTextScale => throw _privateConstructorUsedError;
-  double get defaultTextHeight => throw _privateConstructorUsedError;
-  String get sortNotesBy => throw _privateConstructorUsedError;
-  bool get enableAudio => throw _privateConstructorUsedError;
-  bool get isSpeaking => throw _privateConstructorUsedError;
-  String get currentWord => throw _privateConstructorUsedError;
-  int get currentStartWord => throw _privateConstructorUsedError;
-  int get currentEndWord => throw _privateConstructorUsedError;
-  List<BibleBook> get selectedFilterBooks => throw _privateConstructorUsedError;
-  Map<String, Map> get voices => throw _privateConstructorUsedError;
-  double get speedRate => throw _privateConstructorUsedError;
-  double get pitchRate => throw _privateConstructorUsedError;
-
-  /// Serializes this BibleState to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String get currentBibleCode;
+  String get splitBibleCode;
+  List<String> get bibleCodes;
+  Verse? get currentBible;
+  Verse? get prevBible;
+  Verse? get currentBibleSplit;
+  Verse? get prevBibleSplit;
+  List<BibleBook> get books;
+  List<BibleBook> get booksSplit;
+  List<Verse> get verses;
+  List<BibleBookmark> get bookmarks;
+  List<BibleRef> get references;
+  List<BibleRef> get referencesSplit;
+  List<Verse> get versesSplit;
+  Map<DateTime, Verse> get histories;
+  List<Pericope> get pericopes;
+  List<Pericope> get pericopesSplit;
+  List<BibleNote> get notes;
+  List<PericopeParalel> get pericopesParalels;
+  List<PericopeParalel> get pericopesParalelsSplit;
+  BibleBook? get currentBook;
+  BibleBook? get currentBookSplit;
+  List<Verse> get selectedVerse;
+  List<Verse> get hightlightedVerse;
+  Verse? get todayReading;
+  DateTime? get lastOpenBible;
+  String get defaultFont;
+  double get defaultTextScale;
+  double get defaultTextHeight;
+  String get sortNotesBy;
+  bool get enableAudio;
+  bool get isSpeaking;
+  String get currentWord;
+  int get currentStartWord;
+  int get currentEndWord;
+  List<BibleBook> get selectedFilterBooks;
+  Map<String, Map> get voices;
+  double get speedRate;
+  double get pitchRate;
 
   /// Create a copy of BibleState
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $BibleStateCopyWith<BibleState> get copyWith =>
-      throw _privateConstructorUsedError;
+      _$BibleStateCopyWithImpl<BibleState>(this as BibleState, _$identity);
+
+  /// Serializes this BibleState to a JSON map.
+  Map<String, dynamic> toJson();
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is BibleState &&
+            (identical(other.currentBibleCode, currentBibleCode) ||
+                other.currentBibleCode == currentBibleCode) &&
+            (identical(other.splitBibleCode, splitBibleCode) ||
+                other.splitBibleCode == splitBibleCode) &&
+            const DeepCollectionEquality()
+                .equals(other.bibleCodes, bibleCodes) &&
+            (identical(other.currentBible, currentBible) ||
+                other.currentBible == currentBible) &&
+            (identical(other.prevBible, prevBible) ||
+                other.prevBible == prevBible) &&
+            (identical(other.currentBibleSplit, currentBibleSplit) ||
+                other.currentBibleSplit == currentBibleSplit) &&
+            (identical(other.prevBibleSplit, prevBibleSplit) ||
+                other.prevBibleSplit == prevBibleSplit) &&
+            const DeepCollectionEquality().equals(other.books, books) &&
+            const DeepCollectionEquality()
+                .equals(other.booksSplit, booksSplit) &&
+            const DeepCollectionEquality().equals(other.verses, verses) &&
+            const DeepCollectionEquality().equals(other.bookmarks, bookmarks) &&
+            const DeepCollectionEquality()
+                .equals(other.references, references) &&
+            const DeepCollectionEquality()
+                .equals(other.referencesSplit, referencesSplit) &&
+            const DeepCollectionEquality()
+                .equals(other.versesSplit, versesSplit) &&
+            const DeepCollectionEquality().equals(other.histories, histories) &&
+            const DeepCollectionEquality().equals(other.pericopes, pericopes) &&
+            const DeepCollectionEquality()
+                .equals(other.pericopesSplit, pericopesSplit) &&
+            const DeepCollectionEquality().equals(other.notes, notes) &&
+            const DeepCollectionEquality()
+                .equals(other.pericopesParalels, pericopesParalels) &&
+            const DeepCollectionEquality()
+                .equals(other.pericopesParalelsSplit, pericopesParalelsSplit) &&
+            (identical(other.currentBook, currentBook) ||
+                other.currentBook == currentBook) &&
+            (identical(other.currentBookSplit, currentBookSplit) ||
+                other.currentBookSplit == currentBookSplit) &&
+            const DeepCollectionEquality()
+                .equals(other.selectedVerse, selectedVerse) &&
+            const DeepCollectionEquality()
+                .equals(other.hightlightedVerse, hightlightedVerse) &&
+            (identical(other.todayReading, todayReading) ||
+                other.todayReading == todayReading) &&
+            (identical(other.lastOpenBible, lastOpenBible) ||
+                other.lastOpenBible == lastOpenBible) &&
+            (identical(other.defaultFont, defaultFont) ||
+                other.defaultFont == defaultFont) &&
+            (identical(other.defaultTextScale, defaultTextScale) ||
+                other.defaultTextScale == defaultTextScale) &&
+            (identical(other.defaultTextHeight, defaultTextHeight) ||
+                other.defaultTextHeight == defaultTextHeight) &&
+            (identical(other.sortNotesBy, sortNotesBy) ||
+                other.sortNotesBy == sortNotesBy) &&
+            (identical(other.enableAudio, enableAudio) ||
+                other.enableAudio == enableAudio) &&
+            (identical(other.isSpeaking, isSpeaking) ||
+                other.isSpeaking == isSpeaking) &&
+            (identical(other.currentWord, currentWord) ||
+                other.currentWord == currentWord) &&
+            (identical(other.currentStartWord, currentStartWord) ||
+                other.currentStartWord == currentStartWord) &&
+            (identical(other.currentEndWord, currentEndWord) ||
+                other.currentEndWord == currentEndWord) &&
+            const DeepCollectionEquality()
+                .equals(other.selectedFilterBooks, selectedFilterBooks) &&
+            const DeepCollectionEquality().equals(other.voices, voices) &&
+            (identical(other.speedRate, speedRate) ||
+                other.speedRate == speedRate) &&
+            (identical(other.pitchRate, pitchRate) ||
+                other.pitchRate == pitchRate));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode => Object.hashAll([
+        runtimeType,
+        currentBibleCode,
+        splitBibleCode,
+        const DeepCollectionEquality().hash(bibleCodes),
+        currentBible,
+        prevBible,
+        currentBibleSplit,
+        prevBibleSplit,
+        const DeepCollectionEquality().hash(books),
+        const DeepCollectionEquality().hash(booksSplit),
+        const DeepCollectionEquality().hash(verses),
+        const DeepCollectionEquality().hash(bookmarks),
+        const DeepCollectionEquality().hash(references),
+        const DeepCollectionEquality().hash(referencesSplit),
+        const DeepCollectionEquality().hash(versesSplit),
+        const DeepCollectionEquality().hash(histories),
+        const DeepCollectionEquality().hash(pericopes),
+        const DeepCollectionEquality().hash(pericopesSplit),
+        const DeepCollectionEquality().hash(notes),
+        const DeepCollectionEquality().hash(pericopesParalels),
+        const DeepCollectionEquality().hash(pericopesParalelsSplit),
+        currentBook,
+        currentBookSplit,
+        const DeepCollectionEquality().hash(selectedVerse),
+        const DeepCollectionEquality().hash(hightlightedVerse),
+        todayReading,
+        lastOpenBible,
+        defaultFont,
+        defaultTextScale,
+        defaultTextHeight,
+        sortNotesBy,
+        enableAudio,
+        isSpeaking,
+        currentWord,
+        currentStartWord,
+        currentEndWord,
+        const DeepCollectionEquality().hash(selectedFilterBooks),
+        const DeepCollectionEquality().hash(voices),
+        speedRate,
+        pitchRate
+      ]);
+
+  @override
+  String toString() {
+    return 'BibleState(currentBibleCode: $currentBibleCode, splitBibleCode: $splitBibleCode, bibleCodes: $bibleCodes, currentBible: $currentBible, prevBible: $prevBible, currentBibleSplit: $currentBibleSplit, prevBibleSplit: $prevBibleSplit, books: $books, booksSplit: $booksSplit, verses: $verses, bookmarks: $bookmarks, references: $references, referencesSplit: $referencesSplit, versesSplit: $versesSplit, histories: $histories, pericopes: $pericopes, pericopesSplit: $pericopesSplit, notes: $notes, pericopesParalels: $pericopesParalels, pericopesParalelsSplit: $pericopesParalelsSplit, currentBook: $currentBook, currentBookSplit: $currentBookSplit, selectedVerse: $selectedVerse, hightlightedVerse: $hightlightedVerse, todayReading: $todayReading, lastOpenBible: $lastOpenBible, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, sortNotesBy: $sortNotesBy, enableAudio: $enableAudio, isSpeaking: $isSpeaking, currentWord: $currentWord, currentStartWord: $currentStartWord, currentEndWord: $currentEndWord, selectedFilterBooks: $selectedFilterBooks, voices: $voices, speedRate: $speedRate, pitchRate: $pitchRate)';
+  }
 }
 
 /// @nodoc
-abstract class $BibleStateCopyWith<$Res> {
+abstract mixin class $BibleStateCopyWith<$Res> {
   factory $BibleStateCopyWith(
-          BibleState value, $Res Function(BibleState) then) =
-      _$BibleStateCopyWithImpl<$Res, BibleState>;
+          BibleState value, $Res Function(BibleState) _then) =
+      _$BibleStateCopyWithImpl;
   @useResult
   $Res call(
       {String currentBibleCode,
@@ -129,14 +250,11 @@ abstract class $BibleStateCopyWith<$Res> {
 }
 
 /// @nodoc
-class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
-    implements $BibleStateCopyWith<$Res> {
-  _$BibleStateCopyWithImpl(this._value, this._then);
+class _$BibleStateCopyWithImpl<$Res> implements $BibleStateCopyWith<$Res> {
+  _$BibleStateCopyWithImpl(this._self, this._then);
 
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
+  final BibleState _self;
+  final $Res Function(BibleState) _then;
 
   /// Create a copy of BibleState
   /// with the given fields replaced by the non-null parameter values.
@@ -183,164 +301,164 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
     Object? speedRate = null,
     Object? pitchRate = null,
   }) {
-    return _then(_value.copyWith(
+    return _then(_self.copyWith(
       currentBibleCode: null == currentBibleCode
-          ? _value.currentBibleCode
+          ? _self.currentBibleCode
           : currentBibleCode // ignore: cast_nullable_to_non_nullable
               as String,
       splitBibleCode: null == splitBibleCode
-          ? _value.splitBibleCode
+          ? _self.splitBibleCode
           : splitBibleCode // ignore: cast_nullable_to_non_nullable
               as String,
       bibleCodes: null == bibleCodes
-          ? _value.bibleCodes
+          ? _self.bibleCodes
           : bibleCodes // ignore: cast_nullable_to_non_nullable
               as List<String>,
       currentBible: freezed == currentBible
-          ? _value.currentBible
+          ? _self.currentBible
           : currentBible // ignore: cast_nullable_to_non_nullable
               as Verse?,
       prevBible: freezed == prevBible
-          ? _value.prevBible
+          ? _self.prevBible
           : prevBible // ignore: cast_nullable_to_non_nullable
               as Verse?,
       currentBibleSplit: freezed == currentBibleSplit
-          ? _value.currentBibleSplit
+          ? _self.currentBibleSplit
           : currentBibleSplit // ignore: cast_nullable_to_non_nullable
               as Verse?,
       prevBibleSplit: freezed == prevBibleSplit
-          ? _value.prevBibleSplit
+          ? _self.prevBibleSplit
           : prevBibleSplit // ignore: cast_nullable_to_non_nullable
               as Verse?,
       books: null == books
-          ? _value.books
+          ? _self.books
           : books // ignore: cast_nullable_to_non_nullable
               as List<BibleBook>,
       booksSplit: null == booksSplit
-          ? _value.booksSplit
+          ? _self.booksSplit
           : booksSplit // ignore: cast_nullable_to_non_nullable
               as List<BibleBook>,
       verses: null == verses
-          ? _value.verses
+          ? _self.verses
           : verses // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       bookmarks: null == bookmarks
-          ? _value.bookmarks
+          ? _self.bookmarks
           : bookmarks // ignore: cast_nullable_to_non_nullable
               as List<BibleBookmark>,
       references: null == references
-          ? _value.references
+          ? _self.references
           : references // ignore: cast_nullable_to_non_nullable
               as List<BibleRef>,
       referencesSplit: null == referencesSplit
-          ? _value.referencesSplit
+          ? _self.referencesSplit
           : referencesSplit // ignore: cast_nullable_to_non_nullable
               as List<BibleRef>,
       versesSplit: null == versesSplit
-          ? _value.versesSplit
+          ? _self.versesSplit
           : versesSplit // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       histories: null == histories
-          ? _value.histories
+          ? _self.histories
           : histories // ignore: cast_nullable_to_non_nullable
               as Map<DateTime, Verse>,
       pericopes: null == pericopes
-          ? _value.pericopes
+          ? _self.pericopes
           : pericopes // ignore: cast_nullable_to_non_nullable
               as List<Pericope>,
       pericopesSplit: null == pericopesSplit
-          ? _value.pericopesSplit
+          ? _self.pericopesSplit
           : pericopesSplit // ignore: cast_nullable_to_non_nullable
               as List<Pericope>,
       notes: null == notes
-          ? _value.notes
+          ? _self.notes
           : notes // ignore: cast_nullable_to_non_nullable
               as List<BibleNote>,
       pericopesParalels: null == pericopesParalels
-          ? _value.pericopesParalels
+          ? _self.pericopesParalels
           : pericopesParalels // ignore: cast_nullable_to_non_nullable
               as List<PericopeParalel>,
       pericopesParalelsSplit: null == pericopesParalelsSplit
-          ? _value.pericopesParalelsSplit
+          ? _self.pericopesParalelsSplit
           : pericopesParalelsSplit // ignore: cast_nullable_to_non_nullable
               as List<PericopeParalel>,
       currentBook: freezed == currentBook
-          ? _value.currentBook
+          ? _self.currentBook
           : currentBook // ignore: cast_nullable_to_non_nullable
               as BibleBook?,
       currentBookSplit: freezed == currentBookSplit
-          ? _value.currentBookSplit
+          ? _self.currentBookSplit
           : currentBookSplit // ignore: cast_nullable_to_non_nullable
               as BibleBook?,
       selectedVerse: null == selectedVerse
-          ? _value.selectedVerse
+          ? _self.selectedVerse
           : selectedVerse // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       hightlightedVerse: null == hightlightedVerse
-          ? _value.hightlightedVerse
+          ? _self.hightlightedVerse
           : hightlightedVerse // ignore: cast_nullable_to_non_nullable
               as List<Verse>,
       todayReading: freezed == todayReading
-          ? _value.todayReading
+          ? _self.todayReading
           : todayReading // ignore: cast_nullable_to_non_nullable
               as Verse?,
       lastOpenBible: freezed == lastOpenBible
-          ? _value.lastOpenBible
+          ? _self.lastOpenBible
           : lastOpenBible // ignore: cast_nullable_to_non_nullable
               as DateTime?,
       defaultFont: null == defaultFont
-          ? _value.defaultFont
+          ? _self.defaultFont
           : defaultFont // ignore: cast_nullable_to_non_nullable
               as String,
       defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
+          ? _self.defaultTextScale
           : defaultTextScale // ignore: cast_nullable_to_non_nullable
               as double,
       defaultTextHeight: null == defaultTextHeight
-          ? _value.defaultTextHeight
+          ? _self.defaultTextHeight
           : defaultTextHeight // ignore: cast_nullable_to_non_nullable
               as double,
       sortNotesBy: null == sortNotesBy
-          ? _value.sortNotesBy
+          ? _self.sortNotesBy
           : sortNotesBy // ignore: cast_nullable_to_non_nullable
               as String,
       enableAudio: null == enableAudio
-          ? _value.enableAudio
+          ? _self.enableAudio
           : enableAudio // ignore: cast_nullable_to_non_nullable
               as bool,
       isSpeaking: null == isSpeaking
-          ? _value.isSpeaking
+          ? _self.isSpeaking
           : isSpeaking // ignore: cast_nullable_to_non_nullable
               as bool,
       currentWord: null == currentWord
-          ? _value.currentWord
+          ? _self.currentWord
           : currentWord // ignore: cast_nullable_to_non_nullable
               as String,
       currentStartWord: null == currentStartWord
-          ? _value.currentStartWord
+          ? _self.currentStartWord
           : currentStartWord // ignore: cast_nullable_to_non_nullable
               as int,
       currentEndWord: null == currentEndWord
-          ? _value.currentEndWord
+          ? _self.currentEndWord
           : currentEndWord // ignore: cast_nullable_to_non_nullable
               as int,
       selectedFilterBooks: null == selectedFilterBooks
-          ? _value.selectedFilterBooks
+          ? _self.selectedFilterBooks
           : selectedFilterBooks // ignore: cast_nullable_to_non_nullable
               as List<BibleBook>,
       voices: null == voices
-          ? _value.voices
+          ? _self.voices
           : voices // ignore: cast_nullable_to_non_nullable
               as Map<String, Map>,
       speedRate: null == speedRate
-          ? _value.speedRate
+          ? _self.speedRate
           : speedRate // ignore: cast_nullable_to_non_nullable
               as double,
       pitchRate: null == pitchRate
-          ? _value.pitchRate
+          ? _self.pitchRate
           : pitchRate // ignore: cast_nullable_to_non_nullable
               as double,
-    ) as $Val);
+    ));
   }
 
   /// Create a copy of BibleState
@@ -348,12 +466,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get currentBible {
-    if (_value.currentBible == null) {
+    if (_self.currentBible == null) {
       return null;
     }
 
-    return $VerseCopyWith<$Res>(_value.currentBible!, (value) {
-      return _then(_value.copyWith(currentBible: value) as $Val);
+    return $VerseCopyWith<$Res>(_self.currentBible!, (value) {
+      return _then(_self.copyWith(currentBible: value));
     });
   }
 
@@ -362,12 +480,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get prevBible {
-    if (_value.prevBible == null) {
+    if (_self.prevBible == null) {
       return null;
     }
 
-    return $VerseCopyWith<$Res>(_value.prevBible!, (value) {
-      return _then(_value.copyWith(prevBible: value) as $Val);
+    return $VerseCopyWith<$Res>(_self.prevBible!, (value) {
+      return _then(_self.copyWith(prevBible: value));
     });
   }
 
@@ -376,12 +494,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get currentBibleSplit {
-    if (_value.currentBibleSplit == null) {
+    if (_self.currentBibleSplit == null) {
       return null;
     }
 
-    return $VerseCopyWith<$Res>(_value.currentBibleSplit!, (value) {
-      return _then(_value.copyWith(currentBibleSplit: value) as $Val);
+    return $VerseCopyWith<$Res>(_self.currentBibleSplit!, (value) {
+      return _then(_self.copyWith(currentBibleSplit: value));
     });
   }
 
@@ -390,12 +508,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get prevBibleSplit {
-    if (_value.prevBibleSplit == null) {
+    if (_self.prevBibleSplit == null) {
       return null;
     }
 
-    return $VerseCopyWith<$Res>(_value.prevBibleSplit!, (value) {
-      return _then(_value.copyWith(prevBibleSplit: value) as $Val);
+    return $VerseCopyWith<$Res>(_self.prevBibleSplit!, (value) {
+      return _then(_self.copyWith(prevBibleSplit: value));
     });
   }
 
@@ -404,12 +522,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $BibleBookCopyWith<$Res>? get currentBook {
-    if (_value.currentBook == null) {
+    if (_self.currentBook == null) {
       return null;
     }
 
-    return $BibleBookCopyWith<$Res>(_value.currentBook!, (value) {
-      return _then(_value.copyWith(currentBook: value) as $Val);
+    return $BibleBookCopyWith<$Res>(_self.currentBook!, (value) {
+      return _then(_self.copyWith(currentBook: value));
     });
   }
 
@@ -418,12 +536,12 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $BibleBookCopyWith<$Res>? get currentBookSplit {
-    if (_value.currentBookSplit == null) {
+    if (_self.currentBookSplit == null) {
       return null;
     }
 
-    return $BibleBookCopyWith<$Res>(_value.currentBookSplit!, (value) {
-      return _then(_value.copyWith(currentBookSplit: value) as $Val);
+    return $BibleBookCopyWith<$Res>(_self.currentBookSplit!, (value) {
+      return _then(_self.copyWith(currentBookSplit: value));
     });
   }
 
@@ -432,299 +550,414 @@ class _$BibleStateCopyWithImpl<$Res, $Val extends BibleState>
   @override
   @pragma('vm:prefer-inline')
   $VerseCopyWith<$Res>? get todayReading {
-    if (_value.todayReading == null) {
+    if (_self.todayReading == null) {
       return null;
     }
 
-    return $VerseCopyWith<$Res>(_value.todayReading!, (value) {
-      return _then(_value.copyWith(todayReading: value) as $Val);
+    return $VerseCopyWith<$Res>(_self.todayReading!, (value) {
+      return _then(_self.copyWith(todayReading: value));
     });
   }
 }
 
-/// @nodoc
-abstract class _$$BibleStateImplCopyWith<$Res>
-    implements $BibleStateCopyWith<$Res> {
-  factory _$$BibleStateImplCopyWith(
-          _$BibleStateImpl value, $Res Function(_$BibleStateImpl) then) =
-      __$$BibleStateImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call(
-      {String currentBibleCode,
-      String splitBibleCode,
-      List<String> bibleCodes,
-      Verse? currentBible,
-      Verse? prevBible,
-      Verse? currentBibleSplit,
-      Verse? prevBibleSplit,
-      List<BibleBook> books,
-      List<BibleBook> booksSplit,
-      List<Verse> verses,
-      List<BibleBookmark> bookmarks,
-      List<BibleRef> references,
-      List<BibleRef> referencesSplit,
-      List<Verse> versesSplit,
-      Map<DateTime, Verse> histories,
-      List<Pericope> pericopes,
-      List<Pericope> pericopesSplit,
-      List<BibleNote> notes,
-      List<PericopeParalel> pericopesParalels,
-      List<PericopeParalel> pericopesParalelsSplit,
-      BibleBook? currentBook,
-      BibleBook? currentBookSplit,
-      List<Verse> selectedVerse,
-      List<Verse> hightlightedVerse,
-      Verse? todayReading,
-      DateTime? lastOpenBible,
-      String defaultFont,
-      double defaultTextScale,
-      double defaultTextHeight,
-      String sortNotesBy,
-      bool enableAudio,
-      bool isSpeaking,
-      String currentWord,
-      int currentStartWord,
-      int currentEndWord,
-      List<BibleBook> selectedFilterBooks,
-      Map<String, Map> voices,
-      double speedRate,
-      double pitchRate});
+/// Adds pattern-matching-related methods to [BibleState].
+extension BibleStatePatterns on BibleState {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
 
-  @override
-  $VerseCopyWith<$Res>? get currentBible;
-  @override
-  $VerseCopyWith<$Res>? get prevBible;
-  @override
-  $VerseCopyWith<$Res>? get currentBibleSplit;
-  @override
-  $VerseCopyWith<$Res>? get prevBibleSplit;
-  @override
-  $BibleBookCopyWith<$Res>? get currentBook;
-  @override
-  $BibleBookCopyWith<$Res>? get currentBookSplit;
-  @override
-  $VerseCopyWith<$Res>? get todayReading;
-}
-
-/// @nodoc
-class __$$BibleStateImplCopyWithImpl<$Res>
-    extends _$BibleStateCopyWithImpl<$Res, _$BibleStateImpl>
-    implements _$$BibleStateImplCopyWith<$Res> {
-  __$$BibleStateImplCopyWithImpl(
-      _$BibleStateImpl _value, $Res Function(_$BibleStateImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of BibleState
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? currentBibleCode = null,
-    Object? splitBibleCode = null,
-    Object? bibleCodes = null,
-    Object? currentBible = freezed,
-    Object? prevBible = freezed,
-    Object? currentBibleSplit = freezed,
-    Object? prevBibleSplit = freezed,
-    Object? books = null,
-    Object? booksSplit = null,
-    Object? verses = null,
-    Object? bookmarks = null,
-    Object? references = null,
-    Object? referencesSplit = null,
-    Object? versesSplit = null,
-    Object? histories = null,
-    Object? pericopes = null,
-    Object? pericopesSplit = null,
-    Object? notes = null,
-    Object? pericopesParalels = null,
-    Object? pericopesParalelsSplit = null,
-    Object? currentBook = freezed,
-    Object? currentBookSplit = freezed,
-    Object? selectedVerse = null,
-    Object? hightlightedVerse = null,
-    Object? todayReading = freezed,
-    Object? lastOpenBible = freezed,
-    Object? defaultFont = null,
-    Object? defaultTextScale = null,
-    Object? defaultTextHeight = null,
-    Object? sortNotesBy = null,
-    Object? enableAudio = null,
-    Object? isSpeaking = null,
-    Object? currentWord = null,
-    Object? currentStartWord = null,
-    Object? currentEndWord = null,
-    Object? selectedFilterBooks = null,
-    Object? voices = null,
-    Object? speedRate = null,
-    Object? pitchRate = null,
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_BibleState value)? $default, {
+    required TResult orElse(),
   }) {
-    return _then(_$BibleStateImpl(
-      currentBibleCode: null == currentBibleCode
-          ? _value.currentBibleCode
-          : currentBibleCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      splitBibleCode: null == splitBibleCode
-          ? _value.splitBibleCode
-          : splitBibleCode // ignore: cast_nullable_to_non_nullable
-              as String,
-      bibleCodes: null == bibleCodes
-          ? _value._bibleCodes
-          : bibleCodes // ignore: cast_nullable_to_non_nullable
-              as List<String>,
-      currentBible: freezed == currentBible
-          ? _value.currentBible
-          : currentBible // ignore: cast_nullable_to_non_nullable
-              as Verse?,
-      prevBible: freezed == prevBible
-          ? _value.prevBible
-          : prevBible // ignore: cast_nullable_to_non_nullable
-              as Verse?,
-      currentBibleSplit: freezed == currentBibleSplit
-          ? _value.currentBibleSplit
-          : currentBibleSplit // ignore: cast_nullable_to_non_nullable
-              as Verse?,
-      prevBibleSplit: freezed == prevBibleSplit
-          ? _value.prevBibleSplit
-          : prevBibleSplit // ignore: cast_nullable_to_non_nullable
-              as Verse?,
-      books: null == books
-          ? _value._books
-          : books // ignore: cast_nullable_to_non_nullable
-              as List<BibleBook>,
-      booksSplit: null == booksSplit
-          ? _value._booksSplit
-          : booksSplit // ignore: cast_nullable_to_non_nullable
-              as List<BibleBook>,
-      verses: null == verses
-          ? _value._verses
-          : verses // ignore: cast_nullable_to_non_nullable
-              as List<Verse>,
-      bookmarks: null == bookmarks
-          ? _value._bookmarks
-          : bookmarks // ignore: cast_nullable_to_non_nullable
-              as List<BibleBookmark>,
-      references: null == references
-          ? _value._references
-          : references // ignore: cast_nullable_to_non_nullable
-              as List<BibleRef>,
-      referencesSplit: null == referencesSplit
-          ? _value._referencesSplit
-          : referencesSplit // ignore: cast_nullable_to_non_nullable
-              as List<BibleRef>,
-      versesSplit: null == versesSplit
-          ? _value._versesSplit
-          : versesSplit // ignore: cast_nullable_to_non_nullable
-              as List<Verse>,
-      histories: null == histories
-          ? _value._histories
-          : histories // ignore: cast_nullable_to_non_nullable
-              as Map<DateTime, Verse>,
-      pericopes: null == pericopes
-          ? _value._pericopes
-          : pericopes // ignore: cast_nullable_to_non_nullable
-              as List<Pericope>,
-      pericopesSplit: null == pericopesSplit
-          ? _value._pericopesSplit
-          : pericopesSplit // ignore: cast_nullable_to_non_nullable
-              as List<Pericope>,
-      notes: null == notes
-          ? _value._notes
-          : notes // ignore: cast_nullable_to_non_nullable
-              as List<BibleNote>,
-      pericopesParalels: null == pericopesParalels
-          ? _value._pericopesParalels
-          : pericopesParalels // ignore: cast_nullable_to_non_nullable
-              as List<PericopeParalel>,
-      pericopesParalelsSplit: null == pericopesParalelsSplit
-          ? _value._pericopesParalelsSplit
-          : pericopesParalelsSplit // ignore: cast_nullable_to_non_nullable
-              as List<PericopeParalel>,
-      currentBook: freezed == currentBook
-          ? _value.currentBook
-          : currentBook // ignore: cast_nullable_to_non_nullable
-              as BibleBook?,
-      currentBookSplit: freezed == currentBookSplit
-          ? _value.currentBookSplit
-          : currentBookSplit // ignore: cast_nullable_to_non_nullable
-              as BibleBook?,
-      selectedVerse: null == selectedVerse
-          ? _value._selectedVerse
-          : selectedVerse // ignore: cast_nullable_to_non_nullable
-              as List<Verse>,
-      hightlightedVerse: null == hightlightedVerse
-          ? _value._hightlightedVerse
-          : hightlightedVerse // ignore: cast_nullable_to_non_nullable
-              as List<Verse>,
-      todayReading: freezed == todayReading
-          ? _value.todayReading
-          : todayReading // ignore: cast_nullable_to_non_nullable
-              as Verse?,
-      lastOpenBible: freezed == lastOpenBible
-          ? _value.lastOpenBible
-          : lastOpenBible // ignore: cast_nullable_to_non_nullable
-              as DateTime?,
-      defaultFont: null == defaultFont
-          ? _value.defaultFont
-          : defaultFont // ignore: cast_nullable_to_non_nullable
-              as String,
-      defaultTextScale: null == defaultTextScale
-          ? _value.defaultTextScale
-          : defaultTextScale // ignore: cast_nullable_to_non_nullable
-              as double,
-      defaultTextHeight: null == defaultTextHeight
-          ? _value.defaultTextHeight
-          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
-              as double,
-      sortNotesBy: null == sortNotesBy
-          ? _value.sortNotesBy
-          : sortNotesBy // ignore: cast_nullable_to_non_nullable
-              as String,
-      enableAudio: null == enableAudio
-          ? _value.enableAudio
-          : enableAudio // ignore: cast_nullable_to_non_nullable
-              as bool,
-      isSpeaking: null == isSpeaking
-          ? _value.isSpeaking
-          : isSpeaking // ignore: cast_nullable_to_non_nullable
-              as bool,
-      currentWord: null == currentWord
-          ? _value.currentWord
-          : currentWord // ignore: cast_nullable_to_non_nullable
-              as String,
-      currentStartWord: null == currentStartWord
-          ? _value.currentStartWord
-          : currentStartWord // ignore: cast_nullable_to_non_nullable
-              as int,
-      currentEndWord: null == currentEndWord
-          ? _value.currentEndWord
-          : currentEndWord // ignore: cast_nullable_to_non_nullable
-              as int,
-      selectedFilterBooks: null == selectedFilterBooks
-          ? _value._selectedFilterBooks
-          : selectedFilterBooks // ignore: cast_nullable_to_non_nullable
-              as List<BibleBook>,
-      voices: null == voices
-          ? _value._voices
-          : voices // ignore: cast_nullable_to_non_nullable
-              as Map<String, Map>,
-      speedRate: null == speedRate
-          ? _value.speedRate
-          : speedRate // ignore: cast_nullable_to_non_nullable
-              as double,
-      pitchRate: null == pitchRate
-          ? _value.pitchRate
-          : pitchRate // ignore: cast_nullable_to_non_nullable
-              as double,
-    ));
+    final _that = this;
+    switch (_that) {
+      case _BibleState() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_BibleState value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleState():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_BibleState value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleState() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String currentBibleCode,
+            String splitBibleCode,
+            List<String> bibleCodes,
+            Verse? currentBible,
+            Verse? prevBible,
+            Verse? currentBibleSplit,
+            Verse? prevBibleSplit,
+            List<BibleBook> books,
+            List<BibleBook> booksSplit,
+            List<Verse> verses,
+            List<BibleBookmark> bookmarks,
+            List<BibleRef> references,
+            List<BibleRef> referencesSplit,
+            List<Verse> versesSplit,
+            Map<DateTime, Verse> histories,
+            List<Pericope> pericopes,
+            List<Pericope> pericopesSplit,
+            List<BibleNote> notes,
+            List<PericopeParalel> pericopesParalels,
+            List<PericopeParalel> pericopesParalelsSplit,
+            BibleBook? currentBook,
+            BibleBook? currentBookSplit,
+            List<Verse> selectedVerse,
+            List<Verse> hightlightedVerse,
+            Verse? todayReading,
+            DateTime? lastOpenBible,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            String sortNotesBy,
+            bool enableAudio,
+            bool isSpeaking,
+            String currentWord,
+            int currentStartWord,
+            int currentEndWord,
+            List<BibleBook> selectedFilterBooks,
+            Map<String, Map> voices,
+            double speedRate,
+            double pitchRate)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _BibleState() when $default != null:
+        return $default(
+            _that.currentBibleCode,
+            _that.splitBibleCode,
+            _that.bibleCodes,
+            _that.currentBible,
+            _that.prevBible,
+            _that.currentBibleSplit,
+            _that.prevBibleSplit,
+            _that.books,
+            _that.booksSplit,
+            _that.verses,
+            _that.bookmarks,
+            _that.references,
+            _that.referencesSplit,
+            _that.versesSplit,
+            _that.histories,
+            _that.pericopes,
+            _that.pericopesSplit,
+            _that.notes,
+            _that.pericopesParalels,
+            _that.pericopesParalelsSplit,
+            _that.currentBook,
+            _that.currentBookSplit,
+            _that.selectedVerse,
+            _that.hightlightedVerse,
+            _that.todayReading,
+            _that.lastOpenBible,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.sortNotesBy,
+            _that.enableAudio,
+            _that.isSpeaking,
+            _that.currentWord,
+            _that.currentStartWord,
+            _that.currentEndWord,
+            _that.selectedFilterBooks,
+            _that.voices,
+            _that.speedRate,
+            _that.pitchRate);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String currentBibleCode,
+            String splitBibleCode,
+            List<String> bibleCodes,
+            Verse? currentBible,
+            Verse? prevBible,
+            Verse? currentBibleSplit,
+            Verse? prevBibleSplit,
+            List<BibleBook> books,
+            List<BibleBook> booksSplit,
+            List<Verse> verses,
+            List<BibleBookmark> bookmarks,
+            List<BibleRef> references,
+            List<BibleRef> referencesSplit,
+            List<Verse> versesSplit,
+            Map<DateTime, Verse> histories,
+            List<Pericope> pericopes,
+            List<Pericope> pericopesSplit,
+            List<BibleNote> notes,
+            List<PericopeParalel> pericopesParalels,
+            List<PericopeParalel> pericopesParalelsSplit,
+            BibleBook? currentBook,
+            BibleBook? currentBookSplit,
+            List<Verse> selectedVerse,
+            List<Verse> hightlightedVerse,
+            Verse? todayReading,
+            DateTime? lastOpenBible,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            String sortNotesBy,
+            bool enableAudio,
+            bool isSpeaking,
+            String currentWord,
+            int currentStartWord,
+            int currentEndWord,
+            List<BibleBook> selectedFilterBooks,
+            Map<String, Map> voices,
+            double speedRate,
+            double pitchRate)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleState():
+        return $default(
+            _that.currentBibleCode,
+            _that.splitBibleCode,
+            _that.bibleCodes,
+            _that.currentBible,
+            _that.prevBible,
+            _that.currentBibleSplit,
+            _that.prevBibleSplit,
+            _that.books,
+            _that.booksSplit,
+            _that.verses,
+            _that.bookmarks,
+            _that.references,
+            _that.referencesSplit,
+            _that.versesSplit,
+            _that.histories,
+            _that.pericopes,
+            _that.pericopesSplit,
+            _that.notes,
+            _that.pericopesParalels,
+            _that.pericopesParalelsSplit,
+            _that.currentBook,
+            _that.currentBookSplit,
+            _that.selectedVerse,
+            _that.hightlightedVerse,
+            _that.todayReading,
+            _that.lastOpenBible,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.sortNotesBy,
+            _that.enableAudio,
+            _that.isSpeaking,
+            _that.currentWord,
+            _that.currentStartWord,
+            _that.currentEndWord,
+            _that.selectedFilterBooks,
+            _that.voices,
+            _that.speedRate,
+            _that.pitchRate);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String currentBibleCode,
+            String splitBibleCode,
+            List<String> bibleCodes,
+            Verse? currentBible,
+            Verse? prevBible,
+            Verse? currentBibleSplit,
+            Verse? prevBibleSplit,
+            List<BibleBook> books,
+            List<BibleBook> booksSplit,
+            List<Verse> verses,
+            List<BibleBookmark> bookmarks,
+            List<BibleRef> references,
+            List<BibleRef> referencesSplit,
+            List<Verse> versesSplit,
+            Map<DateTime, Verse> histories,
+            List<Pericope> pericopes,
+            List<Pericope> pericopesSplit,
+            List<BibleNote> notes,
+            List<PericopeParalel> pericopesParalels,
+            List<PericopeParalel> pericopesParalelsSplit,
+            BibleBook? currentBook,
+            BibleBook? currentBookSplit,
+            List<Verse> selectedVerse,
+            List<Verse> hightlightedVerse,
+            Verse? todayReading,
+            DateTime? lastOpenBible,
+            String defaultFont,
+            double defaultTextScale,
+            double defaultTextHeight,
+            String sortNotesBy,
+            bool enableAudio,
+            bool isSpeaking,
+            String currentWord,
+            int currentStartWord,
+            int currentEndWord,
+            List<BibleBook> selectedFilterBooks,
+            Map<String, Map> voices,
+            double speedRate,
+            double pitchRate)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _BibleState() when $default != null:
+        return $default(
+            _that.currentBibleCode,
+            _that.splitBibleCode,
+            _that.bibleCodes,
+            _that.currentBible,
+            _that.prevBible,
+            _that.currentBibleSplit,
+            _that.prevBibleSplit,
+            _that.books,
+            _that.booksSplit,
+            _that.verses,
+            _that.bookmarks,
+            _that.references,
+            _that.referencesSplit,
+            _that.versesSplit,
+            _that.histories,
+            _that.pericopes,
+            _that.pericopesSplit,
+            _that.notes,
+            _that.pericopesParalels,
+            _that.pericopesParalelsSplit,
+            _that.currentBook,
+            _that.currentBookSplit,
+            _that.selectedVerse,
+            _that.hightlightedVerse,
+            _that.todayReading,
+            _that.lastOpenBible,
+            _that.defaultFont,
+            _that.defaultTextScale,
+            _that.defaultTextHeight,
+            _that.sortNotesBy,
+            _that.enableAudio,
+            _that.isSpeaking,
+            _that.currentWord,
+            _that.currentStartWord,
+            _that.currentEndWord,
+            _that.selectedFilterBooks,
+            _that.voices,
+            _that.speedRate,
+            _that.pitchRate);
+      case _:
+        return null;
+    }
   }
 }
 
 /// @nodoc
 @JsonSerializable()
-class _$BibleStateImpl extends _BibleState {
-  const _$BibleStateImpl(
+class _BibleState extends BibleState {
+  const _BibleState(
       {this.currentBibleCode = 'b_tb',
       this.splitBibleCode = 'b_tb',
       final List<String> bibleCodes = const [],
@@ -783,9 +1016,8 @@ class _$BibleStateImpl extends _BibleState {
         _selectedFilterBooks = selectedFilterBooks,
         _voices = voices,
         super._();
-
-  factory _$BibleStateImpl.fromJson(Map<String, dynamic> json) =>
-      _$$BibleStateImplFromJson(json);
+  factory _BibleState.fromJson(Map<String, dynamic> json) =>
+      _$BibleStateFromJson(json);
 
   @override
   @JsonKey()
@@ -1009,16 +1241,26 @@ class _$BibleStateImpl extends _BibleState {
   @JsonKey()
   final double pitchRate;
 
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
   @override
-  String toString() {
-    return 'BibleState(currentBibleCode: $currentBibleCode, splitBibleCode: $splitBibleCode, bibleCodes: $bibleCodes, currentBible: $currentBible, prevBible: $prevBible, currentBibleSplit: $currentBibleSplit, prevBibleSplit: $prevBibleSplit, books: $books, booksSplit: $booksSplit, verses: $verses, bookmarks: $bookmarks, references: $references, referencesSplit: $referencesSplit, versesSplit: $versesSplit, histories: $histories, pericopes: $pericopes, pericopesSplit: $pericopesSplit, notes: $notes, pericopesParalels: $pericopesParalels, pericopesParalelsSplit: $pericopesParalelsSplit, currentBook: $currentBook, currentBookSplit: $currentBookSplit, selectedVerse: $selectedVerse, hightlightedVerse: $hightlightedVerse, todayReading: $todayReading, lastOpenBible: $lastOpenBible, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, sortNotesBy: $sortNotesBy, enableAudio: $enableAudio, isSpeaking: $isSpeaking, currentWord: $currentWord, currentStartWord: $currentStartWord, currentEndWord: $currentEndWord, selectedFilterBooks: $selectedFilterBooks, voices: $voices, speedRate: $speedRate, pitchRate: $pitchRate)';
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
+  _$BibleStateCopyWith<_BibleState> get copyWith =>
+      __$BibleStateCopyWithImpl<_BibleState>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$BibleStateToJson(
+      this,
+    );
   }
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$BibleStateImpl &&
+            other is _BibleState &&
             (identical(other.currentBibleCode, currentBibleCode) ||
                 other.currentBibleCode == currentBibleCode) &&
             (identical(other.splitBibleCode, splitBibleCode) ||
@@ -1140,151 +1382,386 @@ class _$BibleStateImpl extends _BibleState {
         pitchRate
       ]);
 
-  /// Create a copy of BibleState
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
-      __$$BibleStateImplCopyWithImpl<_$BibleStateImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$BibleStateImplToJson(
-      this,
-    );
+  String toString() {
+    return 'BibleState(currentBibleCode: $currentBibleCode, splitBibleCode: $splitBibleCode, bibleCodes: $bibleCodes, currentBible: $currentBible, prevBible: $prevBible, currentBibleSplit: $currentBibleSplit, prevBibleSplit: $prevBibleSplit, books: $books, booksSplit: $booksSplit, verses: $verses, bookmarks: $bookmarks, references: $references, referencesSplit: $referencesSplit, versesSplit: $versesSplit, histories: $histories, pericopes: $pericopes, pericopesSplit: $pericopesSplit, notes: $notes, pericopesParalels: $pericopesParalels, pericopesParalelsSplit: $pericopesParalelsSplit, currentBook: $currentBook, currentBookSplit: $currentBookSplit, selectedVerse: $selectedVerse, hightlightedVerse: $hightlightedVerse, todayReading: $todayReading, lastOpenBible: $lastOpenBible, defaultFont: $defaultFont, defaultTextScale: $defaultTextScale, defaultTextHeight: $defaultTextHeight, sortNotesBy: $sortNotesBy, enableAudio: $enableAudio, isSpeaking: $isSpeaking, currentWord: $currentWord, currentStartWord: $currentStartWord, currentEndWord: $currentEndWord, selectedFilterBooks: $selectedFilterBooks, voices: $voices, speedRate: $speedRate, pitchRate: $pitchRate)';
   }
 }
 
-abstract class _BibleState extends BibleState {
-  const factory _BibleState(
-      {final String currentBibleCode,
-      final String splitBibleCode,
-      final List<String> bibleCodes,
-      final Verse? currentBible,
-      final Verse? prevBible,
-      final Verse? currentBibleSplit,
-      final Verse? prevBibleSplit,
-      final List<BibleBook> books,
-      final List<BibleBook> booksSplit,
-      final List<Verse> verses,
-      final List<BibleBookmark> bookmarks,
-      final List<BibleRef> references,
-      final List<BibleRef> referencesSplit,
-      final List<Verse> versesSplit,
-      final Map<DateTime, Verse> histories,
-      final List<Pericope> pericopes,
-      final List<Pericope> pericopesSplit,
-      final List<BibleNote> notes,
-      final List<PericopeParalel> pericopesParalels,
-      final List<PericopeParalel> pericopesParalelsSplit,
-      final BibleBook? currentBook,
-      final BibleBook? currentBookSplit,
-      final List<Verse> selectedVerse,
-      final List<Verse> hightlightedVerse,
-      final Verse? todayReading,
-      final DateTime? lastOpenBible,
-      final String defaultFont,
-      final double defaultTextScale,
-      final double defaultTextHeight,
-      final String sortNotesBy,
-      final bool enableAudio,
-      final bool isSpeaking,
-      final String currentWord,
-      final int currentStartWord,
-      final int currentEndWord,
-      final List<BibleBook> selectedFilterBooks,
-      final Map<String, Map> voices,
-      final double speedRate,
-      final double pitchRate}) = _$BibleStateImpl;
-  const _BibleState._() : super._();
+/// @nodoc
+abstract mixin class _$BibleStateCopyWith<$Res>
+    implements $BibleStateCopyWith<$Res> {
+  factory _$BibleStateCopyWith(
+          _BibleState value, $Res Function(_BibleState) _then) =
+      __$BibleStateCopyWithImpl;
+  @override
+  @useResult
+  $Res call(
+      {String currentBibleCode,
+      String splitBibleCode,
+      List<String> bibleCodes,
+      Verse? currentBible,
+      Verse? prevBible,
+      Verse? currentBibleSplit,
+      Verse? prevBibleSplit,
+      List<BibleBook> books,
+      List<BibleBook> booksSplit,
+      List<Verse> verses,
+      List<BibleBookmark> bookmarks,
+      List<BibleRef> references,
+      List<BibleRef> referencesSplit,
+      List<Verse> versesSplit,
+      Map<DateTime, Verse> histories,
+      List<Pericope> pericopes,
+      List<Pericope> pericopesSplit,
+      List<BibleNote> notes,
+      List<PericopeParalel> pericopesParalels,
+      List<PericopeParalel> pericopesParalelsSplit,
+      BibleBook? currentBook,
+      BibleBook? currentBookSplit,
+      List<Verse> selectedVerse,
+      List<Verse> hightlightedVerse,
+      Verse? todayReading,
+      DateTime? lastOpenBible,
+      String defaultFont,
+      double defaultTextScale,
+      double defaultTextHeight,
+      String sortNotesBy,
+      bool enableAudio,
+      bool isSpeaking,
+      String currentWord,
+      int currentStartWord,
+      int currentEndWord,
+      List<BibleBook> selectedFilterBooks,
+      Map<String, Map> voices,
+      double speedRate,
+      double pitchRate});
 
-  factory _BibleState.fromJson(Map<String, dynamic> json) =
-      _$BibleStateImpl.fromJson;
+  @override
+  $VerseCopyWith<$Res>? get currentBible;
+  @override
+  $VerseCopyWith<$Res>? get prevBible;
+  @override
+  $VerseCopyWith<$Res>? get currentBibleSplit;
+  @override
+  $VerseCopyWith<$Res>? get prevBibleSplit;
+  @override
+  $BibleBookCopyWith<$Res>? get currentBook;
+  @override
+  $BibleBookCopyWith<$Res>? get currentBookSplit;
+  @override
+  $VerseCopyWith<$Res>? get todayReading;
+}
 
-  @override
-  String get currentBibleCode;
-  @override
-  String get splitBibleCode;
-  @override
-  List<String> get bibleCodes;
-  @override
-  Verse? get currentBible;
-  @override
-  Verse? get prevBible;
-  @override
-  Verse? get currentBibleSplit;
-  @override
-  Verse? get prevBibleSplit;
-  @override
-  List<BibleBook> get books;
-  @override
-  List<BibleBook> get booksSplit;
-  @override
-  List<Verse> get verses;
-  @override
-  List<BibleBookmark> get bookmarks;
-  @override
-  List<BibleRef> get references;
-  @override
-  List<BibleRef> get referencesSplit;
-  @override
-  List<Verse> get versesSplit;
-  @override
-  Map<DateTime, Verse> get histories;
-  @override
-  List<Pericope> get pericopes;
-  @override
-  List<Pericope> get pericopesSplit;
-  @override
-  List<BibleNote> get notes;
-  @override
-  List<PericopeParalel> get pericopesParalels;
-  @override
-  List<PericopeParalel> get pericopesParalelsSplit;
-  @override
-  BibleBook? get currentBook;
-  @override
-  BibleBook? get currentBookSplit;
-  @override
-  List<Verse> get selectedVerse;
-  @override
-  List<Verse> get hightlightedVerse;
-  @override
-  Verse? get todayReading;
-  @override
-  DateTime? get lastOpenBible;
-  @override
-  String get defaultFont;
-  @override
-  double get defaultTextScale;
-  @override
-  double get defaultTextHeight;
-  @override
-  String get sortNotesBy;
-  @override
-  bool get enableAudio;
-  @override
-  bool get isSpeaking;
-  @override
-  String get currentWord;
-  @override
-  int get currentStartWord;
-  @override
-  int get currentEndWord;
-  @override
-  List<BibleBook> get selectedFilterBooks;
-  @override
-  Map<String, Map> get voices;
-  @override
-  double get speedRate;
-  @override
-  double get pitchRate;
+/// @nodoc
+class __$BibleStateCopyWithImpl<$Res> implements _$BibleStateCopyWith<$Res> {
+  __$BibleStateCopyWithImpl(this._self, this._then);
+
+  final _BibleState _self;
+  final $Res Function(_BibleState) _then;
 
   /// Create a copy of BibleState
   /// with the given fields replaced by the non-null parameter values.
   @override
-  @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$BibleStateImplCopyWith<_$BibleStateImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? currentBibleCode = null,
+    Object? splitBibleCode = null,
+    Object? bibleCodes = null,
+    Object? currentBible = freezed,
+    Object? prevBible = freezed,
+    Object? currentBibleSplit = freezed,
+    Object? prevBibleSplit = freezed,
+    Object? books = null,
+    Object? booksSplit = null,
+    Object? verses = null,
+    Object? bookmarks = null,
+    Object? references = null,
+    Object? referencesSplit = null,
+    Object? versesSplit = null,
+    Object? histories = null,
+    Object? pericopes = null,
+    Object? pericopesSplit = null,
+    Object? notes = null,
+    Object? pericopesParalels = null,
+    Object? pericopesParalelsSplit = null,
+    Object? currentBook = freezed,
+    Object? currentBookSplit = freezed,
+    Object? selectedVerse = null,
+    Object? hightlightedVerse = null,
+    Object? todayReading = freezed,
+    Object? lastOpenBible = freezed,
+    Object? defaultFont = null,
+    Object? defaultTextScale = null,
+    Object? defaultTextHeight = null,
+    Object? sortNotesBy = null,
+    Object? enableAudio = null,
+    Object? isSpeaking = null,
+    Object? currentWord = null,
+    Object? currentStartWord = null,
+    Object? currentEndWord = null,
+    Object? selectedFilterBooks = null,
+    Object? voices = null,
+    Object? speedRate = null,
+    Object? pitchRate = null,
+  }) {
+    return _then(_BibleState(
+      currentBibleCode: null == currentBibleCode
+          ? _self.currentBibleCode
+          : currentBibleCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      splitBibleCode: null == splitBibleCode
+          ? _self.splitBibleCode
+          : splitBibleCode // ignore: cast_nullable_to_non_nullable
+              as String,
+      bibleCodes: null == bibleCodes
+          ? _self._bibleCodes
+          : bibleCodes // ignore: cast_nullable_to_non_nullable
+              as List<String>,
+      currentBible: freezed == currentBible
+          ? _self.currentBible
+          : currentBible // ignore: cast_nullable_to_non_nullable
+              as Verse?,
+      prevBible: freezed == prevBible
+          ? _self.prevBible
+          : prevBible // ignore: cast_nullable_to_non_nullable
+              as Verse?,
+      currentBibleSplit: freezed == currentBibleSplit
+          ? _self.currentBibleSplit
+          : currentBibleSplit // ignore: cast_nullable_to_non_nullable
+              as Verse?,
+      prevBibleSplit: freezed == prevBibleSplit
+          ? _self.prevBibleSplit
+          : prevBibleSplit // ignore: cast_nullable_to_non_nullable
+              as Verse?,
+      books: null == books
+          ? _self._books
+          : books // ignore: cast_nullable_to_non_nullable
+              as List<BibleBook>,
+      booksSplit: null == booksSplit
+          ? _self._booksSplit
+          : booksSplit // ignore: cast_nullable_to_non_nullable
+              as List<BibleBook>,
+      verses: null == verses
+          ? _self._verses
+          : verses // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      bookmarks: null == bookmarks
+          ? _self._bookmarks
+          : bookmarks // ignore: cast_nullable_to_non_nullable
+              as List<BibleBookmark>,
+      references: null == references
+          ? _self._references
+          : references // ignore: cast_nullable_to_non_nullable
+              as List<BibleRef>,
+      referencesSplit: null == referencesSplit
+          ? _self._referencesSplit
+          : referencesSplit // ignore: cast_nullable_to_non_nullable
+              as List<BibleRef>,
+      versesSplit: null == versesSplit
+          ? _self._versesSplit
+          : versesSplit // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      histories: null == histories
+          ? _self._histories
+          : histories // ignore: cast_nullable_to_non_nullable
+              as Map<DateTime, Verse>,
+      pericopes: null == pericopes
+          ? _self._pericopes
+          : pericopes // ignore: cast_nullable_to_non_nullable
+              as List<Pericope>,
+      pericopesSplit: null == pericopesSplit
+          ? _self._pericopesSplit
+          : pericopesSplit // ignore: cast_nullable_to_non_nullable
+              as List<Pericope>,
+      notes: null == notes
+          ? _self._notes
+          : notes // ignore: cast_nullable_to_non_nullable
+              as List<BibleNote>,
+      pericopesParalels: null == pericopesParalels
+          ? _self._pericopesParalels
+          : pericopesParalels // ignore: cast_nullable_to_non_nullable
+              as List<PericopeParalel>,
+      pericopesParalelsSplit: null == pericopesParalelsSplit
+          ? _self._pericopesParalelsSplit
+          : pericopesParalelsSplit // ignore: cast_nullable_to_non_nullable
+              as List<PericopeParalel>,
+      currentBook: freezed == currentBook
+          ? _self.currentBook
+          : currentBook // ignore: cast_nullable_to_non_nullable
+              as BibleBook?,
+      currentBookSplit: freezed == currentBookSplit
+          ? _self.currentBookSplit
+          : currentBookSplit // ignore: cast_nullable_to_non_nullable
+              as BibleBook?,
+      selectedVerse: null == selectedVerse
+          ? _self._selectedVerse
+          : selectedVerse // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      hightlightedVerse: null == hightlightedVerse
+          ? _self._hightlightedVerse
+          : hightlightedVerse // ignore: cast_nullable_to_non_nullable
+              as List<Verse>,
+      todayReading: freezed == todayReading
+          ? _self.todayReading
+          : todayReading // ignore: cast_nullable_to_non_nullable
+              as Verse?,
+      lastOpenBible: freezed == lastOpenBible
+          ? _self.lastOpenBible
+          : lastOpenBible // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      defaultFont: null == defaultFont
+          ? _self.defaultFont
+          : defaultFont // ignore: cast_nullable_to_non_nullable
+              as String,
+      defaultTextScale: null == defaultTextScale
+          ? _self.defaultTextScale
+          : defaultTextScale // ignore: cast_nullable_to_non_nullable
+              as double,
+      defaultTextHeight: null == defaultTextHeight
+          ? _self.defaultTextHeight
+          : defaultTextHeight // ignore: cast_nullable_to_non_nullable
+              as double,
+      sortNotesBy: null == sortNotesBy
+          ? _self.sortNotesBy
+          : sortNotesBy // ignore: cast_nullable_to_non_nullable
+              as String,
+      enableAudio: null == enableAudio
+          ? _self.enableAudio
+          : enableAudio // ignore: cast_nullable_to_non_nullable
+              as bool,
+      isSpeaking: null == isSpeaking
+          ? _self.isSpeaking
+          : isSpeaking // ignore: cast_nullable_to_non_nullable
+              as bool,
+      currentWord: null == currentWord
+          ? _self.currentWord
+          : currentWord // ignore: cast_nullable_to_non_nullable
+              as String,
+      currentStartWord: null == currentStartWord
+          ? _self.currentStartWord
+          : currentStartWord // ignore: cast_nullable_to_non_nullable
+              as int,
+      currentEndWord: null == currentEndWord
+          ? _self.currentEndWord
+          : currentEndWord // ignore: cast_nullable_to_non_nullable
+              as int,
+      selectedFilterBooks: null == selectedFilterBooks
+          ? _self._selectedFilterBooks
+          : selectedFilterBooks // ignore: cast_nullable_to_non_nullable
+              as List<BibleBook>,
+      voices: null == voices
+          ? _self._voices
+          : voices // ignore: cast_nullable_to_non_nullable
+              as Map<String, Map>,
+      speedRate: null == speedRate
+          ? _self.speedRate
+          : speedRate // ignore: cast_nullable_to_non_nullable
+              as double,
+      pitchRate: null == pitchRate
+          ? _self.pitchRate
+          : pitchRate // ignore: cast_nullable_to_non_nullable
+              as double,
+    ));
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get currentBible {
+    if (_self.currentBible == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_self.currentBible!, (value) {
+      return _then(_self.copyWith(currentBible: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get prevBible {
+    if (_self.prevBible == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_self.prevBible!, (value) {
+      return _then(_self.copyWith(prevBible: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get currentBibleSplit {
+    if (_self.currentBibleSplit == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_self.currentBibleSplit!, (value) {
+      return _then(_self.copyWith(currentBibleSplit: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get prevBibleSplit {
+    if (_self.prevBibleSplit == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_self.prevBibleSplit!, (value) {
+      return _then(_self.copyWith(prevBibleSplit: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BibleBookCopyWith<$Res>? get currentBook {
+    if (_self.currentBook == null) {
+      return null;
+    }
+
+    return $BibleBookCopyWith<$Res>(_self.currentBook!, (value) {
+      return _then(_self.copyWith(currentBook: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $BibleBookCopyWith<$Res>? get currentBookSplit {
+    if (_self.currentBookSplit == null) {
+      return null;
+    }
+
+    return $BibleBookCopyWith<$Res>(_self.currentBookSplit!, (value) {
+      return _then(_self.copyWith(currentBookSplit: value));
+    });
+  }
+
+  /// Create a copy of BibleState
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $VerseCopyWith<$Res>? get todayReading {
+    if (_self.todayReading == null) {
+      return null;
+    }
+
+    return $VerseCopyWith<$Res>(_self.todayReading!, (value) {
+      return _then(_self.copyWith(todayReading: value));
+    });
+  }
 }
+
+// dart format on

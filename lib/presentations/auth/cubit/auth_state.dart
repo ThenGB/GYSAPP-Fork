@@ -4,7 +4,7 @@ part 'auth_state.freezed.dart';
 part 'auth_state.g.dart';
 
 @freezed
-class AuthState with _$AuthState {
+abstract class AuthState with _$AuthState {
   const AuthState._();
   const factory AuthState({
     String? idToken,
@@ -15,3 +15,4 @@ class AuthState with _$AuthState {
   factory AuthState.fromJson(Map<String, dynamic> json) =>
       _$AuthStateFromJson(json);
 }
+

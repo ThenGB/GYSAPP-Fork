@@ -4,7 +4,7 @@ part 'config_literature_entity.freezed.dart';
 part 'config_literature_entity.g.dart';
 
 @freezed
-class ConfigLiterature with _$ConfigLiterature {
+abstract class ConfigLiterature with _$ConfigLiterature {
   const ConfigLiterature._();
   const factory ConfigLiterature({
     @JsonKey(name: 'kesaksian')
@@ -29,3 +29,4 @@ class ConfigLiterature with _$ConfigLiterature {
   factory ConfigLiterature.fromJson(Map<String, dynamic> json) =>
       _$ConfigLiteratureFromJson(json);
 }
+

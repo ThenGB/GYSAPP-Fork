@@ -255,3 +255,4 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     return state.toJson();
   }
 }
+

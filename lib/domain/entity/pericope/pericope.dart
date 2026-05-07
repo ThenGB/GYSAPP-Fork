@@ -4,7 +4,7 @@ part 'pericope.freezed.dart';
 part 'pericope.g.dart';
 
 @freezed
-class Pericope with _$Pericope {
+abstract class Pericope with _$Pericope {
   const Pericope._();
   const factory Pericope({
     required int id,
@@ -18,3 +18,4 @@ class Pericope with _$Pericope {
   factory Pericope.fromJson(Map<String, dynamic> json) =>
       _$PericopeFromJson(json);
 }
+

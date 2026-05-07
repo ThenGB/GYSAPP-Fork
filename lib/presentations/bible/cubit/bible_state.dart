@@ -18,7 +18,7 @@ part 'bible_state.freezed.dart';
 part 'bible_state.g.dart';
 
 @freezed
-class BibleState with _$BibleState {
+abstract class BibleState with _$BibleState {
   const BibleState._();
   const factory BibleState({
     @Default('b_tb') String currentBibleCode,
@@ -236,3 +236,4 @@ extension GetByPericopeParalel on List<PericopeParalel> {
     return where((element) => element.id == id).toList();
   }
 }
+

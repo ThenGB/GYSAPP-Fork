@@ -4,7 +4,7 @@ part 'banner.freezed.dart';
 part 'banner.g.dart';
 
 @freezed
-class ImageBanner with _$ImageBanner {
+abstract class ImageBanner with _$ImageBanner {
   const ImageBanner._();
   const factory ImageBanner({
     @JsonKey(name: 'description') String? description,
@@ -21,3 +21,4 @@ class ImageBanner with _$ImageBanner {
   bool get isExpired =>
       expiredDate != null && expiredDate!.isBefore(DateTime.now());
 }
+

@@ -6,8 +6,7 @@ part of 'home_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$HomeStateImpl _$$HomeStateImplFromJson(Map<String, dynamic> json) =>
-    _$HomeStateImpl(
+_HomeState _$HomeStateFromJson(Map<String, dynamic> json) => _HomeState(
       isLoading: json['isLoading'] as bool? ?? false,
       sauhs: (json['sauhs'] as List<dynamic>?)
               ?.map((e) => Sauh.fromJson(e as Map<String, dynamic>))
@@ -25,7 +24,7 @@ _$HomeStateImpl _$$HomeStateImplFromJson(Map<String, dynamic> json) =>
       isSauhEnabled: json['isSauhEnabled'] as bool? ?? false,
     );
 
-Map<String, dynamic> _$$HomeStateImplToJson(_$HomeStateImpl instance) =>
+Map<String, dynamic> _$HomeStateToJson(_HomeState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'sauhs': instance.sauhs,

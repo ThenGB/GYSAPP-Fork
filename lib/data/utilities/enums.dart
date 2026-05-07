@@ -1,1 +1,2 @@
 enum NoteMode { write, viewOnly }
+

@@ -6,9 +6,8 @@ part of 'config_literature_entity.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$ConfigLiteratureImpl _$$ConfigLiteratureImplFromJson(
-        Map<String, dynamic> json) =>
-    _$ConfigLiteratureImpl(
+_ConfigLiterature _$ConfigLiteratureFromJson(Map<String, dynamic> json) =>
+    _ConfigLiterature(
       kesaksian: json['kesaksian'] as String? ??
           '#posts-table-1 > tbody > tr > td > a',
       wartaSejati: json['wartasejati'] as String? ??
@@ -21,8 +20,7 @@ _$ConfigLiteratureImpl _$$ConfigLiteratureImplFromJson(
           '#posts-table-3 > tbody > tr > td > a',
     );
 
-Map<String, dynamic> _$$ConfigLiteratureImplToJson(
-        _$ConfigLiteratureImpl instance) =>
+Map<String, dynamic> _$ConfigLiteratureToJson(_ConfigLiterature instance) =>
     <String, dynamic>{
       'kesaksian': instance.kesaksian,
       'wartasejati': instance.wartaSejati,

@@ -164,3 +164,4 @@ class _FontSettingViewState extends State<FontSettingView> {
     );
   }
 }
+

@@ -6,8 +6,8 @@ part of 'dashboard_state.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-_$DashboardStateImpl _$$DashboardStateImplFromJson(Map<String, dynamic> json) =>
-    _$DashboardStateImpl(
+_DashboardState _$DashboardStateFromJson(Map<String, dynamic> json) =>
+    _DashboardState(
       isLoading: json['isLoading'] as bool? ?? false,
       ftpHost: json['ftpHost'] as String?,
       ftpPort: json['ftpPort'] as String?,
@@ -31,8 +31,7 @@ _$DashboardStateImpl _$$DashboardStateImplFromJson(Map<String, dynamic> json) =>
           : Account.fromJson(json['account'] as Map<String, dynamic>),
     );
 
-Map<String, dynamic> _$$DashboardStateImplToJson(
-        _$DashboardStateImpl instance) =>
+Map<String, dynamic> _$DashboardStateToJson(_DashboardState instance) =>
     <String, dynamic>{
       'isLoading': instance.isLoading,
       'ftpHost': instance.ftpHost,

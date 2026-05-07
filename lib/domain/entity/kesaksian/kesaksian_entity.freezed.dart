@@ -1,5 +1,5 @@
-// coverage:ignore-file
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// coverage:ignore-file
 // ignore_for_file: type=lint
 // ignore_for_file: unused_element, deprecated_member_use, deprecated_member_use_from_same_package, use_function_type_syntax_for_parameters, unnecessary_const, avoid_init_to_null, invalid_override_different_default_values_named, prefer_expression_function_bodies, annotate_overrides, invalid_annotation_target, unnecessary_question_mark
 
@@ -9,163 +9,31 @@ part of 'kesaksian_entity.dart';
 // FreezedGenerator
 // **************************************************************************
 
+// dart format off
 T _$identity<T>(T value) => value;
-
-final _privateConstructorUsedError = UnsupportedError(
-    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
-
-Kesaksian _$KesaksianFromJson(Map<String, dynamic> json) {
-  return _Kesaksian.fromJson(json);
-}
 
 /// @nodoc
 mixin _$Kesaksian {
-  String get title => throw _privateConstructorUsedError;
-  String get description => throw _privateConstructorUsedError;
-  String get url => throw _privateConstructorUsedError;
-  String get imageUrl => throw _privateConstructorUsedError;
-
-  /// Serializes this Kesaksian to a JSON map.
-  Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
+  String get title;
+  String get description;
+  String get url;
+  String get imageUrl;
 
   /// Create a copy of Kesaksian
   /// with the given fields replaced by the non-null parameter values.
   @JsonKey(includeFromJson: false, includeToJson: false)
+  @pragma('vm:prefer-inline')
   $KesaksianCopyWith<Kesaksian> get copyWith =>
-      throw _privateConstructorUsedError;
-}
+      _$KesaksianCopyWithImpl<Kesaksian>(this as Kesaksian, _$identity);
 
-/// @nodoc
-abstract class $KesaksianCopyWith<$Res> {
-  factory $KesaksianCopyWith(Kesaksian value, $Res Function(Kesaksian) then) =
-      _$KesaksianCopyWithImpl<$Res, Kesaksian>;
-  @useResult
-  $Res call({String title, String description, String url, String imageUrl});
-}
-
-/// @nodoc
-class _$KesaksianCopyWithImpl<$Res, $Val extends Kesaksian>
-    implements $KesaksianCopyWith<$Res> {
-  _$KesaksianCopyWithImpl(this._value, this._then);
-
-  // ignore: unused_field
-  final $Val _value;
-  // ignore: unused_field
-  final $Res Function($Val) _then;
-
-  /// Create a copy of Kesaksian
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? title = null,
-    Object? description = null,
-    Object? url = null,
-    Object? imageUrl = null,
-  }) {
-    return _then(_value.copyWith(
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      imageUrl: null == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-    ) as $Val);
-  }
-}
-
-/// @nodoc
-abstract class _$$KesaksianImplCopyWith<$Res>
-    implements $KesaksianCopyWith<$Res> {
-  factory _$$KesaksianImplCopyWith(
-          _$KesaksianImpl value, $Res Function(_$KesaksianImpl) then) =
-      __$$KesaksianImplCopyWithImpl<$Res>;
-  @override
-  @useResult
-  $Res call({String title, String description, String url, String imageUrl});
-}
-
-/// @nodoc
-class __$$KesaksianImplCopyWithImpl<$Res>
-    extends _$KesaksianCopyWithImpl<$Res, _$KesaksianImpl>
-    implements _$$KesaksianImplCopyWith<$Res> {
-  __$$KesaksianImplCopyWithImpl(
-      _$KesaksianImpl _value, $Res Function(_$KesaksianImpl) _then)
-      : super(_value, _then);
-
-  /// Create a copy of Kesaksian
-  /// with the given fields replaced by the non-null parameter values.
-  @pragma('vm:prefer-inline')
-  @override
-  $Res call({
-    Object? title = null,
-    Object? description = null,
-    Object? url = null,
-    Object? imageUrl = null,
-  }) {
-    return _then(_$KesaksianImpl(
-      title: null == title
-          ? _value.title
-          : title // ignore: cast_nullable_to_non_nullable
-              as String,
-      description: null == description
-          ? _value.description
-          : description // ignore: cast_nullable_to_non_nullable
-              as String,
-      url: null == url
-          ? _value.url
-          : url // ignore: cast_nullable_to_non_nullable
-              as String,
-      imageUrl: null == imageUrl
-          ? _value.imageUrl
-          : imageUrl // ignore: cast_nullable_to_non_nullable
-              as String,
-    ));
-  }
-}
-
-/// @nodoc
-@JsonSerializable()
-class _$KesaksianImpl extends _Kesaksian {
-  const _$KesaksianImpl(
-      {required this.title,
-      required this.description,
-      required this.url,
-      required this.imageUrl})
-      : super._();
-
-  factory _$KesaksianImpl.fromJson(Map<String, dynamic> json) =>
-      _$$KesaksianImplFromJson(json);
-
-  @override
-  final String title;
-  @override
-  final String description;
-  @override
-  final String url;
-  @override
-  final String imageUrl;
-
-  @override
-  String toString() {
-    return 'Kesaksian(title: $title, description: $description, url: $url, imageUrl: $imageUrl)';
-  }
+  /// Serializes this Kesaksian to a JSON map.
+  Map<String, dynamic> toJson();
 
   @override
   bool operator ==(Object other) {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
-            other is _$KesaksianImpl &&
+            other is Kesaksian &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -179,46 +47,331 @@ class _$KesaksianImpl extends _Kesaksian {
   int get hashCode =>
       Object.hash(runtimeType, title, description, url, imageUrl);
 
-  /// Create a copy of Kesaksian
-  /// with the given fields replaced by the non-null parameter values.
-  @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  @pragma('vm:prefer-inline')
-  _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
-      __$$KesaksianImplCopyWithImpl<_$KesaksianImpl>(this, _$identity);
-
-  @override
-  Map<String, dynamic> toJson() {
-    return _$$KesaksianImplToJson(
-      this,
-    );
+  String toString() {
+    return 'Kesaksian(title: $title, description: $description, url: $url, imageUrl: $imageUrl)';
   }
 }
 
-abstract class _Kesaksian extends Kesaksian {
-  const factory _Kesaksian(
-      {required final String title,
-      required final String description,
-      required final String url,
-      required final String imageUrl}) = _$KesaksianImpl;
-  const _Kesaksian._() : super._();
+/// @nodoc
+abstract mixin class $KesaksianCopyWith<$Res> {
+  factory $KesaksianCopyWith(Kesaksian value, $Res Function(Kesaksian) _then) =
+      _$KesaksianCopyWithImpl;
+  @useResult
+  $Res call({String title, String description, String url, String imageUrl});
+}
 
-  factory _Kesaksian.fromJson(Map<String, dynamic> json) =
-      _$KesaksianImpl.fromJson;
+/// @nodoc
+class _$KesaksianCopyWithImpl<$Res> implements $KesaksianCopyWith<$Res> {
+  _$KesaksianCopyWithImpl(this._self, this._then);
+
+  final Kesaksian _self;
+  final $Res Function(Kesaksian) _then;
+
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
+  @pragma('vm:prefer-inline')
+  @override
+  $Res call({
+    Object? title = null,
+    Object? description = null,
+    Object? url = null,
+    Object? imageUrl = null,
+  }) {
+    return _then(_self.copyWith(
+      title: null == title
+          ? _self.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+      imageUrl: null == imageUrl
+          ? _self.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+/// Adds pattern-matching-related methods to [Kesaksian].
+extension KesaksianPatterns on Kesaksian {
+  /// A variant of `map` that fallback to returning `orElse`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeMap<TResult extends Object?>(
+    TResult Function(_Kesaksian value)? $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian() when $default != null:
+        return $default(_that);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// Callbacks receives the raw object, upcasted.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case final Subclass2 value:
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult map<TResult extends Object?>(
+    TResult Function(_Kesaksian value) $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian():
+        return $default(_that);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `map` that fallback to returning `null`.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case final Subclass value:
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? mapOrNull<TResult extends Object?>(
+    TResult? Function(_Kesaksian value)? $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian() when $default != null:
+        return $default(_that);
+      case _:
+        return null;
+    }
+  }
+
+  /// A variant of `when` that fallback to an `orElse` callback.
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return orElse();
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult maybeWhen<TResult extends Object?>(
+    TResult Function(
+            String title, String description, String url, String imageUrl)?
+        $default, {
+    required TResult orElse(),
+  }) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian() when $default != null:
+        return $default(
+            _that.title, _that.description, _that.url, _that.imageUrl);
+      case _:
+        return orElse();
+    }
+  }
+
+  /// A `switch`-like method, using callbacks.
+  ///
+  /// As opposed to `map`, this offers destructuring.
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case Subclass2(:final field2):
+  ///     return ...;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult when<TResult extends Object?>(
+    TResult Function(
+            String title, String description, String url, String imageUrl)
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian():
+        return $default(
+            _that.title, _that.description, _that.url, _that.imageUrl);
+      case _:
+        throw StateError('Unexpected subclass');
+    }
+  }
+
+  /// A variant of `when` that fallback to returning `null`
+  ///
+  /// It is equivalent to doing:
+  /// ```dart
+  /// switch (sealedClass) {
+  ///   case Subclass(:final field):
+  ///     return ...;
+  ///   case _:
+  ///     return null;
+  /// }
+  /// ```
+
+  @optionalTypeArgs
+  TResult? whenOrNull<TResult extends Object?>(
+    TResult? Function(
+            String title, String description, String url, String imageUrl)?
+        $default,
+  ) {
+    final _that = this;
+    switch (_that) {
+      case _Kesaksian() when $default != null:
+        return $default(
+            _that.title, _that.description, _that.url, _that.imageUrl);
+      case _:
+        return null;
+    }
+  }
+}
+
+/// @nodoc
+@JsonSerializable()
+class _Kesaksian extends Kesaksian {
+  const _Kesaksian(
+      {required this.title,
+      required this.description,
+      required this.url,
+      required this.imageUrl})
+      : super._();
+  factory _Kesaksian.fromJson(Map<String, dynamic> json) =>
+      _$KesaksianFromJson(json);
 
   @override
-  String get title;
+  final String title;
   @override
-  String get description;
+  final String description;
   @override
-  String get url;
+  final String url;
   @override
-  String get imageUrl;
+  final String imageUrl;
 
   /// Create a copy of Kesaksian
   /// with the given fields replaced by the non-null parameter values.
   @override
   @JsonKey(includeFromJson: false, includeToJson: false)
-  _$$KesaksianImplCopyWith<_$KesaksianImpl> get copyWith =>
-      throw _privateConstructorUsedError;
+  @pragma('vm:prefer-inline')
+  _$KesaksianCopyWith<_Kesaksian> get copyWith =>
+      __$KesaksianCopyWithImpl<_Kesaksian>(this, _$identity);
+
+  @override
+  Map<String, dynamic> toJson() {
+    return _$KesaksianToJson(
+      this,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return identical(this, other) ||
+        (other.runtimeType == runtimeType &&
+            other is _Kesaksian &&
+            (identical(other.title, title) || other.title == title) &&
+            (identical(other.description, description) ||
+                other.description == description) &&
+            (identical(other.url, url) || other.url == url) &&
+            (identical(other.imageUrl, imageUrl) ||
+                other.imageUrl == imageUrl));
+  }
+
+  @JsonKey(includeFromJson: false, includeToJson: false)
+  @override
+  int get hashCode =>
+      Object.hash(runtimeType, title, description, url, imageUrl);
+
+  @override
+  String toString() {
+    return 'Kesaksian(title: $title, description: $description, url: $url, imageUrl: $imageUrl)';
+  }
 }
+
+/// @nodoc
+abstract mixin class _$KesaksianCopyWith<$Res>
+    implements $KesaksianCopyWith<$Res> {
+  factory _$KesaksianCopyWith(
+          _Kesaksian value, $Res Function(_Kesaksian) _then) =
+      __$KesaksianCopyWithImpl;
+  @override
+  @useResult
+  $Res call({String title, String description, String url, String imageUrl});
+}
+
+/// @nodoc
+class __$KesaksianCopyWithImpl<$Res> implements _$KesaksianCopyWith<$Res> {
+  __$KesaksianCopyWithImpl(this._self, this._then);
+
+  final _Kesaksian _self;
+  final $Res Function(_Kesaksian) _then;
+
+  /// Create a copy of Kesaksian
+  /// with the given fields replaced by the non-null parameter values.
+  @override
+  @pragma('vm:prefer-inline')
+  $Res call({
+    Object? title = null,
+    Object? description = null,
+    Object? url = null,
+    Object? imageUrl = null,
+  }) {
+    return _then(_Kesaksian(
+      title: null == title
+          ? _self.title
+          : title // ignore: cast_nullable_to_non_nullable
+              as String,
+      description: null == description
+          ? _self.description
+          : description // ignore: cast_nullable_to_non_nullable
+              as String,
+      url: null == url
+          ? _self.url
+          : url // ignore: cast_nullable_to_non_nullable
+              as String,
+      imageUrl: null == imageUrl
+          ? _self.imageUrl
+          : imageUrl // ignore: cast_nullable_to_non_nullable
+              as String,
+    ));
+  }
+}
+
+// dart format on

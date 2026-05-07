@@ -817,3 +817,4 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
     );
   }
 }
+

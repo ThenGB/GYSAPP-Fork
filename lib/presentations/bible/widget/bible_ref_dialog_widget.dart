@@ -143,9 +143,27 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                                         padding:
                                             const EdgeInsets.only(right: 8),
                                         child: FutureBuilder(
-                                          future: convertIDtoNameAlkitab(
-                                              e.sv, e.ev != 0 ? e.ev : null,
-                                              bibleDb: widget.cubit.bibleDb!),
+                                          future: widget.cubit.getBibleTitle(
+                                            [
+                                              if (e.sv != null)
+                                                Verse(
+                                                  id: e.sv!,
+                                                  bookId: e.sv! ~/ 1000000,
+                                                  chapterId:
+                                                      (e.sv! % 1000000) ~/ 1000,
+                                                  verseId: e.sv! % 1000,
+                                                ),
+                                              if (e.ev != null && e.ev != 0)
+                                                Verse(
+                                                  id: e.ev!,
+                                                  bookId: e.ev! ~/ 1000000,
+                                                  chapterId:
+                                                      (e.ev! % 1000000) ~/ 1000,
+                                                  verseId: e.ev! % 1000,
+                                                ),
+                                            ],
+                                            withVerse: true,
+                                          ),
                                           builder: (context, snapshot) {
                                             return ElevatedButton(
                                               style: ElevatedButton.styleFrom(
