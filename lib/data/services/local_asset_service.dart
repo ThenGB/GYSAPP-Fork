@@ -22,8 +22,9 @@ class LocalAssetService {
       return;
     }
     try {
-      final jsonString =
-          await rootBundle.loadString('assets/data/index/master_index.json');
+      final jsonString = await rootBundle.loadString(
+        'assets/data/index/master_index.json',
+      );
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
       _masterIndex.addAll(data);
     } catch (e) {
@@ -125,10 +126,7 @@ class LocalAssetService {
         return key;
       }
     }
-    log(
-      'PDF path not found for $bookCode $number',
-      name: 'LocalAssetService',
-    );
+    log('PDF path not found for $bookCode $number', name: 'LocalAssetService');
     return null;
   }
 
@@ -173,7 +171,11 @@ class LocalAssetService {
       final number = numberMatch.group(1)!;
       final folder = candidate.substring(0, numberMatch.start + 1);
       final folderPrefix = folder.toLowerCase();
-      final numPattern = RegExp('^$number' r'[._\-]', caseSensitive: false);
+      final numPattern = RegExp(
+        '^$number'
+        r'[._\-]',
+        caseSensitive: false,
+      );
       for (final key in manifest.keys) {
         final normalizedKey = key.replaceAll('\\', '/').toLowerCase();
         if (normalizedKey.startsWith(folderPrefix)) {

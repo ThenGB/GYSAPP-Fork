@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
 
 /// Draggable floating panel for MIDI playback controls.
-/// Includes play/pause, seek, transpose, tempo, and instrument controls.
+/// Includes play/pause, seek, transpose/key, tempo, and instrument controls.
 class DraggableMidiControls extends StatefulWidget {
   final bool isPlaying;
   final bool isLoading;
   final double position;
   final double duration;
   final int transposeStep;
+  final String currentKey;
+  final List<String> availableKeys;
   final double tempoBpm;
   final int? midiInstrument;
   final String soundFont;
@@ -17,6 +19,7 @@ class DraggableMidiControls extends StatefulWidget {
   final VoidCallback onStop;
   final ValueChanged<double> onSeek;
   final ValueChanged<int> onTranspose;
+  final ValueChanged<String> onKeySelected;
   final ValueChanged<double> onTempo;
   final ValueChanged<int?> onInstrument;
   final ValueChanged<String> onSoundFont;
@@ -28,6 +31,8 @@ class DraggableMidiControls extends StatefulWidget {
     required this.position,
     required this.duration,
     required this.transposeStep,
+    this.currentKey = '-',
+    this.availableKeys = const [],
     required this.tempoBpm,
     this.midiInstrument,
     this.soundFont = 'GeneralUser-GS.sf2',
@@ -37,6 +42,7 @@ class DraggableMidiControls extends StatefulWidget {
     required this.onStop,
     required this.onSeek,
     required this.onTranspose,
+    required this.onKeySelected,
     required this.onTempo,
     required this.onInstrument,
     required this.onSoundFont,
@@ -71,7 +77,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
     final screenSize = MediaQuery.sizeOf(context);
     final padding = MediaQuery.paddingOf(context);
     final panelWidth = _panelWidth(screenSize.width);
-    final panelHeight = _expanded ? 360.0 : 56.0;
+    final panelHeight = _expanded ? 392.0 : 56.0;
     final safePosition = _clampPosition(
       _position,
       screenSize,
@@ -106,10 +112,14 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
   ) {
     final minX = 8.0;
     final minY = padding.top + 8;
-    final maxX =
-        (screenSize.width - panelWidth - 8).clamp(minX, double.infinity);
-    final maxY = (screenSize.height - panelHeight - padding.bottom - 8)
-        .clamp(minY, double.infinity);
+    final maxX = (screenSize.width - panelWidth - 8).clamp(
+      minX,
+      double.infinity,
+    );
+    final maxY = (screenSize.height - panelHeight - padding.bottom - 8).clamp(
+      minY,
+      double.infinity,
+    );
     return Offset(
       position.dx.clamp(minX, maxX).toDouble(),
       position.dy.clamp(minY, maxY).toDouble(),
@@ -309,20 +319,69 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
             ],
           ),
 
-          // Transpose control
+          // Transpose / key control
           SizedBox(
             height: 40,
             child: Row(
               children: [
-                const Icon(Icons.music_note, size: 16),
+                const Icon(Icons.key, size: 16),
                 const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'Transpose',
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.bodyMedium,
+                SizedBox(
+                  height: 32,
+                  child: PopupMenuButton<String>(
+                    enabled:
+                        widget.currentKey != '-' &&
+                        widget.availableKeys.isNotEmpty,
+                    initialValue:
+                        widget.availableKeys.contains(widget.currentKey)
+                        ? widget.currentKey
+                        : null,
+                    onSelected: widget.onKeySelected,
+                    itemBuilder: (context) => widget.availableKeys
+                        .map(
+                          (key) => PopupMenuItem<String>(
+                            value: key,
+                            child: Text(key),
+                          ),
+                        )
+                        .toList(),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 64),
+                            child: Text(
+                              widget.currentKey,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Icon(
+                            Icons.arrow_drop_down,
+                            size: 16,
+                            color: widget.currentKey == '-'
+                                ? theme.disabledColor
+                                : theme.colorScheme.outline,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
+                const Spacer(),
                 IconButton(
                   icon: const Icon(Icons.remove_circle_outline, size: 20),
                   padding: EdgeInsets.zero,
@@ -337,8 +396,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                   child: Text(
                     '${widget.transposeStep > 0 ? '+' : ''}${widget.transposeStep}',
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(fontWeight: FontWeight.bold),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
                 IconButton(
@@ -390,7 +450,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color: theme.colorScheme.outline.withValues(alpha: 0.3),
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Row(
@@ -448,8 +510,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
-                          color:
-                              theme.colorScheme.outline.withValues(alpha: 0.3),
+                          color: theme.colorScheme.outline.withValues(
+                            alpha: 0.3,
+                          ),
                         ),
                       ),
                       child: Row(

@@ -15,6 +15,7 @@
         --chord-pad-v: 2px;
         --chord-pad-h: 6px;
         --chord-bg-opacity: 0.94;
+        --chord-zoom-scale: 1;
       }
 
       html,
@@ -104,12 +105,14 @@
       .chord-badge {
         position: absolute;
         border-radius: 4px;
-        padding: var(--chord-pad-v, 2px) var(--chord-pad-h, 6px);
+        padding:
+          calc(var(--chord-pad-v, 2px) * var(--chord-zoom-scale, 1))
+          calc(var(--chord-pad-h, 6px) * var(--chord-zoom-scale, 1));
         background: rgba(231, 242, 255, var(--chord-bg-opacity, 0.94));
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
         color: #0f315f;
         font-weight: 700;
-        font-size: var(--chord-font-size, 12px);
+        font-size: calc(var(--chord-font-size, 12px) * var(--chord-zoom-scale, 1));
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
         line-height: 1.2;
@@ -262,6 +265,10 @@
 
       function updateZoomLabel() {
         // Zoom label shown in Flutter header
+        document.documentElement.style.setProperty(
+          "--chord-zoom-scale",
+          String(Math.max(0.85, Math.min(currentZoom, 4)))
+        );
       }
 
       async function extractPageNotes(page) {

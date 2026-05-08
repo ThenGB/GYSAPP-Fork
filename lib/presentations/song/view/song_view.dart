@@ -13,7 +13,6 @@ import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 import '../widgets/draggable_midi_controls.dart';
-import '../widgets/midi_engine_webview.dart';
 import '../widgets/song_pdf_viewer.dart';
 
 @RoutePage()
@@ -90,8 +89,7 @@ class _SongViewState extends State<SongView> {
   Future<void> _loadPdfForCurrentSong() async {
     if (currentPageIndex >= cubit.state.songs.length) return;
     final song = cubit.state.songs[currentPageIndex];
-    final pdfPath =
-        await cubit.getPdfPath(song.code ?? '', song.number ?? '');
+    final pdfPath = await cubit.getPdfPath(song.code ?? '', song.number ?? '');
     if (mounted) {
       setState(() {
         _currentPdfPath = pdfPath;
@@ -105,8 +103,9 @@ class _SongViewState extends State<SongView> {
       builder: (context, state) {
         final textMode = state.isImageMode == true;
         final colors = Theme.of(context).colorScheme;
-        final isFavorite = state.songs.isNotEmpty && currentPageIndex < state.songs.length 
-            ? cubit.isSongFavorite(state.songs[currentPageIndex]) 
+        final isFavorite =
+            state.songs.isNotEmpty && currentPageIndex < state.songs.length
+            ? cubit.isSongFavorite(state.songs[currentPageIndex])
             : false;
 
         return Scaffold(
@@ -141,7 +140,9 @@ class _SongViewState extends State<SongView> {
                       ? colors.primary
                       : colors.onSurface.withValues(alpha: 0.4),
                 ),
-                tooltip: state.showAudio ? 'Sembunyikan MIDI' : 'Tampilkan MIDI',
+                tooltip: state.showAudio
+                    ? 'Sembunyikan MIDI'
+                    : 'Tampilkan MIDI',
                 onPressed: () => cubit.toggleAudio(),
               ),
               IconButton(
@@ -151,7 +152,9 @@ class _SongViewState extends State<SongView> {
                       ? colors.primary
                       : colors.onSurface.withValues(alpha: 0.4),
                 ),
-                tooltip: state.showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
+                tooltip: state.showChord
+                    ? 'Sembunyikan chord'
+                    : 'Tampilkan chord',
                 onPressed: () => cubit.toggleChord(),
               ),
               IconButton(
@@ -174,8 +177,10 @@ class _SongViewState extends State<SongView> {
                   switch (value) {
                     case 'fav':
                       if (currentPageIndex < state.songs.length) {
-                        cubit.modifyFavorite(state.songs[currentPageIndex],
-                            playOnlyFav: false);
+                        cubit.modifyFavorite(
+                          state.songs[currentPageIndex],
+                          playOnlyFav: false,
+                        );
                       }
                       break;
                     case 'copy':
@@ -205,14 +210,8 @@ class _SongViewState extends State<SongView> {
                       ],
                     ),
                   ),
-                  PopupMenuItem(
-                    value: 'copy',
-                    child: Text('Copy'.tr()),
-                  ),
-                  PopupMenuItem(
-                    value: 'share',
-                    child: Text('Share'.tr()),
-                  ),
+                  PopupMenuItem(value: 'copy', child: Text('Copy'.tr())),
+                  PopupMenuItem(value: 'share', child: Text('Share'.tr())),
                   PopupMenuItem(
                     value: 'notes',
                     child: Text('See all notes'.tr()),
@@ -223,12 +222,6 @@ class _SongViewState extends State<SongView> {
           ),
           body: Stack(
             children: [
-              // Hidden MIDI Engine WebView - Placed first so its index never changes
-              MidiEngineWebView(
-                key: const ValueKey('midi_engine'),
-                service: cubit.midiEngine,
-              ),
-
               // PDF Viewer
               PageView.builder(
                 controller: pageController,
@@ -284,6 +277,8 @@ class _SongViewState extends State<SongView> {
                       position: midiState.position,
                       duration: midiState.duration,
                       transposeStep: state.transposeStep,
+                      currentKey: state.activeKeyLabel,
+                      availableKeys: state.transposeKeyOptions,
                       tempoBpm: state.tempoBpm,
                       midiInstrument: state.midiInstrument,
                       soundFont: state.soundFont,
@@ -297,6 +292,7 @@ class _SongViewState extends State<SongView> {
                       onSeek: (seconds) =>
                           cubit.seek(Duration(seconds: seconds.toInt())),
                       onTranspose: (semitones) => cubit.setTranspose(semitones),
+                      onKeySelected: cubit.setTransposeKey,
                       onTempo: (bpm) => cubit.setTempo(bpm),
                       onInstrument: cubit.setMidiInstrument,
                       onSoundFont: cubit.setSoundFont,
@@ -341,8 +337,8 @@ class _SongViewState extends State<SongView> {
                 Text(
                   'Pengaturan lirik',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
@@ -542,10 +538,7 @@ class _SongHeaderTitle extends StatelessWidget {
           child: AnimatedSwitcher(
             duration: const Duration(milliseconds: 200),
             transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
+              return FadeTransition(opacity: animation, child: child);
             },
             child: Container(
               key: ValueKey('$number-$title'),
@@ -576,17 +569,15 @@ class _SongHeaderTitle extends StatelessWidget {
                   ),
                   if (familyChord != null)
                     Text(
-                      'Family ${ChordService.formatChordForDisplay(
-                        familyChord!,
-                        accidentalMode: accidentalMode,
-                        baseTransposeOffset: baseTransposeOffset,
-                      )}${pdfKey == null ? '' : ' / PDF $pdfKey'}',
+                      'Family ${ChordService.formatChordForDisplay(familyChord!, accidentalMode: accidentalMode, baseTransposeOffset: baseTransposeOffset)}${pdfKey == null ? '' : ' / PDF $pdfKey'}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: colors.onPrimaryContainer.withValues(alpha: 0.72),
+                        color: colors.onPrimaryContainer.withValues(
+                          alpha: 0.72,
+                        ),
                       ),
                     ),
                 ],
@@ -682,10 +673,9 @@ class _SongTextPage extends StatelessWidget {
                     padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
-                        minHeight: (constraints.maxHeight - 28).clamp(
-                          0,
-                          double.infinity,
-                        ).toDouble(),
+                        minHeight: (constraints.maxHeight - 28)
+                            .clamp(0, double.infinity)
+                            .toDouble(),
                       ),
                       child: Column(
                         mainAxisAlignment: _resolveVerticalAlign(),
@@ -696,8 +686,9 @@ class _SongTextPage extends StatelessWidget {
                               'Bait ${safeIndex + 1} dari ${verses.length}',
                               textAlign: _resolveTextAlign(),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface
-                                    .withValues(alpha: 0.5),
+                                color: theme.colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -742,8 +733,9 @@ class _SongTextPage extends StatelessWidget {
                       label: const Text('Atas'),
                     ),
                     TextButton.icon(
-                      onPressed:
-                          safeIndex < verses.length - 1 ? onNextVerse : null,
+                      onPressed: safeIndex < verses.length - 1
+                          ? onNextVerse
+                          : null,
                       icon: const Icon(Icons.keyboard_arrow_down, size: 20),
                       label: const Text('Bawah'),
                     ),

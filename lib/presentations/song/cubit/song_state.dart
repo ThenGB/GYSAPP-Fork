@@ -8,6 +8,7 @@ import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../router/router.dart';
+import 'song_playback_defaults.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -66,6 +67,21 @@ abstract class SongState with _$SongState {
     return songBook.firstWhereOrNull((element) => element.code == bookCode);
   }
 
+  SongPlaybackDefaults get playbackDefaults => SongPlaybackDefaults(
+    transposeStep: transposeStep,
+    tempoBpm: tempoBpm,
+    defaultTempoBpm: defaultTempoBpm,
+    originalFamilyChord: originalFamilyChord,
+    originalPdfKey: originalPdfKey,
+    baseTransposeOffset: baseTransposeOffset,
+  );
+
+  String get activeKeyLabel =>
+      playbackDefaults.activeKeyLabel(accidentalMode: chordAccidentalMode);
+
+  List<String> get transposeKeyOptions =>
+      playbackDefaults.keyOptions(accidentalMode: chordAccidentalMode);
+
   TextTheme getTextThemeByFontName(String font) {
     switch (font) {
       case 'Roboto':
@@ -110,7 +126,8 @@ abstract class SongState with _$SongState {
         break;
     }
     return result.apply(
-        bodyColor: router.navigatorKey.currentContext?.textColor);
+      bodyColor: router.navigatorKey.currentContext?.textColor,
+    );
   }
 
   List<String> get availableFonts {

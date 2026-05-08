@@ -16,33 +16,38 @@ void main() {
     expect(data.lengthInBytes, greaterThan(0));
   });
 
-  test('resolves non KR pdf path even when index title encoding differs',
-      () async {
-    final service = LocalAssetService();
+  test(
+    'resolves non KR pdf path even when index title encoding differs',
+    () async {
+      final service = LocalAssetService();
 
-    final path = await service.getPdfPath('MDR', '001');
+      final path = await service.getPdfPath('MDR', '001');
 
-    expect(path, startsWith('assets/data/pdf/mdr/001_'));
-    expect(path, endsWith('.pdf'));
-    final data = await rootBundle.load(path!);
-    expect(data.lengthInBytes, greaterThan(0));
-  });
+      expect(path, startsWith('assets/data/pdf/mdr/001_'));
+      expect(path, endsWith('.pdf'));
+      final data = await rootBundle.load(path!);
+      expect(data.lengthInBytes, greaterThan(0));
+    },
+  );
 
-  test('bundled bible versions are exposed as selectable bible codes',
-      () async {
-    final service = LocalBibleAssetService();
+  test(
+    'bundled bible versions are exposed as selectable bible codes',
+    () async {
+      final service = LocalBibleAssetService();
 
-    final codes = await service.getBundledBibleCodes();
+      final codes = await service.getBundledBibleCodes();
 
-    expect(codes, contains('b_tb'));
-    expect(codes, isNot(contains('b_tb.db')));
-  });
+      expect(codes, contains('b_tb'));
+      expect(codes, isNot(contains('b_tb.db')));
+    },
+  );
 
   test('available soundfonts point to bundled sf2 assets', () async {
     final service = LocalAssetService();
 
     final soundfonts = await service.getAvailableSoundFonts();
 
+    expect(soundfonts.first, 'GeneralUser-GS.sf2');
     expect(soundfonts, contains('GeneralUser-GS.sf2'));
     for (final fileName in soundfonts) {
       final data = await rootBundle.load('assets/data/soundfont/$fileName');

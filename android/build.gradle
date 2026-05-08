@@ -1,20 +1,3 @@
-// buildscript {
-//     ext.kotlin_version = '1.7.10'
-//     repositories {
-//         google()
-//         mavenCentral()
-//     }
-
-//     dependencies {
-//         classpath 'com.android.tools.build:gradle:7.2.0'
-//         // START: FlutterFire Configuration
-//         classpath 'com.google.gms:google-services:4.3.10'
-//         classpath 'com.google.firebase:firebase-crashlytics-gradle:2.8.1'
-//         // END: FlutterFire Configuration
-//         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-//     }
-// }
-
 allprojects {
     repositories {
         google()
@@ -23,53 +6,64 @@ allprojects {
 }
 
 rootProject.buildDir = '../build'
+
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+
+subprojects {
     afterEvaluate {
-        // check if android block is available
-
         if (it.hasProperty('android')) {
-
             if (it.android.namespace == null) {
-                def manifest = new XmlSlurper().parse(file(it.android.sourceSets.main.manifest.srcFile))
-                def packageName = manifest.@package.text()
-                println("Setting ${packageName} as android namespace")
-                android.namespace = packageName
+                it.android.namespace = namespaceFromManifest(it)
             }
 
-            def javaVersion = JavaVersion.VERSION_17
             android {
-                def androidCompileApiVersion = 36
-                def androidTargetApiVersion = 35
-                compileSdkVersion androidCompileApiVersion
+                compileSdkVersion 36
+
                 defaultConfig {
-                    targetSdkVersion androidTargetApiVersion
+                    targetSdkVersion 35
                 }
+
                 compileOptions {
-                    sourceCompatibility javaVersion
-                    targetCompatibility javaVersion
+                    sourceCompatibility JavaVersion.VERSION_17
+                    targetCompatibility JavaVersion.VERSION_17
                 }
-                tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
-                    kotlinOptions {
-                        jvmTarget = javaVersion.toString()
-                    }
-                }
-                // ===== Fix 16 KB rule =====
+
                 packagingOptions {
                     jniLibs {
                         useLegacyPackaging = true
                     }
                 }
-                println("Setting java version to ${javaVersion.toString()} which is $javaVersion")
-                println("Setting compileSdkVersion to $androidCompileApiVersion and targetSdkVersion to $androidTargetApiVersion")
+            }
+
+            tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+                kotlinOptions {
+                    jvmTarget = JavaVersion.VERSION_17.toString()
+                }
             }
         }
-
     }
-
 }
+
 subprojects {
     project.evaluationDependsOn(':app')
+}
+
+def namespaceFromManifest(Project project) {
+    def manifestFile = project.android.sourceSets.main.manifest.srcFile
+    if (!manifestFile.exists()) {
+        return fallbackNamespace(project)
+    }
+
+    def packageName = new XmlSlurper().parse(manifestFile).@package.text()
+    return packageName ?: fallbackNamespace(project)
+}
+
+def fallbackNamespace(Project project) {
+    def groupName = project.group?.toString()
+    if (groupName) return groupName
+    return project.name.replace('-', '_')
 }
 
 tasks.register("clean", Delete) {

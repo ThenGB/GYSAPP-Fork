@@ -7,15 +7,15 @@ part of 'sauh_entity.dart';
 // **************************************************************************
 
 _Sauh _$SauhFromJson(Map<String, dynamic> json) => _Sauh(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      url: json['url'] as String,
-      imageUrl: json['imageUrl'] as String,
-    );
+  title: json['title'] as String,
+  description: json['description'] as String,
+  url: json['url'] as String,
+  imageUrl: json['imageUrl'] as String,
+);
 
 Map<String, dynamic> _$SauhToJson(_Sauh instance) => <String, dynamic>{
-      'title': instance.title,
-      'description': instance.description,
-      'url': instance.url,
-      'imageUrl': instance.imageUrl,
-    };
+  'title': instance.title,
+  'description': instance.description,
+  'url': instance.url,
+  'imageUrl': instance.imageUrl,
+};

@@ -7,10 +7,10 @@ part of 'song_history.dart';
 // **************************************************************************
 
 _SongHistory _$SongHistoryFromJson(Map<String, dynamic> json) => _SongHistory(
-      index: (json['index'] as num).toInt(),
-      bookCode: json['bookCode'] as String,
-      createdAt: DateTime.parse(json['createdAt'] as String),
-    );
+  index: (json['index'] as num).toInt(),
+  bookCode: json['bookCode'] as String,
+  createdAt: DateTime.parse(json['createdAt'] as String),
+);
 
 Map<String, dynamic> _$SongHistoryToJson(_SongHistory instance) =>
     <String, dynamic>{

@@ -1,11 +1,16 @@
 import 'dart:async';
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
+
 import 'local_asset_service.dart';
+import 'native_midi/midi_render_settings.dart';
+import 'native_midi/midi_tempo_detector.dart';
+import 'native_midi/native_midi_renderer.dart';
+
+const String defaultMidiSoundFont = 'GeneralUser-GS.sf2';
 
 class MidiPlaybackState {
   final bool isPlaying;
@@ -23,17 +28,50 @@ class MidiPlaybackState {
     this.loadProgress = 0,
     this.currentSong,
   });
+
+  MidiPlaybackState copyWith({
+    bool? isPlaying,
+    double? position,
+    double? duration,
+    bool? isLoading,
+    double? loadProgress,
+    Object? currentSong = _sentinel,
+  }) {
+    return MidiPlaybackState(
+      isPlaying: isPlaying ?? this.isPlaying,
+      position: position ?? this.position,
+      duration: duration ?? this.duration,
+      isLoading: isLoading ?? this.isLoading,
+      loadProgress: loadProgress ?? this.loadProgress,
+      currentSong: identical(currentSong, _sentinel)
+          ? this.currentSong
+          : currentSong as String?,
+    );
+  }
 }
 
 class MidiEngineService extends ChangeNotifier {
-  final LocalAssetService _assetService;
+  static const int _maxCachedSources = 6;
 
-  InAppWebViewController? _controller;
+  final LocalAssetService _assetService;
+  final Map<String, Uint8List> _midiBytesCache = {};
+  final Map<String, Uint8List> _soundFontBytesCache = {};
+  final Map<String, AudioSource> _sourceCache = {};
+  final List<String> _cacheOrder = [];
+
   bool _initialized = false;
-  bool _webEngineReady = false;
   bool _disposed = false;
-  final List<String> _pendingJsCalls = [];
-  Timer? _engineReadyTimeout;
+  int _renderGeneration = 0;
+  Timer? _positionTimer;
+
+  String _soundFont = defaultMidiSoundFont;
+  String? _currentMidiPath;
+  MidiRenderSettings _settings = const MidiRenderSettings(
+    soundFont: defaultMidiSoundFont,
+  );
+  AudioSource? _currentSource;
+  SoundHandle? _currentHandle;
+  double _volume = 1;
 
   MidiPlaybackState _state = const MidiPlaybackState();
 
@@ -53,269 +91,270 @@ class MidiEngineService extends ChangeNotifier {
     return _assetService.getAvailableSoundFonts();
   }
 
-  bool isCurrentSong(String midiPath) => _state.currentSong == midiPath;
+  bool isCurrentSong(String midiPath) =>
+      _state.currentSong == midiPath && _currentSource != null;
 
   Future<void> initialize() async {
     if (_initialized) return;
-
+    await SoLoud.instance.init();
     _initialized = true;
-    log('MidiEngineService initialized', name: 'MidiEngine');
-  }
-
-  void onWebViewCreated(InAppWebViewController controller) {
-    _controller = controller;
-    _webEngineReady = false;
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiStateChanged',
-      callback: (args) {
-        final data = args[0] as Map<String, dynamic>?;
-        if (data != null) {
-          _updateState(data);
-        }
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiProgress',
-      callback: (args) {
-        final progress = (args[0] as num?)?.toDouble() ?? 0;
-        _state = MidiPlaybackState(
-          isPlaying: _state.isPlaying,
-          position: _state.position,
-          duration: _state.duration,
-          isLoading: true,
-          loadProgress: progress,
-          currentSong: _state.currentSong,
-        );
-        _emitState();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiReady',
-      callback: (args) {
-        _webEngineReady = true;
-        _engineReadyTimeout?.cancel();
-        _engineReadyTimeout = null;
-        log('MIDI engine WebView bridge ready', name: 'MidiEngine');
-        _flushPendingJsCalls();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiError',
-      callback: (args) {
-        final message = args.isEmpty ? 'Unknown MIDI error' : '${args.first}';
-        log('MIDI JS error: $message', name: 'MidiEngine');
-        _state = MidiPlaybackState(
-          isPlaying: false,
-          position: _state.position,
-          duration: _state.duration,
-          isLoading: false,
-          loadProgress: _state.loadProgress,
-          currentSong: _state.currentSong,
-        );
-        _emitState();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiSongEnd',
-      callback: (args) {
-        log('MIDI song ended', name: 'MidiEngine');
-        _state = MidiPlaybackState(
-          isPlaying: false,
-          position: _state.position,
-          duration: _state.duration,
-          isLoading: false,
-          loadProgress: _state.loadProgress,
-          currentSong: _state.currentSong,
-        );
-        _emitState();
-      },
-    );
-
-    controller.addJavaScriptHandler(
-      handlerName: 'midiInstrumentsUpdated',
-      callback: (args) {
-        final list = args.isNotEmpty ? args.first : null;
-        if (list is List) {
-          _instruments = list
-              .whereType<List>()
-              .where((entry) => entry.length >= 2)
-              .map((entry) => <dynamic>[
-                    entry[0] is num
-                        ? (entry[0] as num).toInt()
-                        : int.tryParse(entry[0].toString()) ?? -1,
-                    entry[1].toString(),
-                  ])
-              .where((entry) => entry[0] >= 0)
-              .toList();
-          log('Instruments updated: ${_instruments.length} presets',
-              name: 'MidiEngine');
-          if (!_disposed) notifyListeners();
-        }
-      },
-    );
-  }
-
-  void _updateState(Map<String, dynamic> data) {
-    _state = MidiPlaybackState(
-      isPlaying:
-          data['isPlaying'] as bool? ?? data['playing'] as bool? ?? false,
-      position: (data['position'] as num?)?.toDouble() ??
-          (data['time'] as num?)?.toDouble() ??
-          0,
-      duration: (data['duration'] as num?)?.toDouble() ?? 0,
-      isLoading:
-          data['isLoading'] as bool? ?? data['loading'] as bool? ?? false,
-      loadProgress:
-          (data['loadProgress'] as num?)?.toDouble() ?? _state.loadProgress,
-      currentSong: _state.currentSong,
-    );
-    _emitState();
-  }
-
-  Future<void> initializeWebEngine(String soundFontFileUrl) async {
-    _engineReadyTimeout?.cancel();
-    _engineReadyTimeout = Timer(const Duration(seconds: 30), () {
-      if (!_webEngineReady && !_disposed) {
-        log('MIDI engine init timed out - flushing pending calls anyway',
-            name: 'MidiEngine');
-        _webEngineReady = true;
-        _flushPendingJsCalls();
-      }
-    });
-
-    // Init must bypass the _webEngineReady check to avoid circular wait
-    if (_controller != null && !_disposed) {
-      try {
-        await _controller!.evaluateJavascript(source:
-            'window.FlutterMidiBridge && window.FlutterMidiBridge.init(${jsonEncode(soundFontFileUrl)});');
-      } catch (e) {
-        log('JS init call failed: $e', name: 'MidiEngine');
-      }
-    }
+    log('Native MIDI engine initialized', name: 'MidiEngine');
   }
 
   Future<void> loadMidi(
     String midiPath, {
     int transpose = 0,
     double tempoBpm = 76,
+    double? baseTempoBpm,
     int? instrument,
     bool autoplay = false,
   }) async {
-    if (_state.currentSong == midiPath && !_state.isLoading) {
-      await setTranspose(transpose);
-      await setTempo(tempoBpm);
-      await setInstrument(instrument ?? -1);
-      if (autoplay) {
-        await play();
-      }
-      return;
-    }
+    await initialize();
+    final generation = ++_renderGeneration;
+    final previousPosition = _state.currentSong == midiPath
+        ? Duration(milliseconds: (_state.position * 1000).round())
+        : Duration.zero;
 
-    _state = MidiPlaybackState(
-      isPlaying: false,
-      position: 0,
-      duration: _state.duration,
-      isLoading: true,
-      loadProgress: 0,
-      currentSong: midiPath,
+    _currentMidiPath = midiPath;
+    _settings = MidiRenderSettings(
+      transpose: transpose,
+      tempoBpm: tempoBpm,
+      baseTempoBpm: baseTempoBpm ?? _settings.baseTempoBpm,
+      instrument: instrument,
+      soundFont: _soundFont,
+    ).normalized;
+
+    _setState(
+      _state.copyWith(
+        isPlaying: false,
+        position: 0,
+        isLoading: true,
+        loadProgress: 0.05,
+        currentSong: midiPath,
+      ),
     );
-    _emitState();
 
-    final base64Data = await _midiToBase64(midiPath);
+    try {
+      final midiBytes = await _loadMidiBytes(midiPath);
+      final detectedBaseTempo =
+          baseTempoBpm ??
+          MidiTempoDetector.detectBpm(
+            midiBytes,
+            fallbackBpm: _settings.baseTempoBpm,
+          );
+      _settings = _settings.copyWith(baseTempoBpm: detectedBaseTempo);
+      final source = await _loadRenderedSource(midiPath, _settings);
+      if (_disposed || generation != _renderGeneration) return;
 
-    await _callJs('''
-      if (window.FlutterMidiBridge) {
-        window.FlutterMidiBridge.loadMidiFromBase64(${jsonEncode(base64Data)}, {
-          transpose: $transpose,
-          tempoBpm: $tempoBpm,
-          instrument: ${instrument ?? -1},
-          autoplay: $autoplay
-        });
+      _currentSource = source;
+      final duration = SoLoud.instance.getLength(source);
+      _setState(
+        _state.copyWith(
+          isLoading: false,
+          loadProgress: 1,
+          duration: duration.inMilliseconds / 1000,
+          position: 0,
+        ),
+      );
+
+      if (autoplay) {
+        await play(startAt: previousPosition);
       }
-    ''');
+    } catch (e, stackTrace) {
+      log(
+        'Failed to load native MIDI: $e',
+        name: 'MidiEngine',
+        stackTrace: stackTrace,
+      );
+      if (!_disposed && generation == _renderGeneration) {
+        _setState(
+          _state.copyWith(isPlaying: false, isLoading: false, loadProgress: 0),
+        );
+      }
+    }
   }
 
-  Future<String> _midiToBase64(String assetPath) async {
+  Future<AudioSource> _loadRenderedSource(
+    String midiPath,
+    MidiRenderSettings settings,
+  ) async {
+    final cacheKey = '$midiPath|${settings.cacheKey}';
+    final cachedSource = _sourceCache[cacheKey];
+    if (cachedSource != null) {
+      _touchCacheKey(cacheKey);
+      return cachedSource;
+    }
+
+    _setState(_state.copyWith(loadProgress: 0.2));
+    final midiBytes = await _loadMidiBytes(midiPath);
+    final soundFontBytes = await _loadSoundFontBytes(settings.soundFont);
+    _setState(_state.copyWith(loadProgress: 0.35));
+
+    final rendered = await NativeMidiRenderer.render(
+      midiBytes: midiBytes,
+      soundFontBytes: soundFontBytes,
+      settings: settings,
+    );
+    if (rendered.instruments.isNotEmpty) {
+      _instruments = rendered.instruments;
+      if (!_disposed) notifyListeners();
+    }
+    _setState(_state.copyWith(loadProgress: 0.82));
+
+    final source = await SoLoud.instance.loadMem(
+      'midi-${cacheKey.hashCode}.wav',
+      rendered.wavBytes,
+      mode: LoadMode.memory,
+    );
+    _sourceCache[cacheKey] = source;
+    _touchCacheKey(cacheKey);
+    await _pruneSourceCache();
+    return source;
+  }
+
+  Future<Uint8List> _loadMidiBytes(String assetPath) async {
+    final cached = _midiBytesCache[assetPath];
+    if (cached != null) return cached;
     final data = await rootBundle.load(assetPath);
     final bytes = data.buffer.asUint8List(
       data.offsetInBytes,
       data.lengthInBytes,
     );
-    return base64Encode(bytes);
+    _midiBytesCache[assetPath] = bytes;
+    return bytes;
   }
 
-  Future<void> play() async {
-    await _callJs('window.FlutterMidiBridge.play();');
-    _state = MidiPlaybackState(
-      isPlaying: true,
-      position: _state.position,
-      duration: _state.duration,
-      isLoading: _state.isLoading,
-      loadProgress: _state.loadProgress,
-      currentSong: _state.currentSong,
+  Future<Uint8List> _loadSoundFontBytes(String fileName) async {
+    final normalized = _normaliseSoundFontFileName(fileName);
+    final cached = _soundFontBytesCache[normalized];
+    if (cached != null) return cached;
+    final data = await rootBundle.load('assets/data/soundfont/$normalized');
+    final bytes = data.buffer.asUint8List(
+      data.offsetInBytes,
+      data.lengthInBytes,
     );
-    _emitState();
+    _soundFontBytesCache[normalized] = bytes;
+    return bytes;
+  }
+
+  String _normaliseSoundFontFileName(String soundFontFileName) {
+    return soundFontFileName
+        .split(RegExp(r'[\\/]'))
+        .where((part) => part.isNotEmpty)
+        .last;
+  }
+
+  Future<void> play({Duration startAt = Duration.zero}) async {
+    await initialize();
+    if (_currentSource == null && _currentMidiPath != null) {
+      await loadMidi(
+        _currentMidiPath!,
+        transpose: _settings.transpose,
+        tempoBpm: _settings.tempoBpm,
+        baseTempoBpm: _settings.baseTempoBpm,
+        instrument: _settings.instrument,
+      );
+    }
+    final source = _currentSource;
+    if (source == null) return;
+
+    await _stopCurrentHandle(emit: false);
+    _currentHandle = await SoLoud.instance.play(
+      source,
+      volume: _volume,
+      paused: true,
+    );
+    if (startAt > Duration.zero) {
+      SoLoud.instance.seek(_currentHandle!, startAt);
+    } else if (_state.position > 0) {
+      SoLoud.instance.seek(
+        _currentHandle!,
+        Duration(milliseconds: (_state.position * 1000).round()),
+      );
+    }
+    SoLoud.instance.setPause(_currentHandle!, false);
+    _startPositionTimer();
+    _setState(_state.copyWith(isPlaying: true, isLoading: false));
   }
 
   Future<void> pause() async {
-    await _callJs('window.FlutterMidiBridge.pause();');
-    _state = MidiPlaybackState(
-      isPlaying: false,
-      position: _state.position,
-      duration: _state.duration,
-      isLoading: _state.isLoading,
-      loadProgress: _state.loadProgress,
-      currentSong: _state.currentSong,
-    );
-    _emitState();
+    final handle = _currentHandle;
+    if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
+      SoLoud.instance.setPause(handle, true);
+    }
+    _positionTimer?.cancel();
+    _setState(_state.copyWith(isPlaying: false));
   }
 
   Future<void> stop() async {
-    await _callJs('window.FlutterMidiBridge.stop();');
-    _state = const MidiPlaybackState();
-    _emitState();
+    await _stopCurrentHandle(emit: false);
+    _positionTimer?.cancel();
+    _setState(
+      _state.copyWith(
+        isPlaying: false,
+        position: 0,
+        isLoading: false,
+        currentSong: _currentMidiPath,
+      ),
+    );
   }
 
   Future<void> seek(double seconds) async {
-    await _callJs('window.FlutterMidiBridge.seek($seconds);');
-    _state = MidiPlaybackState(
-      isPlaying: _state.isPlaying,
-      position: seconds.clamp(0, _state.duration).toDouble(),
-      duration: _state.duration,
-      isLoading: _state.isLoading,
-      loadProgress: _state.loadProgress,
-      currentSong: _state.currentSong,
-    );
-    _emitState();
+    final clamped = seconds.clamp(0, _state.duration).toDouble();
+    final handle = _currentHandle;
+    if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
+      SoLoud.instance.seek(
+        handle,
+        Duration(milliseconds: (clamped * 1000).round()),
+      );
+    }
+    _setState(_state.copyWith(position: clamped));
   }
 
   Future<void> setTranspose(int semitones) async {
-    await _callJs('window.FlutterMidiBridge.setTranspose($semitones);');
+    await _rerenderCurrent(_settings.copyWith(transpose: semitones));
   }
 
   Future<void> setTempo(double bpm) async {
-    await _callJs('window.FlutterMidiBridge.setTempoBpm($bpm);');
+    await _rerenderCurrent(_settings.copyWith(tempoBpm: bpm));
   }
 
-  Future<void> setInstrument(int program) async {
-    await _callJs('window.FlutterMidiBridge.setInstrument($program);');
-  }
-
-  Future<void> changeSoundFont(String soundFontFileUrl) async {
-    _instruments = [];
-    if (!_disposed) notifyListeners();
-    await _callJs(
-      'window.FlutterMidiBridge.changeSoundFont(${jsonEncode(soundFontFileUrl)});',
+  Future<void> setTempoBase(double bpm) async {
+    await _rerenderCurrent(
+      _settings.copyWith(tempoBpm: bpm, baseTempoBpm: bpm),
     );
   }
 
+  Future<void> setInstrument(int program) async {
+    await _rerenderCurrent(
+      _settings.copyWith(instrument: program < 0 ? null : program),
+    );
+  }
+
+  Future<void> changeSoundFont(String soundFontFileName) async {
+    await initialize();
+    _soundFont = _normaliseSoundFontFileName(soundFontFileName);
+    _settings = _settings.copyWith(soundFont: _soundFont).normalized;
+    _instruments = [];
+    if (!_disposed) notifyListeners();
+
+    try {
+      final soundFontBytes = await _loadSoundFontBytes(_soundFont);
+      _instruments = await NativeMidiRenderer.readInstruments(soundFontBytes);
+      if (!_disposed) notifyListeners();
+    } catch (e) {
+      log('Failed to read SoundFont presets: $e', name: 'MidiEngine');
+    }
+
+    await _rerenderCurrent(_settings, force: true);
+  }
+
   Future<void> setVolume(double volume) async {
-    await _callJs('window.FlutterMidiBridge.setVolume($volume);');
+    _volume = volume.clamp(0, 1).toDouble();
+    final handle = _currentHandle;
+    if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
+      SoLoud.instance.setVolume(handle, _volume);
+    }
   }
 
   Future<void> preload(
@@ -323,45 +362,115 @@ class MidiEngineService extends ChangeNotifier {
     int transpose = 0,
     int? instrument,
   }) async {
-    final base64Data = await _midiToBase64(midiPath);
-    await _callJs(
-      'window.FlutterMidiBridge && window.FlutterMidiBridge.preloadFromBase64(${jsonEncode(base64Data)}, $transpose, ${instrument ?? -1});',
+    await initialize();
+    unawaited(
+      _preloadRenderedSource(
+        midiPath,
+        _settings.copyWith(transpose: transpose, instrument: instrument),
+      ),
     );
   }
 
-  Future<void> _callJs(String jsCode) async {
-    if (_disposed) return;
-    if (_controller == null) {
-      _pendingJsCalls.add(jsCode);
-      log('Queued JS call (no controller yet)', name: 'MidiEngine');
-      return;
-    }
-    if (!_webEngineReady) {
-      _pendingJsCalls.add(jsCode);
-      return;
-    }
+  Future<void> _preloadRenderedSource(
+    String midiPath,
+    MidiRenderSettings settings,
+  ) async {
     try {
-      await _controller!.evaluateJavascript(source: jsCode);
-    } catch (e) {
-      log('JS call failed: $e', name: 'MidiEngine');
+      await _loadRenderedSource(midiPath, settings);
+    } catch (e, stackTrace) {
+      log(
+        'MIDI preload failed: $e',
+        name: 'MidiEngine',
+        stackTrace: stackTrace,
+      );
     }
   }
 
-  Future<void> _flushPendingJsCalls() async {
-    if (_controller == null || _pendingJsCalls.isEmpty) {
+  Future<void> _rerenderCurrent(
+    MidiRenderSettings nextSettings, {
+    bool force = false,
+  }) async {
+    final midiPath = _currentMidiPath;
+    _settings = nextSettings.normalized;
+    if (midiPath == null) return;
+    if (!force && _state.currentSong != midiPath && _currentSource == null) {
       return;
     }
+    final wasPlaying = _state.isPlaying;
+    final position =
+        _currentHandle != null &&
+            SoLoud.instance.getIsValidVoiceHandle(_currentHandle!)
+        ? SoLoud.instance.getPosition(_currentHandle!)
+        : Duration(milliseconds: (_state.position * 1000).round());
+    await _stopCurrentHandle(emit: false);
+    await loadMidi(
+      midiPath,
+      transpose: _settings.transpose,
+      tempoBpm: _settings.tempoBpm,
+      baseTempoBpm: _settings.baseTempoBpm,
+      instrument: _settings.instrument,
+      autoplay: false,
+    );
+    if (wasPlaying) {
+      await play(startAt: position);
+    } else {
+      await seek(position.inMilliseconds / 1000);
+    }
+  }
 
-    final calls = List<String>.from(_pendingJsCalls);
-    _pendingJsCalls.clear();
-    log('Flushing ${calls.length} pending JS calls', name: 'MidiEngine');
-    for (final jsCode in calls) {
-      try {
-        await _controller!.evaluateJavascript(source: jsCode);
-      } catch (e) {
-        log('Pending JS call failed: $e', name: 'MidiEngine');
+  void _startPositionTimer() {
+    _positionTimer?.cancel();
+    _positionTimer = Timer.periodic(const Duration(milliseconds: 250), (_) {
+      final handle = _currentHandle;
+      if (handle == null || !SoLoud.instance.getIsValidVoiceHandle(handle)) {
+        _positionTimer?.cancel();
+        _setState(_state.copyWith(isPlaying: false));
+        return;
+      }
+      final position = SoLoud.instance.getPosition(handle);
+      final seconds = position.inMilliseconds / 1000;
+      final ended = _state.duration > 0 && seconds >= _state.duration - 0.1;
+      _setState(
+        _state.copyWith(
+          isPlaying: !ended,
+          position: seconds.clamp(0, _state.duration).toDouble(),
+        ),
+      );
+      if (ended) {
+        _positionTimer?.cancel();
+      }
+    });
+  }
+
+  Future<void> _stopCurrentHandle({required bool emit}) async {
+    final handle = _currentHandle;
+    _currentHandle = null;
+    if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
+      await SoLoud.instance.stop(handle);
+    }
+    if (emit) {
+      _setState(_state.copyWith(isPlaying: false));
+    }
+  }
+
+  void _touchCacheKey(String cacheKey) {
+    _cacheOrder.remove(cacheKey);
+    _cacheOrder.add(cacheKey);
+  }
+
+  Future<void> _pruneSourceCache() async {
+    while (_cacheOrder.length > _maxCachedSources) {
+      final cacheKey = _cacheOrder.removeAt(0);
+      final source = _sourceCache.remove(cacheKey);
+      if (source != null && source != _currentSource) {
+        await SoLoud.instance.disposeSource(source);
       }
     }
+  }
+
+  void _setState(MidiPlaybackState state) {
+    _state = state;
+    _emitState();
   }
 
   void _emitState() {
@@ -373,17 +482,20 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> disposeEngine() async {
     if (_disposed) return;
-    _engineReadyTimeout?.cancel();
-    _engineReadyTimeout = null;
-    await _callJs(
-      'window.FlutterMidiBridge && window.FlutterMidiBridge.destroy();',
-    );
     _disposed = true;
-    _pendingJsCalls.clear();
+    _positionTimer?.cancel();
+    await _stopCurrentHandle(emit: false);
+    for (final source in _sourceCache.values) {
+      await SoLoud.instance.disposeSource(source);
+    }
+    _sourceCache.clear();
+    _cacheOrder.clear();
     await _stateController.close();
     super.dispose();
   }
 }
+
+const Object _sentinel = Object();
 
 const List<List<dynamic>> _generalMidiInstruments = [
   [0, 'Acoustic Grand Piano'],

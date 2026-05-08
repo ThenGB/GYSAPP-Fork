@@ -19,10 +19,10 @@ class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
     required dynamic Function(AppBackupData) onSynced,
     List<PageRouteInfo>? children,
   }) : super(
-          BackupRoute.name,
-          args: BackupRouteArgs(key: key, data: data, onSynced: onSynced),
-          initialChildren: children,
-        );
+         BackupRoute.name,
+         args: BackupRouteArgs(key: key, data: data, onSynced: onSynced),
+         initialChildren: children,
+       );
 
   static const String name = 'BackupRoute';
 
@@ -76,19 +76,20 @@ class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
       Map<String, Map<dynamic, dynamic>>,
       double,
       double,
-    ) onSave,
+    )
+    onSave,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleAudioSettingRoute.name,
-          args: BibleAudioSettingRouteArgs(
-            key: key,
-            initialVoices: initialVoices,
-            initialPitchRate: initialPitchRate,
-            initialSpeedRate: initialSpeedRate,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
+         BibleAudioSettingRoute.name,
+         args: BibleAudioSettingRouteArgs(
+           key: key,
+           initialVoices: initialVoices,
+           initialPitchRate: initialPitchRate,
+           initialSpeedRate: initialSpeedRate,
+           onSave: onSave,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleAudioSettingRoute';
 
@@ -125,7 +126,7 @@ class BibleAudioSettingRouteArgs {
   final double initialSpeedRate;
 
   final dynamic Function(Map<String, Map<dynamic, dynamic>>, double, double)
-      onSave;
+  onSave;
 
   @override
   String toString() {
@@ -165,17 +166,17 @@ class BibleListRoute extends PageRouteInfo<BibleListRouteArgs> {
     required String bibleCode,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleListRoute.name,
-          args: BibleListRouteArgs(
-            key: key,
-            books: books,
-            getBibles: getBibles,
-            onSelected: onSelected,
-            textScale: textScale,
-            bibleCode: bibleCode,
-          ),
-          initialChildren: children,
-        );
+         BibleListRoute.name,
+         args: BibleListRouteArgs(
+           key: key,
+           books: books,
+           getBibles: getBibles,
+           onSelected: onSelected,
+           textScale: textScale,
+           bibleCode: bibleCode,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleListRoute';
 
@@ -249,14 +250,14 @@ class BibleNoteListRoute extends PageRouteInfo<BibleNoteListRouteArgs> {
     String? initialSearch,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleNoteListRoute.name,
-          args: BibleNoteListRouteArgs(
-            key: key,
-            cubit: cubit,
-            initialSearch: initialSearch,
-          ),
-          initialChildren: children,
-        );
+         BibleNoteListRoute.name,
+         args: BibleNoteListRouteArgs(
+           key: key,
+           cubit: cubit,
+           initialSearch: initialSearch,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleNoteListRoute';
 
@@ -315,16 +316,16 @@ class BibleNoteRoute extends PageRouteInfo<BibleNoteRouteArgs> {
     required dynamic Function(BibleNote) onSave,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleNoteRoute.name,
-          args: BibleNoteRouteArgs(
-            key: key,
-            initialData: initialData,
-            cubit: cubit,
-            mode: mode,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
+         BibleNoteRoute.name,
+         args: BibleNoteRouteArgs(
+           key: key,
+           initialData: initialData,
+           cubit: cubit,
+           mode: mode,
+           onSave: onSave,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleNoteRoute';
 
@@ -394,17 +395,17 @@ class BibleSearchFilterRoute extends PageRouteInfo<BibleSearchFilterRouteArgs> {
     required String bibleCode,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleSearchFilterRoute.name,
-          args: BibleSearchFilterRouteArgs(
-            key: key,
-            allBooks: allBooks,
-            initialValues: initialValues,
-            onFiltered: onFiltered,
-            textScale: textScale,
-            bibleCode: bibleCode,
-          ),
-          initialChildren: children,
-        );
+         BibleSearchFilterRoute.name,
+         args: BibleSearchFilterRouteArgs(
+           key: key,
+           allBooks: allBooks,
+           initialValues: initialValues,
+           onFiltered: onFiltered,
+           textScale: textScale,
+           bibleCode: bibleCode,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleSearchFilterRoute';
 
@@ -483,10 +484,10 @@ class BibleSearchRoute extends PageRouteInfo<BibleSearchRouteArgs> {
     required dynamic Function(Verse) onTap,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleSearchRoute.name,
-          args: BibleSearchRouteArgs(key: key, cubit: cubit, onTap: onTap),
-          initialChildren: children,
-        );
+         BibleSearchRoute.name,
+         args: BibleSearchRouteArgs(key: key, cubit: cubit, onTap: onTap),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleSearchRoute';
 
@@ -540,10 +541,10 @@ class BibleVersionRoute extends PageRouteInfo<BibleVersionRouteArgs> {
     required DashboardCubit dashboardCubit,
     List<PageRouteInfo>? children,
   }) : super(
-          BibleVersionRoute.name,
-          args: BibleVersionRouteArgs(key: key, dashboardCubit: dashboardCubit),
-          initialChildren: children,
-        );
+         BibleVersionRoute.name,
+         args: BibleVersionRouteArgs(key: key, dashboardCubit: dashboardCubit),
+         initialChildren: children,
+       );
 
   static const String name = 'BibleVersionRoute';
 
@@ -586,7 +587,7 @@ class BibleVersionRouteArgs {
 /// [BibleView]
 class BibleRoute extends PageRouteInfo<void> {
   const BibleRoute({List<PageRouteInfo>? children})
-      : super(BibleRoute.name, initialChildren: children);
+    : super(BibleRoute.name, initialChildren: children);
 
   static const String name = 'BibleRoute';
 
@@ -602,7 +603,7 @@ class BibleRoute extends PageRouteInfo<void> {
 /// [DashboardView]
 class DashboardRoute extends PageRouteInfo<void> {
   const DashboardRoute({List<PageRouteInfo>? children})
-      : super(DashboardRoute.name, initialChildren: children);
+    : super(DashboardRoute.name, initialChildren: children);
 
   static const String name = 'DashboardRoute';
 
@@ -622,10 +623,10 @@ class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
     required FaithCubit cubit,
     List<PageRouteInfo>? children,
   }) : super(
-          FaithNoteListRoute.name,
-          args: FaithNoteListRouteArgs(key: key, cubit: cubit),
-          initialChildren: children,
-        );
+         FaithNoteListRoute.name,
+         args: FaithNoteListRouteArgs(key: key, cubit: cubit),
+         initialChildren: children,
+       );
 
   static const String name = 'FaithNoteListRoute';
 
@@ -672,16 +673,16 @@ class FaithNoteRoute extends PageRouteInfo<FaithNoteRouteArgs> {
     required dynamic Function(FaithNote) onSave,
     List<PageRouteInfo>? children,
   }) : super(
-          FaithNoteRoute.name,
-          args: FaithNoteRouteArgs(
-            key: key,
-            initialData: initialData,
-            cubit: cubit,
-            mode: mode,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
+         FaithNoteRoute.name,
+         args: FaithNoteRouteArgs(
+           key: key,
+           initialData: initialData,
+           cubit: cubit,
+           mode: mode,
+           onSave: onSave,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'FaithNoteRoute';
 
@@ -743,7 +744,7 @@ class FaithNoteRouteArgs {
 /// [FaithView]
 class FaithRoute extends PageRouteInfo<void> {
   const FaithRoute({List<PageRouteInfo>? children})
-      : super(FaithRoute.name, initialChildren: children);
+    : super(FaithRoute.name, initialChildren: children);
 
   static const String name = 'FaithRoute';
 
@@ -759,7 +760,7 @@ class FaithRoute extends PageRouteInfo<void> {
 /// [FontSettingView]
 class FontSettingRoute extends PageRouteInfo<void> {
   const FontSettingRoute({List<PageRouteInfo>? children})
-      : super(FontSettingRoute.name, initialChildren: children);
+    : super(FontSettingRoute.name, initialChildren: children);
 
   static const String name = 'FontSettingRoute';
 
@@ -775,7 +776,7 @@ class FontSettingRoute extends PageRouteInfo<void> {
 /// [HomeView]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})
-      : super(HomeRoute.name, initialChildren: children);
+    : super(HomeRoute.name, initialChildren: children);
 
   static const String name = 'HomeRoute';
 
@@ -791,7 +792,7 @@ class HomeRoute extends PageRouteInfo<void> {
 /// [InitialView]
 class InitialRoute extends PageRouteInfo<void> {
   const InitialRoute({List<PageRouteInfo>? children})
-      : super(InitialRoute.name, initialChildren: children);
+    : super(InitialRoute.name, initialChildren: children);
 
   static const String name = 'InitialRoute';
 
@@ -807,7 +808,7 @@ class InitialRoute extends PageRouteInfo<void> {
 /// [LiteratureKesaksianView]
 class LiteratureKesaksianRoute extends PageRouteInfo<void> {
   const LiteratureKesaksianRoute({List<PageRouteInfo>? children})
-      : super(LiteratureKesaksianRoute.name, initialChildren: children);
+    : super(LiteratureKesaksianRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureKesaksianRoute';
 
@@ -823,7 +824,7 @@ class LiteratureKesaksianRoute extends PageRouteInfo<void> {
 /// [LiteraturePanduanKitabView]
 class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
   const LiteraturePanduanKitabRoute({List<PageRouteInfo>? children})
-      : super(LiteraturePanduanKitabRoute.name, initialChildren: children);
+    : super(LiteraturePanduanKitabRoute.name, initialChildren: children);
 
   static const String name = 'LiteraturePanduanKitabRoute';
 
@@ -839,7 +840,7 @@ class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
 /// [LiteratureRenunganView]
 class LiteratureRenunganRoute extends PageRouteInfo<void> {
   const LiteratureRenunganRoute({List<PageRouteInfo>? children})
-      : super(LiteratureRenunganRoute.name, initialChildren: children);
+    : super(LiteratureRenunganRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureRenunganRoute';
 
@@ -855,7 +856,7 @@ class LiteratureRenunganRoute extends PageRouteInfo<void> {
 /// [LiteratureView]
 class LiteratureRoute extends PageRouteInfo<void> {
   const LiteratureRoute({List<PageRouteInfo>? children})
-      : super(LiteratureRoute.name, initialChildren: children);
+    : super(LiteratureRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureRoute';
 
@@ -871,7 +872,7 @@ class LiteratureRoute extends PageRouteInfo<void> {
 /// [LiteratureWartaView]
 class LiteratureWartaRoute extends PageRouteInfo<void> {
   const LiteratureWartaRoute({List<PageRouteInfo>? children})
-      : super(LiteratureWartaRoute.name, initialChildren: children);
+    : super(LiteratureWartaRoute.name, initialChildren: children);
 
   static const String name = 'LiteratureWartaRoute';
 
@@ -891,10 +892,10 @@ class LoginRoute extends PageRouteInfo<LoginRouteArgs> {
     required dynamic Function(String) onLoggedIn,
     List<PageRouteInfo>? children,
   }) : super(
-          LoginRoute.name,
-          args: LoginRouteArgs(key: key, onLoggedIn: onLoggedIn),
-          initialChildren: children,
-        );
+         LoginRoute.name,
+         args: LoginRouteArgs(key: key, onLoggedIn: onLoggedIn),
+         initialChildren: children,
+       );
 
   static const String name = 'LoginRoute';
 
@@ -941,14 +942,14 @@ class ReportRoute extends PageRouteInfo<ReportRouteArgs> {
     required Future<Account?> Function(String) onLoggedIn,
     List<PageRouteInfo>? children,
   }) : super(
-          ReportRoute.name,
-          args: ReportRouteArgs(
-            key: key,
-            account: account,
-            onLoggedIn: onLoggedIn,
-          ),
-          initialChildren: children,
-        );
+         ReportRoute.name,
+         args: ReportRouteArgs(
+           key: key,
+           account: account,
+           onLoggedIn: onLoggedIn,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'ReportRoute';
 
@@ -994,7 +995,7 @@ class ReportRouteArgs {
 /// [SettingsView]
 class SettingsRoute extends PageRouteInfo<void> {
   const SettingsRoute({List<PageRouteInfo>? children})
-      : super(SettingsRoute.name, initialChildren: children);
+    : super(SettingsRoute.name, initialChildren: children);
 
   static const String name = 'SettingsRoute';
 
@@ -1025,24 +1026,24 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
     required dynamic Function() onPlayFavorite,
     List<PageRouteInfo>? children,
   }) : super(
-          SongListRoute.name,
-          args: SongListRouteArgs(
-            key: key,
-            books: books,
-            currentBook: currentBook,
-            onTapPageNumber: onTapPageNumber,
-            onChangeBookCode: onChangeBookCode,
-            isFavorite: isFavorite,
-            onFavorite: onFavorite,
-            favoriteBooks: favoriteBooks,
-            onTapFavorite: onTapFavorite,
-            initialSearchText: initialSearchText,
-            onSearchTermsChanged: onSearchTermsChanged,
-            onBack: onBack,
-            onPlayFavorite: onPlayFavorite,
-          ),
-          initialChildren: children,
-        );
+         SongListRoute.name,
+         args: SongListRouteArgs(
+           key: key,
+           books: books,
+           currentBook: currentBook,
+           onTapPageNumber: onTapPageNumber,
+           onChangeBookCode: onChangeBookCode,
+           isFavorite: isFavorite,
+           onFavorite: onFavorite,
+           favoriteBooks: favoriteBooks,
+           onTapFavorite: onTapFavorite,
+           initialSearchText: initialSearchText,
+           onSearchTermsChanged: onSearchTermsChanged,
+           onBack: onBack,
+           onPlayFavorite: onPlayFavorite,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'SongListRoute';
 
@@ -1139,16 +1140,16 @@ class SongNoteRoute extends PageRouteInfo<SongNoteRouteArgs> {
     required dynamic Function(SongNote) onSave,
     List<PageRouteInfo>? children,
   }) : super(
-          SongNoteRoute.name,
-          args: SongNoteRouteArgs(
-            key: key,
-            initialData: initialData,
-            cubit: cubit,
-            mode: mode,
-            onSave: onSave,
-          ),
-          initialChildren: children,
-        );
+         SongNoteRoute.name,
+         args: SongNoteRouteArgs(
+           key: key,
+           initialData: initialData,
+           cubit: cubit,
+           mode: mode,
+           onSave: onSave,
+         ),
+         initialChildren: children,
+       );
 
   static const String name = 'SongNoteRoute';
 
@@ -1214,10 +1215,10 @@ class SongNotesListRoute extends PageRouteInfo<SongNotesListRouteArgs> {
     required SongCubit cubit,
     List<PageRouteInfo>? children,
   }) : super(
-          SongNotesListRoute.name,
-          args: SongNotesListRouteArgs(key: key, cubit: cubit),
-          initialChildren: children,
-        );
+         SongNotesListRoute.name,
+         args: SongNotesListRouteArgs(key: key, cubit: cubit),
+         initialChildren: children,
+       );
 
   static const String name = 'SongNotesListRoute';
 
@@ -1257,7 +1258,7 @@ class SongNotesListRouteArgs {
 /// [SongSyncView]
 class SongSyncRoute extends PageRouteInfo<void> {
   const SongSyncRoute({List<PageRouteInfo>? children})
-      : super(SongSyncRoute.name, initialChildren: children);
+    : super(SongSyncRoute.name, initialChildren: children);
 
   static const String name = 'SongSyncRoute';
 
@@ -1273,7 +1274,7 @@ class SongSyncRoute extends PageRouteInfo<void> {
 /// [SongView]
 class SongRoute extends PageRouteInfo<void> {
   const SongRoute({List<PageRouteInfo>? children})
-      : super(SongRoute.name, initialChildren: children);
+    : super(SongRoute.name, initialChildren: children);
 
   static const String name = 'SongRoute';
 
@@ -1294,10 +1295,10 @@ class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
     FutureOr<Color?> Function(InAppWebViewController)? getNavColor,
     List<PageRouteInfo>? children,
   }) : super(
-          WebpageRoute.name,
-          args: WebpageRouteArgs(key: key, url: url, getNavColor: getNavColor),
-          initialChildren: children,
-        );
+         WebpageRoute.name,
+         args: WebpageRouteArgs(key: key, url: url, getNavColor: getNavColor),
+         initialChildren: children,
+       );
 
   static const String name = 'WebpageRoute';
 

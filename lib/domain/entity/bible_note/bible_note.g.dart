@@ -7,14 +7,14 @@ part of 'bible_note.dart';
 // **************************************************************************
 
 _BibleNote _$BibleNoteFromJson(Map<String, dynamic> json) => _BibleNote(
-      id: (json['id'] as num).toInt(),
-      verses: (json['verses'] as List<dynamic>)
-          .map((e) => Verse.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      text: json['text'] as String?,
-      createdDate: DateTime.parse(json['createdDate'] as String),
-      updatedDate: DateTime.parse(json['updatedDate'] as String),
-    );
+  id: (json['id'] as num).toInt(),
+  verses: (json['verses'] as List<dynamic>)
+      .map((e) => Verse.fromJson(e as Map<String, dynamic>))
+      .toList(),
+  text: json['text'] as String?,
+  createdDate: DateTime.parse(json['createdDate'] as String),
+  updatedDate: DateTime.parse(json['updatedDate'] as String),
+);
 
 Map<String, dynamic> _$BibleNoteToJson(_BibleNote instance) =>
     <String, dynamic>{

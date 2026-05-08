@@ -7,11 +7,11 @@ part of 'truevoice_entity.dart';
 // **************************************************************************
 
 _TrueVoice _$TrueVoiceFromJson(Map<String, dynamic> json) => _TrueVoice(
-      title: json['title'] as String,
-      description: json['description'] as String,
-      url: json['url'] as String,
-      imageUrl: json['imageUrl'] as String,
-    );
+  title: json['title'] as String,
+  description: json['description'] as String,
+  url: json['url'] as String,
+  imageUrl: json['imageUrl'] as String,
+);
 
 Map<String, dynamic> _$TrueVoiceToJson(_TrueVoice instance) =>
     <String, dynamic>{
