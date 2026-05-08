@@ -360,13 +360,22 @@ class MidiEngineService extends ChangeNotifier {
   Future<void> preload(
     String midiPath, {
     int transpose = 0,
+    double? tempoBpm,
+    double? baseTempoBpm,
     int? instrument,
+    String? soundFont,
   }) async {
     await initialize();
     unawaited(
       _preloadRenderedSource(
         midiPath,
-        _settings.copyWith(transpose: transpose, instrument: instrument),
+        _settings.copyWith(
+          transpose: transpose,
+          tempoBpm: tempoBpm,
+          baseTempoBpm: baseTempoBpm,
+          instrument: instrument,
+          soundFont: soundFont,
+        ),
       ),
     );
   }

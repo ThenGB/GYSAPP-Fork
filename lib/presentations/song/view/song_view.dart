@@ -99,7 +99,21 @@ class _SongViewState extends State<SongView> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SongCubit, SongState>(
+    return BlocConsumer<SongCubit, SongState>(
+      listenWhen: (previous, current) =>
+          previous.pageIndex != current.pageIndex ||
+          previous.bookCode != current.bookCode ||
+          previous.playOnlyFavorite != current.playOnlyFavorite,
+      listener: (context, state) {
+        setState(() {
+          currentPageIndex = state.pageIndex;
+          _currentVerseIndex = state.verseIndex;
+        });
+        _loadChordData();
+        _loadPdfForCurrentSong();
+        if (!pageController.hasClients) return;
+        pageController.jumpToPage(state.pageIndex);
+      },
       builder: (context, state) {
         final textMode = state.isImageMode == true;
         final colors = Theme.of(context).colorScheme;

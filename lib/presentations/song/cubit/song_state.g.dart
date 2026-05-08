@@ -46,6 +46,19 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
+  playlists:
+      (json['playlists'] as List<dynamic>?)
+          ?.map((e) => SongPlaylist.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
+  activePlaylistId: json['activePlaylistId'] as String?,
+  playlistAutoNextMode:
+      json['playlistAutoNextMode'] as String? ?? SongPlaylistAutoNextMode.off,
+  playlistShuffleIndex:
+      (json['playlistShuffleIndex'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList() ??
+      const [],
   showAudio: json['showAudio'] as bool? ?? false,
   showChord: json['showChord'] as bool? ?? false,
   searchTerms: json['searchTerms'] as String? ?? '',
@@ -103,6 +116,10 @@ Map<String, dynamic> _$SongStateToJson(
   'playOnlyFavorite': instance.playOnlyFavorite,
   'shuffleMode': instance.shuffleMode,
   'shuffleIndex': instance.shuffleIndex,
+  'playlists': instance.playlists,
+  'activePlaylistId': instance.activePlaylistId,
+  'playlistAutoNextMode': instance.playlistAutoNextMode,
+  'playlistShuffleIndex': instance.playlistShuffleIndex,
   'showAudio': instance.showAudio,
   'showChord': instance.showChord,
   'searchTerms': instance.searchTerms,

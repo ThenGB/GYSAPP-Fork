@@ -9,6 +9,7 @@ import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../router/router.dart';
 import 'song_playback_defaults.dart';
+import 'song_playlist.dart';
 
 part 'song_state.freezed.dart';
 part 'song_state.g.dart';
@@ -34,6 +35,10 @@ abstract class SongState with _$SongState {
     @Default(false) bool playOnlyFavorite,
     @Default(false) bool shuffleMode,
     @Default([]) List<int> shuffleIndex,
+    @Default([]) List<SongPlaylist> playlists,
+    String? activePlaylistId,
+    @Default(SongPlaylistAutoNextMode.off) String playlistAutoNextMode,
+    @Default([]) List<int> playlistShuffleIndex,
     @Default(false) bool showAudio,
     @Default(false) bool showChord,
     @Default('') String searchTerms,
