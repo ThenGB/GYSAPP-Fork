@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -58,7 +57,6 @@ class _SongListViewState extends State<SongListView>
     ..addListener(tabListener);
   @override
   void dispose() {
-    log('List disposed');
     searchController.dispose();
     tabController.dispose();
     super.dispose();
@@ -135,21 +133,15 @@ class _SongListViewState extends State<SongListView>
     return Scaffold(
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
+        shape: Border(
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
+        ),
         leadingWidth: 56,
         titleSpacing: 0,
-        leading: Center(
-          child: GestureDetector(
-            onTap: widget.onBack,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                border: Border.all(color: context.theme.disabledColor),
-                shape: BoxShape.circle,
-                color: context.theme.canvasColor,
-              ),
-              child: Icon(Icons.home, color: context.theme.disabledColor),
-            ),
-          ),
+        leading: IconButton(
+          tooltip: 'Back',
+          onPressed: widget.onBack,
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
         centerTitle: true,
         actions: [
@@ -236,14 +228,35 @@ class _SongListViewState extends State<SongListView>
                       TextFormField(
                         controller: searchController,
                         decoration: InputDecoration(
+                          filled: true,
+                          fillColor: context.colorScheme.surfaceContainerLowest,
                           isDense: true,
-                          prefixIcon: const Icon(Icons.search),
+                          prefixIcon: Icon(
+                            Icons.search_rounded,
+                            color: context.colorScheme.primary,
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
                             horizontal: 4,
                             vertical: 8,
                           ).add(const EdgeInsets.only(right: 100 + 48)),
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
+                          ),
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
+                          ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(14),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.primary,
+                              width: 1.2,
+                            ),
                           ),
                           hintText: 'Search number or keyword'.tr(),
                         ),
@@ -297,16 +310,22 @@ class _SongListViewState extends State<SongListView>
                                   ),
                                   decoration: BoxDecoration(
                                     borderRadius: const BorderRadius.horizontal(
-                                      right: Radius.circular(7),
+                                      right: Radius.circular(13),
                                     ),
                                     color:
                                         context.colorScheme.secondaryContainer,
+                                    border: Border.all(
+                                      color: context.colorScheme.secondary,
+                                    ),
                                   ),
                                   child: Text(
                                     widget.currentBook().code ?? '',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
+                                      color: context
+                                          .colorScheme
+                                          .onSecondaryContainer,
                                     ),
                                   ),
                                 ),
@@ -331,7 +350,12 @@ class _SongListViewState extends State<SongListView>
                       return Column(
                         children: [
                           Material(
+                            color: context.colorScheme.surfaceContainerLowest,
                             child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 2,
+                              ),
                               onTap: () {
                                 FocusManager.instance.primaryFocus?.unfocus();
                                 widget.onSearchTermsChanged(
@@ -339,7 +363,18 @@ class _SongListViewState extends State<SongListView>
                                 );
                                 widget.onTapPageNumber(item.number!);
                               },
-                              leading: Text(item.number ?? ''),
+                              leading: SizedBox(
+                                width: 36,
+                                child: Text(
+                                  item.number ?? '',
+                                  style: TextStyle(
+                                    fontFamily: 'EB Garamond',
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 18,
+                                    color: context.colorScheme.primary,
+                                  ),
+                                ),
+                              ),
                               trailing: SizedBox(
                                 width: 96,
                                 child: Row(
@@ -347,6 +382,7 @@ class _SongListViewState extends State<SongListView>
                                   children: [
                                     IconButton(
                                       tooltip: 'Tambah ke playlist',
+                                      visualDensity: VisualDensity.compact,
                                       onPressed: () {
                                         context
                                             .read<SongCubit>()
@@ -357,9 +393,11 @@ class _SongListViewState extends State<SongListView>
                                       },
                                       icon: const Icon(
                                         Icons.playlist_add_rounded,
+                                        size: 20,
                                       ),
                                     ),
                                     IconButton(
+                                      visualDensity: VisualDensity.compact,
                                       onPressed: () async {
                                         widget.onFavorite(item);
                                         await Future.delayed(
@@ -374,8 +412,9 @@ class _SongListViewState extends State<SongListView>
                                             ? Icons.star_rounded
                                             : Icons.star_border_rounded,
                                         color: widget.isFavorite(item)
-                                            ? Colors.amber
+                                            ? context.colorScheme.secondary
                                             : null,
+                                        size: 20,
                                       ),
                                     ),
                                   ],
@@ -383,10 +422,19 @@ class _SongListViewState extends State<SongListView>
                               ),
                               title: Text(
                                 (item.title ?? '').capitalizeEachWord(),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ),
                           ),
-                          const Divider(height: 1),
+                          Padding(
+                            padding: const EdgeInsets.only(left: 72, right: 20),
+                            child: Divider(
+                              height: 1,
+                              color: context.colorScheme.outlineVariant
+                                  .withValues(alpha: 0.35),
+                            ),
+                          ),
                         ],
                       );
                     },
@@ -447,7 +495,7 @@ class _SongListViewState extends State<SongListView>
                                       ? Icons.star_rounded
                                       : Icons.star_border_rounded,
                                   color: widget.isFavorite(item)
-                                      ? Colors.amber
+                                      ? context.colorScheme.secondary
                                       : null,
                                 ),
                               ),
@@ -523,21 +571,32 @@ class _SongListTabButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        fixedSize: const Size(86, 32),
+        fixedSize: const Size(90, 34),
         backgroundColor: selected
-            ? context.colorScheme.primaryContainer
+            ? context.colorScheme.secondaryContainer
             : Colors.transparent,
         side: BorderSide(
           strokeAlign: BorderSide.strokeAlignCenter,
           width: 1,
           color: selected
-              ? context.colorScheme.primary
-              : context.theme.disabledColor,
+              ? context.colorScheme.secondary
+              : context.colorScheme.outlineVariant,
         ),
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
+        foregroundColor: selected
+            ? context.colorScheme.primary
+            : context.colorScheme.onSurfaceVariant,
+        padding: EdgeInsets.zero,
       ),
       onPressed: onPressed,
-      child: FittedBox(child: Text(label)),
+      child: Text(
+        label,
+        style: const TextStyle(
+          fontFamily: 'Manrope',
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
+        ),
+      ),
     );
   }
 }

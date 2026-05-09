@@ -30,6 +30,8 @@ class AppRouter extends RootStackRouter {
         CupertinoRoute(page: LiteratureWartaRoute.page),
         CupertinoRoute(page: LiteratureRenunganRoute.page),
         CupertinoRoute(page: LiteraturePanduanKitabRoute.page),
+        CupertinoRoute(page: LiteraturePujianRoute.page),
+        CupertinoRoute(page: LiteratureBukuRoute.page),
         CupertinoRoute(page: SongListRoute.page),
         CupertinoRoute(page: BibleListRoute.page),
         CupertinoRoute(page: BibleNoteRoute.page),

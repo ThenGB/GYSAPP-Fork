@@ -51,7 +51,8 @@ abstract class FaithState with _$FaithState {
         break;
     }
     return result.apply(
-        bodyColor: router.navigatorKey.currentContext?.textColor);
+      bodyColor: router.navigatorKey.currentContext?.textColor,
+    );
   }
 
   Locale get locale {
@@ -131,4 +132,3 @@ abstract class FaithState with _$FaithState {
   factory FaithState.fromJson(Map<String, dynamic> json) =>
       _$FaithStateFromJson(json);
 }
-

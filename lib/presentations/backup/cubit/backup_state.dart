@@ -21,4 +21,3 @@ abstract class BackupState with _$BackupState {
   factory BackupState.fromJson(Map<String, dynamic> json) =>
       _$BackupStateFromJson(json);
 }
-

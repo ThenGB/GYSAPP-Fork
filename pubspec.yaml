@@ -235,6 +235,14 @@ flutter:
           weight: 700
         - asset: google_fonts/Lato-Black.ttf
           weight: 900
+    - family: EB Garamond
+      fonts:
+        - asset: google_fonts/EBGaramond-Regular.ttf
+          weight: 400
+    - family: Manrope
+      fonts:
+        - asset: google_fonts/Manrope-Regular.ttf
+          weight: 400
     - family: FlowCircular
       fonts:
         - asset: google_fonts/FlowCircular-Regular.ttf

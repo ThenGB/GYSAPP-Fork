@@ -34,8 +34,10 @@ Future initApplication() async {
   }
 
   initLog('starting');
-  var appConfig =
-      AppConfig(appName: 'GYS APP', baseUrlApi: 'https://e.gys.or.id/api/v1');
+  var appConfig = AppConfig(
+    appName: 'GYS APP',
+    baseUrlApi: 'https://e.gys.or.id/api/v1',
+  );
   var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   initLog('flutter binding ready');
@@ -60,14 +62,16 @@ Future initApplication() async {
     if (isFirebaseCrashlyticsConfiguredForCurrentPlatform) {
       FlutterError.onError =
           FirebaseCrashlytics.instance.recordFlutterFatalError;
-      Isolate.current.addErrorListener(RawReceivePort((pair) {
-        final errorAndStackTrace = pair as List<dynamic>;
-        FirebaseCrashlytics.instance.recordError(
-          errorAndStackTrace.firstOrNull,
-          StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
-          fatal: true,
-        );
-      }).sendPort);
+      Isolate.current.addErrorListener(
+        RawReceivePort((pair) {
+          final errorAndStackTrace = pair as List<dynamic>;
+          FirebaseCrashlytics.instance.recordError(
+            errorAndStackTrace.firstOrNull,
+            StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
+            fatal: true,
+          );
+        }).sendPort,
+      );
     } else {
       FlutterError.onError = FlutterError.presentError;
     }
@@ -134,9 +138,7 @@ var defaultAddress = AddressCheckOption(
 var internetChecker = InternetConnectionChecker.createInstance(
   checkInterval: const Duration(seconds: 1),
   checkTimeout: const Duration(seconds: 5),
-  addresses: [
-    defaultAddress,
-  ],
+  addresses: [defaultAddress],
 );
 
 class App extends StatefulWidget {
@@ -167,15 +169,9 @@ class _AppState extends State<App> {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<InitialCubit>(
-          create: (context) => di(),
-        ),
-        BlocProvider<BackupCubit>(
-          create: (context) => di(),
-        ),
-        BlocProvider<SongCubit>(
-          create: (context) => di(),
-        ),
+        BlocProvider<InitialCubit>(create: (context) => di()),
+        BlocProvider<BackupCubit>(create: (context) => di()),
+        BlocProvider<SongCubit>(create: (context) => di()),
       ],
       child: BlocBuilder<InitialCubit, InitialState>(
         builder: (context, state) {
@@ -185,9 +181,9 @@ class _AppState extends State<App> {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             routerConfig: router.config(),
-            theme: defaultTheme(state.defaultFont),
+            theme: defaultTheme(state.defaultFont, accentKey: state.accentKey),
             debugShowCheckedModeBanner: false,
-            darkTheme: darkTheme(state.defaultFont),
+            darkTheme: darkTheme(state.defaultFont, accentKey: state.accentKey),
             themeMode: state.themeMode.toThemeMode,
             builder: (context, child) {
               // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {

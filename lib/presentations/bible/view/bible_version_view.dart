@@ -37,8 +37,13 @@ class _BibleVersionViewState extends State<BibleVersionView> {
     return BlocProvider.value(
       value: widget.dashboardCubit,
       child: Scaffold(
+        backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
-          title: Text('Version'.tr()),
+          shape: Border(
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
+          ),
+          title: const Text('Kidung Rohani'),
+          centerTitle: true,
           actions: [
             ValueListenableBuilder(
               valueListenable: isSyncing,
@@ -46,8 +51,8 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                 message: 'One click to sync all downloaded version'.tr(),
                 child: TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.green,
-                    foregroundColor: Colors.white,
+                    backgroundColor: context.colorScheme.primary,
+                    foregroundColor: context.colorScheme.onPrimary,
                     disabledBackgroundColor: Colors.grey.withValues(alpha: .1),
                     surfaceTintColor: Colors.transparent,
                   ),
@@ -64,25 +69,23 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                 ),
               ),
             ),
-            SizedBox(
-              width: 16,
-            ),
+            SizedBox(width: 16),
           ],
         ),
         body: Container(
           color: context.colorScheme.surface,
           child: FutureBuilder(
             initialData: initialData,
-            future:
-                widget.dashboardCubit.listNetworkBibles(initialData != null),
+            future: widget.dashboardCubit.listNetworkBibles(
+              initialData != null,
+            ),
             builder: (context, snapshot) {
               if (snapshot.connectionState != ConnectionState.done &&
                   initialData == null) {
                 return Shimmer.fromColors(
                   period: Duration(milliseconds: 500),
-                  baseColor: context.theme.disabledColor.withValues(alpha: .1),
-                  highlightColor:
-                      context.theme.disabledColor.withValues(alpha: .2),
+                  baseColor: context.colorScheme.surfaceContainerLow,
+                  highlightColor: context.colorScheme.outlineVariant,
                   child: ListView.builder(
                     itemCount: 3,
                     itemBuilder: (context, index) {
@@ -94,17 +97,18 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                             Container(
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(100),
-                                color: Colors.green,
                               ),
                               padding: EdgeInsets.symmetric(
-                                  horizontal: 6, vertical: 4),
+                                horizontal: 6,
+                                vertical: 4,
+                              ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
-                                children: const [
+                                children: [
                                   Icon(
                                     CupertinoIcons.checkmark_seal_fill,
                                     size: 14,
-                                    color: Colors.white,
+                                    color: context.colorScheme.onPrimary,
                                   ),
                                   // SizedBox(
                                   //   width: 4,
@@ -126,9 +130,10 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                                 Text(
                                   'Chinese Union Version',
                                   style: TextStyle(
-                                      fontFamily: 'FlowCircular',
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
+                                    fontFamily: 'FlowCircular',
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ],
                             ),
@@ -145,9 +150,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                                 color: Colors.black,
                               ),
                             ),
-                            SizedBox(
-                              width: 4,
-                            ),
+                            SizedBox(width: 4),
                             ClipRRect(
                               borderRadius: BorderRadius.circular(100),
                               child: Container(
@@ -173,13 +176,15 @@ class _BibleVersionViewState extends State<BibleVersionView> {
               if (snapshot.hasError && initialData == null) {
                 return Center(
                   child: NoDataFound(
-                      action: ElevatedButton(
-                          onPressed: () {
-                            setState(() {});
-                          },
-                          child: Text('Reload')),
-                      title: 'Error',
-                      description: snapshot.error.toString()),
+                    action: ElevatedButton(
+                      onPressed: () {
+                        setState(() {});
+                      },
+                      child: Text('Reload'),
+                    ),
+                    title: 'Error',
+                    description: snapshot.error.toString(),
+                  ),
                 );
               }
               initialData = snapshot.data;
@@ -190,7 +195,8 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                   var item = snapshot.data![index];
                   AppDirectory localDir = di();
                   var localFile = File('${localDir.bibleFolder}/${item.name}');
-                  var difference = item.updated
+                  var difference =
+                      item.updated
                           ?.difference(
                             widget.dashboardCubit.state.lastSync[item.name] ??
                                 item.updated ??
@@ -215,46 +221,45 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                                 builder: (context, snapshot) => Text(
                                   snapshot.data ?? '',
                                   style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14),
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                           ],
                         ),
                         if (!isSyncronized && isExist) ...[
-                          SizedBox(
-                            height: 2,
-                          ),
+                          SizedBox(height: 2),
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(100),
-                              color: Colors.green,
+                              color: context.colorScheme.primary,
                             ),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 4),
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   CupertinoIcons.cloud_download,
                                   size: 14,
-                                  color: Colors.white,
+                                  color: context.colorScheme.onPrimary,
                                 ),
-                                SizedBox(
-                                  width: 4,
-                                ),
+                                SizedBox(width: 4),
                                 Text(
                                   'Need Update'.tr(),
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10,
-                                    color: Colors.white,
+                                    color: context.colorScheme.onPrimary,
                                   ),
-                                )
+                                ),
                               ],
                             ),
-                          )
+                          ),
                         ],
                       ],
                     ),
@@ -275,45 +280,40 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                           Container(
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(100),
-                              color: Colors.green,
+                              color: context.colorScheme.primary,
                             ),
                             padding: EdgeInsets.symmetric(
-                                horizontal: 2, vertical: 2),
+                              horizontal: 2,
+                              vertical: 2,
+                            ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
                                   CupertinoIcons.checkmark_seal_fill,
                                   size: 12,
-                                  color: Colors.white,
+                                  color: context.colorScheme.onPrimary,
                                 ),
-                                SizedBox(
-                                  width: 4,
-                                ),
+                                SizedBox(width: 4),
                                 Text(
                                   '・${item.size?.fromSizeToBytes() ?? '∞'}',
                                   style: TextStyle(
                                     height: 1,
                                     fontWeight: FontWeight.bold,
                                     fontSize: 10,
-                                    color: Colors.white,
+                                    color: context.colorScheme.onPrimary,
                                   ),
                                 ),
-                                SizedBox(
-                                  width: 2,
-                                ),
+                                SizedBox(width: 2),
                               ],
                             ),
                           ),
                         Text(
-                          DateFormat('HH:mm | dd MMM yyyy',
-                                  context.locale.languageCode)
-                              .format(
-                                  (item.updated ?? DateTime.now()).toLocal()),
-                          style: TextStyle(
-                            height: 1,
-                            fontSize: 12,
-                          ),
+                          DateFormat(
+                            'HH:mm | dd MMM yyyy',
+                            context.locale.languageCode,
+                          ).format((item.updated ?? DateTime.now()).toLocal()),
+                          style: TextStyle(height: 1, fontSize: 12),
                         ),
                       ],
                     ),
@@ -387,7 +387,8 @@ class _SyncButtonState extends State<SyncButton> {
     if (!widget.localFile.existsSync()) {
       // continue;
       widget.localFile.createSync(
-          recursive: true); // diubah, karena tidak download otomatis lagi
+        recursive: true,
+      ); // diubah, karena tidak download otomatis lagi
     }
     setState(() {
       isDownloading = true;
@@ -412,15 +413,12 @@ class _SyncButtonState extends State<SyncButton> {
       Fluttertoast.cancel();
       Fluttertoast.showToast(msg: 'Syncronized'.tr());
     }
-    Future.delayed(
-      Duration(milliseconds: 300),
-      () {
-        context
-            .findAncestorStateOfType<_BibleVersionViewState>()
-            ?.setState(() {});
-        widget.downloadCallback(downloadCallback);
-      },
-    );
+    Future.delayed(Duration(milliseconds: 300), () {
+      context.findAncestorStateOfType<_BibleVersionViewState>()?.setState(
+        () {},
+      );
+      widget.downloadCallback(downloadCallback);
+    });
   }
 
   @override
@@ -442,41 +440,42 @@ class _SyncButtonState extends State<SyncButton> {
                 valueListenable: downloadProgress,
                 builder: (context, progress, child) => ValueListenableBuilder(
                   valueListenable: widgetHeight,
-                  builder: (context, widgetHeight, child) =>
-                      ValueListenableBuilder(
+                  builder: (context, widgetHeight, child) => ValueListenableBuilder(
                     valueListenable: widgetWidth,
                     builder: (context, widgetWidth, child) => ClipRRect(
                       borderRadius: BorderRadius.circular(100),
                       child: SizedBox(
-                          width: widgetWidth,
-                          height: widgetHeight,
-                          child: Visibility(
-                            visible: isDownloading,
-                            child: Stack(
-                              children: [
-                                // LinearProgressIndicator(
-                                //   minHeight: widgetHeight,
-                                //   value: progress,
-                                // ),
-                                Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 4,
-                                    value: progress,
+                        width: widgetWidth,
+                        height: widgetHeight,
+                        child: Visibility(
+                          visible: isDownloading,
+                          child: Stack(
+                            children: [
+                              // LinearProgressIndicator(
+                              //   minHeight: widgetHeight,
+                              //   value: progress,
+                              // ),
+                              Center(
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 4,
+                                  value: progress,
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.center,
+                                child: Text(
+                                  '${(fileSize * (progress ?? 0)).toInt().fromSizeToBytes()}\n(${((progress ?? 0) * 100).toInt()}%)',
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 5,
                                   ),
                                 ),
-                                Align(
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                      '${(fileSize * (progress ?? 0)).toInt().fromSizeToBytes()}\n(${((progress ?? 0) * 100).toInt()}%)',
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.normal,
-                                        fontSize: 5,
-                                      )),
-                                )
-                              ],
-                            ),
-                          )),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -488,34 +487,34 @@ class _SyncButtonState extends State<SyncButton> {
                   value: widget.isSyncronized,
                   onChanged:
                       widget.item.name.contains('b_tb') && widget.isSyncronized
-                          ? null
-                          : (isSyncronized) async {
-                              if (!isSyncronized!) {
-                                if (!widget.isSyncronized && widget.isExist) {
-                                  if (await context.showConfirmation(
-                                      'Do you want to update?'.tr())) {
-                                    downloadCallback();
-                                    return;
-                                  }
-                                }
-                                if (await context.showConfirmation(
-                                    'Are you sure want to delete this version from your local cache?'
-                                        .tr())) {
-                                  widget.localFile.deleteSync();
-                                  Future.delayed(
-                                    Duration(milliseconds: 300),
-                                    () {
-                                      context
-                                          .findAncestorStateOfType<
-                                              _BibleVersionViewState>()
-                                          ?.setState(() {});
-                                    },
-                                  );
-                                }
-                              } else {
+                      ? null
+                      : (isSyncronized) async {
+                          if (!isSyncronized!) {
+                            if (!widget.isSyncronized && widget.isExist) {
+                              if (await context.showConfirmation(
+                                'Do you want to update?'.tr(),
+                              )) {
                                 downloadCallback();
+                                return;
                               }
-                            },
+                            }
+                            if (await context.showConfirmation(
+                              'Are you sure want to delete this version from your local cache?'
+                                  .tr(),
+                            )) {
+                              widget.localFile.deleteSync();
+                              Future.delayed(Duration(milliseconds: 300), () {
+                                context
+                                    .findAncestorStateOfType<
+                                      _BibleVersionViewState
+                                    >()
+                                    ?.setState(() {});
+                              });
+                            }
+                          } else {
+                            downloadCallback();
+                          }
+                        },
                 ),
               ),
             ],
@@ -567,4 +566,3 @@ class _SyncButtonState extends State<SyncButton> {
     );
   }
 }
-

@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -5,10 +6,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
+import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../components/components.dart';
@@ -37,11 +37,9 @@ Widget _safeNetworkImage(
   final fallbackWidget = SizedBox(
     height: height,
     width: width,
-    child: fallback ??
-        ColoredBox(
-          color: Colors.grey.shade300,
-          child: const SizedBox.expand(),
-        ),
+    child:
+        fallback ??
+        ColoredBox(color: Colors.grey.shade300, child: const SizedBox.expand()),
   );
   if (!_isHttpImageUrl(imageUrl)) {
     return fallbackWidget;
@@ -51,11 +49,40 @@ Widget _safeNetworkImage(
     fit: fit,
     height: height,
     width: width,
-    placeholder: (context, url) => const Center(
-      child: CircularProgressIndicator(),
-    ),
+    placeholder: (context, url) =>
+        const Center(child: CircularProgressIndicator()),
     errorWidget: (context, url, error) => fallbackWidget,
   );
+}
+
+bool _isYouTubeUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  final host = uri.host.toLowerCase();
+  return host.contains('youtube.com') || host.contains('youtu.be');
+}
+
+bool _isSpotifyUrl(String url) {
+  final uri = Uri.tryParse(url);
+  if (uri == null) return false;
+  return uri.host.toLowerCase().contains('spotify.com');
+}
+
+String? _extractYouTubeVideoId(Uri uri) {
+  final host = uri.host.toLowerCase();
+  if (host.contains('youtu.be')) {
+    return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
+  }
+  if (!host.contains('youtube.com')) return null;
+  final fromQuery = uri.queryParameters['v'];
+  if (fromQuery != null && fromQuery.isNotEmpty) return fromQuery;
+  if (uri.pathSegments.length >= 2) {
+    final type = uri.pathSegments.first;
+    if (type == 'shorts' || type == 'embed' || type == 'live') {
+      return uri.pathSegments[1];
+    }
+  }
+  return null;
 }
 
 @RoutePage()
@@ -65,14 +92,16 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
-      builder: (context, state) => Scaffold(
-        body: Column(
+      builder: (context, state) => ColoredBox(
+        color: context.colorScheme.surface,
+        child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-                padding: EdgeInsets.only(top: context.mediaQuery.padding.top),
-                color: context.colorScheme.surface,
-                child: const HomeHeader()),
+              padding: EdgeInsets.only(top: context.mediaQuery.padding.top),
+              color: context.colorScheme.surface,
+              child: const HomeHeader(),
+            ),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () {
@@ -84,6 +113,8 @@ class HomeView extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      const _HomeWelcomeSection(),
+                      const _DailyVerseCard(),
                       StreamBuilder(
                         stream: context.read<HomeCubit>().bannerObservable,
                         builder: (context, snapshot) {
@@ -95,9 +126,7 @@ class HomeView extends StatelessWidget {
                             return const SizedBox.shrink();
                           }
                           final banners = (snapshot.data as List<ImageBanner>)
-                              .where(
-                                (element) => !element.isExpired,
-                              )
+                              .where((element) => !element.isExpired)
                               .toList();
                           if (banners.isEmpty) {
                             return const SizedBox.shrink();
@@ -111,8 +140,9 @@ class HomeView extends StatelessWidget {
                                   onTap: banner.linkUrl == null
                                       ? null
                                       : () {
-                                          if (banner.linkUrl!
-                                              .contains('http')) {
+                                          if (banner.linkUrl!.contains(
+                                            'http',
+                                          )) {
                                             launchUrl(
                                               Uri.parse(banner.linkUrl!),
                                               mode: LaunchMode
@@ -125,9 +155,18 @@ class HomeView extends StatelessWidget {
                                   child: Container(
                                     width: double.infinity,
                                     clipBehavior: Clip.hardEdge,
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: gap,
+                                    ),
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(4),
-                                      color: Colors.transparent,
+                                      borderRadius: BorderRadius.circular(18),
+                                      color: context
+                                          .colorScheme
+                                          .surfaceContainerLowest,
+                                      border: Border.all(
+                                        color:
+                                            context.colorScheme.outlineVariant,
+                                      ),
                                     ),
                                     child: Stack(
                                       children: [
@@ -138,14 +177,14 @@ class HomeView extends StatelessWidget {
                                           ),
                                         ),
                                         if (banner.linkUrl != null)
-
                                           /// add link icon on topRight
                                           Positioned.fill(
                                             child: Align(
                                               alignment: Alignment.topRight,
                                               child: Padding(
-                                                padding:
-                                                    const EdgeInsets.all(8.0),
+                                                padding: const EdgeInsets.all(
+                                                  8.0,
+                                                ),
                                                 child: Icon(
                                                   Icons.link,
                                                   color: Colors.white,
@@ -159,7 +198,7 @@ class HomeView extends StatelessWidget {
                                 );
                               },
                               options: CarouselOptions(
-                                height: 110,
+                                height: 132,
                                 enlargeFactor: 1,
                                 autoPlay: true,
                                 enlargeStrategy:
@@ -173,18 +212,14 @@ class HomeView extends StatelessWidget {
                       if (state.sauhs.isNotEmpty && state.isSauhEnabled)
                         SauhBagiJiwa(item: state.sauhs.first),
                       if (state.isSuaraSejatiEnabled)
-                        SuaraSejati(
-                          trueVoices: state.trueVoices,
-                        ),
-                      LinkLainnya(
-                        menuLinks: state.menuLinks,
-                      ),
-                      SizedBox(height: 12)
+                        SuaraSejati(trueVoices: state.trueVoices),
+                      LinkLainnya(menuLinks: state.menuLinks),
+                      SizedBox(height: 12),
                     ],
                   ),
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
@@ -194,143 +229,288 @@ class HomeView extends StatelessWidget {
 
 class LinkLainnya extends StatelessWidget {
   final List<Menulink> menuLinks;
-  const LinkLainnya({
-    super.key,
+  const LinkLainnya({super.key, required this.menuLinks});
+
+  @override
+  Widget build(BuildContext context) {
+    final spotifyLinks = menuLinks
+        .where((e) => e.url.toLowerCase().contains('spotify'))
+        .toList();
+    final youtubeLinks = menuLinks
+        .where(
+          (e) =>
+              e.url.toLowerCase().contains('youtube') ||
+              e.url.toLowerCase().contains('youtu.be'),
+        )
+        .toList();
+    final otherLinks = menuLinks
+        .where((e) => !spotifyLinks.contains(e) && !youtubeLinks.contains(e))
+        .toList();
+
+    return Column(
+      children: [
+        if (spotifyLinks.isNotEmpty)
+          _LinkGroup(
+            title: 'Spotify GYS',
+            menuLinks: spotifyLinks,
+            icon: Icons.music_note_rounded,
+          ),
+        if (youtubeLinks.isNotEmpty)
+          _LinkGroup(
+            title: 'YouTube GYS',
+            menuLinks: youtubeLinks,
+            icon: Icons.smart_display_rounded,
+          ),
+        if (otherLinks.isNotEmpty)
+          _LinkGroup(
+            title: 'Link lainnya'.tr(),
+            menuLinks: otherLinks,
+            icon: Icons.link_rounded,
+          ),
+      ],
+    );
+  }
+}
+
+class _LinkGroup extends StatelessWidget {
+  final String title;
+  final List<Menulink> menuLinks;
+  final IconData icon;
+
+  const _LinkGroup({
+    required this.title,
     required this.menuLinks,
+    required this.icon,
   });
+
+  Future<void> _handleTap(BuildContext context, Menulink link) async {
+    if (!link.enabled) {
+      context.showSnackBar('Fitur ini tidak tersedia');
+      return;
+    }
+    if (link.url.startsWith('app://') && Platform.isAndroid) {
+      context.showSnackBar('Aplikasi tidak ditemukan');
+      return;
+    }
+    if (link.url.contains('http')) {
+      final res = await launchUrl(
+        Uri.parse(link.url),
+        mode: LaunchMode.externalApplication,
+      );
+      log(res.toString());
+      return;
+    }
+    if (link.url == 'khotbah') {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        builder: (context) => IbadahPopup(),
+      );
+      return;
+    }
+    router.pushPath(link.url);
+  }
 
   @override
   Widget build(BuildContext context) {
     return Section(
-      label: 'Link lainnya'.tr(),
-      child: (gap) => Container(
+      label: title,
+      child: (gap) => Padding(
         padding: EdgeInsets.symmetric(horizontal: gap),
         child: LayoutBuilder(
-          builder: (context, constraints) => Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: menuLinks
-                .asMap()
-                .entries
-                .map(
-                  (e) => Material(
-                    clipBehavior: Clip.antiAlias,
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.transparent,
-                    child: InkWell(
-                      onTap: () async {
-                        if (!e.value.enabled) {
-                          context.showSnackBar('Fitur ini tidak tersedia');
-                          return;
-                        }
-
-                        // FlutterWebBrowser.openWebPage(url: e.value.url);
-                        if (e.value.url.startsWith('app://') &&
-                            Platform.isAndroid) {
-                          // var appId = e.value.url.replaceFirst('app://', '');
-                          context.showSnackBar(
-                            'Aplikasi tidak ditemukan',
-                          );
-                          // DeviceApps.isAppInstalled(appId).then((value) async {
-                          //   if (value) {
-                          //     DeviceApps.openApp(appId);
-                          //   } else {
-                          //     context.showSnackBar(
-                          //       'Aplikasi tidak ditemukan',
-                          //     );
-                          //     if (await canLaunchUrl(Uri.parse(
-                          //         'https://play.google.com/store/apps/details?id=$appId'))) {
-                          //       /// open playstore
-                          //       launchUrl(
-                          //         Uri.parse(
-                          //             'https://play.google.com/store/apps/details?id=$appId'),
-                          //         mode: LaunchMode.externalApplication,
-                          //       );
-                          //     } else {
-                          //       // ignore: use_build_context_synchronously
-                          //       context.showSnackBar(
-                          //         'Tidak dapat membuka link',
-                          //       );
-                          //     }
-                          //   }
-                          // });
-                          return;
-                        }
-                        if (e.value.url.contains('http')) {
-                          final res = await launchUrl(
-                            Uri.parse(e.value.url),
-                            mode: LaunchMode.externalApplication,
-                          );
-                          log(res.toString());
-                          // router.push(WebpageRoute(url: e.value.url));
-                        } else {
-                          if (e.value.url == 'khotbah') {
-                            showModalBottomSheet(
-                              context: context,
-                              isScrollControlled: true,
-                              elevation: 0,
-                              backgroundColor: Colors.transparent,
-                              builder: (context) => IbadahPopup(),
-                            );
-                            return;
-                          }
-                          router.pushPath(e.value.url);
-                        }
-                        // await launchUrl(
-                        //   Uri.parse(e.value.url),
-                        //   webViewConfiguration: const WebViewConfiguration(
-                        //     enableJavaScript: true,
-                        //   ),
-                        //   mode: LaunchMode.inAppWebView,
-                        // );
-                      },
-                      child: SizedBox(
-                        width: constraints.maxWidth / 4 - 8,
-                        child: ColorFiltered(
-                          colorFilter: ColorFilter.mode(
-                            e.value.enabled
-                                ? Colors.black.withValues(alpha: 1)
-                                : Colors.black.withValues(alpha: .3),
-                            BlendMode.dstIn,
-                          ),
-                          child: Column(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: Image(
-                                    width: 40,
-                                    height: 40,
-                                    image: e.value.iconImageProvider,
+          builder: (context, constraints) {
+            const spacing = 10.0;
+            final width = (constraints.maxWidth - spacing) / 2;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: menuLinks
+                  .take(4)
+                  .map(
+                    (link) => SizedBox(
+                      width: width,
+                      child: Material(
+                        color: context.colorScheme.surfaceContainerLow,
+                        borderRadius: BorderRadius.circular(18),
+                        child: InkWell(
+                          borderRadius: BorderRadius.circular(18),
+                          onTap: () => _handleTap(context, link),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Row(
+                              children: [
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(14),
+                                  child: Container(
+                                    width: 42,
+                                    height: 42,
+                                    color: context.colorScheme.surfaceContainer,
+                                    child: _LinkThumbnail(
+                                      link: link,
+                                      fallbackIcon: icon,
+                                    ),
                                   ),
                                 ),
-                              ),
-                              Text(
-                                e.value.label,
-                                textAlign: TextAlign.center,
-                                softWrap: false,
-                                overflow: TextOverflow.fade,
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        link.label,
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.textTheme.titleMedium
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                      ),
+                                      Text(
+                                        (() {
+                                          final host =
+                                              Uri.tryParse(link.url)?.host ??
+                                              '';
+                                          return host.isEmpty
+                                              ? 'Gereja Yesus Sejati'
+                                              : host;
+                                        })(),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: context.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: context
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                )
-                .toList(),
-          ),
+                  )
+                  .toList(),
+            );
+          },
         ),
       ),
     );
   }
 }
 
+class _LinkThumbnail extends StatefulWidget {
+  final Menulink link;
+  final IconData fallbackIcon;
+
+  const _LinkThumbnail({required this.link, required this.fallbackIcon});
+
+  @override
+  State<_LinkThumbnail> createState() => _LinkThumbnailState();
+}
+
+class _LinkThumbnailState extends State<_LinkThumbnail> {
+  static final Map<String, String?> _thumbnailCache = {};
+
+  late Future<String?> _thumbnailFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _thumbnailFuture = _resolveThumbnail(widget.link.url);
+  }
+
+  @override
+  void didUpdateWidget(covariant _LinkThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.link.url != widget.link.url) {
+      _thumbnailFuture = _resolveThumbnail(widget.link.url);
+    }
+  }
+
+  Future<String?> _resolveThumbnail(String url) async {
+    if (_thumbnailCache.containsKey(url)) return _thumbnailCache[url];
+    final uri = Uri.tryParse(url);
+    if (uri == null) {
+      _thumbnailCache[url] = null;
+      return null;
+    }
+    if (_isYouTubeUrl(url)) {
+      final videoId = _extractYouTubeVideoId(uri);
+      final thumb = videoId == null || videoId.isEmpty
+          ? null
+          : 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+      _thumbnailCache[url] = thumb;
+      return thumb;
+    }
+    if (_isSpotifyUrl(url)) {
+      final oembedUri = Uri.https('open.spotify.com', '/oembed', {'url': url});
+      try {
+        final res = await http
+            .get(oembedUri)
+            .timeout(const Duration(seconds: 4));
+        if (res.statusCode == 200) {
+          final body = jsonDecode(res.body);
+          if (body is Map<String, dynamic>) {
+            final thumbnailUrl = body['thumbnail_url'];
+            if (thumbnailUrl is String && _isHttpImageUrl(thumbnailUrl)) {
+              _thumbnailCache[url] = thumbnailUrl;
+              return thumbnailUrl;
+            }
+          }
+        }
+      } catch (_) {}
+    }
+    _thumbnailCache[url] = null;
+    return null;
+  }
+
+  Widget _fallbackTile(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(6),
+      child: Image(
+        image: widget.link.iconImageProvider,
+        fit: BoxFit.contain,
+        errorBuilder: (context, error, stack) =>
+            Icon(widget.fallbackIcon, color: context.colorScheme.primary),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final canResolve =
+        _isYouTubeUrl(widget.link.url) || _isSpotifyUrl(widget.link.url);
+    if (!canResolve) {
+      return _fallbackTile(context);
+    }
+    return FutureBuilder<String?>(
+      future: _thumbnailFuture,
+      builder: (context, snapshot) {
+        final thumbnail = snapshot.data;
+        if (thumbnail == null || thumbnail.isEmpty) {
+          return _fallbackTile(context);
+        }
+        return _safeNetworkImage(
+          thumbnail,
+          fit: BoxFit.cover,
+          height: 42,
+          width: 42,
+          fallback: _fallbackTile(context),
+        );
+      },
+    );
+  }
+}
+
 class IbadahPopup extends StatefulWidget {
-  const IbadahPopup({
-    super.key,
-  });
+  const IbadahPopup({super.key});
 
   @override
   State<IbadahPopup> createState() => _IbadahPopupState();
@@ -375,9 +555,7 @@ class _IbadahPopupState extends State<IbadahPopup> {
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(12),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           ),
           child: Column(
             children: [
@@ -393,22 +571,29 @@ class _IbadahPopupState extends State<IbadahPopup> {
                         children: [
                           ListTile(
                             onTap: () {
-                              router.popAndPush(WebpageRoute(
-                                  url: 'https://tjc.org/id/sabat/'));
+                              router.popAndPush(
+                                WebpageRoute(url: 'https://tjc.org/id/sabat/'),
+                              );
                             },
                             title: Text('⛪ ${'Ibadah online'.tr()}'),
                           ),
                           ListTile(
                             onTap: () {
-                              router.popAndPush(WebpageRoute(
-                                  url: 'https://tjc.org/id/audio-khotbah/'));
+                              router.popAndPush(
+                                WebpageRoute(
+                                  url: 'https://tjc.org/id/audio-khotbah/',
+                                ),
+                              );
                             },
                             title: Text('🎤 ${'Audio Khotbah'.tr()}'),
                           ),
                           ListTile(
                             onTap: () {
-                              router.popAndPush(WebpageRoute(
-                                  url: 'https://tjc.org/id/video-khotbah/'));
+                              router.popAndPush(
+                                WebpageRoute(
+                                  url: 'https://tjc.org/id/video-khotbah/',
+                                ),
+                              );
                             },
                             title: Text('📹 ${'Video Khotbah'.tr()}'),
                           ),
@@ -428,10 +613,7 @@ class _IbadahPopupState extends State<IbadahPopup> {
 
 class SauhBagiJiwa extends StatelessWidget {
   final Sauh item;
-  const SauhBagiJiwa({
-    super.key,
-    required this.item,
-  });
+  const SauhBagiJiwa({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
@@ -440,59 +622,66 @@ class SauhBagiJiwa extends StatelessWidget {
       child: (gap) => InkWell(
         onTap: () {
           // FlutterWebBrowser.openWebPage(url: item.url);
-          router.push(WebpageRoute(
-            url: item.url,
-          ));
+          router.push(WebpageRoute(url: item.url));
         },
-        child: DefaultTextStyle.merge(
-          style: const TextStyle(
-            color: Colors.white,
+        child: Container(
+          clipBehavior: Clip.hardEdge,
+          margin: EdgeInsets.symmetric(horizontal: gap),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(14),
+            color: context.colorScheme.surfaceContainerLow,
+            border: Border.all(
+              color: context.colorScheme.outlineVariant.withValues(alpha: 0.65),
+            ),
           ),
-          child: Container(
-            clipBehavior: Clip.hardEdge,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-            ),
-            margin: EdgeInsets.symmetric(horizontal: gap),
-            child: Stack(
-              children: [
-                _safeNetworkImage(
-                  item.imageUrl,
-                  height: 111,
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                ),
-                SizedBox(
-                    height: 111,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
+                children: [
+                  _safeNetworkImage(
+                    item.imageUrl,
+                    height: 130,
+                    fit: BoxFit.cover,
                     width: double.infinity,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          item.description,
-                          style: const TextStyle(
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 8,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48),
-                          child: Text(
-                            item.title,
-                            textAlign: TextAlign.center,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )),
-              ],
-            ),
+                  ),
+                  Positioned(
+                    left: 14,
+                    top: 12,
+                    child: Text(
+                      item.title.toUpperCase(),
+                      style: context.textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      style: context.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: context.colorScheme.onSurface,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      item.description,
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: context.colorScheme.onSurfaceVariant,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -502,280 +691,273 @@ class SauhBagiJiwa extends StatelessWidget {
 
 class SuaraSejati extends StatelessWidget {
   final List<TrueVoice> trueVoices;
-  const SuaraSejati({
-    super.key,
-    required this.trueVoices,
-  });
+  const SuaraSejati({super.key, required this.trueVoices});
 
   @override
   Widget build(BuildContext context) {
     if (trueVoices.isEmpty) return SizedBox();
+    final featured = trueVoices.first;
     return Section(
-        label: 'Suara Sejati'.tr(),
-        child: (gap) => SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              padding: EdgeInsets.only(left: gap),
-              child: Row(
-                children: trueVoices
-                    .map(
-                      (e) => InkWell(
-                        onTap: () {
-                          // FlutterWebBrowser.openWebPage(url: e.url);
-                          router.push(WebpageRoute(url: e.url));
-                        },
-                        child: Container(
-                          width: 165 * context.mediaQuery.textScaler.scale(1),
-                          margin: const EdgeInsets.only(right: 4),
-                          height: 143 * context.mediaQuery.textScaler.scale(1),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(4),
-                            border: Border.all(
-                              color: context.theme.dividerColor,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: Container(
-                                  color: Colors.grey,
-                                  height: 95 *
-                                      context.mediaQuery.textScaler.scale(1),
-                                  width: double.infinity,
-                                  child: _safeNetworkImage(
-                                    e.imageUrl,
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
-                              Padding(
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 8 *
-                                        context.mediaQuery.textScaler.scale(1),
-                                    vertical: 4 *
-                                        context.mediaQuery.textScaler.scale(1)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      e.title,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 12,
-                                        color: context.textColor
-                                            ?.withValues(alpha: .87),
-                                      ),
-                                    ),
-                                    const SizedBox(
-                                      height: 4,
-                                    ),
-                                    Text(
-                                      e.description.trim(),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                          fontSize: 10,
-                                          color: context.textColor
-                                              ?.withValues(alpha: .65)),
-                                    ),
-                                  ],
-                                ),
-                              )
-                            ],
+      label: 'Suara Sejati'.tr(),
+      child: (gap) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: gap),
+        child: InkWell(
+          onTap: () {
+            router.push(WebpageRoute(url: featured.url));
+          },
+          child: Container(
+            decoration: BoxDecoration(
+              color: context.colorScheme.surfaceContainerLow,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: context.colorScheme.outlineVariant.withValues(
+                  alpha: 0.6,
+                ),
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(12),
+                  ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 146,
+                    child: _safeNetworkImage(
+                      featured.imageUrl,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.surfaceContainer,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          'ARTIKEL',
+                          style: context.textTheme.labelSmall?.copyWith(
+                            color: context.colorScheme.primary,
                           ),
                         ),
                       ),
-                    )
-                    .toList(),
-              ),
-            ));
+                      const SizedBox(height: 8),
+                      Text(
+                        featured.title,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.headlineSmall?.copyWith(
+                          color: context.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        featured.description.trim(),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodyMedium?.copyWith(
+                          color: context.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
 class HomeHeader extends StatefulWidget {
-  const HomeHeader({
-    super.key,
-  });
+  const HomeHeader({super.key});
 
   @override
   State<HomeHeader> createState() => _HomeHeaderState();
 }
 
 class _HomeHeaderState extends State<HomeHeader> {
-  String get greetings {
-    var now = DateTime.now();
-    if (now.hour > 4 && now.hour < 11) {
-      return 'Good morning'.tr();
-    } else if (now.hour >= 11 && now.hour < 13) {
-      return 'Good afternoon'.tr();
-    } else if (now.hour >= 13 && now.hour < 18) {
-      return 'Good evening'.tr();
-    } else {
-      return 'Good night'.tr();
-    }
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: context.colorScheme.surface,
+        border: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.outlineVariant,
+            width: 0.8,
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 8),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: 'Menu',
+            onPressed: openDashboardDrawer,
+            icon: const Icon(Icons.menu_rounded),
+          ),
+          Expanded(
+            child: Text(
+              'Kidung Rohani',
+              textAlign: TextAlign.center,
+              style: context.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          IconButton(
+            tooltip: 'Search'.tr(),
+            onPressed: () {
+              router.push(
+                BibleSearchRoute(
+                  cubit: context.read<BibleCubit>(),
+                  onTap: (item) {
+                    context.read<BibleCubit>().saveToHistory(item);
+                    context.read<BibleCubit>().getContent(item);
+                    router.maybePop();
+                    AutoTabsRouter.of(context).setActiveIndex(1);
+                  },
+                ),
+              );
+            },
+            icon: const Icon(Icons.search_rounded),
+          ),
+        ],
+      ),
+    );
   }
+}
+
+class _HomeWelcomeSection extends StatelessWidget {
+  const _HomeWelcomeSection();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
-      builder: (context, state) => Container(
-        color: context.colorScheme.surface,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+      builder: (context, state) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 22, 16, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            CircleAvatar(
-              radius: 20,
-              child: Center(
-                child: state.account == null
-                    ? Image.asset(Assets.assetsImagesAppicon, width: 32)
-                    : ClipOval(
-                        child: _safeNetworkImage(
-                          state.account?.profilePicture,
-                          fallback: Image.asset(
-                            Assets.assetsImagesAppicon,
-                            width: 32,
-                          ),
-                        ),
-                      ),
+            Text(
+              'Selamat Datang,',
+              style: context.textTheme.bodyLarge?.copyWith(
+                color: context.colorScheme.onSurfaceVariant,
               ),
             ),
-            const SizedBox(
-              width: 8,
-            ),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    state.idToken == null
-                        ? 'Haleluya, $greetings'
-                        : '$greetings, ${state.account?.name ?? ''}!',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 16,
-                    ),
-                  ),
-                  if (state.idToken == null) ...[
-                    Text.rich(
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          fontSize: 12,
-                        ),
-                        buildRichTextWithClickableWord(
-                          'register_button_text'.tr(),
-                          'register_word'.tr(),
-                          context.textTheme.bodySmall?.copyWith(
-                            fontSize: 12,
-                          ),
-                          () {
-                            router.push(LoginRoute(
-                              onLoggedIn: (token) {
-                                router.maybePop();
-                                context
-                                    .read<DashboardCubit>()
-                                    .loginSuccessCallback(token);
-                                Fluttertoast.cancel();
-                                Fluttertoast.showToast(msg: 'BERHASIL LOGIN!');
-                              },
-                            ));
-                          },
-                        )),
-                  ] else
-                    FutureBuilder(
-                      future: FirebaseUtils.boolConfig('enable_memberarea'),
-                      builder: (context, snapshot) => Visibility(
-                        visible: snapshot.data == true,
-                        child: TextButton(
-                          style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact,
-                            textStyle: TextStyle(
-                              fontSize: 10,
-                            ),
-                            minimumSize: Size.zero,
-                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            padding: EdgeInsets.all(12),
-                            backgroundColor: context.colorScheme.primary,
-                            foregroundColor: context.colorScheme.onPrimary,
-                          ),
-                          onPressed: () {
-                            var url =
-                                'https://e.gys.or.id/u/home?token=${context.read<DashboardCubit>().state.idToken}';
-                            router.push(WebpageRoute(
-                                url: url,
-                                getNavColor: (controller) async {
-                                  var color = await controller.evaluateJavascript(
-                                      source:
-                                          "window.getComputedStyle( document.getElementsByClassName('navbar')[0] ,null).getPropertyValue('background-color');");
-                                  if (color.toString().contains('rgb')) {
-                                    var temp = color.toString();
-                                    temp = temp.substring(temp.indexOf('(') + 1,
-                                        temp.indexOf(')'));
-                                    var rgb = temp
-                                        .split(',')
-                                        .map((e) => int.parse(e))
-                                        .toList();
-                                    var navColor = Color.fromRGBO(
-                                        rgb[0], rgb[1], rgb[2], 1);
-                                    return navColor;
-                                  }
-                                  return null;
-                                }));
-                          },
-                          child: Text('Member Area'),
-                        ),
-                      ),
-                    ),
-                ],
+            const SizedBox(height: 4),
+            Text(
+              state.account?.name?.trim().isNotEmpty == true
+                  ? state.account!.name!
+                  : 'Jemaat Terkasih',
+              style: context.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: context.colorScheme.onSurface,
               ),
             ),
-            const SizedBox(
-              width: 8,
-            ),
-            if (1 + 1 == 3)
-              Material(
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  onTap: () {},
-                  child: CircleAvatar(
-                    backgroundColor: Colors.transparent,
-                    child: Image.asset(Assets.assetsIconsBell, width: 15),
-                  ),
-                ),
-              )
           ],
         ),
       ),
     );
   }
+}
 
-  TextSpan buildRichTextWithClickableWord(String fullText, String clickableWord,
-      TextStyle? style, Function() onTap) {
-    final span = TextSpan(
-      children: [
-        TextSpan(
-          text: fullText.substring(0, fullText.indexOf(clickableWord)),
-        ),
-        TextSpan(
-          text: clickableWord,
-          style: style?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: context.colorScheme.primary,
+class _DailyVerseCard extends StatelessWidget {
+  const _DailyVerseCard();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: context.colorScheme.surfaceContainerLow,
+            border: Border.all(
+              color: context.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
           ),
-          recognizer: TapGestureRecognizer()..onTap = onTap,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Container(width: 3, color: context.colorScheme.primary),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(13, 14, 16, 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'AYAT HARI INI',
+                          style: context.textTheme.labelSmall?.copyWith(
+                            color: context.colorScheme.onSurfaceVariant,
+                            letterSpacing: 1.2,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
+                          style: context.textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.w500,
+                            color: context.colorScheme.primary,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Divider(color: context.colorScheme.outlineVariant),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Matius 5:8',
+                                style: context.textTheme.bodyMedium?.copyWith(
+                                  color: context.colorScheme.onSurfaceVariant,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                            Container(
+                              width: 34,
+                              height: 34,
+                              decoration: BoxDecoration(
+                                border: Border.all(
+                                  color: context.colorScheme.primary,
+                                ),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.share_outlined,
+                                size: 18,
+                                color: context.colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
-        TextSpan(
-          text: fullText.substring(
-              fullText.indexOf(clickableWord) + clickableWord.length),
-        ),
-      ],
+      ),
     );
-
-    return span;
   }
 }

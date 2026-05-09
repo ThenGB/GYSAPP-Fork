@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+
+<html lang="id"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dasar Kepercayaan - Kidung Rohani</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Design System Configuration -->
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "surface-container-lowest": "#ffffff",
+                "on-tertiary-fixed": "#1b1c15",
+                "on-tertiary-container": "#a9a99e",
+                "on-secondary-container": "#745c00",
+                "on-secondary-fixed": "#241a00",
+                "on-tertiary": "#ffffff",
+                "on-background": "#251819",
+                "background": "#fff8f7",
+                "inverse-surface": "#3b2d2d",
+                "tertiary-container": "#3d3e36",
+                "on-secondary-fixed-variant": "#574500",
+                "on-primary-fixed": "#40000b",
+                "on-primary-container": "#ff828a",
+                "surface-container-high": "#fbe2e2",
+                "primary-fixed-dim": "#ffb3b5",
+                "on-error": "#ffffff",
+                "tertiary": "#272821",
+                "on-surface-variant": "#584141",
+                "tertiary-fixed": "#e4e3d7",
+                "primary-fixed": "#ffdada",
+                "surface": "#fff8f7",
+                "secondary": "#735c00",
+                "surface-container-highest": "#f5dddd",
+                "outline-variant": "#e0bfbf",
+                "error": "#ba1a1a",
+                "primary-container": "#800020",
+                "surface-container": "#ffe9e8",
+                "surface-variant": "#f5dddd",
+                "surface-dim": "#edd4d4",
+                "secondary-fixed-dim": "#e9c349",
+                "on-error-container": "#93000a",
+                "primary": "#570013",
+                "surface-bright": "#fff8f7",
+                "secondary-fixed": "#ffe088",
+                "secondary-container": "#fed65b",
+                "on-surface": "#251819",
+                "on-tertiary-fixed-variant": "#46473f",
+                "error-container": "#ffdad6",
+                "tertiary-fixed-dim": "#c7c7bc",
+                "surface-tint": "#af2b3e",
+                "inverse-primary": "#ffb3b5",
+                "inverse-on-surface": "#ffedec",
+                "outline": "#8c7071",
+                "on-primary": "#ffffff",
+                "on-primary-fixed-variant": "#8e0f28",
+                "surface-container-low": "#fff0f0",
+                "on-secondary": "#ffffff"
+        },
+        "borderRadius": {
+                "DEFAULT": "0.25rem",
+                "lg": "0.5rem",
+                "xl": "0.75rem",
+                "full": "9999px"
+        },
+        "spacing": {
+                "stack-md": "16px",
+                "stack-lg": "32px",
+                "gutter": "16px",
+                "container-margin": "24px",
+                "stack-sm": "8px",
+                "section-gap": "48px",
+                "unit": "8px"
+        },
+        "fontFamily": {
+                "body-lg": [
+                        "Manrope"
+                ],
+                "h3": [
+                        "EB Garamond"
+                ],
+                "label-caps": [
+                        "Manrope"
+                ],
+                "h1": [
+                        "EB Garamond"
+                ],
+                "body-md": [
+                        "Manrope"
+                ],
+                "h2": [
+                        "EB Garamond"
+                ]
+        },
+        "fontSize": {
+                "body-lg": [
+                        "18px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "h3": [
+                        "22px",
+                        {
+                                "lineHeight": "28px",
+                                "fontWeight": "500"
+                        }
+                ],
+                "label-caps": [
+                        "12px",
+                        {
+                                "lineHeight": "16px",
+                                "letterSpacing": "0.1em",
+                                "fontWeight": "700"
+                        }
+                ],
+                "h1": [
+                        "34px",
+                        {
+                                "lineHeight": "42px",
+                                "letterSpacing": "-0.02em",
+                                "fontWeight": "600"
+                        }
+                ],
+                "body-md": [
+                        "16px",
+                        {
+                                "lineHeight": "24px",
+                                "fontWeight": "400"
+                        }
+                ],
+                "h2": [
+                        "28px",
+                        {
+                                "lineHeight": "36px",
+                                "fontWeight": "500"
+                        }
+                ]
+        }
+},
+    },
+  }
+</script>
+<style>
+        /* Smooth scrolling for anchor links if any */
+        html { scroll-behavior: smooth; }
+        /* Hide scrollbar for cleaner look */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+</head>
+<body class="bg-surface text-on-surface font-body-md text-body-md min-h-screen flex flex-col selection:bg-primary-container selection:text-on-primary-container antialiased">
+<!-- TopAppBar -->
+<header class="fixed docked full-width top-0 z-50 flex justify-between items-center w-full px-container-margin h-16 bg-surface dark:bg-inverse-surface transition-colors duration-300 ease-in-out border-b border-secondary-container dark:border-on-secondary-fixed-variant">
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high dark:hover:bg-surface-variant/20 rounded-full p-2 -ml-2 transition-colors duration-300 flex items-center justify-center">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="font-h2 text-h2 text-primary dark:text-primary-fixed tracking-tight">Kidung Rohani</div>
+<button class="text-primary dark:text-primary-fixed-dim hover:bg-surface-container-high dark:hover:bg-surface-variant/20 rounded-full p-2 -mr-2 transition-colors duration-300 flex items-center justify-center">
+<span class="material-symbols-outlined">search</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-1 pt-[104px] pb-[120px] px-container-margin max-w-2xl mx-auto w-full flex flex-col gap-section-gap">
+<!-- Header Section -->
+<section class="text-center flex flex-col items-center">
+<h1 class="font-h1 text-h1 text-primary mb-stack-sm">Dasar Kepercayaan</h1>
+<div class="w-12 h-1 bg-secondary-container rounded-full mb-stack-md"></div>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[80%] mx-auto">
+                Sepuluh pilar iman yang menjadi pondasi kerohanian Gereja Yesus Sejati.
+            </p>
+</section>
+<!-- Core Beliefs List (Bento/Card Style) -->
+<section class="flex flex-col gap-stack-md">
+<!-- Belief 1 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">1</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">I</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Yesus Kristus</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Yesus Kristus, Firman yang menjadi daging, mati di kayu salib untuk penebusan dosa manusia, bangkit pada hari ketiga dan naik ke surga.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 2 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">2</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">II</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Alkitab</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Alkitab, yang terdiri dari Perjanjian Lama dan Perjanjian Baru, diilhamkan oleh Allah, adalah satu-satunya kebenaran yang tertulis, dan standar bagi kehidupan Kristen.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 3 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">3</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">III</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Gereja Yesus Sejati</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Gereja Yesus Sejati, didirikan oleh Tuhan kita Yesus Kristus, melalui Roh Kudus pada masa "hujan akhir", adalah gereja rasuli yang sejati yang dipulihkan.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 4 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">4</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">IV</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Baptisan Air</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Baptisan air adalah sakramen untuk penghapusan dosa dan kelahiran kembali. Baptisan harus dilakukan dalam nama Tuhan Yesus Kristus.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 5 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">5</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">V</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Roh Kudus</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Menerima Roh Kudus, yang dibuktikan dengan berbahasa roh, adalah jaminan warisan kita di Kerajaan Surga.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 6 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">6</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">VI</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Basuh Kaki</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Sakramen basuh kaki memungkinkan seseorang untuk mendapat bagian bersama Tuhan Yesus. Itu juga berfungsi sebagai pengingat konstan bahwa kita harus memiliki kasih.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 7 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">7</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">VII</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Perjamuan Kudus</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Perjamuan Kudus adalah sakramen untuk memperingati kematian Tuhan Yesus Kristus. Memungkinkan kita mengambil bagian dalam daging dan darah Tuhan kita.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 8 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">8</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">VIII</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Hari Sabat</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Hari Sabat, hari ketujuh dalam seminggu (Sabtu), adalah Hari Kudus, diberkati dan disucikan oleh Allah. Harus dirayakan di bawah kasih karunia Tuhan.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 9 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">9</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">IX</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Keselamatan</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Keselamatan diberikan oleh kasih karunia Allah melalui iman. Orang percaya harus bersandar pada Roh Kudus untuk mengejar kekudusan.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+<!-- Belief 10 -->
+<article class="relative bg-surface-container-lowest dark:bg-surface-container rounded-xl p-6 border border-outline-variant/30 overflow-hidden group hover:bg-surface-container-low dark:hover:bg-surface-container-high transition-colors duration-300 flex gap-4"><div class="font-h1 text-h1 text-primary pt-1 select-none">10</div><div class="absolute -right-4 -bottom-6 text-[140px] font-h1 font-bold text-primary/10 select-none pointer-events-none group-hover:text-primary/20 transition-colors duration-500">X</div><div class="relative z-10 flex-1"><h2 class="font-h3 text-h3 text-primary mb-2">Kedatangan Kedua</h2><p class="font-body-md text-body-md text-on-surface-variant mb-4">Kedatangan Tuhan yang kedua kalinya akan terjadi pada hari kiamat ketika Dia turun dari surga untuk menghakimi dunia.</p><button class="flex items-center gap-2 text-secondary dark:text-secondary-fixed-dim font-label-caps text-label-caps tracking-wider hover:text-primary dark:hover:text-primary-fixed transition-colors"><span class="">LIHAT PENJELASAN LENGKAP</span><span class="material-symbols-outlined text-[16px]">expand_more</span></button></div></article>
+</section>
+</main>
+<!-- BottomNavBar (Visible on Mobile) -->
+<!-- MIDI Player Container -->
+<div class="fixed bottom-[72px] left-0 right-0 z-40 px-4 transition-all duration-300 transform">
+<div class="bg-surface-container-highest border border-outline-variant rounded-t-2xl shadow-lg overflow-hidden" id="midi-player-root">
+<!-- Collapsible Header/Mini-bar -->
+<div class="flex items-center justify-between px-4 py-2 bg-primary text-on-primary cursor-pointer" onclick="document.getElementById('midi-expanded').classList.toggle('hidden')">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-sm animate-pulse">music_note</span>
+<span class="text-label-caps truncate">Now Playing: Besar Setia-Mu</span>
+</div>
+<span class="material-symbols-outlined transition-transform rotate-0" id="collapse-icon">expand_more</span>
+</div>
+<!-- Expanded Controls -->
+<div class="p-4 flex flex-col gap-4" id="midi-expanded">
+<div class="flex items-center gap-4">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-primary text-on-primary shadow-sm hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">play_arrow</span>
+</button>
+<div class="flex-1 h-1.5 bg-surface-variant rounded-full overflow-hidden relative">
+<div class="absolute top-0 left-0 h-full bg-primary w-1/3"></div>
+</div>
+<span class="text-xs font-label-caps text-on-surface-variant">0:45 / 3:12</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="text-xs font-label-caps text-on-surface-variant">Transpose</span>
+<div class="flex items-center bg-surface-container-low rounded-lg border border-outline-variant">
+<button class="px-2 py-1 hover:bg-surface-variant">-</button>
+<span class="px-2 text-xs font-bold">0</span>
+<button class="px-2 py-1 hover:bg-surface-variant">+</button>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">piano</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-lg">repeat</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div><nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 py-3 bg-surface/90 dark:bg-inverse-surface/90 backdrop-blur-md border-t border-secondary-container/50 dark:border-on-secondary-fixed-variant/50 md:hidden pb-safe">
+<!-- Dashboard (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">home</span>
+<span class="font-label-caps text-label-caps">Dashboard</span>
+</a>
+<!-- Bible (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">menu_book</span>
+<span class="font-label-caps text-label-caps">Bible</span>
+</a>
+<!-- Hymnal (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">music_note</span>
+<span class="font-label-caps text-label-caps">Hymnal</span>
+</a>
+<!-- Beliefs (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary-container/20 text-primary dark:text-secondary-fixed rounded-xl px-3 py-1 scale-95 transition-transform duration-150 shadow-[0_2px_10px_rgba(0,35,102,0.1)]" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]" style="font-variation-settings: 'FILL' 1;">auto_stories</span>
+<span class="font-label-caps text-label-caps">Beliefs</span>
+</a>
+<!-- Settings (Inactive) -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-3 py-1 hover:text-primary dark:hover:text-primary-fixed transition-colors" href="#">
+<span class="material-symbols-outlined mb-1 text-[24px]">settings</span>
+<span class="font-label-caps text-label-caps">Settings</span>
+</a>
+</nav>
+<!-- Support for safe area inset on modern mobile browsers -->
+<style>
+        .pb-safe { padding-bottom: env(safe-area-inset-bottom, 12px); }
+    </style>
+</body></html>

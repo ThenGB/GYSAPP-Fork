@@ -3,8 +3,12 @@ import 'package:flutter/material.dart';
 import '../../../data/data.dart';
 
 TextSpan buildHighlightedText(
-    String text, List<String> terms, BuildContext context,
-    {TextStyle? style, bool isUnderline = false}) {
+  String text,
+  List<String> terms,
+  BuildContext context, {
+  TextStyle? style,
+  bool isUnderline = false,
+}) {
   List<TextSpan> textSpans = [];
 
   String pattern = terms.map((term) => RegExp.escape(term)).join('|');
@@ -18,18 +22,23 @@ TextSpan buildHighlightedText(
       textSpans.add(TextSpan(text: text.substring(currentIndex, match.start)));
     }
 
-    textSpans.add(TextSpan(
-      text: text.substring(match.start, match.end),
-      style: TextStyle(
-        backgroundColor:
-            isUnderline ? null : Colors.yellow, // Set background color
-        fontWeight: FontWeight.bold,
-        decorationThickness: 3, decorationStyle: TextDecorationStyle.solid,
-        decoration:
-            isUnderline ? TextDecoration.underline : TextDecoration.none,
-        decorationColor: isUnderline ? Colors.yellow : null,
+    textSpans.add(
+      TextSpan(
+        text: text.substring(match.start, match.end),
+        style: TextStyle(
+          backgroundColor: isUnderline
+              ? null
+              : Colors.yellow, // Set background color
+          fontWeight: FontWeight.bold,
+          decorationThickness: 3,
+          decorationStyle: TextDecorationStyle.solid,
+          decoration: isUnderline
+              ? TextDecoration.underline
+              : TextDecoration.none,
+          decorationColor: isUnderline ? Colors.yellow : null,
+        ),
       ),
-    ));
+    );
 
     currentIndex = match.end;
   }
@@ -39,9 +48,10 @@ TextSpan buildHighlightedText(
   }
 
   return TextSpan(
-    style: TextStyle(fontSize: 14, color: context.textTheme.bodyMedium?.color)
-        .merge(style),
+    style: TextStyle(
+      fontSize: 14,
+      color: context.textTheme.bodyMedium?.color,
+    ).merge(style),
     children: textSpans,
   );
 }
-

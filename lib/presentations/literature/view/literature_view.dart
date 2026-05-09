@@ -4,6 +4,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../router/router.dart';
 
@@ -25,91 +26,137 @@ class _LiteratureViewState extends State<LiteratureView> {
   Widget build(BuildContext context) {
     log(router.currentPath);
     return Scaffold(
+      backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
-        title: Text('Literature'.tr()),
+        shape: Border(
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
+        ),
+        title: const Text('Kidung Rohani'),
+        centerTitle: true,
       ),
       body: ListView(
         children: [
-          [
-            'Kesaksian',
-            Assets.assetsImagesKesaksian,
-            const LiteratureKesaksianRoute()
-          ],
-          [
-            'Manna Magazine'.tr(),
-            Assets.assetsImagesWartasejati,
-            const LiteratureWartaRoute(),
-          ],
-          [
-            'Panduan Pemahaman Alkitab',
-            Assets.assetsImagesPanduankitab,
-            const LiteraturePanduanKitabRoute(),
-          ],
-          [
-            'Kumpulan Renungan',
-            Assets.assetsImagesKumpulanrenungan,
-            const LiteratureRenunganRoute(),
-          ],
-          [
-            'Pujian',
-            Assets.assetsImagesPujian,
-            WebpageRoute(url: 'https://tjc.org/id/pujian/pujian-padus')
-          ],
-          [
-            'Buku',
-            Assets.assetsImagesBuku,
-            WebpageRoute(url: 'https://tjc.org/id/literatur/buku')
-          ],
-        ]
-            .map((e) => Container(
-                  height: 100,
-                  margin:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  alignment: Alignment.bottomLeft,
-                  padding: const EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
+            child: Column(
+              children: [
+                Text(
+                  'Literature'.tr(),
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: context.colorScheme.primary,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Container(
+                  width: 48,
+                  height: 4,
                   decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    image: DecorationImage(
-                      image: AssetImage(e[1] as String),
-                      fit: BoxFit.cover,
-                    ),
+                    color: context.colorScheme.outlineVariant,
+                    borderRadius: BorderRadius.circular(999),
                   ),
-                  child: InkWell(
-                    onTap: () {
-                      router.push(e[2] as PageRouteInfo);
-                    },
-                    child: Container(
-                      alignment: Alignment.bottomLeft,
-                      child: Text(
-                        e[0] as String,
-                        style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.white,
-                            shadows: [
-                              Shadow(
-                                offset: Offset(0, 2),
-                                blurRadius: 8,
-                                color: Colors.black,
-                              ),
-                              Shadow(
-                                offset: Offset(0, 0),
-                                blurRadius: 4,
-                                color: Colors.black,
-                              ),
-                              Shadow(
-                                offset: Offset(0, 0),
-                                blurRadius: 2,
-                                color: Colors.black,
-                              ),
-                            ]),
-                      ),
-                    ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  'Kumpulan bacaan rohani dan literatur gereja.',
+                  textAlign: TextAlign.center,
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    color: context.colorScheme.onSurfaceVariant,
+                    height: 1.55,
                   ),
-                ))
-            .toList(),
+                ),
+              ],
+            ),
+          ),
+          ..._buildGridItems(context),
+        ],
       ),
     );
   }
-}
 
+  List<Widget> _buildGridItems(BuildContext context) {
+    final items = <(String, String, PageRouteInfo)>[
+      (
+        'Kesaksian',
+        Assets.assetsImagesKesaksian,
+        const LiteratureKesaksianRoute(),
+      ),
+      (
+        'Manna Magazine'.tr(),
+        Assets.assetsImagesWartasejati,
+        const LiteratureWartaRoute(),
+      ),
+      (
+        'Panduan Pemahaman Alkitab',
+        Assets.assetsImagesPanduankitab,
+        const LiteraturePanduanKitabRoute(),
+      ),
+      (
+        'Kumpulan Renungan',
+        Assets.assetsImagesKumpulanrenungan,
+        const LiteratureRenunganRoute(),
+      ),
+      (
+        'Pujian',
+        Assets.assetsImagesPujian,
+        LiteraturePujianRoute(url: 'https://tjc.org/id/pujian/pujian-padus'),
+      ),
+      (
+        'Buku',
+        Assets.assetsImagesBuku,
+        LiteratureBukuRoute(url: 'https://tjc.org/id/literatur/buku'),
+      ),
+    ];
+
+    return items
+        .map(
+          (e) => Container(
+            height: 108,
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: context.colorScheme.outlineVariant.withValues(
+                  alpha: 0.55,
+                ),
+              ),
+              color: context.colorScheme.surfaceContainerLowest,
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: Ink.image(
+                image: AssetImage(e.$2),
+                fit: BoxFit.cover,
+                child: InkWell(
+                  onTap: () {
+                    router.push(e.$3);
+                  },
+                  child: Container(
+                    alignment: Alignment.bottomLeft,
+                    padding: const EdgeInsets.all(16),
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0x8A000000), Color(0x22000000)],
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                      ),
+                    ),
+                    child: Text(
+                      e.$1,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 17,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        )
+        .toList();
+  }
+}

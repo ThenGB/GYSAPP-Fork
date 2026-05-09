@@ -126,9 +126,15 @@ class _SongViewState extends State<SongView> {
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
             centerTitle: true,
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
+            backgroundColor: Theme.of(context).colorScheme.surface,
+            foregroundColor: Theme.of(context).colorScheme.primary,
             surfaceTintColor: Colors.transparent,
+            shape: Border(
+              bottom: BorderSide(
+                color: Theme.of(context).colorScheme.outlineVariant,
+                width: 1,
+              ),
+            ),
             leading: IconButton(
               icon: const Icon(Icons.list_alt_rounded),
               tooltip: 'Selector nomor pujian',
@@ -148,10 +154,15 @@ class _SongViewState extends State<SongView> {
             ),
             actions: [
               IconButton(
+                icon: const Icon(Icons.menu_rounded),
+                tooltip: 'Menu',
+                onPressed: openDashboardDrawer,
+              ),
+              IconButton(
                 icon: Icon(
                   state.showAudio ? Icons.volume_up : Icons.volume_off,
                   color: state.showAudio
-                      ? colors.primary
+                      ? colors.secondary
                       : colors.onSurface.withValues(alpha: 0.4),
                 ),
                 tooltip: state.showAudio
@@ -163,7 +174,7 @@ class _SongViewState extends State<SongView> {
                 icon: Icon(
                   state.showChord ? Icons.music_note : Icons.music_off,
                   color: state.showChord
-                      ? colors.primary
+                      ? colors.secondary
                       : colors.onSurface.withValues(alpha: 0.4),
                 ),
                 tooltip: state.showChord
@@ -219,7 +230,7 @@ class _SongViewState extends State<SongView> {
                           isFavorite
                               ? Icons.star_rounded
                               : Icons.star_border_rounded,
-                          color: Colors.amber,
+                          color: Theme.of(context).colorScheme.secondary,
                         ),
                       ],
                     ),
@@ -286,6 +297,7 @@ class _SongViewState extends State<SongView> {
                   builder: (context, child) {
                     final midiState = cubit.midiEngine.state;
                     return DraggableMidiControls(
+                      nowPlayingTitle: state.getSongTitleAt(currentPageIndex),
                       isPlaying: midiState.isPlaying,
                       isLoading: midiState.isLoading,
                       position: midiState.position,
@@ -559,10 +571,10 @@ class _SongHeaderTitle extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 420),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.46),
-                borderRadius: BorderRadius.circular(8),
+                color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: colors.onPrimaryContainer.withValues(alpha: 0.1),
+                  color: colors.outlineVariant.withValues(alpha: 0.6),
                 ),
               ),
               child: Column(
@@ -576,9 +588,9 @@ class _SongHeaderTitle extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontSize: 16,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
+                      fontSize: 15.5,
                     ),
                   ),
                   if (familyChord != null)
@@ -589,9 +601,7 @@ class _SongHeaderTitle extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 11,
                         fontWeight: FontWeight.w600,
-                        color: colors.onPrimaryContainer.withValues(
-                          alpha: 0.72,
-                        ),
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.72),
                       ),
                     ),
                 ],
@@ -700,9 +710,10 @@ class _SongTextPage extends StatelessWidget {
                               'Bait ${safeIndex + 1} dari ${verses.length}',
                               textAlign: _resolveTextAlign(),
                               style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurface.withValues(
+                                color: theme.colorScheme.primary.withValues(
                                   alpha: 0.5,
                                 ),
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                             const SizedBox(height: 16),

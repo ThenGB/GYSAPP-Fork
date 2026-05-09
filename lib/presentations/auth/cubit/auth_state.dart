@@ -15,4 +15,3 @@ abstract class AuthState with _$AuthState {
   factory AuthState.fromJson(Map<String, dynamic> json) =>
       _$AuthStateFromJson(json);
 }
-

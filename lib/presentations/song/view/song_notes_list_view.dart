@@ -43,16 +43,18 @@ class _SongNotesListViewState extends State<SongNotesListView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Notes'.tr()),
                   Text(
                     '${state.notes.length} ${'notes saved'.tr()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 10,
-                    ),
+                    style: context.textTheme.labelSmall,
                   ),
                 ],
               ),
@@ -77,11 +79,12 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -97,11 +100,12 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -117,11 +121,12 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -137,11 +142,12 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -153,12 +159,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                   ),
                   itemBuilder: (context) {
                     return ['Newest', 'Oldest', 'A-Z', 'Z-A']
-                        .map(
-                          (e) => PopupMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ),
-                        )
+                        .map((e) => PopupMenuItem(value: e, child: Text(e)))
                         .toList();
                   },
                 ),
@@ -201,8 +202,9 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title: 'not found'
-                                  .tr(args: ['"${searchController.text}"']),
+                              title: 'not found'.tr(
+                                args: ['"${searchController.text}"'],
+                              ),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),
@@ -215,71 +217,82 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                               return Material(
                                 child: InkWell(
                                   onTap: () {
-                                    router.push(SongNoteRoute(
-                                      initialData: item,
-                                      cubit: widget.cubit,
-                                      mode: NoteMode.viewOnly,
-                                      onSave: (data) {
-                                        context
-                                            .read<SongCubit>()
-                                            .saveNote(data);
-                                        router.maybePop();
-                                        // router.push(SongNoteListRoute(cubit: context.read()));
-                                      },
-                                    ));
+                                    router.push(
+                                      SongNoteRoute(
+                                        initialData: item,
+                                        cubit: widget.cubit,
+                                        mode: NoteMode.viewOnly,
+                                        onSave: (data) {
+                                          context.read<SongCubit>().saveNote(
+                                            data,
+                                          );
+                                          router.maybePop();
+                                          // router.push(SongNoteListRoute(cubit: context.read()));
+                                        },
+                                      ),
+                                    );
                                   },
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 8),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    item.song.title ?? '',
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Text(
-                                                  item.createdDate
-                                                      .toHumanDate(),
+                                  child: Card(
+                                    color: context
+                                        .colorScheme
+                                        .surfaceContainerLowest,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: BorderSide(
+                                        color: context
+                                            .colorScheme
+                                            .outlineVariant
+                                            .withValues(alpha: 0.55),
+                                      ),
+                                    ),
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  item.song.title ?? '',
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: context
-                                                      .textTheme.bodySmall,
+                                                      .textTheme
+                                                      .titleMedium,
                                                 ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 8,
-                                            ),
-                                            Text(
-                                              quill.Document.fromJson(
-                                                      jsonDecode(item.text!))
-                                                  .toPlainText()
-                                                  .trim()
-                                                  .replaceAll('\n', ' .. '),
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                fontSize: 12,
                                               ),
+                                              Text(
+                                                item.createdDate.toHumanDate(),
+                                                style:
+                                                    context.textTheme.bodySmall,
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            quill.Document.fromJson(
+                                              jsonDecode(item.text!),
+                                            ).toPlainText().trim().replaceAll(
+                                              '\n',
+                                              ' .. ',
                                             ),
-                                          ],
-                                        ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: context.textTheme.bodySmall,
+                                          ),
+                                        ],
                                       ),
-                                      Divider(
-                                        indent: 16,
-                                        endIndent: 16,
-                                        height: 1,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -298,4 +311,3 @@ class _SongNotesListViewState extends State<SongNotesListView> {
     );
   }
 }
-

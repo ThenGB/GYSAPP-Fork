@@ -34,13 +34,13 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
       keys: [widgetKey],
       callback: (result) {
         childHeight.value = result;
-        Future.delayed(
-          kThemeAnimationDuration,
-          () {
-            controller.animateTo(childHeight.value,
-                duration: kThemeAnimationDuration, curve: Curves.ease);
-          },
-        );
+        Future.delayed(kThemeAnimationDuration, () {
+          controller.animateTo(
+            childHeight.value,
+            duration: kThemeAnimationDuration,
+            curve: Curves.ease,
+          );
+        });
       },
     );
   }
@@ -84,21 +84,14 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
                   Text(
                     'Are you sure want to backup now?'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
                   ),
-                  SizedBox(
-                    height: 12,
-                  ),
+                  SizedBox(height: 12),
                   Text(
                     'Your current data at network will be overriden'.tr(),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(
-                    height: 48,
-                  ),
+                  SizedBox(height: 48),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -109,13 +102,9 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
                     onPressed: () {
                       widget.onConfirm();
                     },
-                    child: Text(
-                      'Backup now'.tr(),
-                    ),
+                    child: Text('Backup now'.tr()),
                   ),
-                  SizedBox(
-                    height: 16,
-                  )
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -125,4 +114,3 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
     );
   }
 }
-

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:church/data/services/native_midi/midi_render_settings.dart';
@@ -93,6 +94,21 @@ void main() {
       );
 
       expect(settings.tempoRate, closeTo(1.5, 0.0001));
+    });
+  });
+
+  group('MidiEngineService cache policy', () {
+    test('memory pruning keeps rendered wav files as warm disk cache', () {
+      final source = File(
+        'lib/data/services/midi_engine_service.dart',
+      ).readAsStringSync();
+      final pruneBody =
+          RegExp(
+            r'Future<void> _pruneSourceCache\(\) async \{([\s\S]*?)\n  \}',
+          ).firstMatch(source)?.group(1) ??
+          '';
+
+      expect(pruneBody, isNot(contains('.delete()')));
     });
   });
 }

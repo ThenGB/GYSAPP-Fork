@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -38,7 +36,7 @@ class BibleViewer extends StatefulWidget {
   final bool isSplit;
   final Function(int index) scrollFunction;
   final Function(int index, Size size, double visiblePercentage)
-      onVerseVisibility;
+  onVerseVisibility;
   final Function(ScrollableState scrollable, BuildContext context) listener;
 
   @override
@@ -62,7 +60,6 @@ class _BibleViewerState extends State<BibleViewer> {
         return Listener(
           onPointerCancel: (event) {
             touches.clear();
-            log(touches.toString());
             if (touches.length <= 1) {
               if (onScaling) {
                 setState(() {
@@ -73,7 +70,6 @@ class _BibleViewerState extends State<BibleViewer> {
           },
           onPointerUp: (event) {
             touches.remove(event.pointer);
-            log(touches.toString());
             if (touches.length <= 1) {
               if (onScaling) {
                 setState(() {
@@ -84,8 +80,6 @@ class _BibleViewerState extends State<BibleViewer> {
           },
           onPointerDown: (event) {
             touches.add(event.pointer);
-            log(event.pointer.toString(), name: 'Pointer');
-            log(touches.toString());
             if (touches.length > 1) {
               if (!onScaling) {
                 setState(() {
@@ -104,7 +98,9 @@ class _BibleViewerState extends State<BibleViewer> {
                   : AlwaysScrollableScrollPhysics(),
               controller: widget.scrollController,
               child: Container(
-                color: context.colorScheme.surface,
+                color: widget.isSplit
+                    ? context.colorScheme.surfaceContainerLow
+                    : context.colorScheme.surface,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -127,14 +123,15 @@ class _BibleViewerState extends State<BibleViewer> {
                           verse: e.value,
                           scrollFunction: widget.scrollFunction,
                           onTapNote: (note) async {
-                            router.push(BibleNoteListRoute(
+                            router.push(
+                              BibleNoteListRoute(
                                 // ignore: use_build_context_synchronously
                                 cubit: context.read(),
                                 initialSearch: await context
                                     .read<BibleCubit>()
-                                    .getBibleTitle(
-                                  [note.first.verses.first],
-                                )));
+                                    .getBibleTitle([note.first.verses.first]),
+                              ),
+                            );
                             // router.push(BibleNoteRoute(
                             //   initialData: note.first,
                             //   cubit: cubit,
@@ -147,41 +144,47 @@ class _BibleViewerState extends State<BibleViewer> {
                             // ));
                           },
                           notes: state.notes
-                              .where((element) =>
-                                  element.verses.firstWhereOrNull(
-                                      (element) => element.id == e.value.id) !=
-                                  null)
+                              .where(
+                                (element) =>
+                                    element.verses.firstWhereOrNull(
+                                      (element) => element.id == e.value.id,
+                                    ) !=
+                                    null,
+                              )
                               .toList(),
-                          references:
-                              state.references.getById(verses[index].id),
+                          references: state.references.getById(
+                            verses[index].id,
+                          ),
                           hightlightedVerse: state.hightlightedVerse,
                           selectedVerse: state.selectedVerse,
                           key: index > (widget.verseKeys.length - 1)
                               ? GlobalKey()
                               : widget.verseKeys[index],
                           index: index,
-                          hasBookmark: state.bookmarks.firstWhereOrNull(
-                                  (element) =>
-                                      element.verse.id == verses[index].id &&
-                                      !element.isBookmarkAll) !=
+                          hasBookmark:
+                              state.bookmarks.firstWhereOrNull(
+                                (element) =>
+                                    element.verse.id == verses[index].id &&
+                                    !element.isBookmarkAll,
+                              ) !=
                               null,
                           pericope: pericopes.getById(verses[index].id),
-                          pericopeParalels:
-                              pericopeParalels.getById(verses[index].id),
+                          pericopeParalels: pericopeParalels.getById(
+                            verses[index].id,
+                          ),
                         ),
                       );
                     }),
                     FutureBuilder(
                       future: widget.selectedVerseMenuHeight,
                       builder: (context, snapshot) {
-                        double height = ((state.selectedVerse.isNotEmpty
-                                    ? (snapshot.data ?? 0)
-                                    : 0) -
-                                80.0)
-                            .clamp(0, 1000);
-                        return SizedBox(
-                          height: height == 0 ? 60 : height,
-                        );
+                        double height =
+                            ((state.selectedVerse.isNotEmpty
+                                        ? (snapshot.data ?? 0)
+                                        : 0) -
+                                    80.0)
+                                .clamp(0, 1000);
+                        return SizedBox(height: height == 0 ? 60 : height);
                       },
                     ),
                   ],
@@ -194,4 +197,3 @@ class _BibleViewerState extends State<BibleViewer> {
     );
   }
 }
-

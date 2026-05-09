@@ -46,9 +46,7 @@ class _InitialViewState extends State<InitialView> {
         listener: (context, state) {
           if (state.isLoaded) {
             router.popUntilRoot();
-            router.replace(
-              const DashboardRoute(),
-            );
+            router.replace(const DashboardRoute());
           }
         },
         child: Scaffold(
@@ -61,12 +59,16 @@ class _InitialViewState extends State<InitialView> {
                   child: MirrorAnimationBuilder(
                     duration: const Duration(milliseconds: 1500),
                     tween: Tween<double>(
-                        begin: 0.0, end: 1.0), // Keep the original tween
+                      begin: 0.0,
+                      end: 1.0,
+                    ), // Keep the original tween
                     builder: (context, value, child) {
-                      double scale = 1 +
+                      double scale =
+                          1 +
                           (0.1 *
                               value); // Interpolate to get scale between 1 and 1.3
-                      double opacity = 1 -
+                      double opacity =
+                          1 -
                           (0.5 *
                               value); // Interpolate to get scale between 1 and 1.3
                       return state.isFailed

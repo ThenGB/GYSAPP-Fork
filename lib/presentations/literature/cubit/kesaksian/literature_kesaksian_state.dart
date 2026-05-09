@@ -16,4 +16,3 @@ abstract class LiteratureKesaksianState with _$LiteratureKesaksianState {
   factory LiteratureKesaksianState.fromJson(Map<String, dynamic> json) =>
       _$LiteratureKesaksianStateFromJson(json);
 }
-

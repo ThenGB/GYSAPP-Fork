@@ -37,7 +37,9 @@ class AuthCubit extends HydratedCubit<AuthState> {
   }
 
   Future<void> onGoogleLogin(
-      InAppWebViewController controller, String cmd) async {
+    InAppWebViewController controller,
+    String cmd,
+  ) async {
     if (!isAppAuthConfiguredForCurrentPlatform) {
       Fluttertoast.cancel();
       Fluttertoast.showToast(
@@ -49,16 +51,19 @@ class AuthCubit extends HydratedCubit<AuthState> {
     try {
       FlutterAppAuth appAuth = const FlutterAppAuth();
       final response = await appAuth.authorizeAndExchangeCode(
-        AuthorizationTokenRequest(clientID(), redirectUrl(),
-            issuer: googleIssuer,
-            serviceConfiguration: const AuthorizationServiceConfiguration(
-                authorizationEndpoint:
-                    'https://accounts.google.com/o/oauth2/auth',
-                tokenEndpoint: 'https://oauth2.googleapis.com/token'),
-            scopes: [
-              'https://www.googleapis.com/auth/userinfo.email',
-              'https://www.googleapis.com/auth/userinfo.profile'
-            ]),
+        AuthorizationTokenRequest(
+          clientID(),
+          redirectUrl(),
+          issuer: googleIssuer,
+          serviceConfiguration: const AuthorizationServiceConfiguration(
+            authorizationEndpoint: 'https://accounts.google.com/o/oauth2/auth',
+            tokenEndpoint: 'https://oauth2.googleapis.com/token',
+          ),
+          scopes: [
+            'https://www.googleapis.com/auth/userinfo.email',
+            'https://www.googleapis.com/auth/userinfo.profile',
+          ],
+        ),
       );
       emit(state.copyWith(idToken: response.idToken));
       if (response.idToken?.isNotEmpty == true) {
@@ -74,4 +79,3 @@ class AuthCubit extends HydratedCubit<AuthState> {
     }
   }
 }
-

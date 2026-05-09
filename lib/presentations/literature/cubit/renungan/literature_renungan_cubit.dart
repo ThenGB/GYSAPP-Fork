@@ -15,7 +15,7 @@ class LiteratureRenunganCubit extends HydratedCubit<LiteratureRenunganState> {
   final ScrapperRepository repository;
 
   LiteratureRenunganCubit(this.repository)
-      : super(const LiteratureRenunganState()) {
+    : super(const LiteratureRenunganState()) {
     FirebaseUtils.jsonConfig('config_literature').then((json) {
       selector = ConfigLiterature.fromJson(json).pelitaKecil;
       getData();
@@ -57,4 +57,3 @@ class LiteratureRenunganCubit extends HydratedCubit<LiteratureRenunganState> {
     );
   }
 }
-

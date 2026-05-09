@@ -73,7 +73,8 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       for (var content in contents) {
         var file = File('${localDir.bibleFolder}/${content.name}');
         // _File (File: '/data/user/0/com.itmandiri.egys/cache/bible/b_tb.db')
-        var difference = content.modifyTime
+        var difference =
+            content.modifyTime
                 ?.difference(
                   state.lastSync[content.name] ??
                       content.modifyTime ??
@@ -88,17 +89,23 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
         if (!file.existsSync()) {
           // continue;
           file.createSync(
-              recursive: true); // diubah, karena tidak download otomatis lagi
+            recursive: true,
+          ); // diubah, karena tidak download otomatis lagi
         }
         var downloaded = await connection.downloadFile(
           content.name,
           file,
           onProgress: (progressInPercent, totalReceived, fileSize) {
-            log('progress: $progressInPercent, total: $totalReceived, fileSize: $fileSize',
-                name: 'Downloading bible');
-            emit(state.copyWith(
+            log(
+              'progress: $progressInPercent, total: $totalReceived, fileSize: $fileSize',
+              name: 'Downloading bible',
+            );
+            emit(
+              state.copyWith(
                 message:
-                    'Downloading ${content.name.split('.').first} $progressInPercent%'));
+                    'Downloading ${content.name.split('.').first} $progressInPercent%',
+              ),
+            );
           },
         );
         log('Downloaded $downloaded ');
@@ -157,10 +164,11 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<bool> downloadBible(
-      String sRemoteName,
-      File fFile,
-      Function(double progressInPercent, int totalReceived, int fileSize)
-          onProgress) async {
+    String sRemoteName,
+    File fFile,
+    Function(double progressInPercent, int totalReceived, int fileSize)
+    onProgress,
+  ) async {
     if (!isFirebaseStorageConfiguredForCurrentPlatform) {
       return false;
     }
@@ -208,12 +216,14 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
 
   Future setFtpConnect() async {
     var json = await FirebaseUtils.jsonConfig('ftp_server');
-    emit(state.copyWith(
-      ftpHost: json['host'],
-      ftpPort: json['port'],
-      ftpUsername: json['username'],
-      ftpPassword: json['password'],
-    ));
+    emit(
+      state.copyWith(
+        ftpHost: json['host'],
+        ftpPort: json['port'],
+        ftpUsername: json['username'],
+        ftpPassword: json['password'],
+      ),
+    );
     await ftp?.disconnect();
     ftp = FTPConnect(
       state.ftpHost!,
@@ -235,8 +245,10 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   Future initRemoteConfig() async {
     try {
       if (isFirebaseConfiguredForCurrentPlatform) {
-        log(FirebaseRemoteConfig.instance.getAll().toString(),
-            name: 'Remote Config');
+        log(
+          FirebaseRemoteConfig.instance.getAll().toString(),
+          name: 'Remote Config',
+        );
       }
       await setFtpConnect();
       setPaths();

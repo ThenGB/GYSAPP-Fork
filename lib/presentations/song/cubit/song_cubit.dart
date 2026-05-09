@@ -14,6 +14,7 @@ import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../domain/repository/song_repository.dart';
 import 'song_playback_defaults.dart';
+import 'song_preload_key.dart';
 import 'song_playlist.dart';
 import 'song_state.dart';
 
@@ -32,13 +33,17 @@ class SongCubit extends HydratedCubit<SongState> {
   Timer? _debouncer;
   MidiPlaybackState _lastMidiState = const MidiPlaybackState();
   bool _handlingAutoNext = false;
+  int _midiLoadGeneration = 0;
+  final Set<String> _activePreloadJobs = <String>{};
 
   SongCubit(this.songRepository, this._assetService, this._midiEngine)
     : super(const SongState()) {
     _setupMidiStreams();
+    _midiEngine.setCacheMax(const SongState().preloadCacheMax);
     getData().then((_) async {
       await _midiEngine.initialize();
       await _midiEngine.changeSoundFont(state.soundFont);
+      _midiEngine.setCacheMax(state.preloadCacheMax);
       _preloadCurrentSongMidi();
     });
   }
@@ -84,8 +89,18 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> _preloadCurrentSongMidi() async {
     if (state.songs.isEmpty) return;
-    _resetSongScopedPlaybackDefaults();
     final song = state.songs[state.pageIndex];
+    final defaults = await _resolvePreloadDefaultsForSong(song);
+    emit(
+      state.copyWith(
+        transposeStep: defaults.transposeStep,
+        tempoBpm: defaults.tempoBpm,
+        defaultTempoBpm: defaults.defaultTempoBpm,
+        originalFamilyChord: defaults.originalFamilyChord,
+        originalPdfKey: defaults.originalPdfKey,
+        baseTransposeOffset: defaults.baseTransposeOffset,
+      ),
+    );
     await _loadMidiForSong(song, force: true);
     _preloadNearbySongMidi(state.pageIndex);
   }
@@ -101,7 +116,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }) async {
     if (!force && !state.showAudio) return;
 
+    final loadGeneration = ++_midiLoadGeneration;
     final midiPath = await _midiPathForSong(song);
+    if (!_isActiveMidiLoad(loadGeneration)) return;
     if (midiPath == null) {
       emit(
         state.copyWith(
@@ -121,24 +138,44 @@ class SongCubit extends HydratedCubit<SongState> {
       instrument: state.midiInstrument,
       autoplay: autoplay,
     );
+    if (!_isActiveMidiLoad(loadGeneration)) return;
     emit(state.copyWith(isAudioLoading: false));
   }
 
+  bool _isActiveMidiLoad(int loadGeneration) {
+    return !isClosed && loadGeneration == _midiLoadGeneration;
+  }
+
   void _preloadNearbySongMidi(int index) {
+    if (!state.preloadEnabled) return;
     final queue = _playbackQueue();
-    for (final song in queue.preloadSongs) {
-      _midiPathForSong(song).then((midiPath) {
-        if (midiPath == null) return;
-        final preset = _defaultPreloadSettingsFor(song);
-        _midiEngine.preload(
-          midiPath,
-          transpose: preset.transposeStep,
-          tempoBpm: preset.tempoBpm,
-          baseTempoBpm: preset.defaultTempoBpm,
-          instrument: state.midiInstrument,
-          soundFont: state.soundFont,
-        );
-      });
+    for (final song in queue.getPreloadSongs(state.preloadCount)) {
+      unawaited(_preloadSong(song));
+    }
+  }
+
+  Future<void> _preloadSong(Song song) async {
+    final midiPath = await _midiPathForSong(song);
+    if (midiPath == null) return;
+    final preset = await _resolveCacheDefaultsForSong(song);
+    final jobKey = songPreloadJobKey(
+      midiPath: midiPath,
+      defaults: preset,
+      soundFont: state.soundFont,
+      instrument: state.midiInstrument,
+    );
+    if (!_activePreloadJobs.add(jobKey)) return;
+    try {
+      await _midiEngine.preload(
+        midiPath,
+        transpose: preset.transposeStep,
+        tempoBpm: preset.tempoBpm,
+        baseTempoBpm: preset.defaultTempoBpm,
+        instrument: state.midiInstrument,
+        soundFont: state.soundFont,
+      );
+    } finally {
+      _activePreloadJobs.remove(jobKey);
     }
   }
 
@@ -190,9 +227,10 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(showAudio: newValue));
 
     if (newValue && state.songs.isNotEmpty) {
-      _loadMidiForSong(state.songs[state.pageIndex]);
+      unawaited(_loadMidiForSong(state.songs[state.pageIndex]));
     } else {
-      _midiEngine.stop();
+      _midiLoadGeneration++;
+      unawaited(_midiEngine.stop());
     }
   }
 
@@ -284,6 +322,25 @@ class SongCubit extends HydratedCubit<SongState> {
     _preloadNearbySongMidi(state.pageIndex);
   }
 
+  void setPreloadEnabled(bool enabled) {
+    emit(state.copyWith(preloadEnabled: enabled));
+    if (enabled) {
+      _preloadNearbySongMidi(state.pageIndex);
+    }
+  }
+
+  void setPreloadCount(int count) {
+    final clamped = count.clamp(1, 5);
+    emit(state.copyWith(preloadCount: clamped));
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void setPreloadCacheMax(int max) {
+    final clamped = max.clamp(4, 32);
+    _midiEngine.setCacheMax(clamped);
+    emit(state.copyWith(preloadCacheMax: clamped));
+  }
+
   void resetPlaybackSettings() {
     emit(
       state.copyWith(
@@ -300,7 +357,8 @@ class SongCubit extends HydratedCubit<SongState> {
         isAudioPlaying: false,
       ),
     );
-    _midiEngine.stop();
+    _midiLoadGeneration++;
+    unawaited(_midiEngine.stop());
     _midiEngine.setTranspose(0);
     _midiEngine.setTempo(76);
     _midiEngine.setInstrument(-1);
@@ -322,7 +380,8 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> changePage(int index, int verseIndex) async {
     if (index < 0 || index >= state.songs.length) return;
     final wasPlaying = state.isAudioPlaying;
-    final reset = _currentPlaybackDefaults().resetForSong();
+    final song = state.songs[index];
+    final reset = await _resolvePreloadDefaultsForSong(song);
     emit(
       state.copyWith(
         pageIndex: index,
@@ -336,13 +395,7 @@ class SongCubit extends HydratedCubit<SongState> {
         baseTransposeOffset: reset.baseTransposeOffset,
       ),
     );
-    _midiEngine.setTranspose(reset.transposeStep);
-    _midiEngine.setTempoBase(reset.defaultTempoBpm);
-    await _loadMidiForSong(
-      state.songs[index],
-      autoplay: wasPlaying,
-      force: true,
-    );
+    await _loadMidiForSong(song, autoplay: wasPlaying, force: true);
     _preloadNearbySongMidi(index);
   }
 
@@ -447,15 +500,6 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  SongPlaybackDefaults _defaultPreloadSettingsFor(Song song) {
-    if (state.pageIndex < state.songs.length &&
-        state.songs[state.pageIndex].code == song.code &&
-        state.songs[state.pageIndex].number == song.number) {
-      return _currentPlaybackDefaults();
-    }
-    return _currentPlaybackDefaults().resetForSong();
-  }
-
   SongPlaybackQueue _playbackQueue() {
     final currentSong =
         state.pageIndex >= 0 && state.pageIndex < state.songs.length
@@ -507,20 +551,56 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  void _resetSongScopedPlaybackDefaults() {
-    final reset = _currentPlaybackDefaults().resetForSong();
-    emit(
-      state.copyWith(
-        transposeStep: reset.transposeStep,
-        tempoBpm: reset.tempoBpm,
-        defaultTempoBpm: reset.defaultTempoBpm,
-        originalFamilyChord: reset.originalFamilyChord,
-        originalPdfKey: reset.originalPdfKey,
-        baseTransposeOffset: reset.baseTransposeOffset,
-      ),
+  Future<SongPlaybackDefaults> _resolvePreloadDefaultsForSong(Song song) async {
+    final currentSong =
+        state.pageIndex >= 0 && state.pageIndex < state.songs.length
+        ? state.songs[state.pageIndex]
+        : null;
+    final songMatchesCurrent =
+        currentSong != null &&
+        currentSong.code == song.code &&
+        currentSong.number == song.number;
+    final familyChord = await _detectFamilyChordForSong(song);
+    final base = _currentPlaybackDefaults().resetForSong();
+    if (!state.preferNaturalChords) {
+      return base;
+    }
+    return base.resolveChordBaseline(
+      familyChord: familyChord,
+      pdfKey: songMatchesCurrent ? state.originalPdfKey : null,
+      preferNaturalChords: true,
     );
-    _midiEngine.setTranspose(reset.transposeStep);
-    _midiEngine.setTempoBase(reset.defaultTempoBpm);
+  }
+
+  Future<SongPlaybackDefaults> _resolveCacheDefaultsForSong(Song song) async {
+    final familyChord = await _detectFamilyChordForSong(song);
+    final base = _currentPlaybackDefaults().resetForSong();
+    // Keep preload cache deterministic:
+    // - transpose 0 by default
+    // - recommended natural transpose when preferNaturalChords is enabled
+    if (!state.preferNaturalChords) return base;
+    return base.resolveChordBaseline(
+      familyChord: familyChord,
+      pdfKey: null,
+      preferNaturalChords: true,
+    );
+  }
+
+  Future<String?> _detectFamilyChordForSong(Song song) async {
+    if (!state.preferNaturalChords) return null;
+    final chordPath = await _assetService.getChordPath(
+      song.code ?? '',
+      song.number ?? '',
+    );
+    if (chordPath == null) return null;
+    try {
+      final jsonString = await rootBundle.loadString(chordPath);
+      final chords = ChordService.parseChordJson(jsonString);
+      return ChordService.detectFamilyChord(chords);
+    } catch (e) {
+      log('Error detecting family chord for preload: $e');
+      return null;
+    }
   }
 
   // ─── Book Code ────────────────────────────────────────────────
@@ -835,7 +915,6 @@ class SongCubit extends HydratedCubit<SongState> {
           isAudioLoading: false,
           isLoading: false,
           selectedSong: null,
-          showAudio: false,
           showChord: false,
           transposeStep: 0,
           originalFamilyChord: null,

@@ -18,6 +18,7 @@ abstract class InitialState with _$InitialState {
     @Default(10) int configFetchIntervalSeconds,
     @Default(1.2) double defaultTextScale,
     @Default('Roboto') String defaultFont,
+    @Default('maroon') String accentKey,
   }) = _InitialState;
 
   factory InitialState.fromJson(Map<String, dynamic> json) =>
@@ -49,4 +50,3 @@ extension ThemeToString on ThemeMode {
     }
   }
 }
-

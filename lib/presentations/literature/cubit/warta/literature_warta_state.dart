@@ -16,4 +16,3 @@ abstract class LiteratureWartaState with _$LiteratureWartaState {
   factory LiteratureWartaState.fromJson(Map<String, dynamic> json) =>
       _$LiteratureWartaStateFromJson(json);
 }
-

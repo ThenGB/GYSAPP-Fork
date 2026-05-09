@@ -28,4 +28,3 @@ abstract class DashboardState with _$DashboardState {
   factory DashboardState.fromJson(Map<String, dynamic> json) =>
       _$DashboardStateFromJson(json);
 }
-

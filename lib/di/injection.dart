@@ -75,7 +75,12 @@ Future<void> _utils(AppConfig appConfig) async {
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => LocalAssetService());
-  di.registerLazySingleton(() => MidiEngineService(di()));
+  di.registerLazySingleton(
+    () => MidiEngineService(
+      di(),
+      cacheDir: '${di<AppDirectory>().songMusicFolder}/preload',
+    ),
+  );
 }
 
 void _repositories() {

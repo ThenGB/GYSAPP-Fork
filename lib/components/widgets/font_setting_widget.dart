@@ -6,8 +6,10 @@ import '../../data/utilities/extensions/context_ext.dart';
 import '../../data/utilities/functions/measurewidgetsize.dart';
 import '../../data/utilities/variables/assets.dart';
 
-Future<void> openDefaultBottomSheet(BuildContext context,
-    {required Widget Function(BuildContext context) builder}) async {
+Future<void> openDefaultBottomSheet(
+  BuildContext context, {
+  required Widget Function(BuildContext context) builder,
+}) async {
   showModalBottomSheet(
     context: context,
     backgroundColor: Colors.transparent,
@@ -91,10 +93,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
     DateTime now = DateTime.now();
     if (lastCallTime != null && now.difference(lastCallTime!) < delayDuration) {
       // Delay execution of function
-      Timer(
-        delayDuration,
-        () => rateLimitedFunction(callback),
-      );
+      Timer(delayDuration, () => rateLimitedFunction(callback));
       return;
     }
 
@@ -124,7 +123,10 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
             boxShadow: [
-              BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
+              BoxShadow(
+                blurRadius: 160,
+                color: Colors.black.withValues(alpha: .2),
+              ),
             ],
             color: context.colorScheme.surface,
           ),
@@ -138,9 +140,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                   padding: context.mediaQuery.viewPadding,
                   child: Column(
                     children: [
-                      SizedBox(
-                        height: 24,
-                      ),
+                      SizedBox(height: 24),
                       if (isSelectingFont) ...[
                         ListTile(
                           dense: true,
@@ -165,7 +165,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                   .apply(
                                     color: e == widget.selectedFont
                                         ? context.colorScheme.primary
-                                        : context.theme.disabledColor,
+                                        : context.colorScheme.onSurfaceVariant,
                                   )
                                   .copyWith(
                                     fontWeight: e == widget.selectedFont
@@ -181,7 +181,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                               measure();
                             },
                           ),
-                        )
+                        ),
                       ] else ...[
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -202,10 +202,14 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                   Expanded(
                                     child: Slider(
                                       value: convertToPercentage(
-                                          widget.textScale, 0.8, 2),
+                                        widget.textScale,
+                                        0.8,
+                                        2,
+                                      ),
                                       onChanged: (value) {
                                         widget.onTextScaleChanged(
-                                            convertToValue(value, .8, 2));
+                                          convertToValue(value, .8, 2),
+                                        );
                                       },
                                     ),
                                   ),
@@ -236,10 +240,14 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                   Expanded(
                                     child: Slider(
                                       value: convertToPercentage(
-                                          widget.textHeight, 1, 2.5),
+                                        widget.textHeight,
+                                        1,
+                                        2.5,
+                                      ),
                                       onChanged: (value) {
                                         widget.onTextHeightChanged(
-                                            convertToValue(value, 1, 2.5));
+                                          convertToValue(value, 1, 2.5),
+                                        );
                                       },
                                     ),
                                   ),
@@ -257,15 +265,14 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                               ),
                               ListTile(
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
-                                      width: 1,
-                                      color: context.theme.disabledColor),
+                                    width: 1,
+                                    color: context.colorScheme.outlineVariant,
+                                  ),
                                 ),
-                                titleTextStyle:
-                                    context.textTheme.bodyMedium?.copyWith(
-                                  fontSize: 10,
-                                ),
+                                titleTextStyle: context.textTheme.bodyMedium
+                                    ?.copyWith(fontSize: 10),
                                 dense: true,
                                 visualDensity: VisualDensity.compact,
                                 contentPadding: EdgeInsets.only(left: 16),
@@ -279,7 +286,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                 ),
                                 trailing: Icon(
                                   Icons.keyboard_arrow_right,
-                                  color: context.theme.disabledColor,
+                                  color: context.colorScheme.onSurfaceVariant,
                                 ),
                                 onTap: () {
                                   setState(() {
@@ -290,7 +297,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                               ),
                             ],
                           ),
-                        )
+                        ),
                       ],
                       SizedBox(
                         height: 16 + context.mediaQuery.viewPadding.vertical,
@@ -311,4 +318,3 @@ double convertToPercentage(double value, double minValue, double maxValue) =>
     ((value - minValue) / (maxValue - minValue)).clamp(0, 1);
 double convertToValue(double percentage, double minValue, double maxValue) =>
     ((percentage * (maxValue - minValue)) + minValue);
-

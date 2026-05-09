@@ -20,6 +20,7 @@ _InitialState _$InitialStateFromJson(Map<String, dynamic> json) =>
           (json['configFetchIntervalSeconds'] as num?)?.toInt() ?? 10,
       defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
+      accentKey: json['accentKey'] as String? ?? 'maroon',
     );
 
 Map<String, dynamic> _$InitialStateToJson(_InitialState instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$InitialStateToJson(_InitialState instance) =>
       'configFetchIntervalSeconds': instance.configFetchIntervalSeconds,
       'defaultTextScale': instance.defaultTextScale,
       'defaultFont': instance.defaultFont,
+      'accentKey': instance.accentKey,
     };

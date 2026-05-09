@@ -54,18 +54,14 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
       builder: (context, scrollController) {
         return Material(
           color: context.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(12),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           child: SingleChildScrollView(
             controller: scrollController,
             // padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                DragHandler(
-                  key: handlerKey,
-                ),
+                DragHandler(key: handlerKey),
                 Section(
                   key: bodyKey,
                   label: 'Select Bible Version'.tr(),
@@ -81,11 +77,12 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
                                 widget.onTap(index);
                               },
                               title: FutureBuilder(
-                                future: getBibleCodeName(widget
-                                    .bibleCodes[index]
-                                    .split('_')
-                                    .last
-                                    .toUpperCase()),
+                                future: getBibleCodeName(
+                                  widget.bibleCodes[index]
+                                      .split('_')
+                                      .last
+                                      .toUpperCase(),
+                                ),
                                 builder: (context, snapshot) => Text(
                                   '${widget.bibleCodes[index].split('_').last.toUpperCase()} - ${snapshot.data ?? ''}',
                                 ),
@@ -105,4 +102,3 @@ class _BibleSelectWidgetState extends State<BibleSelectWidget> {
     );
   }
 }
-

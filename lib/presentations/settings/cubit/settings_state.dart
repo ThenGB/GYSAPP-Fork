@@ -15,4 +15,3 @@ abstract class SettingsState with _$SettingsState {
   factory SettingsState.fromJson(Map<String, dynamic> json) =>
       _$SettingsStateFromJson(json);
 }
-

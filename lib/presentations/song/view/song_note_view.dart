@@ -19,12 +19,13 @@ class SongNoteView extends StatefulWidget {
   final NoteMode mode;
   final Function(SongNote data) onSave;
 
-  const SongNoteView(
-      {super.key,
-      required this.initialData,
-      required this.cubit,
-      required this.mode,
-      required this.onSave});
+  const SongNoteView({
+    super.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
 
   @override
   State<SongNoteView> createState() => _SongNoteViewState();
@@ -35,17 +36,16 @@ class _SongNoteViewState extends State<SongNoteView> {
   late quill.QuillController controller = quill.QuillController(
     document: data.text == null
         ? quill.Document()
-        : quill.Document.fromJson(
-            jsonDecode(data.text!),
-          ),
+        : quill.Document.fromJson(jsonDecode(data.text!)),
     selection: TextSelection.collapsed(offset: 0),
   );
   late SongNote data = widget.initialData;
   bool forceClose = false;
   Future<void> onSave() async {
     forceClose = true;
-    data =
-        data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
+    data = data.copyWith(
+      text: jsonEncode(controller.document.toDelta().toJson()),
+    );
     widget.onSave(data);
   }
 
@@ -74,9 +74,7 @@ class _SongNoteViewState extends State<SongNoteView> {
               var oldController = controller;
               oldController.dispose();
               controller = quill.QuillController(
-                document: quill.Document.fromJson(
-                  jsonDecode(data.text!),
-                ),
+                document: quill.Document.fromJson(jsonDecode(data.text!)),
                 selection: TextSelection.collapsed(offset: 0),
               );
               mode = NoteMode.viewOnly;
@@ -88,7 +86,16 @@ class _SongNoteViewState extends State<SongNoteView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
-              title: Text(data.song.title ?? ''),
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
+              title: Text(
+                data.song.title ?? '',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               actions: [
                 if (mode == NoteMode.write) ...[
                   // IconButton(
@@ -98,21 +105,22 @@ class _SongNoteViewState extends State<SongNoteView> {
                   //   },
                   //   icon: Icon(Icons.visibility_outlined),
                   // ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: onSave,
-                    icon: Icon(Icons.save),
-                    label: Text('Save'),
-                  )
+                    icon: const Icon(Icons.save_rounded, size: 18),
+                    label: const Text('Save'),
+                  ),
                 ] else ...[
                   IconButton(
                     onPressed: () async {
                       var isConfirmed = await context.showConfirmation(
-                          'Are you sure want to delete?'.tr());
+                        'Are you sure want to delete?'.tr(),
+                      );
                       if (isConfirmed) {
                         router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
@@ -120,11 +128,11 @@ class _SongNoteViewState extends State<SongNoteView> {
                     },
                     icon: Icon(Icons.delete),
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: () {
                       setState(() {
@@ -140,34 +148,57 @@ class _SongNoteViewState extends State<SongNoteView> {
                       //   ),
                       // );
                     },
-                    icon: Icon(Icons.edit),
-                    label: Text('Edit'),
-                  )
+                    icon: const Icon(Icons.edit_rounded, size: 18),
+                    label: const Text('Edit'),
+                  ),
                 ],
-                SizedBox(
-                  width: 16,
-                ),
+                SizedBox(width: 16),
               ],
             ),
-            body: Container(
-              padding: EdgeInsets.all(16),
-              child: quill.QuillEditor(
-                controller: controller,
-                configurations: quill.QuillEditorConfigurations(
-                  showCursor: mode == NoteMode.write,
-                  padding: EdgeInsets.zero,
-                  expands: true,
-                  scrollable: true,
-                  autoFocus: mode == NoteMode.write,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.55,
+                    ),
+                  ),
                 ),
-                focusNode: focusNode,
-                scrollController: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: quill.QuillEditor(
+                    controller: controller,
+                    configurations: quill.QuillEditorConfigurations(
+                      showCursor: mode == NoteMode.write,
+                      padding: EdgeInsets.zero,
+                      expands: true,
+                      scrollable: true,
+                      autoFocus: mode == NoteMode.write,
+                    ),
+                    focusNode: focusNode,
+                    scrollController: scrollController,
+                  ),
+                ),
               ),
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
                 ? null
                 : Container(
-                    margin: context.mediaQuery.viewInsets +
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.55,
+                          ),
+                        ),
+                      ),
+                    ),
+                    margin:
+                        context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
                     child: quill.QuillToolbar.simple(
                       controller: controller,
@@ -181,4 +212,3 @@ class _SongNoteViewState extends State<SongNoteView> {
     );
   }
 }
-

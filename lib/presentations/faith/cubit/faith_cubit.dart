@@ -89,7 +89,7 @@ class FaithCubit extends HydratedCubit<FaithState> {
     emit(state.copyWith(selectedFaith: temp));
   }
 
-// Create a cache manager specifically for PDF names
+  // Create a cache manager specifically for PDF names
   final pdfNameCacheManager = CacheManager(
     Config(
       'pdfNameCache',
@@ -113,11 +113,13 @@ class FaithCubit extends HydratedCubit<FaithState> {
   Future<String?> getPdfName(int index) async {
     try {
       // Try to get the data from the cache
-      final cacheData =
-          await pdfNameCacheManager.getFileFromCache('cached_pdf_names');
+      final cacheData = await pdfNameCacheManager.getFileFromCache(
+        'cached_pdf_names',
+      );
       if (cacheData != null) {
         final List<String> cachedList = List<String>.from(
-            jsonDecode(utf8.decode(cacheData.file.readAsBytesSync())));
+          jsonDecode(utf8.decode(cacheData.file.readAsBytesSync())),
+        );
         final pdfName = _findPdfName(cachedList, index);
         if (pdfName != null) {
           return pdfName; // Cache hit - PDF name found in cache
@@ -158,11 +160,12 @@ class FaithCubit extends HydratedCubit<FaithState> {
 
   String? _findPdfName(List<String> list, int index) {
     final remoteFile = list.firstWhereOrNull(
-        (element) => (int.tryParse(element.split('-').first) ?? -1) == index);
+      (element) => (int.tryParse(element.split('-').first) ?? -1) == index,
+    );
     return remoteFile;
   }
 
-// Cache the PDF name list
+  // Cache the PDF name list
   Future<void> cachePdfNameList(List<String> list) async {
     final dataToCache = Uint8List.fromList(jsonEncode(list).codeUnits);
     await pdfNameCacheManager.putFile('cached_pdf_names', dataToCache);
@@ -183,20 +186,24 @@ class FaithCubit extends HydratedCubit<FaithState> {
       final folderRef = storage.ref('10dasar');
       final list = await folderRef.listAll();
       FirebaseStorageHelper.resetQuotaState();
-      final remoteFile = list.items.firstWhereOrNull((element) =>
-          (int.tryParse(element.name.split('-').first) ?? -1) == index);
+      final remoteFile = list.items.firstWhereOrNull(
+        (element) =>
+            (int.tryParse(element.name.split('-').first) ?? -1) == index,
+      );
       url = await remoteFile?.getDownloadURL();
     } on FirebaseException catch (e) {
       FirebaseStorageHelper.handleError(e);
       final names = await _getPdfNamesFromRest();
       final name = _findPdfName(names, index);
-      url =
-          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
+      url = name == null
+          ? null
+          : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
     } catch (_) {
       final names = await _getPdfNamesFromRest();
       final name = _findPdfName(names, index);
-      url =
-          name == null ? null : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
+      url = name == null
+          ? null
+          : FirebaseStorageHelper.restMediaUrl('10dasar/$name');
     }
     if (url == null) {
       yield* Stream.empty();
@@ -206,9 +213,11 @@ class FaithCubit extends HydratedCubit<FaithState> {
   }
 
   Future<List<String>> _getPdfNamesFromRest() async {
-    final response = await http.get(Uri.parse(
-      'https://firebasestorage.googleapis.com/v0/b/hatiku-4c1de.appspot.com/o?prefix=10dasar%2F',
-    ));
+    final response = await http.get(
+      Uri.parse(
+        'https://firebasestorage.googleapis.com/v0/b/hatiku-4c1de.appspot.com/o?prefix=10dasar%2F',
+      ),
+    );
     if (response.statusCode != 200) return [];
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     final items = (decoded['items'] as List<dynamic>? ?? []);
@@ -220,4 +229,3 @@ class FaithCubit extends HydratedCubit<FaithState> {
         .toList();
   }
 }
-
