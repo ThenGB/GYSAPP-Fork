@@ -294,9 +294,9 @@ class _DashboardViewState extends State<DashboardView> {
                                     },
                                   );
 
-                                    final showGlobalPlayer = songState.showAudio;
-                                    final isSongTab = tabsRouter.activeIndex == 2;
-                                    final effectiveExpanded =
+                                  final showGlobalPlayer = songState.showAudio;
+                                  final isSongTab = tabsRouter.activeIndex == 2;
+                                  final effectiveExpanded =
                                       showGlobalPlayer &&
                                       !isSongTab &&
                                       _globalMidiExpanded;
@@ -325,7 +325,8 @@ class _DashboardViewState extends State<DashboardView> {
                                                       Alignment.bottomCenter,
                                                   child: nav,
                                                 ),
-                                                if (showGlobalPlayer && !isSongTab)
+                                                if (showGlobalPlayer &&
+                                                    !isSongTab)
                                                   Positioned(
                                                     left: 0,
                                                     right: 0,
@@ -632,7 +633,10 @@ class _HymnalBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: colors.surface.withValues(alpha: 0.90),
         border: Border(
-          top: BorderSide(color: colors.secondaryContainer.withValues(alpha: 0.50), width: 1),
+          top: BorderSide(
+            color: colors.secondaryContainer.withValues(alpha: 0.50),
+            width: 1,
+          ),
         ),
         boxShadow: [
           BoxShadow(
@@ -829,7 +833,7 @@ class _DashboardDrawer extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                        FilledButton.icon(
+                      FilledButton.icon(
                         style: FilledButton.styleFrom(
                           backgroundColor: colors.primary,
                           foregroundColor: colors.onPrimary,
@@ -909,7 +913,10 @@ class _DrawerHeader extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: colors.secondaryContainer, width: 1.5),
+                  border: Border.all(
+                    color: colors.secondaryContainer,
+                    width: 1.5,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: colors.primary.withValues(alpha: 0.08),
@@ -1111,15 +1118,19 @@ class _DrawerProgressTile extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: colors.primary, width: 2),
-                  ),
-                  child: Icon(Icons.check_rounded, color: colors.primary, size: 20),
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: colors.primary, width: 2),
                 ),
+                child: Icon(
+                  Icons.check_rounded,
+                  color: colors.primary,
+                  size: 20,
+                ),
+              ),
               const SizedBox(width: 12),
               Expanded(
                 child: Text(

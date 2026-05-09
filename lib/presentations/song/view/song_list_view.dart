@@ -136,9 +136,7 @@ class _SongListViewState extends State<SongListView>
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.secondaryContainer,
-          ),
+          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
         ),
         leadingWidth: 56,
         titleSpacing: 0,
@@ -316,7 +314,8 @@ class _SongListViewState extends State<SongListView>
                                     borderRadius: const BorderRadius.horizontal(
                                       right: Radius.circular(13),
                                     ),
-                                    color: context.colorScheme.secondaryContainer,
+                                    color:
+                                        context.colorScheme.secondaryContainer,
                                     border: Border.all(
                                       color: context.colorScheme.secondary,
                                     ),
@@ -326,7 +325,9 @@ class _SongListViewState extends State<SongListView>
                                     style: TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 14,
-                                      color: context.colorScheme.onSecondaryContainer,
+                                      color: context
+                                          .colorScheme
+                                          .onSecondaryContainer,
                                     ),
                                   ),
                                 ),

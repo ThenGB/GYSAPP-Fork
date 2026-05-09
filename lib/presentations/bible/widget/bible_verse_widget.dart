@@ -247,7 +247,8 @@ class VerseWidgetState extends State<VerseWidget>
                             decoration: widget.hasNote
                                 ? BoxDecoration(
                                     borderRadius: BorderRadius.circular(10),
-                                    color: context.colorScheme.secondaryContainer,
+                                    color:
+                                        context.colorScheme.secondaryContainer,
                                   )
                                 : null,
                             width: !widget.hasNote
@@ -283,7 +284,9 @@ class VerseWidgetState extends State<VerseWidget>
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
                                     color: widget.hasNote
-                                        ? context.colorScheme.onSecondaryContainer
+                                        ? context
+                                              .colorScheme
+                                              .onSecondaryContainer
                                         : context.colorScheme.primary,
                                   ),
                                 ),
@@ -325,11 +328,11 @@ class VerseWidgetState extends State<VerseWidget>
                                               : Alignment.center,
                                           decoration: widget.hasNote
                                               ? BoxDecoration(
-                                                borderRadius:
-                                                  BorderRadius.circular(10),
-                                                color: context
-                                                  .colorScheme
-                                                  .secondaryContainer,
+                                                  borderRadius:
+                                                      BorderRadius.circular(10),
+                                                  color: context
+                                                      .colorScheme
+                                                      .secondaryContainer,
                                                 )
                                               : null,
                                           width: !widget.hasNote
@@ -374,7 +377,7 @@ class VerseWidgetState extends State<VerseWidget>
                                                   color: widget.hasNote
                                                       ? context
                                                             .colorScheme
-                                                    .onSecondaryContainer
+                                                            .onSecondaryContainer
                                                       : context
                                                             .colorScheme
                                                             .primary,

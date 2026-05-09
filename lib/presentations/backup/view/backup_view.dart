@@ -48,9 +48,7 @@ class _BackupViewState extends State<BackupView> {
       appBar: AppBar(
         title: const Text('Kidung Rohani'),
         shape: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.secondaryContainer,
-          ),
+          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
         ),
       ),
       body: BlocBuilder<BackupCubit, BackupState>(
@@ -231,8 +229,8 @@ class _BackupViewState extends State<BackupView> {
                                                   valueColor:
                                                       AlwaysStoppedAnimation(
                                                         context
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
                                                       ),
                                                 ),
                                           ),
@@ -404,8 +402,8 @@ class _BackupViewState extends State<BackupView> {
                                                   valueColor:
                                                       AlwaysStoppedAnimation(
                                                         context
-                                                      .colorScheme
-                                                      .onSurfaceVariant,
+                                                            .colorScheme
+                                                            .onSurfaceVariant,
                                                       ),
                                                 ),
                                           ),

@@ -44,9 +44,7 @@ class _ReportViewState extends State<ReportView> {
       appBar: AppBar(
         title: const Text('Kidung Rohani'),
         shape: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.secondaryContainer,
-          ),
+          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
         ),
       ),
       floatingActionButton: FloatingActionButton(

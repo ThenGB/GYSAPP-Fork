@@ -28,9 +28,7 @@ class SettingsView extends StatelessWidget {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           shape: Border(
-            bottom: BorderSide(
-              color: context.colorScheme.secondaryContainer,
-            ),
+            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
           ),
           leading: IconButton(
             tooltip: 'Menu',
@@ -443,13 +441,17 @@ class SettingsView extends StatelessWidget {
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor:
                                             state.isSabatNotificationActive
-                                          ? context.colorScheme.secondaryContainer
+                                            ? context
+                                                  .colorScheme
+                                                  .secondaryContainer
                                             : context
                                                   .colorScheme
                                                   .errorContainer,
                                         foregroundColor:
                                             state.isSabatNotificationActive
-                                          ? context.colorScheme.onSecondaryContainer
+                                            ? context
+                                                  .colorScheme
+                                                  .onSecondaryContainer
                                             : context
                                                   .colorScheme
                                                   .onErrorContainer,
@@ -742,9 +744,7 @@ class _SettingsTile extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: colors.surfaceContainerLow,
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colors.secondaryContainer,
-                  ),
+                  border: Border.all(color: colors.secondaryContainer),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.05),
@@ -848,9 +848,7 @@ class _SongSettingsSection extends StatelessWidget {
             color: context.colorScheme.surfaceContainerLowest,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
-              side: BorderSide(
-                color: context.colorScheme.secondaryContainer,
-              ),
+              side: BorderSide(color: context.colorScheme.secondaryContainer),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(
@@ -864,7 +862,9 @@ class _SongSettingsSection extends StatelessWidget {
                 ),
                 Divider(
                   height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 _SettingsSwitchTile(
                   icon: Icons.music_note_rounded,
@@ -875,7 +875,9 @@ class _SongSettingsSection extends StatelessWidget {
                 ),
                 Divider(
                   height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 _SettingsTile(
                   icon: Icons.library_music_outlined,
@@ -903,18 +905,23 @@ class _SongSettingsSection extends StatelessWidget {
                 ),
                 Divider(
                   height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 _SettingsSwitchTile(
                   icon: Icons.download_rounded,
                   title: 'Preload MIDI',
-                  description: 'Preload lagu sebelum & sesudah untuk transisi cepat',
+                  description:
+                      'Preload lagu sebelum & sesudah untuk transisi cepat',
                   value: state.preloadEnabled,
                   onChanged: songCubit.setPreloadEnabled,
                 ),
                 Divider(
                   height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 _SettingsTile(
                   icon: Icons.queue_music_rounded,
@@ -933,12 +940,15 @@ class _SongSettingsSection extends StatelessWidget {
                 ),
                 Divider(
                   height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.3,
+                  ),
                 ),
                 _SettingsTile(
                   icon: Icons.storage_rounded,
                   title: 'Cache Maksimum',
-                  description: '${state.preloadCacheMax} lagu tersimpan di disk',
+                  description:
+                      '${state.preloadCacheMax} lagu tersimpan di disk',
                   trailing: SizedBox(
                     width: 120,
                     child: Slider(
@@ -1304,7 +1314,9 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                                     style: TextStyle(
                                       color: data[item] != null
                                           ? Colors.white
-                                          : context.colorScheme.onSurfaceVariant,
+                                          : context
+                                                .colorScheme
+                                                .onSurfaceVariant,
                                       fontSize: 14,
                                     ),
                                   ),

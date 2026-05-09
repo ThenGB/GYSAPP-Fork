@@ -211,7 +211,9 @@ class _BibleViewState extends State<BibleView> {
 
   bool lockScroll = true;
   Axis? _splitAxis;
-  Axis get splitAxis => _splitAxis ?? (context.mediaQuery.size.width >= 700 ? Axis.horizontal : Axis.vertical);
+  Axis get splitAxis =>
+      _splitAxis ??
+      (context.mediaQuery.size.width >= 700 ? Axis.horizontal : Axis.vertical);
   double maxHeightAtas = 0;
   void handleScrollTop(int index, Size size, double visiblePercentage) {
     // Store the visiblePercentage in the topVisibleIndexes map using the index as the key
@@ -232,9 +234,7 @@ class _BibleViewState extends State<BibleView> {
     if (splitModeEnable && isFirstScrolling && lockScroll) {
       if (topVisibleIndexes.isEmpty) return;
       var indexAbove = topVisibleIndexes.keys.first - 1;
-      var verseKey = context
-          .read<BibleCubit>()
-          .verseKeys2[indexAbove];
+      var verseKey = context.read<BibleCubit>().verseKeys2[indexAbove];
       var objectContext = verseKey.currentContext;
       if (objectContext == null) return;
 
@@ -561,11 +561,7 @@ class _BibleViewState extends State<BibleView> {
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.splitscreen_rounded,
-                size: 16,
-                color: colors.primary,
-              ),
+              Icon(Icons.splitscreen_rounded, size: 16, color: colors.primary),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -579,10 +575,15 @@ class _BibleViewState extends State<BibleView> {
               InkWell(
                 borderRadius: BorderRadius.circular(999),
                 onTap: () => setState(() {
-                  _splitAxis = splitAxis == Axis.vertical ? Axis.horizontal : Axis.vertical;
+                  _splitAxis = splitAxis == Axis.vertical
+                      ? Axis.horizontal
+                      : Axis.vertical;
                 }),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(999),
@@ -613,7 +614,9 @@ class _BibleViewState extends State<BibleView> {
               const SizedBox(width: 6),
               InkWell(
                 borderRadius: BorderRadius.circular(999),
-                onTap: () => setState(() { lockScroll = !lockScroll; }),
+                onTap: () => setState(() {
+                  lockScroll = !lockScroll;
+                }),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -1033,7 +1036,9 @@ class _BibleViewState extends State<BibleView> {
                       ).copyWith(textTheme: state.defaultTextTheme),
                       child: MultiSplitViewTheme(
                         data: MultiSplitViewThemeData(
-                          dividerThickness: splitAxis == Axis.horizontal ? 18 : 40,
+                          dividerThickness: splitAxis == Axis.horizontal
+                              ? 18
+                              : 40,
                         ),
                         child: MultiSplitView(
                           controller: splitController,
@@ -1060,11 +1065,10 @@ class _BibleViewState extends State<BibleView> {
                                 highlighted,
                                 themeData,
                               ) => Container(
-                                color:
-                                  (highlighted || dragging)
-                                  ? context.colorScheme.secondaryContainer
-                                    .withValues(alpha: 0.18)
-                                  : context.colorScheme.surface,
+                                color: (highlighted || dragging)
+                                    ? context.colorScheme.secondaryContainer
+                                          .withValues(alpha: 0.18)
+                                    : context.colorScheme.surface,
                                 alignment: Alignment.center,
                                 child: axis == Axis.horizontal
                                     ? Container(
@@ -1155,64 +1159,66 @@ class _BibleViewState extends State<BibleView> {
                                           child: LayoutBuilder(
                                             builder: (context, constraints) =>
                                                 BibleViewer(
-                                                textScale: scale,
-                                                onScaleStart:
-                                                    (
-                                                      ScaleStartDetails details,
-                                                    ) {
-                                                      _baseScale =
-                                                          _currentScale;
-                                                    },
-                                                onScaleUpdate:
-                                                    (
-                                                      ScaleUpdateDetails
-                                                      details,
-                                                    ) {
-                                                      setState(() {
-                                                        _currentScale =
-                                                            (_baseScale *
-                                                                    details
-                                                                        .scale)
-                                                                .clamp(.8, 2);
-                                                      });
-                                                    },
-                                                onScaleEnd: (details) {
-                                                  context
-                                                      .read<BibleCubit>()
-                                                      .changeTextScale(
-                                                        _currentScale,
-                                                      );
-                                                },
-                                                listener: (s, context) {
-                                                  scrollable = s;
-                                                  contextBible = context;
-                                                },
-                                                onVerseVisibility:
-                                                    (
-                                                      index,
-                                                      size,
-                                                      visiblePercentage,
-                                                    ) {
-                                                      maxHeightAtas =
-                                                          constraints.maxHeight;
-                                                      handleScrollTop(
+                                                  textScale: scale,
+                                                  onScaleStart:
+                                                      (
+                                                        ScaleStartDetails
+                                                        details,
+                                                      ) {
+                                                        _baseScale =
+                                                            _currentScale;
+                                                      },
+                                                  onScaleUpdate:
+                                                      (
+                                                        ScaleUpdateDetails
+                                                        details,
+                                                      ) {
+                                                        setState(() {
+                                                          _currentScale =
+                                                              (_baseScale *
+                                                                      details
+                                                                          .scale)
+                                                                  .clamp(.8, 2);
+                                                        });
+                                                      },
+                                                  onScaleEnd: (details) {
+                                                    context
+                                                        .read<BibleCubit>()
+                                                        .changeTextScale(
+                                                          _currentScale,
+                                                        );
+                                                  },
+                                                  listener: (s, context) {
+                                                    scrollable = s;
+                                                    contextBible = context;
+                                                  },
+                                                  onVerseVisibility:
+                                                      (
                                                         index,
                                                         size,
                                                         visiblePercentage,
-                                                      );
-                                                    },
-                                                scrollFunction: (index) {
-                                                  scrollToVerse(index, true);
-                                                },
-                                                scrollController:
-                                                    scrollController,
-                                                verseKeys: context
-                                                    .read<BibleCubit>()
-                                                    .verseKeys,
-                                                cubit: context.read(),
-                                                isSplit: false,
-                                                selectedVerseMenuHeight:
-                                                    selectedVerseMenuHeight,
+                                                      ) {
+                                                        maxHeightAtas =
+                                                            constraints
+                                                                .maxHeight;
+                                                        handleScrollTop(
+                                                          index,
+                                                          size,
+                                                          visiblePercentage,
+                                                        );
+                                                      },
+                                                  scrollFunction: (index) {
+                                                    scrollToVerse(index, true);
+                                                  },
+                                                  scrollController:
+                                                      scrollController,
+                                                  verseKeys: context
+                                                      .read<BibleCubit>()
+                                                      .verseKeys,
+                                                  cubit: context.read(),
+                                                  isSplit: false,
+                                                  selectedVerseMenuHeight:
+                                                      selectedVerseMenuHeight,
                                                 ),
                                           ),
                                         ),
@@ -1249,65 +1255,67 @@ class _BibleViewState extends State<BibleView> {
                                           child: LayoutBuilder(
                                             builder: (context, constraints) =>
                                                 BibleViewer(
-                                                textScale: scale,
-                                                onScaleStart:
-                                                    (
-                                                      ScaleStartDetails details,
-                                                    ) {
-                                                      _baseScale =
-                                                          _currentScale;
-                                                    },
-                                                onScaleUpdate:
-                                                    (
-                                                      ScaleUpdateDetails
-                                                      details,
-                                                    ) {
-                                                      setState(() {
-                                                        _currentScale =
-                                                            (_baseScale *
-                                                                    details
-                                                                        .scale)
-                                                                .clamp(.8, 2);
-                                                      });
-                                                    },
-                                                onScaleEnd: (details) {
-                                                  context
-                                                      .read<BibleCubit>()
-                                                      .changeTextScale(
-                                                        _currentScale,
-                                                      );
-                                                },
-                                                key: splitViewKey,
-                                                onVerseVisibility:
-                                                    (
-                                                      index,
-                                                      size,
-                                                      visiblePercentage,
-                                                    ) {
-                                                      maxHeightBawah =
-                                                          constraints.maxHeight;
-                                                      handleScrollBottom(
+                                                  textScale: scale,
+                                                  onScaleStart:
+                                                      (
+                                                        ScaleStartDetails
+                                                        details,
+                                                      ) {
+                                                        _baseScale =
+                                                            _currentScale;
+                                                      },
+                                                  onScaleUpdate:
+                                                      (
+                                                        ScaleUpdateDetails
+                                                        details,
+                                                      ) {
+                                                        setState(() {
+                                                          _currentScale =
+                                                              (_baseScale *
+                                                                      details
+                                                                          .scale)
+                                                                  .clamp(.8, 2);
+                                                        });
+                                                      },
+                                                  onScaleEnd: (details) {
+                                                    context
+                                                        .read<BibleCubit>()
+                                                        .changeTextScale(
+                                                          _currentScale,
+                                                        );
+                                                  },
+                                                  key: splitViewKey,
+                                                  onVerseVisibility:
+                                                      (
                                                         index,
                                                         size,
                                                         visiblePercentage,
-                                                      );
-                                                    },
-                                                listener: (s, context) {
-                                                  scrollable2 = s;
-                                                  contextBible2 = context;
-                                                },
-                                                scrollFunction: (index) {
-                                                  scrollToVerse(index, true);
-                                                },
-                                                isSplit: true,
-                                                scrollController:
-                                                    scrollController2,
-                                                verseKeys: context
-                                                    .read<BibleCubit>()
-                                                    .verseKeys2,
-                                                cubit: context.read(),
-                                                selectedVerseMenuHeight:
-                                                    selectedVerseMenuHeight,
+                                                      ) {
+                                                        maxHeightBawah =
+                                                            constraints
+                                                                .maxHeight;
+                                                        handleScrollBottom(
+                                                          index,
+                                                          size,
+                                                          visiblePercentage,
+                                                        );
+                                                      },
+                                                  listener: (s, context) {
+                                                    scrollable2 = s;
+                                                    contextBible2 = context;
+                                                  },
+                                                  scrollFunction: (index) {
+                                                    scrollToVerse(index, true);
+                                                  },
+                                                  isSplit: true,
+                                                  scrollController:
+                                                      scrollController2,
+                                                  verseKeys: context
+                                                      .read<BibleCubit>()
+                                                      .verseKeys2,
+                                                  cubit: context.read(),
+                                                  selectedVerseMenuHeight:
+                                                      selectedVerseMenuHeight,
                                                 ),
                                           ),
                                         ),

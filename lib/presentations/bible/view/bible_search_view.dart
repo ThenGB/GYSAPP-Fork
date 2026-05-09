@@ -37,9 +37,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
           backgroundColor: context.colorScheme.surface,
           appBar: AppBar(
             shape: Border(
-              bottom: BorderSide(
-                color: context.colorScheme.secondaryContainer,
-              ),
+              bottom: BorderSide(color: context.colorScheme.secondaryContainer),
             ),
             title: const Text('Kidung Rohani'),
             centerTitle: true,

@@ -196,9 +196,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     return Scaffold(
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.secondaryContainer,
-          ),
+          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
         ),
         title: Text('Audio Bible Config'.tr()),
       ),
@@ -306,13 +304,13 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                               isLangSpeaking('id-ID')
                                               ? context
                                                     .colorScheme
-                                                .secondaryContainer
+                                                    .secondaryContainer
                                               : context.colorScheme.primary,
                                           foregroundColor:
                                               isLangSpeaking('id-ID')
                                               ? context
                                                     .colorScheme
-                                                .onSecondaryContainer
+                                                    .onSecondaryContainer
                                               : context.colorScheme.onPrimary,
                                         ),
                                         onPressed: () {
@@ -409,10 +407,10 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor: isLangSpeaking('en-US')
-                                    ? context.colorScheme.secondaryContainer
+                                      ? context.colorScheme.secondaryContainer
                                       : context.colorScheme.primary,
                                   foregroundColor: isLangSpeaking('en-US')
-                                    ? context.colorScheme.onSecondaryContainer
+                                      ? context.colorScheme.onSecondaryContainer
                                       : context.colorScheme.onPrimary,
                                 ),
                                 onPressed: () {
@@ -488,10 +486,10 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor: isLangSpeaking('zh-CN')
-                                    ? context.colorScheme.secondaryContainer
+                                      ? context.colorScheme.secondaryContainer
                                       : context.colorScheme.primary,
                                   foregroundColor: isLangSpeaking('zh-CN')
-                                    ? context.colorScheme.onSecondaryContainer
+                                      ? context.colorScheme.onSecondaryContainer
                                       : context.colorScheme.onPrimary,
                                 ),
                                 onPressed: () {

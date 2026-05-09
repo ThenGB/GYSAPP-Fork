@@ -170,14 +170,14 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                                                   ? context.colorScheme.primary
                                                   : context
                                                         .colorScheme
-                                                  .secondaryContainer,
+                                                        .secondaryContainer,
                                               foregroundColor: currentRef == e
                                                   ? context
                                                         .colorScheme
                                                         .onPrimary
                                                   : context
                                                         .colorScheme
-                                                  .onSecondaryContainer,
+                                                        .onSecondaryContainer,
                                               visualDensity:
                                                   VisualDensity.compact,
                                               padding: EdgeInsets.symmetric(

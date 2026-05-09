@@ -199,7 +199,8 @@ class _BibleListViewState extends State<BibleListView> {
                                       widget.textScale,
                                   child: Material(
                                     borderRadius: BorderRadius.circular(12),
-                                    color: context.colorScheme.secondaryContainer,
+                                    color:
+                                        context.colorScheme.secondaryContainer,
                                     child: InkWell(
                                       onTap: () {
                                         allowForceClose = true;

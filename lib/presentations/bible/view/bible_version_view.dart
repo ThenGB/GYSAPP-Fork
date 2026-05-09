@@ -40,9 +40,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
         backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
           shape: Border(
-            bottom: BorderSide(
-              color: context.colorScheme.secondaryContainer,
-            ),
+            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
           ),
           title: const Text('Kidung Rohani'),
           centerTitle: true,

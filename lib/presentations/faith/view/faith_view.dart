@@ -102,9 +102,7 @@ class _FaithViewState extends State<FaithView> {
           title: const Text('Kidung Rohani'),
           automaticallyImplyLeading: false,
           shape: Border(
-            bottom: BorderSide(
-                color: context.colorScheme.secondaryContainer,
-            ),
+            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
           ),
           leading: IconButton(
             tooltip: 'Menu',
@@ -889,9 +887,7 @@ class _CustomLoadingWidgetState extends State<CustomLoadingWidget> {
                   ? context.colorScheme.secondaryContainer
                   : context.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(100),
-              border: Border.all(
-                color: context.colorScheme.secondaryContainer,
-              ),
+              border: Border.all(color: context.colorScheme.secondaryContainer),
             ),
             child: Text(
               widget.text + (widget.isLoaded ? '  ' : ''),

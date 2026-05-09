@@ -936,7 +936,9 @@ class _DailyVerseCard extends StatelessWidget {
                               width: 34,
                               height: 34,
                               decoration: BoxDecoration(
-                                border: Border.all(color: context.colorScheme.primary),
+                                border: Border.all(
+                                  color: context.colorScheme.primary,
+                                ),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
