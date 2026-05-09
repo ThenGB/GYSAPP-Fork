@@ -18,7 +18,7 @@ Use the Stitch full-width MIDI player pattern as the source of truth for phase 1
 - Player is docked directly above the bottom navigation, not floating high in the content area.
 - Expanded player has a maroon header, `Now Playing` label, cream/pink surface, subtle outline, and compact control rows.
 - Collapsed player is a compact full-width mini-bar/header, not a large floating bubble.
-- Bottom safe-area and bottom nav height are part of layout math so the player does not cover or detach from the navigation area.
+- Bottom safe-area and bottom nav height are part of overlay layout math so the player does not detach from the navigation area. The player remains an overlay and must not resize or shift the core Hymnal PDF/lyrics content.
 
 ## Current Evidence
 
@@ -47,10 +47,10 @@ Refactor `DraggableMidiControls` from a hard-coded floating `Positioned` offset 
 
 Expected behavior:
 
-- Expanded player sits just above the bottom nav.
+- Expanded player sits just above the bottom nav as an overlay.
 - Collapsed player sits in the same docked area as a compact mini-bar.
 - Width is full-screen with Stitch-like horizontal padding.
-- No state should push the player up by arbitrary extra offsets.
+- No state should push the player up by arbitrary extra offsets, and no state should force the core content to re-layout around the player.
 - Compact screens must avoid overflow.
 
 ### 2. Collapsed State
@@ -116,3 +116,4 @@ These remain for later sequential phases:
 ## Approval
 
 The user approved the phase 1 direction on 2026-05-09: use the Stitch full-width player direction, then continue sequentially with full UI polish and audit after this phase.
+
