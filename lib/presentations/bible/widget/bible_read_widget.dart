@@ -8,4 +8,3 @@ class BibleReadWidget extends StatelessWidget {
     return const Scaffold();
   }
 }
-

@@ -21,8 +21,9 @@ class BibleNoteListView extends StatefulWidget {
 }
 
 class _BibleNoteListViewState extends State<BibleNoteListView> {
-  late TextEditingController searchController =
-      TextEditingController(text: widget.initialSearch);
+  late TextEditingController searchController = TextEditingController(
+    text: widget.initialSearch,
+  );
 
   @override
   void dispose() {
@@ -42,16 +43,18 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Notes'.tr()),
                   Text(
                     '${state.notes.length} ${'notes saved'.tr()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 10,
-                    ),
+                    style: context.textTheme.labelSmall,
                   ),
                 ],
               ),
@@ -76,11 +79,12 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -96,11 +100,12 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -116,11 +121,12 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -136,11 +142,12 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -152,12 +159,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                   ),
                   itemBuilder: (context) {
                     return ['Newest', 'Oldest', 'A-Z', 'Z-A']
-                        .map(
-                          (e) => PopupMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ),
-                        )
+                        .map((e) => PopupMenuItem(value: e, child: Text(e)))
                         .toList();
                   },
                 ),
@@ -182,11 +184,31 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
                     child: TextFormField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: context.colorScheme.surfaceContainerLowest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.primary,
+                            width: 1.2,
+                          ),
+                        ),
                         isDense: true,
                         hintText: 'Search notes'.tr(),
                       ),
@@ -198,15 +220,17 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                       builder: (context, _) => FutureBuilder(
                         future: state.filteredNote(
                           searchController.text,
-                          (item) => context
-                              .read<BibleCubit>()
-                              .getBibleTitle(item, withVerse: true),
+                          (item) => context.read<BibleCubit>().getBibleTitle(
+                            item,
+                            withVerse: true,
+                          ),
                         ),
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title: 'not found'
-                                  .tr(args: ['"${searchController.text}"']),
+                              title: 'not found'.tr(
+                                args: ['"${searchController.text}"'],
+                              ),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),
@@ -219,76 +243,90 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                               return Material(
                                 child: InkWell(
                                   onTap: () {
-                                    router.push(BibleNoteRoute(
-                                      initialData: item,
-                                      cubit: widget.cubit,
-                                      mode: NoteMode.viewOnly,
-                                      onSave: (data) {
-                                        context
-                                            .read<BibleCubit>()
-                                            .saveNote(data);
-                                        router.maybePop();
-                                        // router.push(BibleNoteListRoute(cubit: context.read()));
-                                      },
-                                    ));
+                                    router.push(
+                                      BibleNoteRoute(
+                                        initialData: item,
+                                        cubit: widget.cubit,
+                                        mode: NoteMode.viewOnly,
+                                        onSave: (data) {
+                                          context.read<BibleCubit>().saveNote(
+                                            data,
+                                          );
+                                          router.maybePop();
+                                        },
+                                      ),
+                                    );
                                   },
                                   child: FutureBuilder(
                                     future: widget.cubit.getBibleTitle(
-                                        item.verses,
-                                        withVerse: true),
-                                    builder: (context, snapshot) => Column(
-                                      children: [
-                                        Container(
-                                          padding: EdgeInsets.symmetric(
-                                              horizontal: 16, vertical: 8),
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Row(
-                                                children: [
-                                                  Expanded(
-                                                    child: Text(
-                                                      snapshot.data ??
-                                                          'Loading...',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  Text(
-                                                    item.createdDate
-                                                        .toHumanDate(),
+                                      item.verses,
+                                      withVerse: true,
+                                    ),
+                                    builder: (context, snapshot) => Card(
+                                      color: context
+                                          .colorScheme
+                                          .surfaceContainerLowest,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                        side: BorderSide(
+                                          color: context
+                                              .colorScheme
+                                              .outlineVariant
+                                              .withValues(alpha: 0.55),
+                                        ),
+                                      ),
+                                      margin: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 4,
+                                      ),
+                                      child: Padding(
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Row(
+                                              children: [
+                                                Expanded(
+                                                  child: Text(
+                                                    snapshot.data ??
+                                                        'Loading...',
+                                                    maxLines: 1,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
                                                     style: context
-                                                        .textTheme.bodySmall,
+                                                        .textTheme
+                                                        .titleMedium,
                                                   ),
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                height: 8,
-                                              ),
-                                              Text(
-                                                quill.Document.fromJson(
-                                                        jsonDecode(item.text!))
-                                                    .toPlainText()
-                                                    .trim()
-                                                    .replaceAll('\n', ' .. '),
-                                                maxLines: 2,
-                                                style: TextStyle(
-                                                  fontSize: 12,
                                                 ),
+                                                Text(
+                                                  item.createdDate
+                                                      .toHumanDate(),
+                                                  style: context
+                                                      .textTheme
+                                                      .bodySmall,
+                                                ),
+                                              ],
+                                            ),
+                                            SizedBox(height: 8),
+                                            Text(
+                                              quill.Document.fromJson(
+                                                jsonDecode(item.text!),
+                                              ).toPlainText().trim().replaceAll(
+                                                '\n',
+                                                ' .. ',
                                               ),
-                                            ],
-                                          ),
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              style:
+                                                  context.textTheme.bodySmall,
+                                            ),
+                                          ],
                                         ),
-                                        Divider(
-                                          indent: 16,
-                                          endIndent: 16,
-                                          height: 1,
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -308,4 +346,3 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
     );
   }
 }
-

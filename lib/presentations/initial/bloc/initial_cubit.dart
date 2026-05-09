@@ -29,13 +29,16 @@ class InitialCubit extends HydratedCubit<InitialState> {
       FirebaseRemoteConfig.instance.setConfigSettings(
         RemoteConfigSettings(
           fetchTimeout: Duration(
-              seconds: kReleaseMode ? state.configFetchTimeoutSeconds : 5),
+            seconds: kReleaseMode ? state.configFetchTimeoutSeconds : 5,
+          ),
           minimumFetchInterval: Duration(
-              seconds: kReleaseMode ? state.configFetchIntervalSeconds : 1),
+            seconds: kReleaseMode ? state.configFetchIntervalSeconds : 1,
+          ),
         ),
       );
-      var isConnectedToInternet =
-          (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
+      var isConnectedToInternet = (await internetChecker.isHostReachable(
+        defaultAddress,
+      )).isSuccess;
       if (isConnectedToInternet) {
         /// default as per 17 January 2025
         await FirebaseRemoteConfig.instance.setDefaults({
@@ -68,7 +71,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
           'firebase_remote_config':
               '{"fetch_timeout":10,"fetch_interval":3600}',
           'sauhconfig':
-              "var swiperSlides \u003d document.querySelectorAll(\u0027.tf_swiper-slide\u0027);\n        var slideData \u003d [];\n\n        swiperSlides.forEach(function(slide) {\n            var titleElement \u003d slide.querySelector(\u0027.slide-content.tb_text_wrap h3\u0027);\n            var linkElement \u003d titleElement ? titleElement.querySelector(\u0027a\u0027) : null; // Search for an \u0027a\u0027 tag within the \u0027h3\u0027\n            var imageElement \u003d slide.querySelector(\u0027img\u0027);\n            var slideInfo \u003d {};\n\n            if (titleElement) {\n                slideInfo.title \u003d titleElement.textContent.trim();\n            }\n\n            // If the link element exists, add its href to slideInfo\n            if (linkElement) {\n                slideInfo.linkUrl \u003d linkElement.href;\n            }\n\n            if (imageElement) {\n                slideInfo.imageUrl \u003d imageElement.dataset.tfSrc;\n            }\n\n            if (Object.keys(slideInfo).length \u003e 0) {\n                slideData.push(slideInfo);\n            }\n        });\n\n        var slideDataJson \u003d slideData;\n        slideDataJson;"
+              "var swiperSlides \u003d document.querySelectorAll(\u0027.tf_swiper-slide\u0027);\n        var slideData \u003d [];\n\n        swiperSlides.forEach(function(slide) {\n            var titleElement \u003d slide.querySelector(\u0027.slide-content.tb_text_wrap h3\u0027);\n            var linkElement \u003d titleElement ? titleElement.querySelector(\u0027a\u0027) : null; // Search for an \u0027a\u0027 tag within the \u0027h3\u0027\n            var imageElement \u003d slide.querySelector(\u0027img\u0027);\n            var slideInfo \u003d {};\n\n            if (titleElement) {\n                slideInfo.title \u003d titleElement.textContent.trim();\n            }\n\n            // If the link element exists, add its href to slideInfo\n            if (linkElement) {\n                slideInfo.linkUrl \u003d linkElement.href;\n            }\n\n            if (imageElement) {\n                slideInfo.imageUrl \u003d imageElement.dataset.tfSrc;\n            }\n\n            if (Object.keys(slideInfo).length \u003e 0) {\n                slideData.push(slideInfo);\n            }\n        });\n\n        var slideDataJson \u003d slideData;\n        slideDataJson;",
         });
         var value = await FirebaseRemoteConfig.instance.fetchAndActivate();
         log((value).toString(), name: '[Firebase remote config]');
@@ -80,15 +83,12 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   Future<void> initState() async {
-    emit(
-      state.copyWith(
-        message: 'Initiating...',
-      ),
-    );
+    emit(state.copyWith(message: 'Initiating...'));
     await di.allReady();
     log('Initiating application state');
-    var result =
-        (await internetChecker.isHostReachable(defaultAddress)).isSuccess;
+    var result = (await internetChecker.isHostReachable(
+      defaultAddress,
+    )).isSuccess;
     if (!result && state.isFreshInstall) {
       emit(
         state.copyWith(
@@ -111,22 +111,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
       );
     }
     await getRemoteConfig();
-    var firebaseRemoteConfig =
-        await FirebaseUtils.jsonConfig('firebase_remote_config');
+    var firebaseRemoteConfig = await FirebaseUtils.jsonConfig(
+      'firebase_remote_config',
+    );
     emit(
       state.copyWith(
-        configFetchTimeoutSeconds: firebaseRemoteConfig['fetch_timeout'] ??
+        configFetchTimeoutSeconds:
+            firebaseRemoteConfig['fetch_timeout'] ??
             state.configFetchTimeoutSeconds,
-        configFetchIntervalSeconds: firebaseRemoteConfig['fetch_interval'] ??
+        configFetchIntervalSeconds:
+            firebaseRemoteConfig['fetch_interval'] ??
             state.configFetchIntervalSeconds,
       ),
     );
 
     if (isFirebaseConfiguredForCurrentPlatform) {
       try {
-        await FirebaseAuth.instance
-            .signInAnonymously()
-            .timeout(Duration(seconds: 5));
+        await FirebaseAuth.instance.signInAnonymously().timeout(
+          Duration(seconds: 5),
+        );
       } catch (e) {
         log('Cant log in anonymously ${e.toString()}', name: 'Firebase Auth');
       }
@@ -135,15 +138,13 @@ class InitialCubit extends HydratedCubit<InitialState> {
 
   void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
     emit(state.copyWith(themeMode: themeMode.toThemeString));
-    Future.delayed(
-      kThemeChangeDuration,
-      () {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          SystemChrome.setSystemUIOverlayStyle(
-              context().theme.appBarTheme.systemOverlayStyle!);
-        });
-      },
-    );
+    Future.delayed(kThemeChangeDuration, () {
+      WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+        SystemChrome.setSystemUIOverlayStyle(
+          context().theme.appBarTheme.systemOverlayStyle!,
+        );
+      });
+    });
   }
 
   void changeTextScale(double newScale) {
@@ -152,6 +153,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
 
   void changeFontStyle(String newValue) {
     emit(state.copyWith(defaultFont: newValue));
+  }
+
+  void changeAccentColor(String accentKey) {
+    emit(state.copyWith(accentKey: accentKey));
   }
 
   @override
@@ -172,4 +177,3 @@ class InitialCubit extends HydratedCubit<InitialState> {
     }
   }
 }
-

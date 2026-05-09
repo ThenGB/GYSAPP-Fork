@@ -805,6 +805,53 @@ class InitialRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [LiteratureBukuView]
+class LiteratureBukuRoute extends PageRouteInfo<LiteratureBukuRouteArgs> {
+  LiteratureBukuRoute({
+    Key? key,
+    required String url,
+    List<PageRouteInfo>? children,
+  }) : super(
+         LiteratureBukuRoute.name,
+         args: LiteratureBukuRouteArgs(key: key, url: url),
+         initialChildren: children,
+       );
+
+  static const String name = 'LiteratureBukuRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LiteratureBukuRouteArgs>();
+      return LiteratureBukuView(key: args.key, url: args.url);
+    },
+  );
+}
+
+class LiteratureBukuRouteArgs {
+  const LiteratureBukuRouteArgs({this.key, required this.url});
+
+  final Key? key;
+
+  final String url;
+
+  @override
+  String toString() {
+    return 'LiteratureBukuRouteArgs{key: $key, url: $url}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LiteratureBukuRouteArgs) return false;
+    return key == other.key && url == other.url;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ url.hashCode;
+}
+
+/// generated route for
 /// [LiteratureKesaksianView]
 class LiteratureKesaksianRoute extends PageRouteInfo<void> {
   const LiteratureKesaksianRoute({List<PageRouteInfo>? children})
@@ -834,6 +881,53 @@ class LiteraturePanduanKitabRoute extends PageRouteInfo<void> {
       return const LiteraturePanduanKitabView();
     },
   );
+}
+
+/// generated route for
+/// [LiteraturePujianView]
+class LiteraturePujianRoute extends PageRouteInfo<LiteraturePujianRouteArgs> {
+  LiteraturePujianRoute({
+    Key? key,
+    required String url,
+    List<PageRouteInfo>? children,
+  }) : super(
+         LiteraturePujianRoute.name,
+         args: LiteraturePujianRouteArgs(key: key, url: url),
+         initialChildren: children,
+       );
+
+  static const String name = 'LiteraturePujianRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<LiteraturePujianRouteArgs>();
+      return LiteraturePujianView(key: args.key, url: args.url);
+    },
+  );
+}
+
+class LiteraturePujianRouteArgs {
+  const LiteraturePujianRouteArgs({this.key, required this.url});
+
+  final Key? key;
+
+  final String url;
+
+  @override
+  String toString() {
+    return 'LiteraturePujianRouteArgs{key: $key, url: $url}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! LiteraturePujianRouteArgs) return false;
+    return key == other.key && url == other.url;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ url.hashCode;
 }
 
 /// generated route for

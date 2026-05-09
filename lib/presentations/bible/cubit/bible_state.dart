@@ -74,8 +74,8 @@ abstract class BibleState with _$BibleState {
     return perjanjian.length == 39
         ? true
         : perjanjian.isEmpty
-            ? false
-            : null;
+        ? false
+        : null;
   }
 
   String get currentBibleLanguage {
@@ -100,8 +100,8 @@ abstract class BibleState with _$BibleState {
     return perjanjian.length == 27
         ? true
         : perjanjian.isEmpty
-            ? false
-            : null;
+        ? false
+        : null;
   }
 
   bool get isSelectedCurrentBook {
@@ -132,12 +132,15 @@ abstract class BibleState with _$BibleState {
         break;
     }
     return result.apply(
-        bodyColor:
-            router.navigatorKey.currentContext?.textTheme.bodyMedium?.color);
+      bodyColor:
+          router.navigatorKey.currentContext?.textTheme.bodyMedium?.color,
+    );
   }
 
   Future<List<BibleNote>> filteredNote(
-      String filter, Future<String> Function(List<Verse> item) getTitle) async {
+    String filter,
+    Future<String> Function(List<Verse> item) getTitle,
+  ) async {
     Map<String, BibleNote> mapped = {};
     Map<String, BibleNote> filtered = {};
 
@@ -236,4 +239,3 @@ extension GetByPericopeParalel on List<PericopeParalel> {
     return where((element) => element.id == id).toList();
   }
 }
-

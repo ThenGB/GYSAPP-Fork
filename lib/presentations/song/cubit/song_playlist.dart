@@ -203,13 +203,29 @@ class SongPlaybackQueue {
     return songs[currentQueueIndex - 1];
   }
 
-  List<Song> get preloadSongs {
+  Song? _songAtIndex(int index) {
+    if (songs.isEmpty) return null;
+    final wrapped = index % songs.length;
+    final safeIndex = wrapped < 0 ? wrapped + songs.length : wrapped;
+    if (safeIndex < 0 || safeIndex >= songs.length) return null;
+    return songs[safeIndex];
+  }
+
+  List<Song> getPreloadSongs(int count) {
     final result = <Song>[];
-    for (final song in [previousSong, currentSong, nextSong]) {
-      if (song == null || result.any((item) => _sameSong(item, song))) {
-        continue;
+    final clamped = count.clamp(1, 5);
+    if (currentSong != null) {
+      result.add(currentSong!);
+    }
+    for (var i = 1; i <= clamped; i++) {
+      final prev = _songAtIndex(currentQueueIndex - i);
+      if (prev != null && !result.any((item) => _sameSong(item, prev))) {
+        result.add(prev);
       }
-      result.add(song);
+      final next = _songAtIndex(currentQueueIndex + i);
+      if (next != null && !result.any((item) => _sameSong(item, next))) {
+        result.add(next);
+      }
     }
     return result;
   }

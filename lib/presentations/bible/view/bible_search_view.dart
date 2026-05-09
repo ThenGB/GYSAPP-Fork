@@ -36,30 +36,60 @@ class _BibleSearchViewState extends State<BibleSearchView> {
         builder: (context, state) => Scaffold(
           backgroundColor: context.colorScheme.surface,
           appBar: AppBar(
-            title: Text('Search verses'.tr()),
+            shape: Border(
+              bottom: BorderSide(
+                color: context.colorScheme.secondaryContainer,
+              ),
+            ),
+            title: const Text('Kidung Rohani'),
+            centerTitle: true,
           ),
           body: MediaQuery(
             data: context.mediaQuery.copyWith(
-              textScaler:
-                  TextScaler.linear(widget.cubit.state.defaultTextScale),
+              textScaler: TextScaler.linear(
+                widget.cubit.state.defaultTextScale,
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
                   child: TextFormField(
                     controller: searchController,
                     decoration: InputDecoration(
-                      prefixIcon: Icon(CupertinoIcons.doc_text_search),
-                      suffixIcon: CloseButton(
+                      prefixIcon: Icon(
+                        CupertinoIcons.doc_text_search,
+                        color: context.colorScheme.primary,
+                      ),
+                      suffixIcon: IconButton(
+                        tooltip: 'Clear',
+                        icon: const Icon(Icons.close_rounded),
                         onPressed: () {
                           searchController.clear();
                         },
                       ),
+                      filled: true,
+                      fillColor: context.colorScheme.surfaceContainerLowest,
                       border: OutlineInputBorder(
-                          borderSide:
-                              BorderSide(color: context.theme.disabledColor)),
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: context.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: context.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(
+                          color: context.colorScheme.primary,
+                          width: 1.2,
+                        ),
+                      ),
                       isDense: true,
                       hintText: 'Search verses'.tr(),
                     ),
@@ -71,7 +101,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                     children: [
                       TextButton(
                         style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
+                          visualDensity: VisualDensity.compact,
+                        ),
                         onPressed: () {
                           widget.cubit.onFilterPerjanjianLama();
                         },
@@ -86,8 +117,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                               },
                             ),
                             Text(
-                              snapshot.data?['Perjanjian lama']
-                                      ?[state.currentBibleCode] ??
+                              snapshot.data?['Perjanjian lama']?[state
+                                      .currentBibleCode] ??
                                   'Perjanjian lama'.tr(),
                             ),
                           ],
@@ -95,7 +126,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                       ),
                       TextButton(
                         style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
+                          visualDensity: VisualDensity.compact,
+                        ),
                         onPressed: () {
                           widget.cubit.onFilterPerjanjianBaru();
                         },
@@ -110,8 +142,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                               },
                             ),
                             Text(
-                              snapshot.data?['Perjanjian baru']
-                                      ?[state.currentBibleCode] ??
+                              snapshot.data?['Perjanjian baru']?[state
+                                      .currentBibleCode] ??
                                   'Perjanjian baru'.tr(),
                             ),
                           ],
@@ -119,7 +151,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                       ),
                       TextButton(
                         style: TextButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
+                          visualDensity: VisualDensity.compact,
+                        ),
                         onPressed: () {
                           widget.cubit.onFilterCurrentBible();
                         },
@@ -139,7 +172,8 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                       ),
                       IconButton(
                         style: IconButton.styleFrom(
-                            visualDensity: VisualDensity.compact),
+                          visualDensity: VisualDensity.compact,
+                        ),
                         onPressed: () {
                           router.push(
                             BibleSearchFilterRoute(
@@ -164,22 +198,26 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                   child: AnimatedBuilder(
                     animation: searchController,
                     builder: (context, child) => FutureBuilder(
-                      future: widget.cubit
-                          .searchBibleByString(searchController.text),
-                      builder: (context, snapshot) => (!snapshot.hasData ||
-                              snapshot.data?.isEmpty == true)
+                      future: widget.cubit.searchBibleByString(
+                        searchController.text,
+                      ),
+                      builder: (context, snapshot) =>
+                          (!snapshot.hasData || snapshot.data?.isEmpty == true)
                           ? searchController.text.isEmpty
-                              ? NoDataFound(
-                                  title: 'Search terms to start'.tr(),
-                                  description:
-                                      'Make sure your spellings is correct'
-                                          .tr())
-                              : NoDataFound(
-                                  title: 'not found'
-                                      .tr(args: ['"${searchController.text}"']),
-                                  description:
-                                      'Correct your spellings or search another terms'
-                                          .tr())
+                                ? NoDataFound(
+                                    title: 'Search terms to start'.tr(),
+                                    description:
+                                        'Make sure your spellings is correct'
+                                            .tr(),
+                                  )
+                                : NoDataFound(
+                                    title: 'not found'.tr(
+                                      args: ['"${searchController.text}"'],
+                                    ),
+                                    description:
+                                        'Correct your spellings or search another terms'
+                                            .tr(),
+                                  )
                           : ListView.builder(
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {
@@ -192,65 +230,91 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                         widget.onTap(item);
                                       },
                                       title: FutureBuilder(
-                                        future: widget.cubit.getBibleTitle(
-                                            [item],
-                                            withVerse: true),
-                                        builder: (context, snapshot) =>
-                                            Builder(builder: (context) {
-                                          var sentence = (item.verse ?? '')
-                                              .replaceAll('  ', ' ');
-                                          sentence = removeTextBetweenTags(
-                                              sentence, 'f');
-                                          sentence = sentence.replaceAll(
-                                              '<pb/>', '    ');
-                                          sentence =
-                                              sentence.replaceAll('<t>', '');
-                                          sentence =
-                                              sentence.replaceAll('</t>', '');
-                                          sentence =
-                                              sentence.replaceAll('<i>', '');
-                                          sentence =
-                                              sentence.replaceAll('</i>', '');
-                                          sentence =
-                                              sentence.replaceAll('<J>', '');
-                                          sentence =
-                                              sentence.replaceAll('</J>', '');
+                                        future: widget.cubit.getBibleTitle([
+                                          item,
+                                        ], withVerse: true),
+                                        builder: (context, snapshot) => Builder(
+                                          builder: (context) {
+                                            var sentence = (item.verse ?? '')
+                                                .replaceAll('  ', ' ');
+                                            sentence = removeTextBetweenTags(
+                                              sentence,
+                                              'f',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '<pb/>',
+                                              '    ',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '<t>',
+                                              '',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '</t>',
+                                              '',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '<i>',
+                                              '',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '</i>',
+                                              '',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '<J>',
+                                              '',
+                                            );
+                                            sentence = sentence.replaceAll(
+                                              '</J>',
+                                              '',
+                                            );
 
-                                          return Text.rich(
-                                              style: TextStyle(
-                                                fontSize: 12,
-                                              ),
-                                              TextSpan(children: [
-                                                TextSpan(
-                                                    text: snapshot.data ??
+                                            return Text.rich(
+                                              style: TextStyle(fontSize: 12),
+                                              TextSpan(
+                                                children: [
+                                                  TextSpan(
+                                                    text:
+                                                        snapshot.data ??
                                                         'Loading...'.tr(),
                                                     style: TextStyle(
                                                       fontWeight:
                                                           FontWeight.w600,
-                                                    )),
-                                                TextSpan(text: ' : '),
-                                                buildHighlightedText(
-                                                  isUnderline: true,
-                                                  style:
-                                                      TextStyle(fontSize: 12),
-                                                  sentence,
-                                                  () {
-                                                    var list = RegExp(
-                                                            r'"([^"]+)"')
-                                                        .allMatches(
-                                                            searchController
-                                                                .text)
-                                                        .map((e) => e.group(1)!)
-                                                        .toList();
-                                                    list.addAll(searchController
-                                                        .text
-                                                        .split(' '));
-                                                    return list;
-                                                  }(),
-                                                  context,
-                                                )
-                                              ]));
-                                        }),
+                                                    ),
+                                                  ),
+                                                  TextSpan(text: ' : '),
+                                                  buildHighlightedText(
+                                                    isUnderline: true,
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                    ),
+                                                    sentence,
+                                                    () {
+                                                      var list =
+                                                          RegExp(r'"([^"]+)"')
+                                                              .allMatches(
+                                                                searchController
+                                                                    .text,
+                                                              )
+                                                              .map(
+                                                                (e) =>
+                                                                    e.group(1)!,
+                                                              )
+                                                              .toList();
+                                                      list.addAll(
+                                                        searchController.text
+                                                            .split(' '),
+                                                      );
+                                                      return list;
+                                                    }(),
+                                                    context,
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          },
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -278,41 +342,40 @@ class _BibleSearchViewState extends State<BibleSearchView> {
     while (currentIndex < text.length) {
       int startTagIndex = text.indexOf('<J>', currentIndex);
       if (startTagIndex == -1) {
-        spans.add(TextSpan(
-          text: text.substring(currentIndex),
-          style: baseStyle,
-        ));
+        spans.add(
+          TextSpan(text: text.substring(currentIndex), style: baseStyle),
+        );
         break;
       }
 
       int endTagIndex = text.indexOf('</J>', startTagIndex);
       if (endTagIndex == -1) {
-        spans.add(TextSpan(
-          text: text.substring(currentIndex),
-          style: baseStyle,
-        ));
+        spans.add(
+          TextSpan(text: text.substring(currentIndex), style: baseStyle),
+        );
         break;
       }
 
-      spans.add(TextSpan(
-        text: text.substring(currentIndex, startTagIndex),
-        style: baseStyle,
-      ));
-      spans.add(TextSpan(
-        text: text.substring(startTagIndex + 3, endTagIndex),
-        style: baseStyle.copyWith(
-          color: context.isLight
-              ? Color(0xffFF3131)
-              : Color(0xffEE4B2B), // Apply red color
+      spans.add(
+        TextSpan(
+          text: text.substring(currentIndex, startTagIndex),
+          style: baseStyle,
         ),
-      ));
+      );
+      spans.add(
+        TextSpan(
+          text: text.substring(startTagIndex + 3, endTagIndex),
+          style: baseStyle.copyWith(
+            color: context.isLight
+                ? Color(0xffFF3131)
+                : Color(0xffEE4B2B), // Apply red color
+          ),
+        ),
+      );
 
       currentIndex = endTagIndex + 4; // +4 to skip </J>
     }
 
-    return TextSpan(
-      children: spans,
-    );
+    return TextSpan(children: spans);
   }
 }
-

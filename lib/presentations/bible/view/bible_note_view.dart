@@ -19,12 +19,13 @@ class BibleNoteView extends StatefulWidget {
   final NoteMode mode;
   final Function(BibleNote data) onSave;
 
-  const BibleNoteView(
-      {super.key,
-      required this.initialData,
-      required this.cubit,
-      required this.mode,
-      required this.onSave});
+  const BibleNoteView({
+    super.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
 
   @override
   State<BibleNoteView> createState() => _BibleNoteViewState();
@@ -35,17 +36,16 @@ class _BibleNoteViewState extends State<BibleNoteView> {
   late quill.QuillController controller = quill.QuillController(
     document: data.text == null
         ? quill.Document()
-        : quill.Document.fromJson(
-            jsonDecode(data.text!),
-          ),
+        : quill.Document.fromJson(jsonDecode(data.text!)),
     selection: TextSelection.collapsed(offset: 0),
   );
   late BibleNote data = widget.initialData;
   bool forceClose = false;
   Future<void> onSave() async {
     forceClose = true;
-    data =
-        data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
+    data = data.copyWith(
+      text: jsonEncode(controller.document.toDelta().toJson()),
+    );
     widget.onSave(data);
   }
 
@@ -75,9 +75,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
               var oldController = controller;
               oldController.dispose();
               controller = quill.QuillController(
-                document: quill.Document.fromJson(
-                  jsonDecode(data.text!),
-                ),
+                document: quill.Document.fromJson(jsonDecode(data.text!)),
                 selection: TextSelection.collapsed(offset: 0),
               );
 
@@ -89,28 +87,40 @@ class _BibleNoteViewState extends State<BibleNoteView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
               title: FutureBuilder(
-                future:
-                    widget.cubit.getBibleTitle(data.verses, withVerse: true),
-                builder: (context, snapshot) => Text(snapshot.data ?? ''),
+                future: widget.cubit.getBibleTitle(
+                  data.verses,
+                  withVerse: true,
+                ),
+                builder: (context, snapshot) => Text(
+                  snapshot.data ?? '',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
               actions: [
                 if (mode == NoteMode.write) ...[
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: onSave,
-                    icon: Icon(Icons.save),
-                    label: Text('Save'),
-                  )
+                    icon: const Icon(Icons.save_rounded, size: 18),
+                    label: const Text('Save'),
+                  ),
                 ] else ...[
                   IconButton(
                     onPressed: () async {
                       var isConfirmed = await context.showConfirmation(
-                          'Are you sure want to delete?'.tr());
+                        'Are you sure want to delete?'.tr(),
+                      );
                       if (isConfirmed) {
                         router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
@@ -118,11 +128,11 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                     },
                     icon: Icon(Icons.delete),
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: () {
                       setState(() {
@@ -138,34 +148,57 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                       //   ),
                       // );
                     },
-                    icon: Icon(Icons.edit),
-                    label: Text('Edit'),
-                  )
+                    icon: const Icon(Icons.edit_rounded, size: 18),
+                    label: const Text('Edit'),
+                  ),
                 ],
-                SizedBox(
-                  width: 16,
-                ),
+                SizedBox(width: 16),
               ],
             ),
-            body: Container(
-              padding: EdgeInsets.all(16),
-              child: quill.QuillEditor(
-                controller: controller,
-                configurations: quill.QuillEditorConfigurations(
-                  showCursor: mode == NoteMode.write,
-                  padding: EdgeInsets.zero,
-                  expands: true,
-                  scrollable: true,
-                  autoFocus: mode == NoteMode.write,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.55,
+                    ),
+                  ),
                 ),
-                focusNode: focusNode,
-                scrollController: scrollController,
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: quill.QuillEditor(
+                    controller: controller,
+                    configurations: quill.QuillEditorConfigurations(
+                      showCursor: mode == NoteMode.write,
+                      padding: EdgeInsets.zero,
+                      expands: true,
+                      scrollable: true,
+                      autoFocus: mode == NoteMode.write,
+                    ),
+                    focusNode: focusNode,
+                    scrollController: scrollController,
+                  ),
+                ),
               ),
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
                 ? null
                 : Container(
-                    margin: context.mediaQuery.viewPadding +
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.55,
+                          ),
+                        ),
+                      ),
+                    ),
+                    margin:
+                        context.mediaQuery.viewPadding +
                         context.mediaQuery.viewInsets,
                     child: quill.QuillToolbar.simple(
                       controller: controller,
@@ -179,4 +212,3 @@ class _BibleNoteViewState extends State<BibleNoteView> {
     );
   }
 }
-

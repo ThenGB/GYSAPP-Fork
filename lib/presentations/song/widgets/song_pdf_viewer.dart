@@ -215,8 +215,9 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
               handlerName: 'pdfKeyDetected',
               callback: (args) {
                 final key = args.isEmpty ? null : args.first?.toString();
-                widget.onPdfKeyDetected
-                    ?.call(key?.isEmpty == true ? null : key);
+                widget.onPdfKeyDetected?.call(
+                  key?.isEmpty == true ? null : key,
+                );
               },
             );
             controller.addJavaScriptHandler(
@@ -297,7 +298,9 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
     final controller = _controller;
     if (controller == null || !_isWebViewLoaded) return;
 
-    await controller.evaluateJavascript(source: '''
+    await controller.evaluateJavascript(
+      source:
+          '''
       if (window.setChordUiPrefs) {
         window.setChordUiPrefs({
           fontSizePercent: ${widget.chordFontSizePercent},
@@ -305,7 +308,8 @@ class _SongPdfViewerState extends State<SongPdfViewer> {
           paddingPercent: ${widget.chordPaddingPercent}
         });
       }
-    ''');
+    ''',
+    );
   }
 
   Map<String, List<Map<String, Object>>> _buildChordPayload() {

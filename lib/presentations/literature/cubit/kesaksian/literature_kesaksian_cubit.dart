@@ -13,7 +13,7 @@ export 'literature_kesaksian_state.dart';
 
 class LiteratureKesaksianCubit extends HydratedCubit<LiteratureKesaksianState> {
   LiteratureKesaksianCubit(this.repository)
-      : super(const LiteratureKesaksianState()) {
+    : super(const LiteratureKesaksianState()) {
     FirebaseUtils.jsonConfig('config_literature').then((json) {
       selector = ConfigLiterature.fromJson(json).kesaksian;
       getData();
@@ -56,4 +56,3 @@ class LiteratureKesaksianCubit extends HydratedCubit<LiteratureKesaksianState> {
     );
   }
 }
-

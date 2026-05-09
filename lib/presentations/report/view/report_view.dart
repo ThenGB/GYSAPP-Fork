@@ -40,10 +40,19 @@ class _ReportViewState extends State<ReportView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
-        title: Text('Report'),
+        title: const Text('Kidung Rohani'),
+        shape: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.secondaryContainer,
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: context.colorScheme.primary,
+        foregroundColor: context.colorScheme.onPrimary,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         onPressed: isSending
             ? null
             : () async {
@@ -51,7 +60,8 @@ class _ReportViewState extends State<ReportView> {
                   if (messageController.text.isEmpty) {
                     Fluttertoast.cancel();
                     Fluttertoast.showToast(
-                        msg: 'Please fill the message box'.tr());
+                      msg: 'Please fill the message box'.tr(),
+                    );
                   }
                   setState(() {
                     isSending = true;
@@ -60,7 +70,8 @@ class _ReportViewState extends State<ReportView> {
                   if (mailer.username.isEmpty) {
                     Fluttertoast.cancel();
                     Fluttertoast.showToast(
-                        msg: 'Reporting system not available currently'.tr());
+                      msg: 'Reporting system not available currently'.tr(),
+                    );
                     setState(() {
                       isSending = false;
                     });
@@ -68,13 +79,15 @@ class _ReportViewState extends State<ReportView> {
                   }
                   await mailer
                       .sendMessage(
-                          messageController.text,
-                          sendAsAnonymous
-                              ? 'Anonymous (Authorized)'
-                              : account?.email)
+                        messageController.text,
+                        sendAsAnonymous
+                            ? 'Anonymous (Authorized)'
+                            : account?.email,
+                      )
                       .timeout(Duration(seconds: 10));
                   Clipboard.setData(
-                      ClipboardData(text: messageController.text));
+                    ClipboardData(text: messageController.text),
+                  );
                   setState(() {
                     isSending = false;
                   });
@@ -82,20 +95,32 @@ class _ReportViewState extends State<ReportView> {
                   Fluttertoast.cancel();
                   Fluttertoast.showToast(msg: 'Email sent'.tr());
                   Fluttertoast.showToast(
-                      msg: 'Your message copied to your clipboard!');
+                    msg: 'Your message copied to your clipboard!',
+                  );
                 } catch (e) {
                   Fluttertoast.cancel();
                   Fluttertoast.showToast(
-                      msg: e is TimeoutException
-                          ? 'Connection timeout'
-                          : e.toString());
+                    msg: e is TimeoutException
+                        ? 'Connection timeout'
+                        : e.toString(),
+                  );
                   setState(() {
                     isSending = false;
                   });
                 }
               },
-        child:
-            isSending ? CircularProgressIndicator.adaptive() : Icon(Icons.send),
+        child: isSending
+            ? SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator.adaptive(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation(
+                    context.colorScheme.onPrimary,
+                  ),
+                ),
+              )
+            : Icon(Icons.send),
       ),
       body: GestureDetector(
         onTap: () {
@@ -107,122 +132,127 @@ class _ReportViewState extends State<ReportView> {
         },
         child: SingleChildScrollView(
           padding: EdgeInsets.only(bottom: 56),
-          child: Section(
-            label: '${'How it works'.tr()} :',
-            child: (gap) => Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: gap),
-                  child: Text(
+          child: Card(
+            child: Section(
+              label: '${'How it works'.tr()} :',
+              child: (gap) => Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: gap),
+                    child: Text(
                       "To report any issues or provide suggestions, tap the 'Report' button located in the app's menu or on a designated page. Describe the matter in the provided text box and include relevant details, such as the page or action where the issue occurred. Tap 'Submit' to send your report to our team.\n\nYour feedback matters:\nYour reports help us improve the app's performance and user experience. We value your privacy, and your data is handled with utmost confidentiality.\n\nThank you for contributing to a better app experience!"
-                          .tr()),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(gap),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text.rich(
-                        style: context.textTheme.bodyMedium,
-                        TextSpan(
-                          text: '${'Account'.tr()} : ',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: sendAsAnonymous
-                                  ? 'Anonymous'.tr()
-                                  : account?.email ?? 'Unknown'.tr(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.normal,
+                          .tr(),
+                    ),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.all(gap),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text.rich(
+                          style: context.textTheme.bodyMedium,
+                          TextSpan(
+                            text: '${'Account'.tr()} : ',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                            children: [
+                              TextSpan(
+                                text: sendAsAnonymous
+                                    ? 'Anonymous'.tr()
+                                    : account?.email ?? 'Unknown'.tr(),
+                                style: TextStyle(fontWeight: FontWeight.normal),
                               ),
-                            ),
-                            if (account == null)
-                              WidgetSpan(
-                                alignment: PlaceholderAlignment.middle,
-                                child: Padding(
-                                  padding: const EdgeInsets.only(left: 4),
-                                  child: TextButton(
-                                    style: TextButton.styleFrom(
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 2, horizontal: 4),
-                                      textStyle: TextStyle(
-                                        fontSize: 10,
-                                        fontFamily: context
-                                            .textTheme.bodyMedium?.fontFamily,
-                                        fontWeight: FontWeight.bold,
+                              if (account == null)
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(left: 4),
+                                    child: TextButton(
+                                      style: TextButton.styleFrom(
+                                        padding: EdgeInsets.symmetric(
+                                          vertical: 2,
+                                          horizontal: 4,
+                                        ),
+                                        textStyle: TextStyle(
+                                          fontSize: 10,
+                                          fontFamily: context
+                                              .textTheme
+                                              .bodyMedium
+                                              ?.fontFamily,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                        visualDensity: VisualDensity.compact,
                                       ),
-                                      visualDensity: VisualDensity.compact,
-                                    ),
-                                    onPressed: () {
-                                      router.push(LoginRoute(
-                                        onLoggedIn: (token) async {
-                                          account =
-                                              await widget.onLoggedIn(token);
-                                          setState(() {});
-                                        },
-                                      ));
-                                    },
-                                    child: Text(
-                                      'Login'.tr(),
+                                      onPressed: () {
+                                        router.push(
+                                          LoginRoute(
+                                            onLoggedIn: (token) async {
+                                              account = await widget.onLoggedIn(
+                                                token,
+                                              );
+                                              setState(() {});
+                                            },
+                                          ),
+                                        );
+                                      },
+                                      child: Text('Login'.tr()),
                                     ),
                                   ),
                                 ),
-                              )
-                          ],
-                        ),
-                      ),
-                      if (account == null)
-                        Text(
-                          'To receive our replies, kindly log in to your account.'
-                              .tr(),
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
+                            ],
                           ),
-                        )
-                      else
-                        Row(
-                          children: [
-                            Checkbox(
-                              value: sendAsAnonymous,
-                              onChanged: (value) {
-                                setState(() {
-                                  sendAsAnonymous = value!;
-                                });
-                              },
+                        ),
+                        if (account == null)
+                          Text(
+                            'To receive our replies, kindly log in to your account.'
+                                .tr(),
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
                             ),
-                            GestureDetector(
+                          )
+                        else
+                          Row(
+                            children: [
+                              Checkbox(
+                                value: sendAsAnonymous,
+                                onChanged: (value) {
+                                  setState(() {
+                                    sendAsAnonymous = value!;
+                                  });
+                                },
+                              ),
+                              GestureDetector(
                                 onTap: () {
                                   setState(() {
                                     sendAsAnonymous = !sendAsAnonymous;
                                   });
                                 },
-                                child: Text('Send as Anonymous')),
-                          ],
-                        ),
-                    ],
+                                child: Text('Send as Anonymous'),
+                              ),
+                            ],
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: EdgeInsets.all(gap),
-                  child: TextFormField(
-                    enabled: !isSending,
-                    controller: messageController,
-                    focusNode: focusNode,
-                    decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                  Padding(
+                    padding: EdgeInsets.all(gap),
+                    child: TextFormField(
+                      enabled: !isSending,
+                      controller: messageController,
+                      focusNode: focusNode,
+                      decoration: InputDecoration(
                         contentPadding: EdgeInsets.all(gap),
                         alignLabelWithHint: true,
                         labelText: 'Your problem or suggestion'.tr(),
-                        hintText: 'Write your problem or suggestion here'.tr()),
-                    minLines: 4,
-                    maxLines: null,
+                        hintText: 'Write your problem or suggestion here'.tr(),
+                      ),
+                      minLines: 4,
+                      maxLines: null,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -230,4 +260,3 @@ class _ReportViewState extends State<ReportView> {
     );
   }
 }
-

@@ -9,8 +9,11 @@ import '../../../router/router.dart';
 class SyncSelectDialog extends StatefulWidget {
   final Function() fromLocal;
   final Function() fromNetwork;
-  const SyncSelectDialog(
-      {super.key, required this.fromLocal, required this.fromNetwork});
+  const SyncSelectDialog({
+    super.key,
+    required this.fromLocal,
+    required this.fromNetwork,
+  });
 
   @override
   State<SyncSelectDialog> createState() => _SyncSelectDialogState();
@@ -37,13 +40,13 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
       keys: [widgetKey],
       callback: (result) {
         childHeight.value = result;
-        Future.delayed(
-          kThemeAnimationDuration,
-          () {
-            controller.animateTo(childHeight.value,
-                duration: kThemeAnimationDuration, curve: Curves.ease);
-          },
-        );
+        Future.delayed(kThemeAnimationDuration, () {
+          controller.animateTo(
+            childHeight.value,
+            duration: kThemeAnimationDuration,
+            curve: Curves.ease,
+          );
+        });
       },
     );
   }
@@ -87,14 +90,9 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
                   Text(
                     'Choose where you want to sync'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
                   ),
-                  SizedBox(
-                    height: 12,
-                  ),
+                  SizedBox(height: 12),
                   ListTile(
                     leading: Icon(Icons.insert_drive_file_rounded),
                     title: Text('From local'.tr()),
@@ -111,9 +109,7 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
                     leading: Icon(Icons.filter_drama_rounded),
                     title: Text('From my account'.tr()),
                   ),
-                  SizedBox(
-                    height: context.mediaQuery.viewPadding.bottom,
-                  )
+                  SizedBox(height: context.mediaQuery.viewPadding.bottom),
                 ],
               ),
             ),
@@ -123,4 +119,3 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
     );
   }
 }
-

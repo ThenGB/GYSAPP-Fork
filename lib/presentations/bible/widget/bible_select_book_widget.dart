@@ -43,4 +43,3 @@ class BibleSelectBook extends StatelessWidget {
     );
   }
 }
-

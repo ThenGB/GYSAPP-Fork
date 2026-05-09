@@ -12,7 +12,7 @@ import '../../../router/router.dart';
 class WebpageView extends StatefulWidget {
   final String url;
   final FutureOr<Color?> Function(InAppWebViewController controller)?
-      getNavColor;
+  getNavColor;
   const WebpageView({super.key, required this.url, this.getNavColor});
 
   @override
@@ -36,16 +36,14 @@ class _WebpageViewState extends State<WebpageView> {
   @override
   void dispose() {
     progress.dispose();
-    Future.delayed(Duration.zero, () {
-      final overlayContext = router.navigatorKey.currentContext;
-      if (overlayContext == null) {
-        return;
-      }
-      // ignore: use_build_context_synchronously
-      SystemChrome.setSystemUIOverlayStyle(overlayContext
-          .theme.appBarTheme.systemOverlayStyle!
-          .copyWith(statusBarBrightness: initialBrightness));
-    });
+    final overlayContext = router.navigatorKey.currentContext;
+    if (overlayContext != null) {
+      SystemChrome.setSystemUIOverlayStyle(
+        overlayContext.theme.appBarTheme.systemOverlayStyle!.copyWith(
+          statusBarBrightness: initialBrightness,
+        ),
+      );
+    }
     super.dispose();
   }
 
@@ -67,7 +65,14 @@ class _WebpageViewState extends State<WebpageView> {
         }
       },
       child: Scaffold(
+        backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
+          shape: Border(
+            bottom: BorderSide(
+              color: context.colorScheme.secondaryContainer,
+            ),
+          ),
+          centerTitle: true,
           backgroundColor: navColor,
           systemOverlayStyle: context.theme.appBarTheme.systemOverlayStyle!
               .copyWith(statusBarBrightness: currentBrightness),
@@ -78,8 +83,8 @@ class _WebpageViewState extends State<WebpageView> {
 
                   return luminance > 0.5;
                 }()
-                  ? Colors.black
-                  : Colors.white,
+              ? Colors.black
+              : Colors.white,
           leading: BackButton(
             onPressed: () {
               router.maybePop();
@@ -91,11 +96,11 @@ class _WebpageViewState extends State<WebpageView> {
                 forceClose = true;
                 router.maybePop();
               },
-            )
+            ),
           ],
           title: FutureBuilder(
             future: controller?.getTitle(),
-            initialData: 'GYS',
+            initialData: 'Kidung Rohani',
             builder: (context, snapshot) {
               return Text(
                 snapshot.data ?? '',
@@ -106,8 +111,8 @@ class _WebpageViewState extends State<WebpageView> {
                           var luminance = navColor!.computeLuminance();
                           return luminance > 0.5;
                         }()
-                          ? Colors.black
-                          : Colors.white,
+                      ? Colors.black
+                      : Colors.white,
                 ),
               );
             },
@@ -117,12 +122,14 @@ class _WebpageViewState extends State<WebpageView> {
           children: [
             InAppWebView(
               key: key,
-              initialUrlRequest:
-                  URLRequest(url: WebUri.uri(Uri.parse(widget.url))),
+              initialUrlRequest: URLRequest(
+                url: WebUri.uri(Uri.parse(widget.url)),
+              ),
               initialSettings: InAppWebViewSettings(
-                  mediaPlaybackRequiresUserGesture: false,
-                  useShouldOverrideUrlLoading: true,
-                  allowsInlineMediaPlayback: true),
+                mediaPlaybackRequiresUserGesture: false,
+                useShouldOverrideUrlLoading: true,
+                allowsInlineMediaPlayback: true,
+              ),
               onWebViewCreated: (c) {
                 controller = c;
               },
@@ -138,8 +145,9 @@ class _WebpageViewState extends State<WebpageView> {
               onLoadStop: (controller, url) async {
                 navColor = await widget.getNavColor?.call(controller);
                 var luminance = navColor?.computeLuminance() ?? 1;
-                currentBrightness =
-                    luminance > 0.5 ? Brightness.light : Brightness.dark;
+                currentBrightness = luminance > 0.5
+                    ? Brightness.light
+                    : Brightness.dark;
                 setState(() {});
               },
               onLoadStart: (controller, url) {
@@ -157,10 +165,7 @@ class _WebpageViewState extends State<WebpageView> {
                 if (value == 1 || value == 0) {
                   return Container();
                 }
-                return LinearProgressIndicator(
-                  value: value,
-                  minHeight: 2,
-                );
+                return LinearProgressIndicator(value: value, minHeight: 2);
               },
             ),
           ],
@@ -169,4 +174,3 @@ class _WebpageViewState extends State<WebpageView> {
     );
   }
 }
-

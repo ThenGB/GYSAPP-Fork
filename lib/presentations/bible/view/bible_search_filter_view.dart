@@ -49,15 +49,13 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
           padding: const EdgeInsets.all(8.0),
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
-              backgroundColor: context.colorScheme.primary,
-              foregroundColor: context.colorScheme.onPrimary,
-              // disabledBackgroundColor: context.theme.disabledColor,
               minimumSize: Size.fromHeight(56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(16),
               ),
             ),
-            onPressed: widget.initialValues.toSet().containsAll(values) &&
+            onPressed:
+                widget.initialValues.toSet().containsAll(values) &&
                     values.toSet().containsAll(widget.initialValues)
                 ? null
                 : () {
@@ -68,7 +66,13 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
         ),
       ),
       appBar: AppBar(
-        title: Text('Filter'.tr()),
+        shape: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.secondaryContainer,
+          ),
+        ),
+        title: const Text('Kidung Rohani'),
+        centerTitle: true,
         actions: [
           AnimatedSize(
             duration: kThemeAnimationDuration,
@@ -83,19 +87,19 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                     : Icons.grid_view_outlined,
               ),
             ),
-          )
+          ),
         ],
       ),
       body: PageTransitionSwitcher(
         duration: const Duration(milliseconds: 500),
         transitionBuilder: (child, primaryAnimation, secondaryAnimation) =>
             SharedAxisTransition(
-          animation: primaryAnimation,
-          secondaryAnimation: secondaryAnimation,
-          fillColor: context.colorScheme.surface,
-          transitionType: SharedAxisTransitionType.vertical,
-          child: child,
-        ),
+              animation: primaryAnimation,
+              secondaryAnimation: secondaryAnimation,
+              fillColor: context.colorScheme.surface,
+              transitionType: SharedAxisTransitionType.vertical,
+              child: child,
+            ),
         child: Container(
           color: context.colorScheme.surface,
           child: FutureBuilder(
@@ -108,9 +112,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   child: Text(
                     snapshot.data?['Perjanjian lama']?[widget.bibleCode] ??
                         'Perjanjian lama'.tr(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: context.textTheme.headlineSmall,
                   ),
                 ),
                 buildGridList(widget.allBooks.sublist(0, 39)),
@@ -119,9 +121,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   child: Text(
                     snapshot.data?['Perjanjian baru']?[widget.bibleCode] ??
                         'Perjanjian baru'.tr(),
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: context.textTheme.headlineSmall,
                   ),
                 ),
                 buildGridList(widget.allBooks.sublist(39)),
@@ -138,53 +138,57 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
       builder: (context, constraints) => Wrap(
         children: [
           ...data.asMap().entries.map(
-                (e) => AnimatedContainer(
-                  duration: kThemeAnimationDuration,
-                  padding: const EdgeInsets.all(2),
-                  width: isGridViewMode
-                      ? (constraints.maxWidth / 6)
-                      : constraints.maxWidth,
-                  height: (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
-                      widget.textScale,
-                  child: Material(
-                    borderRadius: BorderRadius.circular(4),
-                    color: values.contains(e.value)
-                        ? context.colorScheme.secondaryContainer
-                        : context.colorScheme.secondaryContainer
-                            .withValues(alpha: .3),
-                    child: InkWell(
-                      onTap: () {
-                        onTapItem(e.value);
-                      },
-                      child: Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          border: values.contains(e.value)
-                              ? Border.all(
-                                  color: context.colorScheme.primary,
-                                  strokeAlign: BorderSide.strokeAlignInside,
-                                )
-                              : null,
-                        ),
-                        padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
-                        alignment: isGridViewMode
-                            ? Alignment.center
-                            : Alignment.centerLeft,
-                        child: Text(
-                          isGridViewMode
-                              ? (e.value.shortName ?? '')
-                              : (e.value.longName ?? ''),
-                          textScaler: TextScaler.linear(widget.textScale),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+            (e) => AnimatedContainer(
+              duration: kThemeAnimationDuration,
+              padding: const EdgeInsets.all(2),
+              width: isGridViewMode
+                  ? (constraints.maxWidth / 6)
+                  : constraints.maxWidth,
+              height:
+                  (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
+                  widget.textScale,
+              child: Material(
+                borderRadius: BorderRadius.circular(12),
+                color: values.contains(e.value)
+                    ? context.colorScheme.secondaryContainer
+                    : context.colorScheme.surfaceContainerLow,
+                child: InkWell(
+                  onTap: () {
+                    onTapItem(e.value);
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(12),
+                      border: values.contains(e.value)
+                          ? Border.all(
+                              color: context.colorScheme.secondary,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            )
+                          : Border.all(
+                              color: context.colorScheme.outlineVariant,
+                              strokeAlign: BorderSide.strokeAlignInside,
+                            ),
+                    ),
+                    padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
+                    alignment: isGridViewMode
+                        ? Alignment.center
+                        : Alignment.centerLeft,
+                    child: Text(
+                      isGridViewMode
+                          ? (e.value.shortName ?? '')
+                          : (e.value.longName ?? ''),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      textScaler: TextScaler.linear(widget.textScale),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
-              )
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
-

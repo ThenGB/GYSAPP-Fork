@@ -16,19 +16,17 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     }
   }
 
-  Future<void> toggleSabatNotification(
-      [bool? value, bool isInit = false]) async {
+  Future<void> toggleSabatNotification([
+    bool? value,
+    bool isInit = false,
+  ]) async {
     if (!isNotificationConfiguredForCurrentPlatform) {
-      emit(
-        state.copyWith(
-          isSabatNotificationActive: false,
-        ),
-      );
+      emit(state.copyWith(isSabatNotificationActive: false));
       return;
     }
     if (!(await AwesomeNotifications().isNotificationAllowed())) {
-      var res =
-          await AwesomeNotifications().requestPermissionToSendNotifications();
+      var res = await AwesomeNotifications()
+          .requestPermissionToSendNotifications();
       if (!res) return;
     }
     var data = value ?? !state.isSabatNotificationActive;
@@ -89,8 +87,10 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     }
     List<int> weekdays = List.generate(7, (index) => index + 1);
 
-    List<int> unactiveDays =
-        weekdays.toSet().difference(days.keys.toSet()).toList();
+    List<int> unactiveDays = weekdays
+        .toSet()
+        .difference(days.keys.toSet())
+        .toList();
     var json = await FirebaseUtils.jsonConfig('notifikasi_bible');
     var lang = router.navigatorKey.currentContext?.locale.languageCode ?? '';
     for (int weekDay in days.keys) {
@@ -149,4 +149,3 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
     return state.toJson();
   }
 }
-

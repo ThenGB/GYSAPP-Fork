@@ -24,4 +24,3 @@ abstract class HomeState with _$HomeState {
   factory HomeState.fromJson(Map<String, dynamic> json) =>
       _$HomeStateFromJson(json);
 }
-

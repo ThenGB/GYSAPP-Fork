@@ -18,12 +18,13 @@ class FaithNoteView extends StatefulWidget {
   final NoteMode mode;
   final Function(FaithNote data) onSave;
 
-  const FaithNoteView(
-      {super.key,
-      required this.initialData,
-      required this.cubit,
-      required this.mode,
-      required this.onSave});
+  const FaithNoteView({
+    super.key,
+    required this.initialData,
+    required this.cubit,
+    required this.mode,
+    required this.onSave,
+  });
 
   @override
   State<FaithNoteView> createState() => FaithNoteViewState();
@@ -34,17 +35,16 @@ class FaithNoteViewState extends State<FaithNoteView> {
   late quill.QuillController controller = quill.QuillController(
     document: data.text == null
         ? quill.Document()
-        : quill.Document.fromJson(
-            jsonDecode(data.text!),
-          ),
+        : quill.Document.fromJson(jsonDecode(data.text!)),
     selection: TextSelection.collapsed(offset: 0),
   );
   late FaithNote data = widget.initialData;
 
   Future<void> onSave() async {
     forceClose = true;
-    data =
-        data.copyWith(text: jsonEncode(controller.document.toDelta().toJson()));
+    data = data.copyWith(
+      text: jsonEncode(controller.document.toDelta().toJson()),
+    );
     widget.onSave(data);
   }
 
@@ -75,9 +75,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
               var oldController = controller;
               oldController.dispose();
               controller = quill.QuillController(
-                document: quill.Document.fromJson(
-                  jsonDecode(data.text!),
-                ),
+                document: quill.Document.fromJson(jsonDecode(data.text!)),
                 selection: TextSelection.collapsed(offset: 0),
               );
               mode = NoteMode.viewOnly;
@@ -89,8 +87,16 @@ class FaithNoteViewState extends State<FaithNoteView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
-              title:
-                  Text((data.verses.map((e) => e + 1)).toList().joinToString()),
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
+              title: Text(
+                (data.verses.map((e) => e + 1)).toList().joinToString(),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
               actions: [
                 if (mode == NoteMode.write) ...[
                   // IconButton(
@@ -100,21 +106,22 @@ class FaithNoteViewState extends State<FaithNoteView> {
                   //   },
                   //   icon: Icon(Icons.visibility_outlined),
                   // ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: onSave,
-                    icon: Icon(Icons.save),
-                    label: Text('Save'),
-                  )
+                    icon: const Icon(Icons.save_rounded, size: 18),
+                    label: const Text('Save'),
+                  ),
                 ] else ...[
                   IconButton(
                     onPressed: () async {
                       var isConfirmed = await context.showConfirmation(
-                          'Are you sure want to delete?'.tr());
+                        'Are you sure want to delete?'.tr(),
+                      );
                       if (isConfirmed) {
                         router.maybePop();
                         widget.cubit.deleteNote(widget.initialData);
@@ -122,11 +129,11 @@ class FaithNoteViewState extends State<FaithNoteView> {
                     },
                     icon: Icon(Icons.delete),
                   ),
-                  TextButton.icon(
-                    style: TextButton.styleFrom(
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
                       visualDensity: VisualDensity.compact,
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
+                      minimumSize: const Size(0, 36),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
                     ),
                     onPressed: () {
                       setState(() {
@@ -142,34 +149,57 @@ class FaithNoteViewState extends State<FaithNoteView> {
                       //   ),
                       // );
                     },
-                    icon: Icon(Icons.edit),
-                    label: Text('Edit'),
-                  )
+                    icon: const Icon(Icons.edit_rounded, size: 18),
+                    label: const Text('Edit'),
+                  ),
                 ],
-                SizedBox(
-                  width: 16,
-                ),
+                SizedBox(width: 16),
               ],
             ),
-            body: Container(
-              padding: EdgeInsets.all(16),
-              child: quill.QuillEditor(
-                focusNode: focusNode,
-                scrollController: scrollController,
-                controller: controller,
-                configurations: quill.QuillEditorConfigurations(
-                  showCursor: mode == NoteMode.write,
-                  padding: EdgeInsets.zero,
-                  expands: true,
-                  scrollable: true,
-                  autoFocus: mode == NoteMode.write,
+            body: Padding(
+              padding: const EdgeInsets.all(16),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: context.colorScheme.surfaceContainerLowest,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.55,
+                    ),
+                  ),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(14),
+                  child: quill.QuillEditor(
+                    focusNode: focusNode,
+                    scrollController: scrollController,
+                    controller: controller,
+                    configurations: quill.QuillEditorConfigurations(
+                      showCursor: mode == NoteMode.write,
+                      padding: EdgeInsets.zero,
+                      expands: true,
+                      scrollable: true,
+                      autoFocus: mode == NoteMode.write,
+                    ),
+                  ),
                 ),
               ),
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
                 ? null
                 : Container(
-                    margin: context.mediaQuery.viewInsets +
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surface,
+                      border: Border(
+                        top: BorderSide(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.55,
+                          ),
+                        ),
+                      ),
+                    ),
+                    margin:
+                        context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
                     child: quill.QuillToolbar.simple(
                       controller: controller,
@@ -183,4 +213,3 @@ class FaithNoteViewState extends State<FaithNoteView> {
     );
   }
 }
-

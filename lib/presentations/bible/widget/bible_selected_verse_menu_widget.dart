@@ -42,15 +42,15 @@ class SelectedVerseMenu extends StatelessWidget {
             children: [
               Expanded(
                 child: FutureBuilder(
-                    future: context
-                        .read<BibleCubit>()
-                        .getBibleTitle(verses, withVerse: true),
-                    builder: (context, snapshot) => Text(
-                          snapshot.data ?? '---',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                          ),
-                        )),
+                  future: context.read<BibleCubit>().getBibleTitle(
+                    verses,
+                    withVerse: true,
+                  ),
+                  builder: (context, snapshot) => Text(
+                    snapshot.data ?? '---',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ),
               ),
               IconButton(
                 icon: Icon(Icons.close),
@@ -59,9 +59,7 @@ class SelectedVerseMenu extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(
-            height: 12,
-          ),
+          SizedBox(height: 12),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
             child: Row(
@@ -82,42 +80,48 @@ class SelectedVerseMenu extends StatelessWidget {
                 //   width: 8,
                 // ),
                 TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                    ),
-                    onPressed: () {
-                      router.push(BibleNoteRoute(
+                  style: TextButton.styleFrom(
+                    backgroundColor: context.colorScheme.secondaryContainer,
+                    foregroundColor: context.colorScheme.onSecondaryContainer,
+                  ),
+                  onPressed: () {
+                    router.push(
+                      BibleNoteRoute(
                         initialData: BibleNote.empty(
-                            context.read<BibleCubit>().state.selectedVerse),
+                          context.read<BibleCubit>().state.selectedVerse,
+                        ),
                         cubit: context.read<BibleCubit>(),
                         mode: NoteMode.write,
                         onSave: (data) {
                           context.read<BibleCubit>().saveNote(data);
                           router.maybePop();
-                          router
-                              .push(BibleNoteListRoute(cubit: context.read()));
+                          router.push(
+                            BibleNoteListRoute(cubit: context.read()),
+                          );
                         },
-                      ));
-                    },
-                    child: Text('Note'.tr())),
-                SizedBox(
-                  width: 8,
+                      ),
+                    );
+                  },
+                  child: Text('Note'.tr()),
                 ),
+                SizedBox(width: 8),
                 TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: context.colorScheme.primaryContainer,
-                    foregroundColor: context.colorScheme.onPrimaryContainer,
+                    backgroundColor: context.colorScheme.secondaryContainer,
+                    foregroundColor: context.colorScheme.onSecondaryContainer,
                   ),
                   onPressed: () async {
                     String text = '';
-                    var bibles =
-                        verses.sorted((a, b) => a.verseId.compareTo(b.verseId));
-                    var title = await context
-                        .read<BibleCubit>()
-                        .getBibleTitle(verses, withVerse: true);
-                    var json =
-                        await FirebaseUtils.jsonConfig('footer_copied_text');
+                    var bibles = verses.sorted(
+                      (a, b) => a.verseId.compareTo(b.verseId),
+                    );
+                    var title = await context.read<BibleCubit>().getBibleTitle(
+                      verses,
+                      withVerse: true,
+                    );
+                    var json = await FirebaseUtils.jsonConfig(
+                      'footer_copied_text',
+                    );
                     var footer = json[context.locale.languageCode];
                     text = title;
                     if (bibles.length > 1) {
@@ -133,40 +137,40 @@ class SelectedVerseMenu extends StatelessWidget {
                     text += '\n\n$footer';
                     Share.share(text);
                   },
-                  child: Text(
-                    'Share'.tr(),
-                  ),
+                  child: Text('Share'.tr()),
                 ),
-                SizedBox(
-                  width: 8,
-                ),
+                SizedBox(width: 8),
                 TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                    ),
-                    onPressed: () async {
-                      String text = '';
-                      var bibles = verses
-                          .sorted((a, b) => a.verseId.compareTo(b.verseId));
-                      var title = await context
-                          .read<BibleCubit>()
-                          .getBibleTitle(verses, withVerse: true);
-                      var json =
-                          await FirebaseUtils.jsonConfig('footer_copied_text');
-                      var footer = json[context.locale.languageCode];
-                      text = title;
-                      for (var bible in bibles) {
-                        var verse = bible.verse ?? '';
-                        var number = bible.verseId;
-                        text += '\n$number. $verse';
-                      }
-                      text += '\n\n$footer';
-                      await Clipboard.setData(ClipboardData(text: text));
-                      Fluttertoast.cancel();
-                      Fluttertoast.showToast(msg: 'Copied!'.tr());
-                    },
-                    child: Text('Copy'.tr())),
+                  style: TextButton.styleFrom(
+                    backgroundColor: context.colorScheme.secondaryContainer,
+                    foregroundColor: context.colorScheme.onSecondaryContainer,
+                  ),
+                  onPressed: () async {
+                    String text = '';
+                    var bibles = verses.sorted(
+                      (a, b) => a.verseId.compareTo(b.verseId),
+                    );
+                    var title = await context.read<BibleCubit>().getBibleTitle(
+                      verses,
+                      withVerse: true,
+                    );
+                    var json = await FirebaseUtils.jsonConfig(
+                      'footer_copied_text',
+                    );
+                    var footer = json[context.locale.languageCode];
+                    text = title;
+                    for (var bible in bibles) {
+                      var verse = bible.verse ?? '';
+                      var number = bible.verseId;
+                      text += '\n$number. $verse';
+                    }
+                    text += '\n\n$footer';
+                    await Clipboard.setData(ClipboardData(text: text));
+                    Fluttertoast.cancel();
+                    Fluttertoast.showToast(msg: 'Copied!'.tr());
+                  },
+                  child: Text('Copy'.tr()),
+                ),
               ],
             ),
           ),
@@ -189,22 +193,25 @@ class SelectedVerseMenu extends StatelessWidget {
                   (v) => InkWell(
                     onTap: () {
                       context.read<BibleCubit>().hightLightBible(
-                            verses.map((e) => e.copyWith(color: v)).toList(),
-                          );
+                        verses.map((e) => e.copyWith(color: v)).toList(),
+                      );
                       context.read<BibleCubit>().removeSelection();
                     },
                     child: CircleAvatar(
                       backgroundColor: v,
-                      child: context
+                      child:
+                          context
                               .watch<BibleCubit>()
                               .state
                               .hightlightedVerse
-                              .where((element) => context
-                                  .read<BibleCubit>()
-                                  .state
-                                  .selectedVerse
-                                  .map((e) => e.id)
-                                  .contains(element.id))
+                              .where(
+                                (element) => context
+                                    .read<BibleCubit>()
+                                    .state
+                                    .selectedVerse
+                                    .map((e) => e.id)
+                                    .contains(element.id),
+                              )
                               .map((e) => e.color)
                               .any((element) => element == v)
                           ? Icon(Icons.check)
@@ -221,4 +228,3 @@ class SelectedVerseMenu extends StatelessWidget {
     );
   }
 }
-

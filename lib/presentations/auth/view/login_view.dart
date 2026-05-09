@@ -20,10 +20,7 @@ class LoginView extends StatefulWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) {
-    return BlocProvider<AuthCubit>(
-      create: (context) => di(),
-      child: this,
-    );
+    return BlocProvider<AuthCubit>(create: (context) => di(), child: this);
   }
 }
 
@@ -42,9 +39,9 @@ class _LoginViewState extends State<LoginView> {
       widget.onLoggedIn(msg['token'] ?? '');
     } else if (cmd == 'googlelogin' || cmd == 'google-signup') {
       context.read<AuthCubit>().onGoogleLogin(
-            _webViewController!,
-            msg['action'] ?? cmd,
-          );
+        _webViewController!,
+        msg['action'] ?? cmd,
+      );
     }
   }
 
@@ -99,17 +96,18 @@ class _LoginViewState extends State<LoginView> {
                           windowId: createWindowAction.windowId,
                           onWebViewCreated:
                               (InAppWebViewController controller) {
-                            _webViewPopupController = controller;
-                            _webViewPopupController?.addJavaScriptHandler(
-                              handlerName: 'mobile',
-                              callback: (arguments) {
-                                var json = (arguments as List).firstOrNull
-                                    as Map<String, dynamic>;
+                                _webViewPopupController = controller;
+                                _webViewPopupController?.addJavaScriptHandler(
+                                  handlerName: 'mobile',
+                                  callback: (arguments) {
+                                    var json =
+                                        (arguments as List).firstOrNull
+                                            as Map<String, dynamic>;
 
-                                channelListener(json);
+                                    channelListener(json);
+                                  },
+                                );
                               },
-                            );
-                          },
                         ),
                       );
                     },
@@ -122,8 +120,9 @@ class _LoginViewState extends State<LoginView> {
                     handlerName: 'mobile',
                     callback: (arguments) {
                       log(arguments.toString());
-                      var json = (arguments as List).firstOrNull
-                          as Map<String, dynamic>;
+                      var json =
+                          (arguments as List).firstOrNull
+                              as Map<String, dynamic>;
 
                       channelListener(json);
                     },
@@ -132,7 +131,8 @@ class _LoginViewState extends State<LoginView> {
                 initialUrlRequest: URLRequest(
                   url: WebUri.uri(
                     Uri.parse(
-                        'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}'),
+                      'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}',
+                    ),
                   ),
                 ),
               ),
@@ -147,11 +147,12 @@ class _LoginViewState extends State<LoginView> {
                 alignment: Alignment.center,
                 layoutBuilder:
                     (topChild, topChildKey, bottomChild, bottomChildKey) {
-                  return SizedBox(
-                      width: double.infinity,
-                      height: double.infinity,
-                      child: topChild);
-                },
+                      return SizedBox(
+                        width: double.infinity,
+                        height: double.infinity,
+                        child: topChild,
+                      );
+                    },
                 firstChild: Container(
                   color: context.colorScheme.surface,
                   child: Center(
@@ -161,9 +162,7 @@ class _LoginViewState extends State<LoginView> {
                         CircularProgressIndicator.adaptive(
                           value: (state.progress / 100).clamp(0, 1),
                         ),
-                        SizedBox(
-                          height: 16,
-                        ),
+                        SizedBox(height: 16),
                         Text('${state.progress} %'),
                         Text('Loading'.tr()),
                       ],
@@ -178,11 +177,7 @@ class _LoginViewState extends State<LoginView> {
                 width: double.infinity,
                 height: 56,
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: const [
-                    CircleAvatar(child: BackButton()),
-                  ],
-                ),
+                child: Row(children: const [CircleAvatar(child: BackButton())]),
               ),
             ),
           ],
@@ -191,4 +186,3 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 }
-

@@ -54,8 +54,9 @@ class HomeCubit extends HydratedCubit<HomeState> {
 
   Future<void> getMenu() async {
     var appMenuJson = await FirebaseUtils.listMapConfig('app_menu');
-    final List<Menulink> menuLinks =
-        appMenuJson.map<Menulink>((e) => Menulink.fromJson(e)).toList();
+    final List<Menulink> menuLinks = appMenuJson
+        .map<Menulink>((e) => Menulink.fromJson(e))
+        .toList();
 
     emit(state.copyWith(menuLinks: menuLinks));
   }
@@ -64,30 +65,26 @@ class HomeCubit extends HydratedCubit<HomeState> {
     var appMenuJson = await FirebaseUtils.jsonConfig('primary_menu');
     final bool isSuaraSejatiEnabled = appMenuJson['suara_sejati'];
     final bool isSauhEnabled = appMenuJson['sauh_bagi_jiwa'];
-    emit(state.copyWith(
-      isSuaraSejatiEnabled: isSuaraSejatiEnabled,
-      isSauhEnabled: isSauhEnabled,
-    ));
+    emit(
+      state.copyWith(
+        isSuaraSejatiEnabled: isSuaraSejatiEnabled,
+        isSauhEnabled: isSauhEnabled,
+      ),
+    );
   }
 
   Future<void> scrappSauhBagiJiwa() async {
     var result = await repository.getSauh();
-    result.fold(
-      (failure) {},
-      (res) {
-        emit(state.copyWith(sauhs: res));
-      },
-    );
+    result.fold((failure) {}, (res) {
+      emit(state.copyWith(sauhs: res));
+    });
   }
 
   Future<void> scrappTrueVoice() async {
     var result = await repository.getSuaraSejati();
-    result.fold(
-      (failure) {},
-      (res) {
-        emit(state.copyWith(trueVoices: res));
-      },
-    );
+    result.fold((failure) {}, (res) {
+      emit(state.copyWith(trueVoices: res));
+    });
   }
 
   @override
@@ -100,4 +97,3 @@ class HomeCubit extends HydratedCubit<HomeState> {
     return state.toJson();
   }
 }
-

@@ -59,7 +59,10 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
-  showAudio: json['showAudio'] as bool? ?? false,
+  showAudio: json['showAudio'] as bool? ?? true,
+  preloadEnabled: json['preloadEnabled'] as bool? ?? true,
+  preloadCount: (json['preloadCount'] as num?)?.toInt() ?? 1,
+  preloadCacheMax: (json['preloadCacheMax'] as num?)?.toInt() ?? 12,
   showChord: json['showChord'] as bool? ?? false,
   searchTerms: json['searchTerms'] as String? ?? '',
   defaultFont: json['defaultFont'] as String? ?? 'Roboto',
@@ -121,6 +124,9 @@ Map<String, dynamic> _$SongStateToJson(
   'playlistAutoNextMode': instance.playlistAutoNextMode,
   'playlistShuffleIndex': instance.playlistShuffleIndex,
   'showAudio': instance.showAudio,
+  'preloadEnabled': instance.preloadEnabled,
+  'preloadCount': instance.preloadCount,
+  'preloadCacheMax': instance.preloadCacheMax,
   'showChord': instance.showChord,
   'searchTerms': instance.searchTerms,
   'defaultFont': instance.defaultFont,

@@ -8,7 +8,6 @@ import 'package:flutter_quill/flutter_quill.dart' as quill;
 
 import '../../../data/data.dart';
 import '../../../router/router.dart';
-import '../../bible/cubit/bible_cubit.dart';
 import '../cubit/faith_cubit.dart';
 
 @RoutePage()
@@ -41,16 +40,18 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
           child: Scaffold(
             backgroundColor: context.colorScheme.surface,
             appBar: AppBar(
+              shape: Border(
+                bottom: BorderSide(
+                  color: context.colorScheme.secondaryContainer,
+                ),
+              ),
               title: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Notes'.tr()),
                   Text(
                     '${state.notes.length} ${'notes saved'.tr()}',
-                    style: TextStyle(
-                      fontWeight: FontWeight.normal,
-                      fontSize: 10,
-                    ),
+                    style: context.textTheme.labelSmall,
                   ),
                 ],
               ),
@@ -58,7 +59,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                 PopupMenuButton(
                   offset: Offset(0, 48),
                   onSelected: (value) {
-                    context.read<BibleCubit>().changeSortNote(value);
+                    context.read<FaithCubit>().changeSortNote(value);
                   },
                   child: Padding(
                     padding: EdgeInsets.all(12),
@@ -75,11 +76,12 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -95,11 +97,12 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -115,11 +118,12 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_upward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_upward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -135,11 +139,12 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                 child: Align(
                                   alignment: Alignment.bottomRight,
                                   child: CircleAvatar(
-                                      radius: 6,
-                                      child: Icon(
-                                        Icons.arrow_downward_rounded,
-                                        size: 10,
-                                      )),
+                                    radius: 6,
+                                    child: Icon(
+                                      Icons.arrow_downward_rounded,
+                                      size: 10,
+                                    ),
+                                  ),
                                 ),
                               ),
                             ],
@@ -151,12 +156,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                   ),
                   itemBuilder: (context) {
                     return ['Newest', 'Oldest', 'A-Z', 'Z-A']
-                        .map(
-                          (e) => PopupMenuItem(
-                            value: e,
-                            child: Text(e),
-                          ),
-                        )
+                        .map((e) => PopupMenuItem(value: e, child: Text(e)))
                         .toList();
                   },
                 ),
@@ -181,11 +181,31 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
                     child: TextFormField(
                       controller: searchController,
                       decoration: InputDecoration(
-                        border: OutlineInputBorder(),
+                        filled: true,
+                        fillColor: context.colorScheme.surfaceContainerLowest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.primary,
+                            width: 1.2,
+                          ),
+                        ),
                         isDense: true,
                         hintText: 'Search notes'.tr(),
                       ),
@@ -199,89 +219,103 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                         builder: (context, snapshot) {
                           if (snapshot.data?.isEmpty == true) {
                             return NoDataFound(
-                              title: 'not found'
-                                  .tr(args: ['"${searchController.text}"']),
+                              title: 'not found'.tr(
+                                args: ['"${searchController.text}"'],
+                              ),
                               description:
                                   'Correct your spellings or search another terms'
                                       .tr(),
                             );
                           }
                           return ListView.builder(
-                            itemCount: state.notes.length,
+                            itemCount: snapshot.data?.length ?? 0,
                             itemBuilder: (context, index) {
-                              var item = state.notes[index];
+                              var item = snapshot.data![index];
                               return Material(
                                 child: InkWell(
                                   onTap: () {
-                                    router.push(FaithNoteRoute(
-                                      initialData: item,
-                                      cubit: widget.cubit,
-                                      mode: NoteMode.viewOnly,
-                                      onSave: (data) {
-                                        context
-                                            .read<FaithCubit>()
-                                            .saveNote(data);
-                                        router.maybePop();
-                                        router.push(FaithNoteListRoute(
-                                            cubit: context.read()));
-                                      },
-                                    ));
+                                    router.push(
+                                      FaithNoteRoute(
+                                        initialData: item,
+                                        cubit: widget.cubit,
+                                        mode: NoteMode.viewOnly,
+                                        onSave: (data) {
+                                          context.read<FaithCubit>().saveNote(
+                                            data,
+                                          );
+                                          router.maybePop();
+                                          router.push(
+                                            FaithNoteListRoute(
+                                              cubit: context.read(),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    );
                                   },
-                                  child: Column(
-                                    children: [
-                                      Container(
-                                        padding: EdgeInsets.symmetric(
-                                            horizontal: 16, vertical: 8),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    (item.verses
-                                                            .map((e) => e + 1))
-                                                        .toList()
-                                                        .joinToString(),
-                                                    style: TextStyle(
-                                                      fontSize: 14,
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Text(
-                                                  item.createdDate
-                                                      .toHumanDate(),
+                                  child: Card(
+                                    color: context
+                                        .colorScheme
+                                        .surfaceContainerLowest,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                      side: BorderSide(
+                                        color: context
+                                            .colorScheme
+                                            .outlineVariant
+                                            .withValues(alpha: 0.55),
+                                      ),
+                                    ),
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 8,
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(
+                                                  (item.verses.map(
+                                                    (e) => e + 1,
+                                                  )).toList().joinToString(),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                   style: context
-                                                      .textTheme.bodySmall,
+                                                      .textTheme
+                                                      .titleMedium,
                                                 ),
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              height: 8,
-                                            ),
-                                            Text(
-                                              quill.Document.fromJson(
-                                                      jsonDecode(item.text!))
-                                                  .toPlainText()
-                                                  .trim()
-                                                  .replaceAll('\n', ' .. '),
-                                              maxLines: 2,
-                                              style: TextStyle(
-                                                fontSize: 12,
                                               ),
+                                              Text(
+                                                item.createdDate.toHumanDate(),
+                                                style:
+                                                    context.textTheme.bodySmall,
+                                              ),
+                                            ],
+                                          ),
+                                          SizedBox(height: 8),
+                                          Text(
+                                            quill.Document.fromJson(
+                                              jsonDecode(item.text!),
+                                            ).toPlainText().trim().replaceAll(
+                                              '\n',
+                                              ' .. ',
                                             ),
-                                          ],
-                                        ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: context.textTheme.bodySmall,
+                                          ),
+                                        ],
                                       ),
-                                      Divider(
-                                        indent: 16,
-                                        endIndent: 16,
-                                        height: 1,
-                                      ),
-                                    ],
+                                    ),
                                   ),
                                 ),
                               );
@@ -320,17 +354,11 @@ class NoDataFound extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           SizedBox(height: 100),
-          Image.asset(
-            Assets.assetsImagesEmpty,
-            width: 180,
-          ),
+          Image.asset(Assets.assetsImagesEmpty, width: 180),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16,
-            ),
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
           Text(
             description,
@@ -339,13 +367,9 @@ class NoDataFound extends StatelessWidget {
               color: context.textTheme.bodyMedium?.color?.withValues(alpha: .5),
             ),
           ),
-          if (action != null) ...[
-            SizedBox(height: 24),
-            action!,
-          ],
+          if (action != null) ...[SizedBox(height: 24), action!],
         ],
       ),
     );
   }
 }
-

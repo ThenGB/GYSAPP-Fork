@@ -18,40 +18,51 @@ class FontSettingView extends StatefulWidget {
 }
 
 class _FontSettingViewState extends State<FontSettingView> {
-  late double defaultTextScale =
-      context.read<InitialCubit>().state.defaultTextScale;
+  late double defaultTextScale = context
+      .read<InitialCubit>()
+      .state
+      .defaultTextScale;
   late String defaultFontStyle = context.read<InitialCubit>().state.defaultFont;
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
       data: context.mediaQuery.copyWith(textScaler: TextScaler.linear(1)),
       child: Scaffold(
+        backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
-          title: Text(
-            'Font Settings'.tr(),
+          shape: Border(
+            bottom: BorderSide(
+              color: context.colorScheme.secondaryContainer,
+            ),
           ),
+          title: const Text('Kidung Rohani'),
+          centerTitle: true,
         ),
         bottomNavigationBar: BottomAppBar(
-          color: context.theme.scaffoldBackgroundColor,
+          color: context.colorScheme.surface,
           surfaceTintColor: Colors.transparent,
           child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: context.colorScheme.primary,
-                foregroundColor: context.colorScheme.onPrimary,
+            style: ElevatedButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
               ),
-              onPressed: () async {
-                final value = await context.showConfirmation(
-                    'Are you sure want to change this preference?'.tr());
-                if (!context.mounted || !value) {
-                  return;
-                }
-                context.read<InitialCubit>().changeTextScale(defaultTextScale);
-                context.read<InitialCubit>().changeFontStyle(defaultFontStyle);
-                Fluttertoast.cancel();
-                Fluttertoast.showToast(msg: 'Settings saved'.tr());
-                router.maybePop();
-              },
-              child: Text('Apply'.tr())),
+            ),
+            onPressed: () async {
+              final value = await context.showConfirmation(
+                'Are you sure want to change this preference?'.tr(),
+              );
+              if (!context.mounted || !value) {
+                return;
+              }
+              context.read<InitialCubit>().changeTextScale(defaultTextScale);
+              context.read<InitialCubit>().changeFontStyle(defaultFontStyle);
+              Fluttertoast.cancel();
+              Fluttertoast.showToast(msg: 'Settings saved'.tr());
+              router.maybePop();
+            },
+            child: Text('Apply'.tr()),
+          ),
         ),
         body: BlocBuilder<InitialCubit, InitialState>(
           builder: (context, state) => SingleChildScrollView(
@@ -71,9 +82,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                               child: Text(
                                 'font_size_placeholder'.tr(),
                                 textScaler: TextScaler.linear(defaultTextScale),
-                                style: TextStyle(
-                                  fontFamily: defaultFontStyle,
-                                ),
+                                style: TextStyle(fontFamily: defaultFontStyle),
                               ),
                             ),
                           ),
@@ -90,12 +99,15 @@ class _FontSettingViewState extends State<FontSettingView> {
                                   padding: EdgeInsets.zero,
                                   decoration: InputDecoration(
                                     filled: true,
-                                    contentPadding:
-                                        EdgeInsets.symmetric(vertical: 8),
+                                    contentPadding: EdgeInsets.symmetric(
+                                      vertical: 8,
+                                    ),
                                     isDense: true,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(4),
-                                      borderSide: BorderSide.none,
+                                      borderRadius: BorderRadius.circular(16),
+                                      borderSide: BorderSide(
+                                        color: context.colorScheme.outlineVariant,
+                                      ),
                                     ),
                                   ),
                                   items:
@@ -121,8 +133,12 @@ class _FontSettingViewState extends State<FontSettingView> {
                                   alignment: Alignment.centerLeft,
                                   iconSize: 12,
                                   selectedItemBuilder: (context) => [
-                                    ...['Roboto', 'Lato', 'Quicksand', 'Inter']
-                                        .map(
+                                    ...[
+                                      'Roboto',
+                                      'Lato',
+                                      'Quicksand',
+                                      'Inter',
+                                    ].map(
                                       (e) => Text(
                                         e,
                                         maxLines: 1,
@@ -142,10 +158,16 @@ class _FontSettingViewState extends State<FontSettingView> {
                               flex: 2,
                               child: Slider(
                                 value: convertToPercentage(
-                                    defaultTextScale, .7, 1.7),
+                                  defaultTextScale,
+                                  .7,
+                                  1.7,
+                                ),
                                 onChanged: (value) {
-                                  defaultTextScale =
-                                      convertToValue(value, .7, 1.7);
+                                  defaultTextScale = convertToValue(
+                                    value,
+                                    .7,
+                                    1.7,
+                                  );
                                   setState(() {});
                                 },
                               ),
@@ -164,4 +186,3 @@ class _FontSettingViewState extends State<FontSettingView> {
     );
   }
 }
-

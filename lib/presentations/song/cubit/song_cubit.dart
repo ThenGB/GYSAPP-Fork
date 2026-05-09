@@ -36,9 +36,11 @@ class SongCubit extends HydratedCubit<SongState> {
   SongCubit(this.songRepository, this._assetService, this._midiEngine)
     : super(const SongState()) {
     _setupMidiStreams();
+    _midiEngine.setCacheMax(const SongState().preloadCacheMax);
     getData().then((_) async {
       await _midiEngine.initialize();
       await _midiEngine.changeSoundFont(state.soundFont);
+      _midiEngine.setCacheMax(state.preloadCacheMax);
       _preloadCurrentSongMidi();
     });
   }
@@ -85,9 +87,9 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> _preloadCurrentSongMidi() async {
     if (state.songs.isEmpty) return;
     _resetSongScopedPlaybackDefaults();
+    _preloadNearbySongMidi(state.pageIndex);
     final song = state.songs[state.pageIndex];
     await _loadMidiForSong(song, force: true);
-    _preloadNearbySongMidi(state.pageIndex);
   }
 
   Future<String?> _midiPathForSong(Song song) {
@@ -125,8 +127,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void _preloadNearbySongMidi(int index) {
+    if (!state.preloadEnabled) return;
     final queue = _playbackQueue();
-    for (final song in queue.preloadSongs) {
+    for (final song in queue.getPreloadSongs(state.preloadCount)) {
       _midiPathForSong(song).then((midiPath) {
         if (midiPath == null) return;
         final preset = _defaultPreloadSettingsFor(song);
@@ -282,6 +285,25 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(midiInstrument: program));
     _midiEngine.setInstrument(program ?? -1);
     _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void setPreloadEnabled(bool enabled) {
+    emit(state.copyWith(preloadEnabled: enabled));
+    if (enabled) {
+      _preloadNearbySongMidi(state.pageIndex);
+    }
+  }
+
+  void setPreloadCount(int count) {
+    final clamped = count.clamp(1, 5);
+    emit(state.copyWith(preloadCount: clamped));
+    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  void setPreloadCacheMax(int max) {
+    final clamped = max.clamp(4, 32);
+    _midiEngine.setCacheMax(clamped);
+    emit(state.copyWith(preloadCacheMax: clamped));
   }
 
   void resetPlaybackSettings() {
@@ -835,7 +857,6 @@ class SongCubit extends HydratedCubit<SongState> {
           isAudioLoading: false,
           isLoading: false,
           selectedSong: null,
-          showAudio: false,
           showChord: false,
           transposeStep: 0,
           originalFamilyChord: null,

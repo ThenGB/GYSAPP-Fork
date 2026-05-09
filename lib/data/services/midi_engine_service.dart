@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -51,9 +52,10 @@ class MidiPlaybackState {
 }
 
 class MidiEngineService extends ChangeNotifier {
-  static const int _maxCachedSources = 6;
+  static const int _defaultMaxCachedSources = 6;
 
   final LocalAssetService _assetService;
+  final String _cacheDir;
   final Map<String, Uint8List> _midiBytesCache = {};
   final Map<String, Uint8List> _soundFontBytesCache = {};
   final Map<String, AudioSource> _sourceCache = {};
@@ -62,7 +64,9 @@ class MidiEngineService extends ChangeNotifier {
   bool _initialized = false;
   bool _disposed = false;
   int _renderGeneration = 0;
+  int _pendingRenderCount = 0;
   Timer? _positionTimer;
+  int _maxCachedSources = _defaultMaxCachedSources;
 
   String _soundFont = defaultMidiSoundFont;
   String? _currentMidiPath;
@@ -85,7 +89,12 @@ class MidiEngineService extends ChangeNotifier {
   MidiPlaybackState get state => _state;
   bool get isInitialized => _initialized;
 
-  MidiEngineService(this._assetService);
+  MidiEngineService(this._assetService, {required String cacheDir})
+    : _cacheDir = cacheDir;
+
+  void setCacheMax(int max) {
+    _maxCachedSources = max.clamp(4, 32);
+  }
 
   Future<List<String>> getAvailableSoundFonts() {
     return _assetService.getAvailableSoundFonts();
@@ -111,6 +120,7 @@ class MidiEngineService extends ChangeNotifier {
   }) async {
     await initialize();
     final generation = ++_renderGeneration;
+    _pendingRenderCount++;
     final previousPosition = _state.currentSong == midiPath
         ? Duration(milliseconds: (_state.position * 1000).round())
         : Duration.zero;
@@ -143,7 +153,11 @@ class MidiEngineService extends ChangeNotifier {
             fallbackBpm: _settings.baseTempoBpm,
           );
       _settings = _settings.copyWith(baseTempoBpm: detectedBaseTempo);
-      final source = await _loadRenderedSource(midiPath, _settings);
+      final source = await _loadRenderedSource(
+        midiPath,
+        _settings,
+        emitProgress: true,
+      );
       if (_disposed || generation != _renderGeneration) return;
 
       _currentSource = source;
@@ -171,13 +185,24 @@ class MidiEngineService extends ChangeNotifier {
           _state.copyWith(isPlaying: false, isLoading: false, loadProgress: 0),
         );
       }
+    } finally {
+      _decrementPending();
+    }
+  }
+
+  void _decrementPending() {
+    _pendingRenderCount--;
+    if (_pendingRenderCount <= 0 && !_disposed) {
+      _pendingRenderCount = 0;
+      _setState(_state.copyWith(isLoading: false));
     }
   }
 
   Future<AudioSource> _loadRenderedSource(
     String midiPath,
-    MidiRenderSettings settings,
-  ) async {
+    MidiRenderSettings settings, {
+    bool emitProgress = false,
+  }) async {
     final cacheKey = '$midiPath|${settings.cacheKey}';
     final cachedSource = _sourceCache[cacheKey];
     if (cachedSource != null) {
@@ -185,10 +210,24 @@ class MidiEngineService extends ChangeNotifier {
       return cachedSource;
     }
 
-    _setState(_state.copyWith(loadProgress: 0.2));
+    final wavFile = File(_wavCachePath(cacheKey));
+    if (await wavFile.exists()) {
+      final wavBytes = await wavFile.readAsBytes();
+      final source = await SoLoud.instance.loadMem(
+        'midi-${cacheKey.hashCode}.wav',
+        wavBytes,
+        mode: LoadMode.memory,
+      );
+      _sourceCache[cacheKey] = source;
+      _touchCacheKey(cacheKey);
+      await _pruneSourceCache();
+      return source;
+    }
+
+    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.2));
     final midiBytes = await _loadMidiBytes(midiPath);
     final soundFontBytes = await _loadSoundFontBytes(settings.soundFont);
-    _setState(_state.copyWith(loadProgress: 0.35));
+    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.35));
 
     final rendered = await NativeMidiRenderer.render(
       midiBytes: midiBytes,
@@ -199,7 +238,10 @@ class MidiEngineService extends ChangeNotifier {
       _instruments = rendered.instruments;
       if (!_disposed) notifyListeners();
     }
-    _setState(_state.copyWith(loadProgress: 0.82));
+    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.82));
+
+    await _ensureCacheDir();
+    await wavFile.writeAsBytes(rendered.wavBytes);
 
     final source = await SoLoud.instance.loadMem(
       'midi-${cacheKey.hashCode}.wav',
@@ -210,6 +252,18 @@ class MidiEngineService extends ChangeNotifier {
     _touchCacheKey(cacheKey);
     await _pruneSourceCache();
     return source;
+  }
+
+  String _wavCachePath(String cacheKey) {
+    final safeKey = cacheKey.replaceAll(RegExp(r'[\\/:*?"<>|]'), '_');
+    return '$_cacheDir/$safeKey.wav';
+  }
+
+  Future<void> _ensureCacheDir() async {
+    final dir = Directory(_cacheDir);
+    if (!await dir.exists()) {
+      await dir.create(recursive: true);
+    }
   }
 
   Future<Uint8List> _loadMidiBytes(String assetPath) async {
@@ -473,6 +527,10 @@ class MidiEngineService extends ChangeNotifier {
       final source = _sourceCache.remove(cacheKey);
       if (source != null && source != _currentSource) {
         await SoLoud.instance.disposeSource(source);
+      }
+      final wavFile = File(_wavCachePath(cacheKey));
+      if (await wavFile.exists()) {
+        await wavFile.delete();
       }
     }
   }

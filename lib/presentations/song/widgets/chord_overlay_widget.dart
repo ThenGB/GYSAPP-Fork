@@ -24,11 +24,15 @@ class ChordOverlayWidget extends StatelessWidget {
 
     // Apply transpose
     final displayChords = transposeStep != 0
-        ? pageChords.map((c) => ChordData(
-            noteIdx: c.noteIdx,
-            chord: ChordService.transposeChord(c.chord, transposeStep),
-            page: c.page,
-          )).toList()
+        ? pageChords
+              .map(
+                (c) => ChordData(
+                  noteIdx: c.noteIdx,
+                  chord: ChordService.transposeChord(c.chord, transposeStep),
+                  page: c.page,
+                ),
+              )
+              .toList()
         : pageChords;
 
     return LayoutBuilder(
@@ -37,8 +41,14 @@ class ChordOverlayWidget extends StatelessWidget {
           children: displayChords.map((chord) {
             // Calculate position based on noteIdx (simplified positioning)
             // In a real implementation, this would need proper mapping to PDF coordinates
-            final top = _calculateTopPosition(chord.noteIdx, constraints.maxHeight);
-            final left = _calculateLeftPosition(chord.noteIdx, constraints.maxWidth);
+            final top = _calculateTopPosition(
+              chord.noteIdx,
+              constraints.maxHeight,
+            );
+            final left = _calculateLeftPosition(
+              chord.noteIdx,
+              constraints.maxWidth,
+            );
 
             return Positioned(
               top: top,
@@ -46,8 +56,10 @@ class ChordOverlayWidget extends StatelessWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.9),
-                  borderRadius: BorderRadius.circular(4),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.secondaryContainer.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(10),
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.1),
@@ -60,7 +72,7 @@ class ChordOverlayWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    color: Theme.of(context).colorScheme.onSecondaryContainer,
                   ),
                 ),
               ),
@@ -84,4 +96,3 @@ class ChordOverlayWidget extends StatelessWidget {
     return (col * (maxWidth / 5) + 20).clamp(20, maxWidth - 60);
   }
 }
-

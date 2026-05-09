@@ -16,20 +16,22 @@ class BibleAudioSettingView extends StatefulWidget {
   final double initialPitchRate;
   final double initialSpeedRate;
   final Function(Map<String, Map> voices, double pitch, double speed) onSave;
-  const BibleAudioSettingView(
-      {super.key,
-      required this.initialVoices,
-      required this.initialPitchRate,
-      required this.initialSpeedRate,
-      required this.onSave});
+  const BibleAudioSettingView({
+    super.key,
+    required this.initialVoices,
+    required this.initialPitchRate,
+    required this.initialSpeedRate,
+    required this.onSave,
+  });
 
   @override
   State<BibleAudioSettingView> createState() => _BibleAudioSettingViewState();
 }
 
 class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
-  FlutterTts? tts =
-      isTextToSpeechConfiguredForCurrentPlatform ? FlutterTts() : null;
+  FlutterTts? tts = isTextToSpeechConfiguredForCurrentPlatform
+      ? FlutterTts()
+      : null;
   List<String> availableTtsLang = [];
   List<Map> availableVoices = [];
 
@@ -46,8 +48,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   Future<void> speak(String sentence, String locale) async {
     final tts = this.tts;
     if (tts == null) {
-      try { Fluttertoast.cancel(); } catch (_) {}
-      try { Fluttertoast.showToast(msg: 'Not available'.tr()); } catch (_) {}
+      try {
+        Fluttertoast.cancel();
+      } catch (_) {}
+      try {
+        Fluttertoast.showToast(msg: 'Not available'.tr());
+      } catch (_) {}
       return;
     }
 
@@ -79,8 +85,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     try {
       await tts.speak(sentence);
     } catch (e) {
-      try { Fluttertoast.cancel(); } catch (_) {}
-      try { Fluttertoast.showToast(msg: Failure.fromError(e).message); } catch (_) {}
+      try {
+        Fluttertoast.cancel();
+      } catch (_) {}
+      try {
+        Fluttertoast.showToast(msg: Failure.fromError(e).message);
+      } catch (_) {}
     }
     langSpeaking = '';
     isSpeaking = false;
@@ -113,42 +123,57 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
       return;
     }
 
-    tts.getLanguages.then((value) {
-      try {
-        var supportedLangPrefixes = {'id': 'id-ID', 'en': 'en-US', 'zh': 'zh-CN'};
-        var values = (value as List<Object?>).cast<String>().toList();
-        var filtered = values
-            .where((element) =>
-                supportedLangPrefixes.containsKey(element) ||
-                supportedLangPrefixes.containsValue(element) ||
-                supportedLangPrefixes.containsKey(element.split('-').first) ||
-                supportedLangPrefixes.containsValue(element.split('-').first))
-            .toList();
-        if (filtered.isEmpty) {
-          filtered = values.where((element) {
-            var prefix = element.split('-').first;
-            return supportedLangPrefixes.containsKey(prefix);
-          }).toList();
-        }
-        availableTtsLang = List.from(filtered);
-      } catch (e) {
-        log('TTS getLanguages failed: $e', name: 'AudioSettings');
-      }
-      if (mounted) {
-        WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-          setState(() {});
+    tts.getLanguages
+        .then((value) {
+          try {
+            var supportedLangPrefixes = {
+              'id': 'id-ID',
+              'en': 'en-US',
+              'zh': 'zh-CN',
+            };
+            var values = (value as List<Object?>).cast<String>().toList();
+            var filtered = values
+                .where(
+                  (element) =>
+                      supportedLangPrefixes.containsKey(element) ||
+                      supportedLangPrefixes.containsValue(element) ||
+                      supportedLangPrefixes.containsKey(
+                        element.split('-').first,
+                      ) ||
+                      supportedLangPrefixes.containsValue(
+                        element.split('-').first,
+                      ),
+                )
+                .toList();
+            if (filtered.isEmpty) {
+              filtered = values.where((element) {
+                var prefix = element.split('-').first;
+                return supportedLangPrefixes.containsKey(prefix);
+              }).toList();
+            }
+            availableTtsLang = List.from(filtered);
+          } catch (e) {
+            log('TTS getLanguages failed: $e', name: 'AudioSettings');
+          }
+          if (mounted) {
+            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+              setState(() {});
+            });
+          }
+        })
+        .catchError((e) {
+          log('TTS getLanguages error: $e', name: 'AudioSettings');
         });
-      }
-    }).catchError((e) {
-      log('TTS getLanguages error: $e', name: 'AudioSettings');
-    });
     Future.microtask(() async {
       try {
         availableVoices = (await tts.getVoices as List<Object?>)
             .cast<Map>()
             .toList()
-            .map((e) => e.map(
-                (key, value) => MapEntry(key.toString(), value.toString())))
+            .map(
+              (e) => e.map(
+                (key, value) => MapEntry(key.toString(), value.toString()),
+              ),
+            )
             .toList();
       } catch (e) {
         log('TTS getVoices failed: $e', name: 'AudioSettings');
@@ -170,9 +195,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Audio Bible Config'.tr(),
+        shape: Border(
+          bottom: BorderSide(
+            color: context.colorScheme.secondaryContainer,
+          ),
         ),
+        title: Text('Audio Bible Config'.tr()),
       ),
       bottomNavigationBar: BottomAppBar(
         color: context.colorScheme.surface,
@@ -185,17 +213,20 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
           onPressed: () {
             context
                 .showConfirmation(
-                    'Are you sure want to save this preferences?'.tr())
+                  'Are you sure want to save this preferences?'.tr(),
+                )
                 .then((confirmed) {
-              router.maybePop();
-              try { Fluttertoast.cancel(); } catch (_) {}
-              try { Fluttertoast.showToast(msg: 'Saved'.tr()); } catch (_) {}
-              widget.onSave(voices, pitch, speed);
-            });
+                  router.maybePop();
+                  try {
+                    Fluttertoast.cancel();
+                  } catch (_) {}
+                  try {
+                    Fluttertoast.showToast(msg: 'Saved'.tr());
+                  } catch (_) {}
+                  widget.onSave(voices, pitch, speed);
+                });
           },
-          child: Text(
-            'Save'.tr(),
-          ),
+          child: Text('Save'.tr()),
         ),
       ),
       body: SingleChildScrollView(
@@ -219,12 +250,8 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    'tts_bahasa_placeholder'.tr(),
-                                  ),
-                                  SizedBox(
-                                    height: 4,
-                                  ),
+                                  Text('tts_bahasa_placeholder'.tr()),
+                                  SizedBox(height: 4),
                                   OverflowBar(
                                     // buttonAlignedDropdown: true,
                                     // layoutBehavior:
@@ -258,14 +285,13 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                                   voicesByLocale('id-ID')
                                                       .map((e) => e['name'])
                                                       .toList()
-                                                      .indexOf(voices['id-ID']
-                                                          ?['name']);
+                                                      .indexOf(
+                                                        voices['id-ID']?['name'],
+                                                      );
 
                                               return 'Voice ${index + 1}';
                                             }()),
-                                            SizedBox(
-                                              width: 4,
-                                            ),
+                                            SizedBox(width: 4),
                                             Icon(
                                               Icons.keyboard_arrow_down_rounded,
                                               size: 14,
@@ -278,23 +304,28 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                           elevation: 0,
                                           backgroundColor:
                                               isLangSpeaking('id-ID')
-                                                  ? context.colorScheme
-                                                      .primaryContainer
-                                                  : context.colorScheme.primary,
+                                              ? context
+                                                    .colorScheme
+                                                .secondaryContainer
+                                              : context.colorScheme.primary,
                                           foregroundColor:
                                               isLangSpeaking('id-ID')
-                                                  ? context.colorScheme
-                                                      .onPrimaryContainer
-                                                  : context
-                                                      .colorScheme.onPrimary,
+                                              ? context
+                                                    .colorScheme
+                                                .onSecondaryContainer
+                                              : context.colorScheme.onPrimary,
                                         ),
                                         onPressed: () {
-                                          speak('tts_bahasa_placeholder'.tr(),
-                                              'id-ID');
+                                          speak(
+                                            'tts_bahasa_placeholder'.tr(),
+                                            'id-ID',
+                                          );
                                         },
-                                        child: Text(isLangSpeaking('id-ID')
-                                            ? 'Stop'.tr()
-                                            : 'Speak'.tr()),
+                                        child: Text(
+                                          isLangSpeaking('id-ID')
+                                              ? 'Stop'.tr()
+                                              : 'Speak'.tr(),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -305,16 +336,20 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                           if (!availableTtsLang.contains('id-ID'))
                             Positioned.fill(
                               child: Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Container(
-                                      width: double.infinity,
-                                      padding: EdgeInsets.all(2),
-                                      color: Colors.red,
-                                      child: Text(
-                                        'Not available'.tr(),
-                                        style: TextStyle(color: Colors.white),
-                                      ))),
-                            )
+                                alignment: Alignment.centerLeft,
+                                child: Container(
+                                  width: double.infinity,
+                                  padding: EdgeInsets.all(2),
+                                  color: context.colorScheme.error,
+                                  child: Text(
+                                    'Not available'.tr(),
+                                    style: TextStyle(
+                                      color: context.colorScheme.onError,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -326,12 +361,8 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'tts_english_placeholder'.tr(),
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
+                          Text('tts_english_placeholder'.tr()),
+                          SizedBox(height: 4),
                           OverflowBar(
                             // buttonAlignedDropdown: true,
                             // layoutBehavior: ButtonBarLayoutBehavior.constrained,
@@ -350,9 +381,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                       .map(
                                         (e) => PopupMenuItem(
                                           value: e.value,
-                                          child: Text(
-                                            'Voice ${e.key + 1}',
-                                          ),
+                                          child: Text('Voice ${e.key + 1}'),
                                         ),
                                       )
                                       .toList();
@@ -368,9 +397,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
                                       return 'Voice ${index + 1}';
                                     }()),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
+                                    SizedBox(width: 4),
                                     Icon(
                                       Icons.keyboard_arrow_down_rounded,
                                       size: 14,
@@ -382,19 +409,23 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor: isLangSpeaking('en-US')
-                                      ? context.colorScheme.primaryContainer
+                                    ? context.colorScheme.secondaryContainer
                                       : context.colorScheme.primary,
                                   foregroundColor: isLangSpeaking('en-US')
-                                      ? context.colorScheme.onPrimaryContainer
+                                    ? context.colorScheme.onSecondaryContainer
                                       : context.colorScheme.onPrimary,
                                 ),
                                 onPressed: () {
                                   speak(
-                                      'tts_english_placeholder'.tr(), 'en-US');
+                                    'tts_english_placeholder'.tr(),
+                                    'en-US',
+                                  );
                                 },
-                                child: Text(isLangSpeaking('en-US')
-                                    ? 'Stop'.tr()
-                                    : 'Speak'.tr()),
+                                child: Text(
+                                  isLangSpeaking('en-US')
+                                      ? 'Stop'.tr()
+                                      : 'Speak'.tr(),
+                                ),
                               ),
                             ],
                           ),
@@ -409,12 +440,8 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'tts_chinese_placeholder'.tr(),
-                          ),
-                          SizedBox(
-                            height: 4,
-                          ),
+                          Text('tts_chinese_placeholder'.tr()),
+                          SizedBox(height: 4),
                           OverflowBar(
                             // buttonAlignedDropdown: true,
                             // layoutBehavior: ButtonBarLayoutBehavior.constrained,
@@ -433,9 +460,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                       .map(
                                         (e) => PopupMenuItem(
                                           value: e.value,
-                                          child: Text(
-                                            'Voice ${e.key + 1}',
-                                          ),
+                                          child: Text('Voice ${e.key + 1}'),
                                         ),
                                       )
                                       .toList();
@@ -451,9 +476,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
                                       return 'Voice ${index + 1}';
                                     }()),
-                                    SizedBox(
-                                      width: 4,
-                                    ),
+                                    SizedBox(width: 4),
                                     Icon(
                                       Icons.keyboard_arrow_down_rounded,
                                       size: 14,
@@ -465,19 +488,23 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                                 style: ElevatedButton.styleFrom(
                                   elevation: 0,
                                   backgroundColor: isLangSpeaking('zh-CN')
-                                      ? context.colorScheme.primaryContainer
+                                    ? context.colorScheme.secondaryContainer
                                       : context.colorScheme.primary,
                                   foregroundColor: isLangSpeaking('zh-CN')
-                                      ? context.colorScheme.onPrimaryContainer
+                                    ? context.colorScheme.onSecondaryContainer
                                       : context.colorScheme.onPrimary,
                                 ),
                                 onPressed: () {
                                   speak(
-                                      'tts_chinese_placeholder'.tr(), 'zh-CN');
+                                    'tts_chinese_placeholder'.tr(),
+                                    'zh-CN',
+                                  );
                                 },
-                                child: Text(isLangSpeaking('zh-CN')
-                                    ? 'Stop'.tr()
-                                    : 'Speak'.tr()),
+                                child: Text(
+                                  isLangSpeaking('zh-CN')
+                                      ? 'Stop'.tr()
+                                      : 'Speak'.tr(),
+                                ),
                               ),
                             ],
                           ),
@@ -522,4 +549,3 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     );
   }
 }
-

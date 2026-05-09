@@ -16,4 +16,3 @@ abstract class LiteraturePanduanState with _$LiteraturePanduanState {
   factory LiteraturePanduanState.fromJson(Map<String, dynamic> json) =>
       _$LiteraturePanduanStateFromJson(json);
 }
-

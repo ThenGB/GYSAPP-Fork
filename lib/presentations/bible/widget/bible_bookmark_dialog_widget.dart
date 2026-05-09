@@ -10,11 +10,12 @@ import '../../../domain/entity/bible_bookmark/bible_bookmark.dart';
 import '../bible.dart';
 
 class BibleBookmarkDialog extends StatefulWidget {
-  const BibleBookmarkDialog(
-      {super.key,
-      required this.cubit,
-      required this.onTap,
-      required this.onModified});
+  const BibleBookmarkDialog({
+    super.key,
+    required this.cubit,
+    required this.onTap,
+    required this.onModified,
+  });
   final BibleCubit cubit;
   final Function(Verse item) onTap;
 
@@ -36,8 +37,10 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
         if (bookmarks.length == modifiedBookmarks.length) {
           return true;
         }
-        return widget.onModified(bookmarks
-          ..retainWhere((element) => modifiedBookmarks.contains(element)));
+        return widget.onModified(
+          bookmarks
+            ..retainWhere((element) => modifiedBookmarks.contains(element)),
+        );
       },
       child: BlocProvider<BibleCubit>.value(
         value: widget.cubit,
@@ -58,9 +61,7 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
                     contentPadding: EdgeInsets.only(left: 16),
                     title: Text(
                       'Bookmarks'.tr(),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     trailing: CloseButton(),
                   ),
@@ -69,44 +70,45 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
                     child: Scrollbar(
                       child: SingleChildScrollView(
                         child: bookmarks.isEmpty
-                            ? ListTile(
-                                title: Text(
-                                  'Empty'.tr(),
-                                ),
-                              )
+                            ? ListTile(title: Text('Empty'.tr()))
                             : Column(
                                 children: bookmarks.reversed
-                                    .map((e) => FutureBuilder(
-                                          future: context
-                                              .read<BibleCubit>()
-                                              .getBibleTitle([e.verse],
-                                                  withVerse: !e.isBookmarkAll),
-                                          builder: (context, snapshot) =>
-                                              ListTile(
-                                            contentPadding:
-                                                EdgeInsets.only(left: 16),
-                                            trailing: IconButton(
-                                              onPressed: () {
-                                                if (modifiedBookmarks
-                                                    .contains(e)) {
-                                                  modifiedBookmarks.remove(e);
-                                                } else {
-                                                  modifiedBookmarks.add(e);
-                                                }
-                                                setState(() {});
-                                              },
-                                              icon: Icon(modifiedBookmarks
-                                                      .contains(e)
+                                    .map(
+                                      (e) => FutureBuilder(
+                                        future: context
+                                            .read<BibleCubit>()
+                                            .getBibleTitle([
+                                              e.verse,
+                                            ], withVerse: !e.isBookmarkAll),
+                                        builder: (context, snapshot) => ListTile(
+                                          contentPadding: EdgeInsets.only(
+                                            left: 16,
+                                          ),
+                                          trailing: IconButton(
+                                            onPressed: () {
+                                              if (modifiedBookmarks.contains(
+                                                e,
+                                              )) {
+                                                modifiedBookmarks.remove(e);
+                                              } else {
+                                                modifiedBookmarks.add(e);
+                                              }
+                                              setState(() {});
+                                            },
+                                            icon: Icon(
+                                              modifiedBookmarks.contains(e)
                                                   ? Icons.bookmark
                                                   : Icons
-                                                      .bookmark_outline_rounded),
+                                                        .bookmark_outline_rounded,
                                             ),
-                                            onTap: () async {
-                                              widget.onTap(e.verse);
-                                            },
-                                            title: Text(snapshot.data ?? ''),
                                           ),
-                                        ))
+                                          onTap: () async {
+                                            widget.onTap(e.verse);
+                                          },
+                                          title: Text(snapshot.data ?? ''),
+                                        ),
+                                      ),
+                                    )
                                     .toList(),
                               ),
                       ),
@@ -121,4 +123,3 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
     );
   }
 }
-

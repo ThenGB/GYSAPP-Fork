@@ -17,13 +17,14 @@ class BibleListView extends StatefulWidget {
   final List<BibleBook> books;
   final Future<List<Verse>> Function(int? bookId, int? chapterId) getBibles;
   final Function(Verse newBible) onSelected;
-  const BibleListView(
-      {super.key,
-      required this.books,
-      required this.getBibles,
-      required this.onSelected,
-      required this.textScale,
-      required this.bibleCode});
+  const BibleListView({
+    super.key,
+    required this.books,
+    required this.getBibles,
+    required this.onSelected,
+    required this.textScale,
+    required this.bibleCode,
+  });
 
   @override
   State<BibleListView> createState() => _BibleListViewState();
@@ -59,7 +60,8 @@ class _BibleListViewState extends State<BibleListView> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-              '${selectedBook?.longName ?? 'Search'.tr()} ${chapter?.toString() ?? ''}'),
+            '${selectedBook?.longName ?? 'Search'.tr()} ${chapter?.toString() ?? ''}',
+          ),
           actions: [
             AnimatedSize(
               duration: kThemeAnimationDuration,
@@ -76,19 +78,19 @@ class _BibleListViewState extends State<BibleListView> {
                             : Icons.grid_view_outlined,
                       ),
                     ),
-            )
+            ),
           ],
         ),
         body: PageTransitionSwitcher(
           duration: const Duration(milliseconds: 500),
           transitionBuilder: (child, primaryAnimation, secondaryAnimation) =>
               SharedAxisTransition(
-            animation: primaryAnimation,
-            secondaryAnimation: secondaryAnimation,
-            fillColor: context.colorScheme.surface,
-            transitionType: SharedAxisTransitionType.vertical,
-            child: child,
-          ),
+                animation: primaryAnimation,
+                secondaryAnimation: secondaryAnimation,
+                fillColor: context.colorScheme.surface,
+                transitionType: SharedAxisTransitionType.vertical,
+                child: child,
+              ),
           child: MediaQuery(
             data: context.mediaQuery.copyWith(
               textScaler: TextScaler.linear(widget.textScale),
@@ -110,24 +112,20 @@ class _BibleListViewState extends State<BibleListView> {
                           Padding(
                             padding: EdgeInsets.only(bottom: 8),
                             child: Text(
-                              snapshot.data?['Perjanjian lama']
-                                      ?[widget.bibleCode] ??
+                              snapshot.data?['Perjanjian lama']?[widget
+                                      .bibleCode] ??
                                   'Perjanjian lama'.tr(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                           buildGridList(widget.books.sublist(0, 39)),
                           Padding(
                             padding: EdgeInsets.only(bottom: 8, top: 12),
                             child: Text(
-                              snapshot.data?['Perjanjian baru']
-                                      ?[widget.bibleCode] ??
+                              snapshot.data?['Perjanjian baru']?[widget
+                                      .bibleCode] ??
                                   'Perjanjian baru'.tr(),
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                           ),
                           buildGridList(widget.books.sublist(39)),
@@ -143,35 +141,36 @@ class _BibleListViewState extends State<BibleListView> {
                     child: LayoutBuilder(
                       builder: (context, constraints) => Wrap(
                         children: [
-                          ...List.generate(selectedBook?.chapterCount ?? 0,
-                                  (index) => index).asMap().entries.map(
-                                (e) => Container(
-                                  padding: const EdgeInsets.all(2),
-                                  width: (constraints.maxWidth / 5),
-                                  height: (constraints.maxWidth / 8) *
-                                      widget.textScale,
-                                  child: Material(
-                                    borderRadius: BorderRadius.circular(4),
-                                    color:
-                                        context.colorScheme.secondaryContainer,
-                                    child: InkWell(
-                                      onTap: () {
-                                        chapter = e.value + 1;
-                                        pageIndex++;
-                                        setState(() {});
-                                      },
-                                      child: Container(
-                                        padding: const EdgeInsets.all(4),
-                                        alignment: Alignment.center,
-                                        child: Text(
-                                          (e.value + 1).toString(),
-                                          textAlign: TextAlign.center,
-                                        ),
-                                      ),
+                          ...List.generate(
+                            selectedBook?.chapterCount ?? 0,
+                            (index) => index,
+                          ).asMap().entries.map(
+                            (e) => Container(
+                              padding: const EdgeInsets.all(2),
+                              width: (constraints.maxWidth / 5),
+                              height:
+                                  (constraints.maxWidth / 8) * widget.textScale,
+                              child: Material(
+                                borderRadius: BorderRadius.circular(12),
+                                color: context.colorScheme.secondaryContainer,
+                                child: InkWell(
+                                  onTap: () {
+                                    chapter = e.value + 1;
+                                    pageIndex++;
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.all(4),
+                                    alignment: Alignment.center,
+                                    child: Text(
+                                      (e.value + 1).toString(),
+                                      textAlign: TextAlign.center,
                                     ),
                                   ),
                                 ),
-                              )
+                              ),
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -189,37 +188,37 @@ class _BibleListViewState extends State<BibleListView> {
                           child: Wrap(
                             children: [
                               ...List.generate(
-                                      snapshot.data!.length, (index) => index)
-                                  .asMap()
-                                  .entries
-                                  .map(
-                                    (e) => Container(
-                                      padding: const EdgeInsets.all(2),
-                                      width: (constraints.maxWidth / 5),
-                                      height: (constraints.maxWidth / 8) *
-                                          widget.textScale,
-                                      child: Material(
-                                        borderRadius: BorderRadius.circular(4),
-                                        color: context
-                                            .colorScheme.secondaryContainer,
-                                        child: InkWell(
-                                          onTap: () {
-                                            allowForceClose = true;
-                                            widget.onSelected(
-                                                snapshot.data![e.key]);
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.all(4),
-                                            alignment: Alignment.center,
-                                            child: Text(
-                                              (e.value + 1).toString(),
-                                              textAlign: TextAlign.center,
-                                            ),
-                                          ),
+                                snapshot.data!.length,
+                                (index) => index,
+                              ).asMap().entries.map(
+                                (e) => Container(
+                                  padding: const EdgeInsets.all(2),
+                                  width: (constraints.maxWidth / 5),
+                                  height:
+                                      (constraints.maxWidth / 8) *
+                                      widget.textScale,
+                                  child: Material(
+                                    borderRadius: BorderRadius.circular(12),
+                                    color: context.colorScheme.secondaryContainer,
+                                    child: InkWell(
+                                      onTap: () {
+                                        allowForceClose = true;
+                                        widget.onSelected(
+                                          snapshot.data![e.key],
+                                        );
+                                      },
+                                      child: Container(
+                                        padding: const EdgeInsets.all(4),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          (e.value + 1).toString(),
+                                          textAlign: TextAlign.center,
                                         ),
                                       ),
                                     ),
-                                  )
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                         );
@@ -240,42 +239,42 @@ class _BibleListViewState extends State<BibleListView> {
       builder: (context, constraints) => Wrap(
         children: [
           ...data.asMap().entries.map(
-                (e) => AnimatedContainer(
-                  duration: kThemeAnimationDuration,
-                  padding: const EdgeInsets.all(2),
-                  width: isGridViewMode
-                      ? (constraints.maxWidth / 6)
-                      : constraints.maxWidth,
-                  height: (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
-                      widget.textScale,
-                  child: Material(
-                    borderRadius: BorderRadius.circular(4),
-                    color: context.colorScheme.secondaryContainer,
-                    child: InkWell(
-                      onTap: () {
-                        selectedBook = e.value;
-                        pageIndex++;
-                        setState(() {});
-                      },
-                      child: Container(
-                        padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
-                        alignment: isGridViewMode
-                            ? Alignment.center
-                            : Alignment.centerLeft,
-                        child: Text(
-                          isGridViewMode
-                              ? (e.value.shortName ?? '')
-                              : (e.value.longName ?? ''),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
+            (e) => AnimatedContainer(
+              duration: kThemeAnimationDuration,
+              padding: const EdgeInsets.all(2),
+              width: isGridViewMode
+                  ? (constraints.maxWidth / 6)
+                  : constraints.maxWidth,
+              height:
+                  (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
+                  widget.textScale,
+              child: Material(
+                borderRadius: BorderRadius.circular(12),
+                color: context.colorScheme.secondaryContainer,
+                child: InkWell(
+                  onTap: () {
+                    selectedBook = e.value;
+                    pageIndex++;
+                    setState(() {});
+                  },
+                  child: Container(
+                    padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
+                    alignment: isGridViewMode
+                        ? Alignment.center
+                        : Alignment.centerLeft,
+                    child: Text(
+                      isGridViewMode
+                          ? (e.value.shortName ?? '')
+                          : (e.value.longName ?? ''),
+                      textAlign: TextAlign.center,
                     ),
                   ),
                 ),
-              )
+              ),
+            ),
+          ),
         ],
       ),
     );
   }
 }
-

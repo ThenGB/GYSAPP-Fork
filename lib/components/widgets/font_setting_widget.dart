@@ -165,7 +165,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                   .apply(
                                     color: e == widget.selectedFont
                                         ? context.colorScheme.primary
-                                        : context.theme.disabledColor,
+                                    : context.colorScheme.onSurfaceVariant,
                                   )
                                   .copyWith(
                                     fontWeight: e == widget.selectedFont
@@ -257,10 +257,10 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                               ),
                               ListTile(
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(4),
+                                  borderRadius: BorderRadius.circular(12),
                                   side: BorderSide(
                                       width: 1,
-                                      color: context.theme.disabledColor),
+                                      color: context.colorScheme.outlineVariant),
                                 ),
                                 titleTextStyle:
                                     context.textTheme.bodyMedium?.copyWith(
@@ -279,7 +279,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                                 ),
                                 trailing: Icon(
                                   Icons.keyboard_arrow_right,
-                                  color: context.theme.disabledColor,
+                                  color: context.colorScheme.onSurfaceVariant,
                                 ),
                                 onTap: () {
                                   setState(() {

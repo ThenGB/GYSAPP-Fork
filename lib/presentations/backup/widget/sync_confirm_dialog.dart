@@ -35,13 +35,13 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
       keys: [widgetKey],
       callback: (result) {
         childHeight.value = result;
-        Future.delayed(
-          kThemeAnimationDuration,
-          () {
-            controller.animateTo(childHeight.value,
-                duration: kThemeAnimationDuration, curve: Curves.ease);
-          },
-        );
+        Future.delayed(kThemeAnimationDuration, () {
+          controller.animateTo(
+            childHeight.value,
+            duration: kThemeAnimationDuration,
+            curve: Curves.ease,
+          );
+        });
       },
     );
   }
@@ -85,21 +85,14 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
                   Text(
                     'Are you sure want to sync now?'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
-                    ),
+                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
                   ),
-                  SizedBox(
-                    height: 12,
-                  ),
+                  SizedBox(height: 12),
                   Text(
                     'Your current data at local will be overriden'.tr(),
                     textAlign: TextAlign.center,
                   ),
-                  SizedBox(
-                    height: 48,
-                  ),
+                  SizedBox(height: 48),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -111,13 +104,9 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
                       router.maybePop();
                       widget.onConfirmed();
                     },
-                    child: Text(
-                      'Sync now'.tr(),
-                    ),
+                    child: Text('Sync now'.tr()),
                   ),
-                  SizedBox(
-                    height: 16,
-                  )
+                  SizedBox(height: 16),
                 ],
               ),
             ),
@@ -127,4 +116,3 @@ class _SyncConfirmDialogState extends State<SyncConfirmDialog> {
     );
   }
 }
-

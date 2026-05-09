@@ -26,7 +26,7 @@ void main() {
           shuffleIndex: const [],
         );
 
-        expect(queue.preloadSongs, [kr001, kr002, kr003]);
+        expect(queue.getPreloadSongs(1), [kr002, kr001, kr003]);
         expect(queue.nextSong, kr003);
       },
     );
@@ -51,7 +51,7 @@ void main() {
         shuffleIndex: const [],
       );
 
-      expect(queue.preloadSongs, [kr002, mdr001]);
+      expect(queue.getPreloadSongs(1), [kr002, mdr001]);
       expect(queue.nextSong, mdr001);
       expect(queue.nextIndexInBook, 0);
       expect(queue.nextBookCode, 'MDR');
@@ -93,7 +93,7 @@ void main() {
         shuffleIndex: const [2, 0, 1],
       );
 
-      expect(queue.preloadSongs, [kr003, kr001, kr002]);
+      expect(queue.getPreloadSongs(1), [kr001, kr003, kr002]);
       expect(queue.nextSong, kr002);
     });
 
@@ -132,7 +132,7 @@ void main() {
         shuffleIndex: const [2, 0, 1],
       );
 
-      expect(queue.preloadSongs, [kr003, kr001, kr002]);
+      expect(queue.getPreloadSongs(1), [kr001, kr003, kr002]);
       expect(queue.nextSong, kr002);
     });
   });
