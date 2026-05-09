@@ -9,4 +9,21 @@ void main() {
 
     expect(labels, ['Dashboard', 'Bible', 'Hymnal', 'Beliefs', 'Settings']);
   });
+
+  test(
+    'dashboard mini player is an overlay instead of reserved content space',
+    () {
+      expect(kDashboardExtendsBodyForMiniPlayerOverlay, isTrue);
+    },
+  );
+
+  test(
+    'dashboard collapsed mini player stays docked instead of jumping upward',
+    () {
+      expect(
+        dashboardMiniPlayerBottomOffset(isExpanded: false),
+        dashboardMiniPlayerBottomOffset(isExpanded: true),
+      );
+    },
+  );
 }

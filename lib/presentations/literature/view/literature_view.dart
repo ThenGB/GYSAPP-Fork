@@ -29,7 +29,7 @@ class _LiteratureViewState extends State<LiteratureView> {
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
         title: const Text('Kidung Rohani'),
         centerTitle: true,
@@ -53,7 +53,7 @@ class _LiteratureViewState extends State<LiteratureView> {
                   width: 48,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: context.colorScheme.secondaryContainer,
+                    color: context.colorScheme.outlineVariant,
                     borderRadius: BorderRadius.circular(999),
                   ),
                 ),

@@ -28,9 +28,9 @@ ThemeData defaultTheme(
       ),
       surfaceTintColor: Colors.transparent,
       scrolledUnderElevation: 0,
-      shadowColor: colorScheme.secondary.withValues(alpha: 0.28),
+      shadowColor: colorScheme.primary.withValues(alpha: 0.18),
       shape: Border(
-        bottom: BorderSide(color: colorScheme.secondaryContainer, width: 1),
+        bottom: BorderSide(color: colorScheme.outlineVariant, width: 1),
       ),
       titleTextStyle: TextStyle(
         fontFamily: _hymnalHeadingFont,
@@ -45,21 +45,31 @@ ThemeData defaultTheme(
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(18),
+        side: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.72),
+        ),
       ),
     ),
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: colorScheme.primary,
         foregroundColor: colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+        textStyle: const TextStyle(
+          fontFamily: _hymnalUiFont,
+          fontSize: 16,
+          fontWeight: FontWeight.w700,
+          height: 1.3,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: OutlinedButton.styleFrom(
         foregroundColor: colorScheme.primary,
-        side: BorderSide(color: colorScheme.secondary),
+        side: BorderSide(color: colorScheme.secondary.withValues(alpha: 0.68)),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ),
     ),
@@ -177,7 +187,7 @@ ThemeData defaultTheme(
         borderSide: BorderSide(color: colorScheme.outlineVariant),
       ),
       focusedBorder: UnderlineInputBorder(
-        borderSide: BorderSide(color: colorScheme.secondary, width: 1.5),
+        borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       contentPadding: const EdgeInsets.symmetric(horizontal: 2, vertical: 14),
       labelStyle: TextStyle(
@@ -190,16 +200,17 @@ ThemeData defaultTheme(
         fontFamily: _hymnalHeadingFont,
         fontWeight: FontWeight.w600,
         fontSize: 12,
-        color: colorScheme.secondary,
+        color: colorScheme.primary,
       ),
     ),
     listTileTheme: ListTileThemeData(
       iconColor: colorScheme.primary,
       textColor: colorScheme.onSurface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ),
     bottomNavigationBarTheme: BottomNavigationBarThemeData(
-      backgroundColor: colorScheme.surface.withValues(alpha: 0.92),
+      backgroundColor: colorScheme.surfaceContainerHigh.withValues(alpha: 0.94),
       selectedItemColor: colorScheme.primary,
       unselectedItemColor: colorScheme.onSurface.withValues(alpha: 0.58),
       elevation: 0,
@@ -220,19 +231,20 @@ ThemeData defaultTheme(
     dividerTheme: DividerThemeData(
       color: colorScheme.outlineVariant.withValues(alpha: 0.55),
       thickness: 1,
-      space: 1,
+      space: 0,
     ),
     iconTheme: IconThemeData(color: colorScheme.primary),
     useMaterial3: true,
     sliderTheme: SliderThemeData(
       activeTrackColor: colorScheme.primary,
-      inactiveTrackColor: colorScheme.primary.withValues(alpha: 0.18),
+      inactiveTrackColor: colorScheme.primary.withValues(alpha: 0.2),
       thumbColor: colorScheme.primary,
+      trackHeight: 4,
     ),
     scaffoldBackgroundColor: colorScheme.surface,
     colorScheme: colorScheme,
     dividerColor: colorScheme.outlineVariant.withValues(alpha: 0.55),
     brightness: Brightness.light,
-    visualDensity: VisualDensity.compact,
+    visualDensity: VisualDensity.standard,
   );
 }

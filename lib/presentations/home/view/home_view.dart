@@ -797,7 +797,7 @@ class _HomeHeaderState extends State<HomeHeader> {
         color: context.colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: context.colorScheme.secondaryContainer,
+            color: context.colorScheme.outlineVariant,
             width: 0.8,
           ),
         ),

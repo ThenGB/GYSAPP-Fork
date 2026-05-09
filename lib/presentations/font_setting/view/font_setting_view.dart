@@ -31,7 +31,7 @@ class _FontSettingViewState extends State<FontSettingView> {
         backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
           shape: Border(
-            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
           title: const Text('Kidung Rohani'),
           centerTitle: true,

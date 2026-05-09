@@ -196,7 +196,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     return Scaffold(
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
         title: Text('Audio Bible Config'.tr()),
       ),

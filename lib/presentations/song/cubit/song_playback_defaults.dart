@@ -82,6 +82,20 @@ class SongPlaybackDefaults {
     );
   }
 
+  SongPlaybackDefaults preloadBaseline({
+    required bool preferNaturalChords,
+    required String? familyChord,
+    required String? pdfKey,
+  }) {
+    final reset = resetForSong(tempoBpm: tempoBpm);
+    if (!preferNaturalChords) return reset;
+    return reset.resolveChordBaseline(
+      familyChord: familyChord,
+      pdfKey: pdfKey,
+      preferNaturalChords: true,
+    );
+  }
+
   String activeKeyLabel({
     String accidentalMode = ChordService.accidentalSharp,
   }) {

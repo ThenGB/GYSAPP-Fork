@@ -1,7 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -52,7 +50,6 @@ class _BibleViewState extends State<BibleView> {
       (index) => Area(min: .3, flex: .5, data: index == 0 ? 'atas' : 'bawah'),
     );
 
-    log(splitController.areas.map((e) => e.size).toString(), name: 'Areas');
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {});
       if (!value) {
@@ -104,7 +101,6 @@ class _BibleViewState extends State<BibleView> {
             ? context.read<BibleCubit>().verseKeys2
             : context.read<BibleCubit>().verseKeys;
 
-        log(verseIndex.toString(), name: 'Scroll to');
         RenderBox? verseBox =
             verseKeys[verseIndex].currentContext?.findRenderObject()
                 as RenderBox?;
@@ -693,7 +689,7 @@ class _BibleViewState extends State<BibleView> {
             automaticallyImplyLeading: false,
             centerTitle: true,
             shape: Border(
-              bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+              bottom: BorderSide(color: context.colorScheme.outlineVariant),
             ),
             leading: IconButton(
               tooltip: 'Menu',

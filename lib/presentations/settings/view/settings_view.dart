@@ -28,7 +28,7 @@ class SettingsView extends StatelessWidget {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           shape: Border(
-            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
           leading: IconButton(
             tooltip: 'Menu',
@@ -52,7 +52,7 @@ class SettingsView extends StatelessWidget {
                     color: context.colorScheme.surfaceContainerLowest,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: context.colorScheme.secondaryContainer,
+                      color: context.colorScheme.outlineVariant,
                     ),
                   ),
                   child: Row(
@@ -64,7 +64,7 @@ class SettingsView extends StatelessWidget {
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
                           border: Border.all(
-                            color: context.colorScheme.secondaryContainer,
+                            color: context.colorScheme.outlineVariant,
                             width: 1.5,
                           ),
                           boxShadow: [
@@ -692,7 +692,7 @@ class _SettingsHeader extends StatelessWidget {
             width: 52,
             height: 4,
             decoration: BoxDecoration(
-              color: context.colorScheme.secondaryContainer,
+              color: context.colorScheme.outlineVariant,
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -848,7 +848,7 @@ class _SongSettingsSection extends StatelessWidget {
             color: context.colorScheme.surfaceContainerLowest,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(18),
-              side: BorderSide(color: context.colorScheme.secondaryContainer),
+              side: BorderSide(color: context.colorScheme.outlineVariant),
             ),
             clipBehavior: Clip.antiAlias,
             child: Column(

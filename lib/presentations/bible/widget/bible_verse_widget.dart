@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
@@ -420,8 +418,6 @@ class VerseWidgetState extends State<VerseWidget>
                                   //   text: sentence,
                                   //   recognizer: TapGestureRecognizer()
                                   //     ..onTap = () async {
-                                  //       log('Onselect');
-
                                   //       context
                                   //           .read<BibleCubit>()
                                   //           .selectBible(widget.verse);
@@ -549,8 +545,6 @@ class VerseWidgetState extends State<VerseWidget>
     int currentIndex = 0;
     var recognizer = TapGestureRecognizer()
       ..onTap = () {
-        log('Onselect');
-
         context.read<BibleCubit>().selectBible(widget.verse);
         if (widget.selectedVerse.isEmpty) {
           var terlalubawah =

@@ -67,7 +67,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
       ),
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
         title: const Text('Kidung Rohani'),
         centerTitle: true,

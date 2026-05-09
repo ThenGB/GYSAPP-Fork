@@ -1,7 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
-import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
@@ -102,7 +101,7 @@ class _FaithViewState extends State<FaithView> {
           title: const Text('Kidung Rohani'),
           automaticallyImplyLeading: false,
           shape: Border(
-            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
           leading: IconButton(
             tooltip: 'Menu',
@@ -214,7 +213,6 @@ class _FaithViewState extends State<FaithView> {
                   Expanded(
                     child: Listener(
                       onPointerUp: (event) {
-                        log(event.pointer.toString());
                         touches.remove(event.pointer);
                         if (touches.length <= 1) {
                           if (onScaling) {
@@ -225,7 +223,6 @@ class _FaithViewState extends State<FaithView> {
                         }
                       },
                       onPointerDown: (event) {
-                        log(event.pointer.toString());
                         touches.add(event.pointer);
                         if (touches.length > 1) {
                           if (!onScaling) {
@@ -236,7 +233,6 @@ class _FaithViewState extends State<FaithView> {
                         }
                       },
                       onPointerCancel: (event) {
-                        log(event.pointer.toString());
                         touches.remove(event.pointer);
                         if (touches.length <= 1) {
                           if (onScaling) {
@@ -513,7 +509,7 @@ class _FaithHeader extends StatelessWidget {
             width: 48,
             height: 4,
             decoration: BoxDecoration(
-              color: context.colorScheme.secondaryContainer,
+              color: context.colorScheme.outlineVariant,
               borderRadius: BorderRadius.circular(999),
             ),
           ),
@@ -568,7 +564,7 @@ class _FaithPdfPill extends StatelessWidget {
         child: Container(
           padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           decoration: BoxDecoration(
-            color: context.colorScheme.secondaryContainer,
+            color: context.colorScheme.outlineVariant,
             borderRadius: BorderRadius.circular(100),
             border: Border.all(color: context.colorScheme.secondary),
           ),
@@ -646,7 +642,7 @@ class SelectedFaithMenu extends StatelessWidget {
       padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
       decoration: BoxDecoration(
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border.all(color: context.colorScheme.secondaryContainer),
+        border: Border.all(color: context.colorScheme.outlineVariant),
         boxShadow: [
           BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
         ],
@@ -681,7 +677,7 @@ class SelectedFaithMenu extends StatelessWidget {
               if (indexes.length == 1) ...[
                 TextButton(
                   style: TextButton.styleFrom(
-                    backgroundColor: context.colorScheme.secondaryContainer,
+                    backgroundColor: context.colorScheme.outlineVariant,
                     foregroundColor: context.colorScheme.onSecondaryContainer,
                   ),
                   onPressed: () {
@@ -708,7 +704,7 @@ class SelectedFaithMenu extends StatelessWidget {
               ],
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: context.colorScheme.secondaryContainer,
+                  backgroundColor: context.colorScheme.outlineVariant,
                   foregroundColor: context.colorScheme.onSecondaryContainer,
                 ),
                 onPressed: () async {
@@ -732,7 +728,7 @@ class SelectedFaithMenu extends StatelessWidget {
               SizedBox(width: 8),
               TextButton(
                 style: TextButton.styleFrom(
-                  backgroundColor: context.colorScheme.secondaryContainer,
+                  backgroundColor: context.colorScheme.outlineVariant,
                   foregroundColor: context.colorScheme.onSecondaryContainer,
                 ),
                 onPressed: () async {
@@ -887,7 +883,7 @@ class _CustomLoadingWidgetState extends State<CustomLoadingWidget> {
                   ? context.colorScheme.secondaryContainer
                   : context.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: context.colorScheme.secondaryContainer),
+              border: Border.all(color: context.colorScheme.outlineVariant),
             ),
             child: Text(
               widget.text + (widget.isLoaded ? '  ' : ''),

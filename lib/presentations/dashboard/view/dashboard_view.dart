@@ -64,6 +64,12 @@ const dashboardNavigationDestinations = [
 ];
 
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
+const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
+const double kDashboardMiniPlayerBottomOffset = 78;
+
+double dashboardMiniPlayerBottomOffset({required bool isExpanded}) {
+  return kDashboardMiniPlayerBottomOffset;
+}
 
 void openDashboardDrawer() {
   dashboardScaffoldKey.currentState?.openDrawer();
@@ -218,6 +224,7 @@ class _DashboardViewState extends State<DashboardView> {
               child: AutoTabsScaffold(
                 scaffoldKey: dashboardScaffoldKey,
                 backgroundColor: context.colorScheme.surface,
+                extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
                 drawer: const _DashboardDrawer(),
                 routes: pages.map((e) => e.page).toList(),
                 transitionBuilder: (context, child, animation) {
@@ -300,8 +307,9 @@ class _DashboardViewState extends State<DashboardView> {
                                       showGlobalPlayer &&
                                       !isSongTab &&
                                       _globalMidiExpanded;
-                                  final playerHeight = showGlobalPlayer
-                                      ? (effectiveExpanded ? 186.0 : 64.0)
+                                  final playerHeight =
+                                      showGlobalPlayer && !isSongTab
+                                      ? (effectiveExpanded ? 208.0 : 74.0)
                                       : 0.0;
                                   final size = 68.0;
                                   return PlayAnimationBuilder(
@@ -330,7 +338,11 @@ class _DashboardViewState extends State<DashboardView> {
                                                   Positioned(
                                                     left: 0,
                                                     right: 0,
-                                                    bottom: 62,
+                                                    bottom:
+                                                        dashboardMiniPlayerBottomOffset(
+                                                          isExpanded:
+                                                              effectiveExpanded,
+                                                        ),
                                                     child: _DashboardMidiPlayer(
                                                       songState: songState,
                                                       isExpanded:
@@ -394,15 +406,39 @@ class _DashboardMidiPlayer extends StatelessWidget {
       animation: cubit.midiEngine,
       builder: (context, _) {
         final midiState = cubit.midiEngine.state;
+        if (!isExpanded) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: SizedBox(
+                width: 52,
+                height: 52,
+                child: FilledButton(
+                  onPressed: () => onExpandedChanged(true),
+                  style: FilledButton.styleFrom(
+                    padding: EdgeInsets.zero,
+                    backgroundColor: colors.primary,
+                    foregroundColor: colors.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(26),
+                    ),
+                  ),
+                  child: const Icon(Icons.music_note_rounded, size: 22),
+                ),
+              ),
+            ),
+          );
+        }
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
           child: Container(
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
               color: colors.surfaceContainerHighest,
-              borderRadius: BorderRadius.vertical(
-                top: const Radius.circular(16),
-                bottom: Radius.circular(isExpanded ? 12 : 24),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(16),
+                bottom: Radius.circular(12),
               ),
               border: Border.all(
                 color: colors.outlineVariant.withValues(alpha: 0.75),
@@ -419,7 +455,7 @@ class _DashboardMidiPlayer extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 InkWell(
-                  onTap: () => onExpandedChanged(!isExpanded),
+                  onTap: () => onExpandedChanged(false),
                   child: Container(
                     color: colors.primary,
                     width: double.infinity,
@@ -428,7 +464,7 @@ class _DashboardMidiPlayer extends StatelessWidget {
                       children: [
                         Icon(
                           Icons.music_note_rounded,
-                          size: 15,
+                          size: 16,
                           color: colors.onPrimary,
                         ),
                         const SizedBox(width: 8),
@@ -446,166 +482,158 @@ class _DashboardMidiPlayer extends StatelessWidget {
                             ),
                           ),
                         ),
-                        AnimatedRotation(
-                          turns: isExpanded ? 0 : 0.5,
-                          duration: kThemeAnimationDuration,
-                          child: Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: colors.onPrimary,
-                            size: 22,
-                          ),
+                        Icon(
+                          Icons.keyboard_arrow_down_rounded,
+                          color: colors.onPrimary,
+                          size: 22,
                         ),
                       ],
                     ),
                   ),
                 ),
-                if (isExpanded)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                    child: Column(
-                      children: [
-                        Row(
-                          children: [
-                            SizedBox(
-                              width: 44,
-                              height: 44,
-                              child: FilledButton(
-                                onPressed: songState.isAudioLoading
-                                    ? null
-                                    : cubit.togglePlayPause,
-                                style: FilledButton.styleFrom(
-                                  shape: const CircleBorder(),
-                                  padding: EdgeInsets.zero,
-                                  backgroundColor: colors.primary,
-                                ),
-                                child: songState.isAudioLoading
-                                    ? SizedBox(
-                                        width: 16,
-                                        height: 16,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          valueColor: AlwaysStoppedAnimation(
-                                            colors.onPrimary,
-                                          ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          SizedBox(
+                            width: 44,
+                            height: 44,
+                            child: FilledButton(
+                              onPressed: songState.isAudioLoading
+                                  ? null
+                                  : cubit.togglePlayPause,
+                              style: FilledButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding: EdgeInsets.zero,
+                                backgroundColor: colors.primary,
+                              ),
+                              child: songState.isAudioLoading
+                                  ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          colors.onPrimary,
                                         ),
-                                      )
-                                    : Icon(
-                                        midiState.isPlaying
-                                            ? Icons.pause_rounded
-                                            : Icons.play_arrow_rounded,
-                                        color: colors.onPrimary,
-                                        size: 24,
                                       ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: SliderTheme(
-                                data: SliderTheme.of(context).copyWith(
-                                  thumbShape: const RoundSliderThumbShape(
-                                    enabledThumbRadius: 0,
-                                  ),
-                                  overlayShape: const RoundSliderOverlayShape(
-                                    overlayRadius: 0,
-                                  ),
-                                  trackHeight: 4,
-                                ),
-                                child: Slider(
-                                  value: midiState.duration > 0
-                                      ? midiState.position.clamp(
-                                          0,
-                                          midiState.duration,
-                                        )
-                                      : 0,
-                                  max: midiState.duration > 0
-                                      ? midiState.duration
-                                      : 1,
-                                  onChanged: midiState.duration > 0
-                                      ? (seconds) => cubit.seek(
-                                          Duration(seconds: seconds.toInt()),
-                                        )
-                                      : null,
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              '${_formatTime(midiState.position)} / ${_formatTime(midiState.duration)}',
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: colors.onSurfaceVariant,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Text(
-                              'Transpose',
-                              style: context.textTheme.bodyMedium?.copyWith(
-                                color: colors.onSurfaceVariant,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: colors.surfaceContainerLowest,
-                                borderRadius: BorderRadius.circular(12),
-                                border: Border.all(
-                                  color: colors.outlineVariant,
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () => cubit.setTranspose(
-                                      songState.transposeStep - 1,
+                                    )
+                                  : Icon(
+                                      midiState.isPlaying
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      color: colors.onPrimary,
+                                      size: 24,
                                     ),
-                                    icon: const Icon(Icons.remove_rounded),
-                                  ),
-                                  SizedBox(
-                                    width: 24,
-                                    child: Text(
-                                      '${songState.transposeStep}',
-                                      textAlign: TextAlign.center,
-                                      style: context.textTheme.titleMedium
-                                          ?.copyWith(fontFamily: 'Manrope'),
-                                    ),
-                                  ),
-                                  IconButton(
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () => cubit.setTranspose(
-                                      songState.transposeStep + 1,
-                                    ),
-                                    icon: const Icon(Icons.add_rounded),
-                                  ),
-                                ],
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                thumbShape: const RoundSliderThumbShape(
+                                  enabledThumbRadius: 0,
+                                ),
+                                overlayShape: const RoundSliderOverlayShape(
+                                  overlayRadius: 0,
+                                ),
+                                trackHeight: 4,
+                              ),
+                              child: Slider(
+                                value: midiState.duration > 0
+                                    ? midiState.position.clamp(
+                                        0,
+                                        midiState.duration,
+                                      )
+                                    : 0,
+                                max: midiState.duration > 0
+                                    ? midiState.duration
+                                    : 1,
+                                onChanged: midiState.duration > 0
+                                    ? (seconds) => cubit.seek(
+                                        Duration(seconds: seconds.toInt()),
+                                      )
+                                    : null,
                               ),
                             ),
-                            const Spacer(),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              onPressed: () {},
-                              icon: Icon(
-                                Icons.piano_rounded,
-                                color: colors.onSurfaceVariant,
-                              ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${_formatTime(midiState.position)} / ${_formatTime(midiState.duration)}',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
                             ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              onPressed: cubit.stop,
-                              icon: Icon(
-                                Icons.repeat_rounded,
-                                color: colors.onSurfaceVariant,
-                              ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Text(
+                            'Transpose',
+                            style: context.textTheme.bodyMedium?.copyWith(
+                              color: colors.onSurfaceVariant,
                             ),
-                          ],
-                        ),
-                      ],
-                    ),
+                          ),
+                          const SizedBox(width: 10),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: colors.outlineVariant),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => cubit.setTranspose(
+                                    songState.transposeStep - 1,
+                                  ),
+                                  icon: const Icon(Icons.remove_rounded),
+                                ),
+                                SizedBox(
+                                  width: 24,
+                                  child: Text(
+                                    '${songState.transposeStep}',
+                                    textAlign: TextAlign.center,
+                                    style: context.textTheme.titleMedium,
+                                  ),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => cubit.setTranspose(
+                                    songState.transposeStep + 1,
+                                  ),
+                                  icon: const Icon(Icons.add_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Spacer(),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () {},
+                            icon: Icon(
+                              Icons.piano_rounded,
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            onPressed: cubit.stop,
+                            icon: Icon(
+                              Icons.repeat_rounded,
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
               ],
             ),
           ),
@@ -634,7 +662,7 @@ class _HymnalBottomNav extends StatelessWidget {
         color: colors.surface.withValues(alpha: 0.90),
         border: Border(
           top: BorderSide(
-            color: colors.secondaryContainer.withValues(alpha: 0.50),
+            color: colors.outlineVariant.withValues(alpha: 0.5),
             width: 1,
           ),
         ),

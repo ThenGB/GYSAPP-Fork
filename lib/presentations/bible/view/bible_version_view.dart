@@ -40,7 +40,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
         backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
           shape: Border(
-            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
           title: const Text('Kidung Rohani'),
           centerTitle: true,
@@ -85,7 +85,7 @@ class _BibleVersionViewState extends State<BibleVersionView> {
                 return Shimmer.fromColors(
                   period: Duration(milliseconds: 500),
                   baseColor: context.colorScheme.surfaceContainerLow,
-                  highlightColor: context.colorScheme.secondaryContainer,
+                  highlightColor: context.colorScheme.outlineVariant,
                   child: ListView.builder(
                     itemCount: 3,
                     itemBuilder: (context, index) {

@@ -59,6 +59,7 @@ class MidiEngineService extends ChangeNotifier {
   final Map<String, Uint8List> _midiBytesCache = {};
   final Map<String, Uint8List> _soundFontBytesCache = {};
   final Map<String, AudioSource> _sourceCache = {};
+  final Map<String, Future<AudioSource>> _inflightSourceLoads = {};
   final List<String> _cacheOrder = [];
 
   bool _initialized = false;
@@ -94,6 +95,7 @@ class MidiEngineService extends ChangeNotifier {
 
   void setCacheMax(int max) {
     _maxCachedSources = max.clamp(4, 32);
+    unawaited(_pruneSourceCache());
   }
 
   Future<List<String>> getAvailableSoundFonts() {
@@ -203,7 +205,35 @@ class MidiEngineService extends ChangeNotifier {
     MidiRenderSettings settings, {
     bool emitProgress = false,
   }) async {
-    final cacheKey = '$midiPath|${settings.cacheKey}';
+    final normalized = settings.normalized;
+    final cacheKey = '$midiPath|${normalized.cacheKey}';
+    final inflight = _inflightSourceLoads[cacheKey];
+    if (inflight != null) {
+      return inflight;
+    }
+
+    final pending = _loadRenderedSourceInternal(
+      midiPath,
+      normalized,
+      cacheKey,
+      emitProgress: emitProgress,
+    );
+    _inflightSourceLoads[cacheKey] = pending;
+    try {
+      return await pending;
+    } finally {
+      if (identical(_inflightSourceLoads[cacheKey], pending)) {
+        _inflightSourceLoads.remove(cacheKey);
+      }
+    }
+  }
+
+  Future<AudioSource> _loadRenderedSourceInternal(
+    String midiPath,
+    MidiRenderSettings settings,
+    String cacheKey, {
+    required bool emitProgress,
+  }) async {
     final cachedSource = _sourceCache[cacheKey];
     if (cachedSource != null) {
       _touchCacheKey(cacheKey);
@@ -420,16 +450,14 @@ class MidiEngineService extends ChangeNotifier {
     String? soundFont,
   }) async {
     await initialize();
-    unawaited(
-      _preloadRenderedSource(
-        midiPath,
-        _settings.copyWith(
-          transpose: transpose,
-          tempoBpm: tempoBpm,
-          baseTempoBpm: baseTempoBpm,
-          instrument: instrument,
-          soundFont: soundFont,
-        ),
+    await _preloadRenderedSource(
+      midiPath,
+      _settings.copyWith(
+        transpose: transpose,
+        tempoBpm: tempoBpm,
+        baseTempoBpm: baseTempoBpm,
+        instrument: instrument,
+        soundFont: soundFont,
       ),
     );
   }
@@ -524,14 +552,18 @@ class MidiEngineService extends ChangeNotifier {
   Future<void> _pruneSourceCache() async {
     while (_cacheOrder.length > _maxCachedSources) {
       final cacheKey = _cacheOrder.removeAt(0);
-      final source = _sourceCache.remove(cacheKey);
-      if (source != null && source != _currentSource) {
+      final source = _sourceCache[cacheKey];
+      if (source != null && source == _currentSource) {
+        // Keep current song alive so switching back doesn't force re-render.
+        _cacheOrder.add(cacheKey);
+        continue;
+      }
+      _sourceCache.remove(cacheKey);
+      if (source != null) {
         await SoLoud.instance.disposeSource(source);
       }
-      final wavFile = File(_wavCachePath(cacheKey));
-      if (await wavFile.exists()) {
-        await wavFile.delete();
-      }
+      // Keep rendered WAV files on disk as a warm cache; memory pruning should
+      // not force expensive MIDI rendering on later revisits.
     }
   }
 

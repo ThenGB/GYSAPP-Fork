@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -62,7 +60,6 @@ class _BibleViewerState extends State<BibleViewer> {
         return Listener(
           onPointerCancel: (event) {
             touches.clear();
-            log(touches.toString());
             if (touches.length <= 1) {
               if (onScaling) {
                 setState(() {
@@ -73,7 +70,6 @@ class _BibleViewerState extends State<BibleViewer> {
           },
           onPointerUp: (event) {
             touches.remove(event.pointer);
-            log(touches.toString());
             if (touches.length <= 1) {
               if (onScaling) {
                 setState(() {
@@ -84,8 +80,6 @@ class _BibleViewerState extends State<BibleViewer> {
           },
           onPointerDown: (event) {
             touches.add(event.pointer);
-            log(event.pointer.toString(), name: 'Pointer');
-            log(touches.toString());
             if (touches.length > 1) {
               if (!onScaling) {
                 setState(() {

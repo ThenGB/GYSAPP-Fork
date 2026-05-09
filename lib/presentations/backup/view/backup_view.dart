@@ -48,7 +48,7 @@ class _BackupViewState extends State<BackupView> {
       appBar: AppBar(
         title: const Text('Kidung Rohani'),
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
       ),
       body: BlocBuilder<BackupCubit, BackupState>(

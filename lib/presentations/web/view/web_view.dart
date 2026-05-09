@@ -68,7 +68,7 @@ class _WebpageViewState extends State<WebpageView> {
         backgroundColor: context.colorScheme.surface,
         appBar: AppBar(
           shape: Border(
-            bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+            bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
           centerTitle: true,
           backgroundColor: navColor,

@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -58,7 +57,6 @@ class _SongListViewState extends State<SongListView>
     ..addListener(tabListener);
   @override
   void dispose() {
-    log('List disposed');
     searchController.dispose();
     tabController.dispose();
     super.dispose();
@@ -136,7 +134,7 @@ class _SongListViewState extends State<SongListView>
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.secondaryContainer),
+          bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
         leadingWidth: 56,
         titleSpacing: 0,

@@ -131,7 +131,7 @@ class _SongViewState extends State<SongView> {
             surfaceTintColor: Colors.transparent,
             shape: Border(
               bottom: BorderSide(
-                color: Theme.of(context).colorScheme.secondaryContainer,
+                color: Theme.of(context).colorScheme.outlineVariant,
                 width: 1,
               ),
             ),
@@ -571,10 +571,10 @@ class _SongHeaderTitle extends StatelessWidget {
               constraints: const BoxConstraints(maxWidth: 420),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
               decoration: BoxDecoration(
-                color: colors.surface.withValues(alpha: 0.46),
-                borderRadius: BorderRadius.circular(18),
+                color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                  color: colors.secondary.withValues(alpha: 0.5),
+                  color: colors.outlineVariant.withValues(alpha: 0.6),
                 ),
               ),
               child: Column(
@@ -588,10 +588,9 @@ class _SongHeaderTitle extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: 'Lato',
-                      fontSize: 16,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w800,
+                      fontSize: 15.5,
                     ),
                   ),
                   if (familyChord != null)
