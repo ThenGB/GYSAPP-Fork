@@ -50,29 +50,32 @@ void main() {
       );
     });
 
-    test('preload baseline stays at zero unless natural chords are enabled', () {
-      const reset = SongPlaybackDefaults(
-        transposeStep: 5,
-        tempoBpm: 76,
-        defaultTempoBpm: 76,
-      );
+    test(
+      'preload baseline stays at zero unless natural chords are enabled',
+      () {
+        const reset = SongPlaybackDefaults(
+          transposeStep: 5,
+          tempoBpm: 76,
+          defaultTempoBpm: 76,
+        );
 
-      final plain = reset.preloadBaseline(
-        preferNaturalChords: false,
-        familyChord: 'C',
-        pdfKey: 'Fis',
-      );
-      final natural = reset.preloadBaseline(
-        preferNaturalChords: true,
-        familyChord: 'C',
-        pdfKey: 'Fis',
-      );
+        final plain = reset.preloadBaseline(
+          preferNaturalChords: false,
+          familyChord: 'C',
+          pdfKey: 'Fis',
+        );
+        final natural = reset.preloadBaseline(
+          preferNaturalChords: true,
+          familyChord: 'C',
+          pdfKey: 'Fis',
+        );
 
-      expect(plain.transposeStep, 0);
-      expect(plain.originalFamilyChord, isNull);
-      expect(natural.transposeStep, -1);
-      expect(natural.originalFamilyChord, 'C');
-    });
+        expect(plain.transposeStep, 0);
+        expect(plain.originalFamilyChord, isNull);
+        expect(natural.transposeStep, -1);
+        expect(natural.originalFamilyChord, 'C');
+      },
+    );
 
     test('detects active key and maps key selection to transpose step', () {
       const baseline = SongPlaybackDefaults(
