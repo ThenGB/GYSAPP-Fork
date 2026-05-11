@@ -95,6 +95,17 @@ if(PLUGIN_BUNDLED_LIBRARIES)
     COMPONENT Runtime)
 endif()
 
+# pdfrx/pdfium_dart writes the Windows PDFium DLL through Dart native-assets,
+# but Flutter's Windows install step does not currently copy it next to the
+# executable for this project. Keep the native PDF renderer self-contained.
+set(PDFIUM_NATIVE_ASSET
+  "${CMAKE_CURRENT_SOURCE_DIR}/../build/native_assets/windows/pdfium.dll")
+if(EXISTS "${PDFIUM_NATIVE_ASSET}")
+  install(FILES "${PDFIUM_NATIVE_ASSET}"
+    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+    COMPONENT Runtime)
+endif()
+
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")

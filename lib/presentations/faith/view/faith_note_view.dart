@@ -174,7 +174,7 @@ class FaithNoteViewState extends State<FaithNoteView> {
                     focusNode: focusNode,
                     scrollController: scrollController,
                     controller: controller,
-                    configurations: quill.QuillEditorConfigurations(
+                    config: quill.QuillEditorConfig(
                       showCursor: mode == NoteMode.write,
                       padding: EdgeInsets.zero,
                       expands: true,
@@ -201,10 +201,10 @@ class FaithNoteViewState extends State<FaithNoteView> {
                     margin:
                         context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
-                    child: quill.QuillToolbar.simple(
+                    child: quill.QuillSimpleToolbar(
                       controller: controller,
-                      configurations:
-                          const quill.QuillSimpleToolbarConfigurations(),
+                      config:
+                          const quill.QuillSimpleToolbarConfig(),
                     ),
                   ),
           ),

@@ -33,16 +33,6 @@ String generateMidiPreloadKey({
   ].join('|');
 }
 
-/// Generates a cache key for a PDF preload job.
-///
-/// Includes the PDF path only since PDF rendering doesn't
-/// have render-affecting settings like MIDI.
-String generatePdfPreloadKey({
-  required String pdfPath,
-}) {
-  return pdfPath;
-}
-
 /// Checks if a tempo rate is effectively 1.0 (neutral).
 ///
 /// Preload should be skipped for non-neutral tempo rates

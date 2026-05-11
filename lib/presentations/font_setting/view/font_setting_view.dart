@@ -93,7 +93,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                                 alignedDropdown: true,
                                 padding: EdgeInsets.zero,
                                 child: DropdownButtonFormField(
-                                  value: defaultFontStyle,
+                                  initialValue: defaultFontStyle,
                                   padding: EdgeInsets.zero,
                                   decoration: InputDecoration(
                                     filled: true,

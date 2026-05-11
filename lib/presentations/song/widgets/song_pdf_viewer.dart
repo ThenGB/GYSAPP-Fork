@@ -4,9 +4,11 @@ import 'dart:math' show max;
 
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart' as pdfrx;
+import 'package:collection/collection.dart';
 
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/pdf_note_extractor.dart';
+import 'chord_badge_layout.dart';
 
 /// App-level controller for programmatic zoom on the active PDF viewer.
 ///
@@ -37,11 +39,6 @@ class SongPdfViewer extends StatefulWidget {
   final bool isEditMode;
   final Function(Map<int, List<ChordData>>)? onChordsChanged;
   final PdfViewerController? viewerController;
-  final ValueChanged<String?>? onPdfKeyDetected;
-  final ValueChanged<double>? onPdfTempoDetected;
-  final VoidCallback? onPageChanged;
-  final VoidCallback? onPreviousSong;
-  final VoidCallback? onNextSong;
 
   const SongPdfViewer({
     super.key,
@@ -59,11 +56,6 @@ class SongPdfViewer extends StatefulWidget {
     this.isEditMode = false,
     this.onChordsChanged,
     this.viewerController,
-    this.onPdfKeyDetected,
-    this.onPdfTempoDetected,
-    this.onPageChanged,
-    this.onPreviousSong,
-    this.onNextSong,
   });
 
   @override
@@ -79,16 +71,21 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// Key: absolute page number (1-based) within the PDF document.
   final Map<int, Map<int, NotePosition>> _noteCache = {};
 
+  /// Per-page note info caches loaded from the PDF text layer (for edit mode).
+  /// Key: absolute page number (1-based) within the PDF document.
+  final Map<int, List<NoteInfo>> _noteInfoCache = {};
+
   _PdfDocumentRequest? _pdfRequest;
 
-  // --- Song-navigation fade+scale transition ---
+  /// True while we are waiting for the first [onViewerReady] after a new PDF
+  /// is requested. Reset to false once the initial fit-to-page has been done,
+  /// so that subsequent [onViewerReady] calls caused by [invalidate] (e.g.
+  /// when chord overlay is toggled) do NOT reset the user's zoom/scroll.
+  bool _needsInitialFit = false;
+
+  /// Song-navigation fade transition ---
   late final AnimationController _navFadeCtrl;
   late final Animation<double> _navOpacity;
-  late final Animation<double> _navScale;
-
-  /// Monotonically-increasing counter used to cancel stale navigation callbacks
-  /// when the user navigates again before the previous fade-out completes.
-  int _navGen = 0;
 
   @override
   void initState() {
@@ -97,12 +94,10 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _navOpacity = Tween<double>(begin: 1.0, end: 0.0).animate(
-      CurvedAnimation(parent: _navFadeCtrl, curve: Curves.easeOut),
-    );
-    _navScale = Tween<double>(begin: 1.0, end: 0.98).animate(
-      CurvedAnimation(parent: _navFadeCtrl, curve: Curves.easeOut),
-    );
+    _navOpacity = Tween<double>(
+      begin: 1.0,
+      end: 0.0,
+    ).animate(CurvedAnimation(parent: _navFadeCtrl, curve: Curves.easeOut));
     _wireController();
     _parsePdfPath();
   }
@@ -164,24 +159,30 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     if (_pdfRequest == null) {
       // First load — show immediately with no transition.
       _noteCache.clear();
+      _noteInfoCache.clear();
+      _needsInitialFit = true;
       if (mounted) setState(() => _pdfRequest = newRequest);
       return;
     }
     // Song navigation — fade out, swap PDF, then fade in (in onViewerReady).
-    _navGen++;
-    final thisGen = _navGen;
-    // Use whenComplete so the callback always runs, even if the animation is
-    // superseded by a newer navigation. orCancel.then with onError would skip
-    // setState when the ticker was cancelled by rapid navigation.
     _navFadeCtrl.forward(from: _navFadeCtrl.value).whenComplete(() {
-      if (!mounted || _navGen != thisGen) return;
+      if (!mounted) return;
       _noteCache.clear();
+      _noteInfoCache.clear();
+      _needsInitialFit = true;
       setState(() => _pdfRequest = newRequest);
     });
   }
 
-  void _zoomIn() => _pdfCtrl.zoomUp();
-  void _zoomOut() => _pdfCtrl.zoomDown();
+  void _zoomIn() {
+    if (!_pdfCtrl.isReady) return;
+    _pdfCtrl.zoomUp();
+  }
+
+  void _zoomOut() {
+    if (!_pdfCtrl.isReady) return;
+    _pdfCtrl.zoomDown();
+  }
 
   /// Animated fit-to-page for the user-facing "Fit" button (200 ms).
   void _fitToPage() {
@@ -208,7 +209,10 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     try {
       final rawText = await page.loadText();
       if (rawText == null) {
-        log('page=$n: loadText returned null', name: 'SongPdfViewer.noteExtract');
+        log(
+          'page=$n: loadText returned null',
+          name: 'SongPdfViewer.noteExtract',
+        );
         return _noteCache[n] = {};
       }
       final positions = extractNotePositions(rawText, page.width, page.height);
@@ -221,6 +225,32 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     } catch (e, st) {
       log('page=$n: $e\n$st', name: 'SongPdfViewer.noteExtract');
       return _noteCache[n] = {};
+    }
+  }
+
+  /// Load and cache note infos for [page] from the PDF text layer (for edit mode).
+  Future<List<NoteInfo>> _loadNoteInfos(pdfrx.PdfPage page) async {
+    final n = page.pageNumber;
+    if (_noteInfoCache.containsKey(n)) return _noteInfoCache[n]!;
+    try {
+      final rawText = await page.loadText();
+      if (rawText == null) {
+        log(
+          'page=$n: loadText returned null',
+          name: 'SongPdfViewer.noteExtract',
+        );
+        return _noteInfoCache[n] = [];
+      }
+      final infos = extractNoteInfos(rawText, page.width, page.height);
+      log(
+        'page=$n: extracted ${infos.length} note infos '
+        '(textLen=${rawText.fullText.length})',
+        name: 'SongPdfViewer.noteExtract',
+      );
+      return _noteInfoCache[n] = infos;
+    } catch (e, st) {
+      log('page=$n: $e\n$st', name: 'SongPdfViewer.noteExtract');
+      return _noteInfoCache[n] = [];
     }
   }
 
@@ -248,123 +278,137 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     return AnimatedBuilder(
       animation: _navFadeCtrl,
       child: pdfrx.PdfViewer.asset(
-          request.assetPath,
-          key: ValueKey(widget.pdfPath),
-          controller: _pdfCtrl,
-          initialPageNumber: request.startPage,
-          params: pdfrx.PdfViewerParams(
-            // Match the web app's viewer-shell-background which uses the theme's
-            // surface color. Without this, pdfrx defaults to a white background.
-            backgroundColor: theme.colorScheme.surface,
-            sizeDelegateProvider: pdfrx.PdfViewerSizeDelegateProviderLegacy(
-              calculateInitialZoom: (_, _, fitZoom, _) => fitZoom,
-            ),
-            layoutPages: _buildLayout,
-            onViewerReady: (_, _) {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!mounted) return;
-                // Use instant fit to avoid the animated double-zoom flicker that
-                // results from onLayoutInitialized (sets zoom only) and this
-                // callback (sets both zoom+position) both running on first render.
+        request.assetPath,
+        controller: _pdfCtrl,
+        initialPageNumber: request.startPage,
+        params: pdfrx.PdfViewerParams(
+          // Match the web app's viewer-shell-background which uses the theme's
+          // surface color. Without this, pdfrx defaults to a white background.
+          backgroundColor: theme.colorScheme.surface,
+          layoutPages: _buildLayout,
+          onViewerReady: (_, _) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!mounted) return;
+              // Only fit-to-page on the FIRST ready event after a new PDF is
+              // loaded. Subsequent onViewerReady calls (e.g. from invalidate
+              // after chord/transpose changes) must NOT reset the user's zoom.
+              if (_needsInitialFit) {
+                _needsInitialFit = false;
                 _fitToPageInstant();
-                // Fade back in after the PDF is ready and positioned.
-                _navFadeCtrl.reverse();
-              });
-            },
-            onPageChanged: (pageNumber) {
-              if (pageNumber != null) widget.onPageChanged?.call();
-            },
-            pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
+              }
+              // Fade back in after the PDF is ready and positioned.
+              _navFadeCtrl.reverse();
+            });
+          },
+          pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
         ),
       ),
       builder: (context, child) => Opacity(
         opacity: _navOpacity.value,
-        child: Transform.scale(
-          scale: _navScale.value,
-          child: child,
-        ),
+        child: child,
       ),
     );
   }
 
   /// Custom layout function implementing vertical-scroll and two-page modes.
+  ///
+  /// pdfrx requires one [Rect] per page in [pages] (indexed by position).
+  /// Pages outside the requested range are placed far off-screen so they are
+  /// invisible; the document size is computed from the visible pages only.
   pdfrx.PdfPageLayout _buildLayout(
     List<pdfrx.PdfPage> pages,
     pdfrx.PdfViewerParams params,
   ) {
     final request = _pdfRequest;
-    
-    // Filter pages to only include those in the requested range
-    // This prevents large master PDFs from laying out all pages unnecessarily
-    List<pdfrx.PdfPage> filteredPages = pages;
-    if (request != null && request.pageCount != null) {
-      final startIdx = request.startPage - 1; // Convert to 0-based
-      final endIdx = startIdx + request.pageCount!;
-      filteredPages = pages
-          .where((p) => p.pageNumber >= startIdx && p.pageNumber < endIdx)
-          .toList();
-    }
+
+    // Determine which pages to show (1-based, inclusive start, exclusive end).
+    final int startPage = request?.startPage ?? 1;
+    final int endPage = request?.pageCount != null
+        ? startPage + request!.pageCount!
+        : pages.length + 1;
+
+    final visiblePages = pages
+        .where((p) => p.pageNumber >= startPage && p.pageNumber < endPage)
+        .toList();
 
     final margin = params.margin;
+
+    // Build a map from pageNumber → Rect for visible pages.
+    final Map<int, Rect> visibleRects = {};
+    Size documentSize;
+
     if (widget.verticalScrolling) {
-      // Vertical layout: pages stacked top-to-bottom.
-      final width = filteredPages.fold(0.0, (w, p) => max(w, p.width)) + margin * 2;
-      final pageLayouts = <Rect>[];
+      final width =
+          visiblePages.fold(0.0, (w, p) => max(w, p.width)) + margin * 2;
       double y = margin;
-      for (final page in filteredPages) {
-        pageLayouts.add(
-          Rect.fromLTWH((width - page.width) / 2, y, page.width, page.height),
+      for (final page in visiblePages) {
+        visibleRects[page.pageNumber] = Rect.fromLTWH(
+          (width - page.width) / 2,
+          y,
+          page.width,
+          page.height,
         );
         y += page.height + margin;
       }
-      return pdfrx.PdfPageLayout(
-        pageLayouts: pageLayouts,
-        documentSize: Size(width, y),
-      );
+      documentSize = Size(width, y);
     } else if (widget.twoPageMode) {
-      // Two-page (facing pages) layout: pairs of pages side by side.
-      final pageLayouts = <Rect>[];
       double x = margin;
       double maxHeight = 0.0;
-      for (int i = 0; i < filteredPages.length; i += 2) {
-        final left = filteredPages[i];
-        final right = i + 1 < filteredPages.length ? filteredPages[i + 1] : null;
+      for (int i = 0; i < visiblePages.length; i += 2) {
+        final left = visiblePages[i];
+        final right =
+            i + 1 < visiblePages.length ? visiblePages[i + 1] : null;
         final pairWidth = left.width + (right?.width ?? left.width) + margin;
         final pairHeight = max(left.height, right?.height ?? 0.0);
-        pageLayouts.add(Rect.fromLTWH(x, margin, left.width, left.height));
+        visibleRects[left.pageNumber] =
+            Rect.fromLTWH(x, margin, left.width, left.height);
         if (right != null) {
-          pageLayouts.add(
-            Rect.fromLTWH(
-              x + left.width + margin,
-              margin,
-              right.width,
-              right.height,
-            ),
+          visibleRects[right.pageNumber] = Rect.fromLTWH(
+            x + left.width + margin,
+            margin,
+            right.width,
+            right.height,
           );
         }
         x += pairWidth + margin;
         maxHeight = max(maxHeight, pairHeight);
       }
-      return pdfrx.PdfPageLayout(
-        pageLayouts: pageLayouts,
-        documentSize: Size(x, maxHeight + margin * 2),
-      );
+      documentSize = Size(x, maxHeight + margin * 2);
     } else {
       // Default: horizontal single-page layout.
-      final height = filteredPages.fold(0.0, (h, p) => max(h, p.height)) + margin * 2;
-      final pageLayouts = <Rect>[];
+      final height =
+          visiblePages.fold(0.0, (h, p) => max(h, p.height)) + margin * 2;
       double x = margin;
-      for (final page in filteredPages) {
-        pageLayouts.add(
-          Rect.fromLTWH(x, (height - page.height) / 2, page.width, page.height),
+      for (final page in visiblePages) {
+        visibleRects[page.pageNumber] = Rect.fromLTWH(
+          x,
+          (height - page.height) / 2,
+          page.width,
+          page.height,
         );
         x += page.width + margin;
       }
-      return pdfrx.PdfPageLayout(
-        pageLayouts: pageLayouts,
-        documentSize: Size(x, height),
-      );
+      documentSize = Size(x, height);
     }
+
+    if (documentSize.isEmpty) {
+      documentSize = const Size(100, 100);
+    }
+
+    // Assemble one Rect per page (pdfrx contract): visible pages get their
+    // computed rect; hidden pages get a valid-sized rect placed far off-screen.
+    // Rect.zero must NOT be used — a zero-dimension rect causes pdfrx to
+    // compute a degenerate (NaN) hit-test transform matrix (1/0 → NaN).
+    final pageLayouts = [
+      for (final page in pages)
+        visibleRects[page.pageNumber] ??
+            Rect.fromLTWH(-page.width * 100, -page.height * 100, page.width, page.height),
+    ];
+
+    return pdfrx.PdfPageLayout(
+      pageLayouts: pageLayouts,
+      documentSize: documentSize,
+    );
   }
 
   List<Widget> _buildPageOverlays(
@@ -372,14 +416,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     Rect pageRectInViewer,
     pdfrx.PdfPage page,
   ) {
-    final chords = widget.chords;
     final request = _pdfRequest;
-    if (chords == null || chords.isEmpty || request == null) return [];
+    if (request == null) return [];
 
     // Map absolute PDF page number → song-relative page number (1-based).
     final songPage = page.pageNumber - request.startPage + 1;
-    final pageChords = chords[songPage];
-    if (pageChords == null || pageChords.isEmpty) return [];
+    final allChords = widget.chords ?? const <int, List<ChordData>>{};
+    final pageChords = allChords[songPage] ?? const <ChordData>[];
+    if (pageChords.isEmpty && !widget.isEditMode) return [];
 
     return [
       // IgnorePointer lets tap / swipe gestures pass through to the PDF viewer
@@ -389,7 +433,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
         ignoring: !widget.isEditMode,
         child: _ChordOverlay(
           page: page,
+          songPage: songPage,
           chords: pageChords,
+          allChords: allChords,
           transposeStep: widget.transposeStep,
           baseTransposeOffset: widget.baseTransposeOffset,
           chordAccidentalMode: widget.chordAccidentalMode,
@@ -400,6 +446,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           isEditMode: widget.isEditMode,
           onChordEdited: widget.onChordsChanged,
           loadNotePositions: _loadNotePositions,
+          loadNoteInfos: _loadNoteInfos,
         ),
       ),
     ];
@@ -413,7 +460,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 /// Asynchronously loads note positions for [page] and renders chord badges.
 class _ChordOverlay extends StatefulWidget {
   final pdfrx.PdfPage page;
+  final int songPage;
   final List<ChordData> chords;
+  final Map<int, List<ChordData>> allChords;
   final int transposeStep;
   final int baseTransposeOffset;
   final String chordAccidentalMode;
@@ -425,10 +474,13 @@ class _ChordOverlay extends StatefulWidget {
   final Function(Map<int, List<ChordData>>)? onChordEdited;
   final Future<Map<int, NotePosition>> Function(pdfrx.PdfPage)
   loadNotePositions;
+  final Future<List<NoteInfo>> Function(pdfrx.PdfPage) loadNoteInfos;
 
   const _ChordOverlay({
     required this.page,
+    required this.songPage,
     required this.chords,
+    required this.allChords,
     required this.transposeStep,
     required this.baseTransposeOffset,
     required this.chordAccidentalMode,
@@ -439,6 +491,7 @@ class _ChordOverlay extends StatefulWidget {
     this.isEditMode = false,
     this.onChordEdited,
     required this.loadNotePositions,
+    required this.loadNoteInfos,
   });
 
   @override
@@ -447,11 +500,13 @@ class _ChordOverlay extends StatefulWidget {
 
 class _ChordOverlayState extends State<_ChordOverlay> {
   late Future<Map<int, NotePosition>> _future;
+  late Future<List<NoteInfo>> _noteInfosFuture;
 
   @override
   void initState() {
     super.initState();
     _future = widget.loadNotePositions(widget.page);
+    _noteInfosFuture = widget.loadNoteInfos(widget.page);
   }
 
   @override
@@ -459,12 +514,13 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.page.pageNumber != widget.page.pageNumber) {
       _future = widget.loadNotePositions(widget.page);
+      _noteInfosFuture = widget.loadNoteInfos(widget.page);
     }
   }
 
   /// Sentinel noteIdx values matching gyschordweb's NOTE_IDX_BEFORE / NOTE_IDX_AFTER.
-  static const _noteIdxBefore = -1;
-  static const _noteIdxAfter = 99999;
+  static const _noteIdxBefore = ChordSpecialIndices.before;
+  static const _noteIdxAfter = ChordSpecialIndices.after;
 
   @override
   Widget build(BuildContext context) {
@@ -472,12 +528,18 @@ class _ChordOverlayState extends State<_ChordOverlay> {
       size: widget.pageRectInViewer.size,
       child: FutureBuilder<Map<int, NotePosition>>(
         future: _future,
-        builder: (context, snapshot) {
-          final notePositions = snapshot.data;
-          final effectivePositions = {
-            ..._fallbackPositions(widget.chords),
-            if (notePositions != null) ...notePositions,
-          };
+        builder: (context, positionSnapshot) {
+          // Don't render anything until positions are fully resolved.
+          // Showing _fallbackPositions while loading causes wrong chord
+          // placement (evenly-spaced grid instead of note-aligned positions).
+          if (positionSnapshot.connectionState != ConnectionState.done) {
+            return const SizedBox.shrink();
+          }
+          final notePositions = positionSnapshot.data;
+          final effectivePositions =
+              notePositions != null && notePositions.isNotEmpty
+              ? Map<int, NotePosition>.from(notePositions)
+              : _fallbackPositions(widget.chords);
 
           // Resolve sentinel positions for intro/outro chords.
           // NOTE_IDX_BEFORE (-1): just before the first note.
@@ -497,21 +559,248 @@ class _ChordOverlayState extends State<_ChordOverlay> {
           }
 
           if (effectivePositions.isEmpty) return const SizedBox.shrink();
-          return Stack(
-            clipBehavior: Clip.none,
-            children: [
-              for (final chord in widget.chords)
-                if (effectivePositions.containsKey(chord.noteIdx))
-                  _buildBadge(
-                    context,
-                    chord,
-                    effectivePositions[chord.noteIdx]!,
-                  ),
-            ],
-          );
+
+          // Build chord badges
+          final chordBadges = <Widget>[];
+          for (final chord in widget.chords) {
+            final position = _positionForChord(chord, effectivePositions);
+            if (position != null) {
+              chordBadges.add(_buildBadge(context, chord, position));
+            }
+          }
+
+          // In edit mode, also load and render note targets
+          if (widget.isEditMode) {
+            return FutureBuilder<List<NoteInfo>>(
+              future: _noteInfosFuture,
+              builder: (context, noteInfosSnapshot) {
+                final noteInfos = noteInfosSnapshot.data ?? [];
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Note targets (clickable in edit mode)
+                    ..._buildNoteTargets(noteInfos),
+                    // Chord badges
+                    ...chordBadges,
+                  ],
+                );
+              },
+            );
+          }
+
+          return Stack(clipBehavior: Clip.none, children: chordBadges);
         },
       ),
     );
+  }
+
+  List<Widget> _buildNoteTargets(List<NoteInfo> noteInfos) {
+    if (noteInfos.isEmpty) return [];
+
+    final pageSize = widget.pageRectInViewer.size;
+    final targets = <Widget>[];
+
+    // Add intro sentinel (before first note)
+    if (noteInfos.isNotEmpty) {
+      final first = noteInfos.first;
+      final introXPct = (first.xPct - 2.5).clamp(1.0, 99.0);
+      targets.add(
+        _buildNoteTarget(
+          noteIdx: _noteIdxBefore,
+          xPct: introXPct,
+          yPct: first.yPct,
+          label: '▸',
+          title: 'Intro / sebelum lagu',
+          pageSize: pageSize,
+        ),
+      );
+    }
+
+    // Add note targets for each detected note
+    for (final noteInfo in noteInfos) {
+      final label = noteInfo.isNote
+          ? noteInfo.str
+          : (noteInfo.isDot ? '·' : noteInfo.str);
+      targets.add(
+        _buildNoteTarget(
+          noteIdx: noteInfo.idx,
+          xPct: noteInfo.xPct,
+          yPct: noteInfo.yPct,
+          label: label,
+          title: 'Note #${noteInfo.idx}',
+          pageSize: pageSize,
+        ),
+      );
+    }
+
+    // Add outro sentinel (after last note)
+    if (noteInfos.isNotEmpty) {
+      final last = noteInfos.last;
+      final outroXPct = (last.xPct + 2.5).clamp(1.0, 99.0);
+      targets.add(
+        _buildNoteTarget(
+          noteIdx: _noteIdxAfter,
+          xPct: outroXPct,
+          yPct: last.yPct,
+          label: '◂',
+          title: 'Outro / setelah lagu',
+          pageSize: pageSize,
+        ),
+      );
+    }
+
+    return targets;
+  }
+
+  NotePosition? _positionForChord(
+    ChordData chord,
+    Map<int, NotePosition> positions,
+  ) {
+    final exact = positions[chord.noteIdx];
+    if (exact != null) return exact;
+    if (positions.isEmpty || chord.noteIdx < 0) return null;
+
+    // Match gyschordweb: any noteIdx beyond the detected notes is treated as
+    // an outro placement, not only the explicit NOTE_IDX_AFTER sentinel.
+    final sortedKeys =
+        positions.keys.where((key) => key >= 0 && key != _noteIdxAfter).toList()
+          ..sort();
+    if (sortedKeys.isEmpty) return null;
+    if (chord.noteIdx >= sortedKeys.length) {
+      final lastPos = positions[sortedKeys.last]!;
+      return (xPct: (lastPos.xPct + 2.5).clamp(1.0, 99.0), yPct: lastPos.yPct);
+    }
+    return null;
+  }
+
+  Widget _buildNoteTarget({
+    required int noteIdx,
+    required double xPct,
+    required double yPct,
+    required String label,
+    required String title,
+    required Size pageSize,
+  }) {
+    final x = xPct / 100.0 * pageSize.width;
+    final y = yPct / 100.0 * pageSize.height;
+
+    // Check if this note already has a chord
+    final existingChord = widget.chords
+        .where((c) => c.noteIdx == noteIdx)
+        .firstOrNull;
+
+    return Positioned(
+      left: x,
+      top: y,
+      child: FractionalTranslation(
+        translation: const Offset(-0.5, -0.5),
+        child: GestureDetector(
+          onTap: () =>
+              _showNoteChordDialog(context, noteIdx, existingChord?.chord),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            decoration: BoxDecoration(
+              color: existingChord != null
+                  ? Colors.blue.withValues(alpha: 0.3)
+                  : Colors.grey.withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(3),
+              border: Border.all(
+                color: existingChord != null ? Colors.blue : Colors.grey,
+                width: 1,
+              ),
+            ),
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontSize: 10,
+                color: Colors.black,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showNoteChordDialog(
+    BuildContext context,
+    int noteIdx,
+    String? existingChord,
+  ) {
+    final controller = TextEditingController(text: existingChord ?? '');
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Note #$noteIdx'),
+        content: TextField(
+          controller: controller,
+          decoration: const InputDecoration(
+            hintText: 'Masukkan chord (contoh: C, C#, Bb, Fdim)',
+            labelText: 'Chord',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              final chordText = controller.text.trim();
+              if (chordText.isEmpty) {
+                // Remove chord if empty
+                _removeChord(noteIdx);
+              } else {
+                // Add or update chord
+                _addOrUpdateChord(noteIdx, chordText);
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _addOrUpdateChord(int noteIdx, String chordText) {
+    final currentPage = widget.songPage;
+    final updatedChords = _copyAllChords();
+
+    // Remove existing chord for this note if any
+    updatedChords[currentPage] = (updatedChords[currentPage] ?? [])
+        .where((c) => c.noteIdx != noteIdx)
+        .toList();
+
+    // Add the new chord
+    updatedChords[currentPage]!.add(
+      ChordData(noteIdx: noteIdx, chord: chordText, page: currentPage),
+    );
+    updatedChords[currentPage]!.sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
+
+    widget.onChordEdited?.call(updatedChords);
+  }
+
+  void _removeChord(int noteIdx) {
+    final currentPage = widget.songPage;
+    final updatedChords = _copyAllChords();
+
+    // Remove the chord for this note
+    updatedChords[currentPage] = (updatedChords[currentPage] ?? [])
+        .where((c) => c.noteIdx != noteIdx)
+        .toList();
+
+    widget.onChordEdited?.call(updatedChords);
+  }
+
+  Map<int, List<ChordData>> _copyAllChords() {
+    return {
+      for (final entry in widget.allChords.entries)
+        entry.key: List<ChordData>.from(entry.value),
+    };
   }
 
   Map<int, NotePosition> _fallbackPositions(List<ChordData> chords) {
@@ -550,11 +839,13 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 
   Widget _buildBadge(BuildContext context, ChordData chord, NotePosition pos) {
     final pageSize = widget.pageRectInViewer.size;
-    // Match gyschordweb: NOTE_CHORD_Y_OFFSET_PCT = 2.5
-    const chordYOffsetPercent = 2.5;
-    final x = pos.xPct / 100.0 * pageSize.width;
-    // Apply offset above the note (like gyschordweb: pos.yPct - yOffset)
-    final y = (pos.yPct - chordYOffsetPercent) / 100.0 * pageSize.height;
+    final layout = calculateChordBadgeLayout(
+      notePosition: pos,
+      renderedPageSize: pageSize,
+      pdfPageSize: Size(widget.page.width, widget.page.height),
+      fontSizePercent: widget.chordFontSizePercent,
+      paddingPercent: widget.chordPaddingPercent,
+    );
 
     final label = ChordService.transposeChord(
       chord.chord,
@@ -563,45 +854,40 @@ class _ChordOverlayState extends State<_ChordOverlay> {
       accidentalMode: widget.chordAccidentalMode,
     );
 
-    final baseFontSize = 10.0 * widget.chordFontSizePercent / 100.0;
-    final basePadding = 2.0 * widget.chordPaddingPercent / 100.0;
     final opacity = widget.chordFillOpacityPercent / 100.0;
     final theme = Theme.of(context);
-    final bgColor = theme.colorScheme.primaryContainer.withValues(alpha: opacity);
+    final bgColor = theme.colorScheme.primaryContainer.withValues(
+      alpha: opacity,
+    );
     final fgColor = theme.colorScheme.onPrimaryContainer;
-    
+
     // Edit mode visual indicator
-    final borderColor = widget.isEditMode 
-        ? theme.colorScheme.error 
+    final borderColor = widget.isEditMode
+        ? theme.colorScheme.error
         : Colors.transparent;
     final borderWidth = widget.isEditMode ? 2.0 : 0.0;
 
     return Positioned(
-      left: x,
-      top: y,
+      left: layout.center.dx,
+      top: layout.center.dy,
       child: FractionalTranslation(
-        // Match gyschordweb: only horizontal centering (translateX -50%)
-        // No vertical centering since offset is already applied above
-        translation: const Offset(-0.5, 0),
+        // Match gyschordweb: center both horizontally and vertically (translate -50%, -50%)
+        translation: const Offset(-0.5, -0.5),
         child: GestureDetector(
-          onTap: widget.isEditMode ? () => _showEditDialog(context, chord) : null,
+          onTap: widget.isEditMode
+              ? () => _showEditDialog(context, chord)
+              : null,
           child: Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: basePadding * 2,
-              vertical: basePadding,
-            ),
+            padding: layout.padding,
             decoration: BoxDecoration(
               color: bgColor,
               borderRadius: BorderRadius.circular(3),
-              border: Border.all(
-                color: borderColor,
-                width: borderWidth,
-              ),
+              border: Border.all(color: borderColor, width: borderWidth),
             ),
             child: Text(
               label,
               style: TextStyle(
-                fontSize: baseFontSize,
+                fontSize: layout.fontSize,
                 color: fgColor,
                 height: 1.2,
                 fontWeight: FontWeight.w600,
@@ -615,7 +901,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 
   void _showEditDialog(BuildContext context, ChordData chord) {
     final controller = TextEditingController(text: chord.chord);
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -636,15 +922,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
           TextButton(
             onPressed: () {
               if (controller.text.isNotEmpty) {
-                widget.onChordEdited?.call({
-                  chord.page: [
-                    for (final c in widget.chords)
-                      if (c.noteIdx == chord.noteIdx)
-                        ChordData(noteIdx: c.noteIdx, chord: controller.text, page: c.page)
-                      else
-                        c,
-                  ],
-                });
+                _addOrUpdateChord(chord.noteIdx, controller.text.trim());
               }
               Navigator.pop(context);
             },

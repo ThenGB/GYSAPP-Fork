@@ -52,7 +52,7 @@ RenderedMidiAudio _renderMidiAudio(Map<String, dynamic> args) {
     tempoBpm: args['tempoBpm'] as double? ?? 76,
     baseTempoBpm: args['baseTempoBpm'] as double? ?? 76,
     instrument: args['instrument'] as int?,
-    soundFont: args['soundFont'] as String? ?? 'GeneralUser-GS.sf2',
+    soundFont: args['soundFont'] as String? ?? 'TimGM6mb.sf2',
   ).normalized;
 
   final synth = Synthesizer.loadByteData(

@@ -11,7 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../data/data.dart';
 import '../data/repository/backupsync_repository_impl.dart';
 import '../data/repository/google_repository_impl.dart';
-import '../data/services/pdf_preload_service.dart';
+
 import '../data/utilities/encrypt.dart';
 import '../domain/domain.dart';
 import '../domain/repository/backupsync_repository.dart';
@@ -37,7 +37,7 @@ void _blocs() {
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
-  di.registerFactory(() => SongCubit(di(), di(), di(), di()));
+  di.registerFactory(() => SongCubit(di(), di(), di()));
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AuthCubit(di()));
@@ -76,7 +76,7 @@ Future<void> _utils(AppConfig appConfig) async {
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => LocalAssetService());
-  di.registerLazySingleton(() => PdfPreloadService());
+  
   di.registerLazySingleton(
     () => MidiEngineService(
       di(),

@@ -14,11 +14,6 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  favoriteSongBook:
-      (json['favoriteSongBook'] as List<dynamic>?)
-          ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
   bookCode: json['bookCode'] as String? ?? 'KR',
   pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
   verseIndex: (json['verseIndex'] as num?)?.toInt() ?? 0,
@@ -39,8 +34,6 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => SongHistory.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  playOnlyFavorite: json['playOnlyFavorite'] as bool? ?? false,
-  shuffleMode: json['shuffleMode'] as bool? ?? false,
   shuffleIndex:
       (json['shuffleIndex'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -102,7 +95,6 @@ Map<String, dynamic> _$SongStateToJson(
   'isLoading': instance.isLoading,
   'isAudioLoading': instance.isAudioLoading,
   'songBook': instance.songBook,
-  'favoriteSongBook': instance.favoriteSongBook,
   'bookCode': instance.bookCode,
   'pageIndex': instance.pageIndex,
   'verseIndex': instance.verseIndex,
@@ -113,8 +105,6 @@ Map<String, dynamic> _$SongStateToJson(
   'notes': instance.notes,
   'sortNotesBy': instance.sortNotesBy,
   'histories': instance.histories,
-  'playOnlyFavorite': instance.playOnlyFavorite,
-  'shuffleMode': instance.shuffleMode,
   'shuffleIndex': instance.shuffleIndex,
   'playlists': instance.playlists,
   'activePlaylistId': instance.activePlaylistId,

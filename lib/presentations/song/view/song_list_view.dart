@@ -15,15 +15,11 @@ import '../../presentations.dart';
 @RoutePage()
 class SongListView extends StatefulWidget {
   final Function() onBack;
-  final Function() onPlayFavorite;
   final List<SongBook> Function() books;
-  final List<SongBook> Function() favoriteBooks;
   final SongBook Function() currentBook;
   final Function(String pageNumber) onTapPageNumber;
-  final Function(Song song) onTapFavorite;
+  final Function(Song song) onOpenSong;
   final Function(String bookCode) onChangeBookCode;
-  final bool Function(Song song) isFavorite;
-  final Function(Song song) onFavorite;
 
   final String initialSearchText;
   final Function(String text) onSearchTermsChanged;
@@ -34,14 +30,10 @@ class SongListView extends StatefulWidget {
     required this.currentBook,
     required this.onTapPageNumber,
     required this.onChangeBookCode,
-    required this.isFavorite,
-    required this.onFavorite,
-    required this.favoriteBooks,
-    required this.onTapFavorite,
+    required this.onOpenSong,
     required this.initialSearchText,
     required this.onSearchTermsChanged,
     required this.onBack,
-    required this.onPlayFavorite,
   });
 
   @override
@@ -53,7 +45,7 @@ class _SongListViewState extends State<SongListView>
   late final TextEditingController searchController = TextEditingController(
     text: widget.initialSearchText,
   )..addListener(searchListener);
-  late final TabController tabController = TabController(length: 3, vsync: this)
+  late final TabController tabController = TabController(length: 2, vsync: this)
     ..addListener(tabListener);
   @override
   void dispose() {
@@ -146,31 +138,6 @@ class _SongListViewState extends State<SongListView>
         centerTitle: true,
         actions: [
           if (tabController.index == 1) ...[
-            BlocBuilder<SongCubit, SongState>(
-              builder: (context, state) => IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: widget.onPlayFavorite,
-                icon: Icon(
-                  state.isAudioPlaying ? Icons.pause_circle : Icons.play_circle,
-                ),
-              ),
-            ),
-            BlocBuilder<SongCubit, SongState>(
-              builder: (context, state) => IconButton(
-                visualDensity: VisualDensity.compact,
-                onPressed: () {
-                  context.read<SongCubit>().toggleShuffle();
-                },
-                icon: Icon(
-                  state.shuffleMode
-                      ? Icons.shuffle_on_rounded
-                      : Icons.shuffle_rounded,
-                  color: context.colorScheme.primary,
-                ),
-              ),
-            ),
-            SizedBox(width: 8),
-          ] else if (tabController.index == 2) ...[
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () => _showCreatePlaylistDialog(context),
@@ -194,12 +161,6 @@ class _SongListViewState extends State<SongListView>
               ),
               _SongListTabButton(
                 selected: tabController.index == 1,
-                label: 'Favorite'.tr(),
-                borderRadius: BorderRadius.zero,
-                onPressed: () => tabController.animateTo(1),
-              ),
-              _SongListTabButton(
-                selected: tabController.index == 2,
                 label: 'Playlist',
                 borderRadius: const BorderRadius.horizontal(
                   right: Radius.circular(100),
@@ -338,6 +299,89 @@ class _SongListViewState extends State<SongListView>
                   ),
                 ),
                 const Divider(height: 1),
+                BlocBuilder<SongCubit, SongState>(
+                  buildWhen: (prev, cur) =>
+                      prev.histories != cur.histories ||
+                      prev.songBook != cur.songBook,
+                  builder: (context, state) {
+                    final last = state.lastOpenedSong;
+                    if (last == null || searchController.text.isNotEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return Material(
+                      color: context.colorScheme.secondaryContainer
+                          .withValues(alpha: 0.45),
+                      child: InkWell(
+                        onTap: () => widget.onOpenSong(last),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.history_rounded,
+                                size: 18,
+                                color: context.colorScheme.secondary,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Terakhir dibuka',
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: context
+                                                .colorScheme.onSecondaryContainer
+                                                .withValues(alpha: 0.7),
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      '${last.number ?? ''} — ${last.title ?? ''}',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleSmall
+                                          ?.copyWith(
+                                            color: context.colorScheme
+                                                .onSecondaryContainer,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              FilledButton.tonal(
+                                style: FilledButton.styleFrom(
+                                  visualDensity: VisualDensity.compact,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 0,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onPressed: () => widget.onOpenSong(last),
+                                child: const Text('Buka'),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 Expanded(
                   child: ListView.builder(
                     itemCount: getFilteredItems(
@@ -376,7 +420,7 @@ class _SongListViewState extends State<SongListView>
                                 ),
                               ),
                               trailing: SizedBox(
-                                width: 96,
+                                width: 48,
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
@@ -393,27 +437,6 @@ class _SongListViewState extends State<SongListView>
                                       },
                                       icon: const Icon(
                                         Icons.playlist_add_rounded,
-                                        size: 20,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () async {
-                                        widget.onFavorite(item);
-                                        await Future.delayed(
-                                          const Duration(milliseconds: 100),
-                                        );
-                                        setState(() {
-                                          forceRefresh++;
-                                        });
-                                      },
-                                      icon: Icon(
-                                        widget.isFavorite(item)
-                                            ? Icons.star_rounded
-                                            : Icons.star_border_rounded,
-                                        color: widget.isFavorite(item)
-                                            ? context.colorScheme.secondary
-                                            : null,
                                         size: 20,
                                       ),
                                     ),
@@ -443,80 +466,12 @@ class _SongListViewState extends State<SongListView>
               ],
             ),
           ),
-          Visibility(
-            visible:
-                widget.favoriteBooks().fold<int>(
-                  0,
-                  (previousValue, element) =>
-                      previousValue + element.songs.length,
-                ) >
-                0,
-            replacement: NoDataFound(
-              title: 'No favorite',
-              description: 'Add favorite and see it here'.tr(),
-            ),
-            child: ListView.builder(
-              itemCount: widget.favoriteBooks().length,
-              itemBuilder: (context, index) {
-                var book = widget.favoriteBooks()[index];
-                if (book.songs.isEmpty) return const SizedBox();
-                return Column(
-                  children: [
-                    ListTile(title: Text(book.code ?? '')),
-                    ListView.builder(
-                      shrinkWrap: true,
-                      itemCount: book.songs.length,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemBuilder: (context, index) {
-                        var item = book.songs[index];
-                        return Column(
-                          children: [
-                            ListTile(
-                              onTap: () {
-                                widget.onSearchTermsChanged(
-                                  searchController.text,
-                                );
-                                FocusManager.instance.primaryFocus?.unfocus();
-                                widget.onTapFavorite(item);
-                              },
-                              leading: Text(item.number ?? ''),
-                              trailing: IconButton(
-                                onPressed: () async {
-                                  widget.onFavorite(item);
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 100),
-                                  );
-                                  setState(() {
-                                    forceRefresh++;
-                                  });
-                                },
-                                icon: Icon(
-                                  widget.isFavorite(item)
-                                      ? Icons.star_rounded
-                                      : Icons.star_border_rounded,
-                                  color: widget.isFavorite(item)
-                                      ? context.colorScheme.secondary
-                                      : null,
-                                ),
-                              ),
-                              title: Text(item.title ?? ''),
-                            ),
-                            const Divider(height: 1),
-                          ],
-                        );
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
-          ),
           _PlaylistTab(
             books: widget.books,
             onOpenSong: (song) {
               widget.onSearchTermsChanged(searchController.text);
               FocusManager.instance.primaryFocus?.unfocus();
-              widget.onTapFavorite(song);
+              widget.onOpenSong(song);
             },
             onCreatePlaylist: () => _showCreatePlaylistDialog(context),
           ),
@@ -640,7 +595,9 @@ class _PlaylistTab extends StatelessWidget {
             ...state.playlists.map(
               (playlist) => _PlaylistCard(
                 playlist: playlist,
-                active: playlist.id == state.activePlaylistId,
+                active:
+                    state.isPlaylistLoopModeActive &&
+                    playlist.id == state.activePlaylistId,
                 books: books,
                 onActivate: () => cubit.setActivePlaylist(playlist.id),
                 onDelete: () => cubit.deletePlaylist(playlist.id),

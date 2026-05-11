@@ -34,7 +34,7 @@ void main() {
                   [24, 'Nylon Guitar'],
                 ],
                 onPlayPause: () {},
-                onStop: () {},
+                onLoopModeCycle: () {},
                 onSeek: (_) {},
                 onTranspose: (_) {},
                 onKeySelected: (_) {},
@@ -48,8 +48,9 @@ void main() {
       ),
     );
 
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.text('Now Playing'), warnIfMissed: true);
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(tester.takeException(), isNull);
   });
@@ -80,7 +81,7 @@ void main() {
                 availableKeys: const ['C', 'D', 'E'],
                 tempoBpm: 76,
                 onPlayPause: () {},
-                onStop: () {},
+                onLoopModeCycle: () {},
                 onSeek: (_) {},
                 onTranspose: (_) {},
                 onKeySelected: (_) {},
@@ -94,6 +95,7 @@ void main() {
       ),
     );
 
+    await tester.pump(const Duration(milliseconds: 300));
     final panelRect = tester.getRect(
       find.byKey(const ValueKey('midi-expanded')),
     );
@@ -124,7 +126,7 @@ void main() {
                 nowPlayingTitle: 'Besar Setia-Mu',
                 tempoBpm: 76,
                 onPlayPause: () {},
-                onStop: () {},
+                onLoopModeCycle: () {},
                 onSeek: (_) {},
                 onTranspose: (_) {},
                 onKeySelected: (_) {},
@@ -138,8 +140,9 @@ void main() {
       ),
     );
 
+    await tester.pump(const Duration(milliseconds: 300));
     await tester.tap(find.byKey(const ValueKey('midi-collapse-toggle')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 300));
 
     final collapsed = find.byKey(const ValueKey('midi-collapsed'));
     final collapsedRect = tester.getRect(collapsed);
@@ -149,5 +152,44 @@ void main() {
     expect(collapsedRect.right, closeTo(344, 0.1));
     expect(find.textContaining('Besar Setia-Mu'), findsOneWidget);
     expect(find.byIcon(Icons.music_note_rounded), findsOneWidget);
+  });
+
+  testWidgets('repeat control cycles loop mode instead of stopping playback', (
+    tester,
+  ) async {
+    var cycleCount = 0;
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: Stack(
+            children: [
+              DraggableMidiControls(
+                isPlaying: false,
+                isLoading: false,
+                position: 0,
+                duration: 180,
+                transposeStep: 0,
+                tempoBpm: 76,
+                onPlayPause: () {},
+                onLoopModeCycle: () => cycleCount++,
+                onSeek: (_) {},
+                onTranspose: (_) {},
+                onKeySelected: (_) {},
+                onTempo: (_) {},
+                onInstrument: (_) {},
+                onSoundFont: (_) {},
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    await tester.pump(const Duration(milliseconds: 300));
+    await tester.tap(find.byIcon(Icons.repeat_rounded));
+    await tester.pump();
+
+    expect(cycleCount, 1);
   });
 }

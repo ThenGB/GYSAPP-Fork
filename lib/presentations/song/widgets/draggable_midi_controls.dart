@@ -1,9 +1,36 @@
 import 'package:flutter/material.dart';
 
+import '../cubit/song_playlist.dart';
+
 const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
 const double kMidiCollapsedBarHeight = 48;
 const double kMidiCollapsedMaxWidth = 220;
+
+IconData midiLoopModeIcon(String mode) {
+  return switch (SongPlaylistAutoNextMode.normalize(mode)) {
+    SongPlaylistAutoNextMode.one => Icons.repeat_one_rounded,
+    SongPlaylistAutoNextMode.number => Icons.repeat_on_rounded,
+    SongPlaylistAutoNextMode.playlist => Icons.playlist_play_rounded,
+    SongPlaylistAutoNextMode.shuffleAll ||
+    SongPlaylistAutoNextMode.shufflePlaylist => Icons.shuffle_rounded,
+    _ => Icons.repeat_rounded,
+  };
+}
+
+String midiLoopModeTooltip(String mode) {
+  return switch (SongPlaylistAutoNextMode.normalize(mode)) {
+    SongPlaylistAutoNextMode.one => 'Repeat one',
+    SongPlaylistAutoNextMode.number => 'Auto next by number',
+    SongPlaylistAutoNextMode.playlist => 'Auto next playlist',
+    SongPlaylistAutoNextMode.shuffleAll => 'Shuffle all',
+    SongPlaylistAutoNextMode.shufflePlaylist => 'Shuffle playlist',
+    _ => 'Loop off',
+  };
+}
+
+bool midiLoopModeActive(String mode) =>
+    SongPlaylistAutoNextMode.normalize(mode) != SongPlaylistAutoNextMode.off;
 
 /// Fixed-bottom MIDI control panel styled to match the Stitch reference.
 class DraggableMidiControls extends StatefulWidget {
@@ -19,8 +46,9 @@ class DraggableMidiControls extends StatefulWidget {
   final String soundFont;
   final List<String> availableSoundFonts;
   final List<List<dynamic>> availableInstruments;
+  final String autoNextMode;
   final VoidCallback onPlayPause;
-  final VoidCallback onStop;
+  final VoidCallback onLoopModeCycle;
   final ValueChanged<double> onSeek;
   final ValueChanged<int> onTranspose;
   final ValueChanged<String> onKeySelected;
@@ -40,11 +68,12 @@ class DraggableMidiControls extends StatefulWidget {
     this.availableKeys = const [],
     required this.tempoBpm,
     this.midiInstrument,
-    this.soundFont = 'GeneralUser-GS.sf2',
-    this.availableSoundFonts = const ['GeneralUser-GS.sf2', 'TimGM6mb.sf2'],
+    this.soundFont = 'TimGM6mb.sf2',
+    this.availableSoundFonts = const ['TimGM6mb.sf2'],
     this.availableInstruments = const [],
+    this.autoNextMode = SongPlaylistAutoNextMode.off,
     required this.onPlayPause,
-    required this.onStop,
+    required this.onLoopModeCycle,
     required this.onSeek,
     required this.onTranspose,
     required this.onKeySelected,
@@ -58,13 +87,88 @@ class DraggableMidiControls extends StatefulWidget {
   State<DraggableMidiControls> createState() => _DraggableMidiControlsState();
 }
 
-class _DraggableMidiControlsState extends State<DraggableMidiControls> {
+class _DraggableMidiControlsState extends State<DraggableMidiControls>
+    with TickerProviderStateMixin {
   bool _expanded = true;
+  final GlobalKey _instrumentButtonKey = GlobalKey();
+  late AnimationController _animationController;
+  late AnimationController _pulseController;
+  late Animation<Offset> _slideAnimation;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _pulseAnimation;
+  double _seekValue = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 280),
+      vsync: this,
+    );
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat();
+    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
+        .animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   String _formatTime(double seconds) {
     final m = seconds ~/ 60;
     final s = (seconds % 60).toInt();
     return '$m:${s.toString().padLeft(2, '0')}';
+  }
+
+  void _showInstrumentMenu(BuildContext context) async {
+    if (widget.availableInstruments.isEmpty) return;
+
+    final RenderBox button =
+        _instrumentButtonKey.currentContext!.findRenderObject() as RenderBox;
+    final RenderBox overlay =
+        Overlay.of(context).context.findRenderObject() as RenderBox;
+    final Offset buttonPosition = button.localToGlobal(
+      Offset.zero,
+      ancestor: overlay,
+    );
+    final Size buttonSize = button.size;
+
+    final selected = await showMenu<int>(
+      context: context,
+      position: RelativeRect.fromLTRB(
+        buttonPosition.dx,
+        buttonPosition.dy - buttonSize.height,
+        buttonPosition.dx + buttonSize.width,
+        buttonPosition.dy,
+      ),
+      items: widget.availableInstruments.map((instrument) {
+        final program = instrument[0] as int;
+        final name = instrument[1] as String;
+        return PopupMenuItem<int>(value: program, child: Text(name));
+      }).toList(),
+    );
+
+    if (selected != null) {
+      widget.onInstrument(selected);
+    }
   }
 
   @override
@@ -75,22 +179,14 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
       left: kMidiOverlayHorizontalMargin,
       right: kMidiOverlayHorizontalMargin,
       bottom: kMidiOverlayBottomOffset,
-      child: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 220),
-        switchInCurve: Curves.easeOutCubic,
-        switchOutCurve: Curves.easeInCubic,
-        transitionBuilder: (child, animation) {
-          return FadeTransition(
-            opacity: animation,
-            child: ScaleTransition(
-              scale: Tween<double>(begin: 0.98, end: 1).animate(animation),
-              child: child,
-            ),
-          );
-        },
-        child: _expanded
-            ? _buildExpandedPanel(context, colors)
-            : _buildCollapsedTrigger(context, colors),
+      child: SlideTransition(
+        position: _slideAnimation,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: _expanded
+              ? _buildExpandedPanel(context, colors)
+              : _buildCollapsedTrigger(context, colors),
+        ),
       ),
     );
   }
@@ -109,17 +205,28 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
           elevation: 2,
           shadowColor: colors.primary.withValues(alpha: 0.18),
           child: InkWell(
-            onTap: () => setState(() => _expanded = true),
+            onTap: () {
+              setState(() => _expanded = true);
+              _animationController.forward();
+            },
             child: SizedBox(
               height: kMidiCollapsedBarHeight,
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 14),
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.music_note_rounded,
-                      size: 17,
-                      color: colors.onPrimary,
+                    AnimatedBuilder(
+                      animation: _pulseAnimation,
+                      builder: (context, child) {
+                        return Transform.scale(
+                          scale: _pulseAnimation.value,
+                          child: Icon(
+                            Icons.music_note_rounded,
+                            size: 17,
+                            color: colors.onPrimary,
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(width: 10),
                     Expanded(
@@ -134,11 +241,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.keyboard_arrow_up_rounded,
-                      color: colors.onPrimary,
-                      size: 22,
-                    ),
+                    Icon(Icons.expand_more, color: colors.onPrimary, size: 22),
                   ],
                 ),
               ),
@@ -153,9 +256,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
     return Container(
       key: const ValueKey('midi-expanded'),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerHigh,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.6)),
+        color: colors.surfaceContainerHighest,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+        border: Border.all(color: colors.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: colors.primary.withValues(alpha: 0.12),
@@ -169,23 +272,34 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
         children: [
           InkWell(
             key: const ValueKey('midi-collapse-toggle'),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            onTap: () => setState(() => _expanded = false),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            onTap: () {
+              setState(() => _expanded = false);
+              _animationController.reverse();
+            },
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               decoration: BoxDecoration(
                 color: colors.primary,
                 borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(24),
+                  top: Radius.circular(16),
                 ),
               ),
               child: Row(
                 children: [
-                  Icon(
-                    Icons.music_note_rounded,
-                    size: 16,
-                    color: colors.onPrimary,
+                  AnimatedBuilder(
+                    animation: _pulseAnimation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _pulseAnimation.value,
+                        child: Icon(
+                          Icons.music_note_rounded,
+                          size: 16,
+                          color: colors.onPrimary,
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(width: 8),
                   Expanded(
@@ -202,23 +316,25 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       ),
                     ),
                   ),
-                  Icon(
-                    Icons.keyboard_arrow_down_rounded,
-                    color: colors.onPrimary,
+                  AnimatedRotation(
+                    turns: _expanded ? 0 : 0.5,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                    child: Icon(Icons.expand_more, color: colors.onPrimary),
                   ),
                 ],
               ),
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+            padding: const EdgeInsets.all(16),
             child: Column(
               children: [
                 Row(
                   children: [
                     SizedBox(
-                      width: 54,
-                      height: 54,
+                      width: 40,
+                      height: 40,
                       child: FilledButton(
                         onPressed: widget.isLoading ? null : widget.onPlayPause,
                         style: FilledButton.styleFrom(
@@ -251,27 +367,44 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 0,
+                            enabledThumbRadius: 6,
                           ),
                           overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 0,
+                            overlayRadius: 12,
                           ),
-                          trackHeight: 4,
+                          trackHeight: 6,
                         ),
                         child: Slider(
-                          value: widget.duration > 0
-                              ? widget.position.clamp(0, widget.duration)
-                              : 0,
+                          value: _seekValue > 0
+                              ? _seekValue
+                              : (widget.duration > 0
+                                    ? widget.position.clamp(0, widget.duration)
+                                    : 0),
                           max: widget.duration > 0 ? widget.duration : 1,
-                          onChanged: widget.duration > 0 ? widget.onSeek : null,
+                          onChanged: widget.duration > 0
+                              ? (value) {
+                                  setState(() {
+                                    _seekValue = value;
+                                  });
+                                }
+                              : null,
+                          onChangeEnd: widget.duration > 0
+                              ? (value) {
+                                  widget.onSeek(value);
+                                  setState(() {
+                                    _seekValue = 0;
+                                  });
+                                }
+                              : null,
                         ),
                       ),
                     ),
                     const SizedBox(width: 8),
                     Text(
                       '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: colors.onSurfaceVariant,
+                        letterSpacing: 0.1,
                       ),
                     ),
                   ],
@@ -324,10 +457,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         IconButton(
+                          key: _instrumentButtonKey,
                           constraints: iconConstraints,
                           visualDensity: VisualDensity.compact,
-                          onPressed: () =>
-                              widget.onInstrument(widget.midiInstrument),
+                          onPressed: () => _showInstrumentMenu(context),
                           icon: Icon(
                             Icons.piano_rounded,
                             color: colors.onSurfaceVariant,
@@ -336,10 +469,13 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                         IconButton(
                           constraints: iconConstraints,
                           visualDensity: VisualDensity.compact,
-                          onPressed: widget.onStop,
+                          tooltip: midiLoopModeTooltip(widget.autoNextMode),
+                          onPressed: widget.onLoopModeCycle,
                           icon: Icon(
-                            Icons.repeat_rounded,
-                            color: colors.onSurfaceVariant,
+                            midiLoopModeIcon(widget.autoNextMode),
+                            color: midiLoopModeActive(widget.autoNextMode)
+                                ? colors.primary
+                                : colors.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -353,8 +489,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                             children: [
                               Text(
                                 'Transpose',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: colors.onSurfaceVariant),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                      letterSpacing: 0.1,
+                                    ),
                               ),
                               const SizedBox(width: 8),
                               transposeControl,
@@ -373,8 +512,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
                       children: [
                         Text(
                           'Transpose',
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(color: colors.onSurfaceVariant),
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colors.onSurfaceVariant,
+                                letterSpacing: 0.1,
+                              ),
                         ),
                         const SizedBox(width: 10),
                         transposeControl,

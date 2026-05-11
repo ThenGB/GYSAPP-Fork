@@ -6,24 +6,57 @@ class ChordData {
   final int noteIdx;
   final String chord;
   final int page;
+  final String? theme;
+  final String? fillMode;
 
   const ChordData({
     required this.noteIdx,
     required this.chord,
     required this.page,
+    this.theme,
+    this.fillMode,
   });
 
   factory ChordData.fromJson(Map<String, dynamic> json) {
     return ChordData(
-      noteIdx: json['noteIdx'] as int,
-      chord: json['chord'] as String,
-      page: json['page'] as int? ?? 1,
+      noteIdx: (json['noteIdx'] as num).round(),
+      chord: (json['chord'] as String).trim(),
+      page: (json['page'] as num?)?.round() ?? 1,
+      theme: json['theme'] as String?,
+      fillMode: json['fillMode'] as String?,
     );
   }
 
-  ChordData withTransposedChord(String newChord) {
-    return ChordData(noteIdx: noteIdx, chord: newChord, page: page);
+  Map<String, dynamic> toJson({bool includePage = false}) {
+    return {
+      'noteIdx': noteIdx,
+      'chord': chord,
+      if (includePage) 'page': page,
+      if (theme != null) 'theme': theme,
+      if (fillMode != null) 'fillMode': fillMode,
+    };
   }
+
+  ChordData withTransposedChord(String newChord) {
+    return ChordData(
+      noteIdx: noteIdx,
+      chord: newChord,
+      page: page,
+      theme: theme,
+      fillMode: fillMode,
+    );
+  }
+}
+
+class ChordSpecialIndices {
+  static const int before = -1;
+  static const int after = 99999;
+}
+
+class ChordFillMode {
+  static const String none = 'none';
+  static const String soft = 'soft';
+  static const String solid = 'solid';
 }
 
 class _ParsedChord {
@@ -107,15 +140,23 @@ class ChordService {
   static Map<int, List<ChordData>> parseChordJson(String jsonString) {
     try {
       final data = jsonDecode(jsonString) as Map<String, dynamic>;
-      final pages = data['pages'] as Map<String, dynamic>;
+      if (data.containsKey('version') && data['version'] != 2) return {};
+      if (data.containsKey('type') && data['type'] != 'note-aligned') return {};
+      final pages = data['pages'];
+      if (pages is! Map<String, dynamic>) return {};
       final result = <int, List<ChordData>>{};
 
       pages.forEach((pageNumStr, chordsList) {
         final pageNum = int.parse(pageNumStr);
-        final chords = (chordsList as List<dynamic>).map((c) {
-          return ChordData.fromJson(c as Map<String, dynamic>);
-        }).toList();
-        result[pageNum] = chords;
+        if (chordsList is! List<dynamic>) return;
+        final chords =
+            chordsList
+                .whereType<Map<String, dynamic>>()
+                .map((c) => ChordData.fromJson({...c, 'page': pageNum}))
+                .where((c) => c.chord.isNotEmpty)
+                .toList()
+              ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
+        if (chords.isNotEmpty) result[pageNum] = chords;
       });
 
       return result;
@@ -123,6 +164,24 @@ class ChordService {
       log('Error parsing chord JSON: $e');
       return {};
     }
+  }
+
+  static String encodeChordJson(Map<int, List<ChordData>> chords) {
+    final pageKeys = chords.keys.toList()..sort();
+    final pages = <String, List<Map<String, dynamic>>>{};
+    for (final page in pageKeys) {
+      final entries = List<ChordData>.from(chords[page] ?? [])
+        ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
+      final encoded = entries
+          .where((entry) => entry.chord.trim().isNotEmpty)
+          .map((entry) => entry.toJson())
+          .toList();
+      if (encoded.isNotEmpty) pages['$page'] = encoded;
+    }
+
+    return const JsonEncoder.withIndent(
+      '  ',
+    ).convert({'version': 2, 'type': 'note-aligned', 'pages': pages});
   }
 
   static String transposeChord(
@@ -162,7 +221,7 @@ class ChordService {
     final bass = parsed.bassSemitone == null
         ? ''
         : '/${notes[_wrapSemitone(parsed.bassSemitone! + transpose)]}'
-            '${parsed.suffixAfter}';
+              '${parsed.suffixAfter}';
 
     return '$root$suffix$bass';
   }
@@ -182,8 +241,9 @@ class ChordService {
     String? rootOf(String chordText) {
       final parsed = _parseChordToken(chordText);
       if (parsed == null) return null;
-      final isMinor =
-          RegExp(r'^[A-Ga-g1-7][#♯b♭]?(min|m(?!aj))').hasMatch(chordText);
+      final isMinor = RegExp(
+        r'^[A-Ga-g1-7][#♯b♭]?(min|m(?!aj))',
+      ).hasMatch(chordText);
       return '${_notesSharp[parsed.semitone]}${isMinor ? 'm' : ''}';
     }
 
@@ -310,8 +370,8 @@ class ChordService {
     final accidental = accidentalRaw == '♭'
         ? 'b'
         : accidentalRaw == '♯'
-            ? '#'
-            : accidentalRaw;
+        ? '#'
+        : accidentalRaw;
     if (accidental == '#') semitone += 1;
     if (accidental == 'b') semitone -= 1;
 
@@ -336,8 +396,8 @@ class ChordService {
     final accidental = accidentalRaw == '♭'
         ? 'b'
         : accidentalRaw == '♯'
-            ? '#'
-            : accidentalRaw;
+        ? '#'
+        : accidentalRaw;
     if (accidental == '#') semitone += 1;
     if (accidental == 'b') semitone -= 1;
 

@@ -53,7 +53,7 @@ class MidiPlaybackState {
 }
 
 class MidiEngineService extends ChangeNotifier {
-  static const int _defaultMaxCachedSources = 6;
+  static const int _defaultMaxCachedSources = 12;
 
   final LocalAssetService _assetService;
   final String _cacheDir;

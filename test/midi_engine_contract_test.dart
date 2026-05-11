@@ -76,21 +76,21 @@ void main() {
         tempoBpm: 500,
         baseTempoBpm: 10,
         instrument: 400,
-        soundFont: 'GeneralUser-GS.sf2',
+        soundFont: 'TimGM6mb.sf2',
       );
 
       expect(settings.normalized.transpose, 12);
       expect(settings.normalized.tempoBpm, 220);
       expect(settings.normalized.baseTempoBpm, 30);
       expect(settings.normalized.instrument, 127);
-      expect(settings.normalized.soundFont, 'GeneralUser-GS.sf2');
+      expect(settings.normalized.soundFont, 'TimGM6mb.sf2');
     });
 
     test('maps tempo to a rate against detected base tempo', () {
       const settings = MidiRenderSettings(
         tempoBpm: 114,
         baseTempoBpm: 76,
-        soundFont: 'GeneralUser-GS.sf2',
+        soundFont: 'TimGM6mb.sf2',
       );
 
       expect(settings.tempoRate, closeTo(1.5, 0.0001));

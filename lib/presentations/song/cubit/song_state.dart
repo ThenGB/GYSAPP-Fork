@@ -21,7 +21,6 @@ abstract class SongState with _$SongState {
     @Default(false) bool isLoading,
     @Default(false) bool isAudioLoading,
     @Default([]) List<SongBook> songBook,
-    @Default([]) List<SongBook> favoriteSongBook,
     @Default('KR') String bookCode,
     @Default(0) int pageIndex,
     @Default(0) int verseIndex,
@@ -32,17 +31,12 @@ abstract class SongState with _$SongState {
     @Default([]) List<SongNote> notes,
     @Default('Newest') String sortNotesBy,
     @Default([]) List<SongHistory> histories,
-    @Default(false) bool playOnlyFavorite,
-    @Default(false) bool shuffleMode,
     @Default([]) List<int> shuffleIndex,
     @Default([]) List<SongPlaylist> playlists,
     String? activePlaylistId,
     @Default(SongPlaylistAutoNextMode.off) String playlistAutoNextMode,
     @Default([]) List<int> playlistShuffleIndex,
-    @Default(true) bool showAudio,
-    @Default(true) bool preloadEnabled,
-    @Default(1) int preloadCount,
-    @Default(12) int preloadCacheMax,
+    @Default(false) bool showAudio,
     @Default(false) bool showChord,
     @Default('') String searchTerms,
     @Default('Roboto') String defaultFont,
@@ -60,7 +54,7 @@ abstract class SongState with _$SongState {
     @Default(76.0) double tempoBpm,
     @Default(76.0) double defaultTempoBpm,
     int? midiInstrument,
-    @Default('GeneralUser-GS.sf2') String soundFont,
+    @Default('TimGM6mb.sf2') String soundFont,
     @Default(false) bool isAudioPlaying,
     @Default(false) bool pdfTwoPageMode,
     @Default(false) bool pdfVerticalScrolling,
@@ -143,24 +137,12 @@ abstract class SongState with _$SongState {
   }
 
   List<Song> get songs {
-    if (!playOnlyFavorite) {
-      return (currentSong?.songs ?? []);
-    }
-    if (favoriteSongBook.isEmpty) {
-      return (currentSong?.songs ?? []);
-    }
-    List<Song> songs = [];
-    for (var book in favoriteSongBook) {
-      songs.addAll(book.songs);
-    }
-    if (songs.isEmpty) {
-      return (currentSong?.songs ?? []);
-    }
-    if (shuffleMode) {
-      songs = songs.rearrangeList(shuffleIndex);
-    }
-    return songs;
+    return currentSong?.songs ?? const [];
   }
+
+  bool get isPlaylistLoopModeActive =>
+      playlistAutoNextMode == SongPlaylistAutoNextMode.playlist ||
+      playlistAutoNextMode == SongPlaylistAutoNextMode.shufflePlaylist;
 
   Future<List<SongNote>> filteredNote(String filter) async {
     Map<String, SongNote> mapped = {};
@@ -246,5 +228,15 @@ extension SongStateSafeAccess on SongState {
 
   bool isValidSongIndex(int index) {
     return index >= 0 && index < songs.length;
+  }
+
+  Song? get lastOpenedSong {
+    if (histories.isEmpty) return null;
+    final last = histories.last;
+    final book = songBook.firstWhereOrNull((b) => b.code == last.bookCode);
+    if (book == null) return null;
+    final idx = last.index;
+    if (idx < 0 || idx >= book.songs.length) return null;
+    return book.songs[idx];
   }
 }

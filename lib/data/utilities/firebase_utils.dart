@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 
 class FirebaseUtils {
   const FirebaseUtils._();
@@ -55,17 +56,23 @@ class FirebaseUtils {
   static String _fallbackString(String key) =>
       fallbackConfig[key]?.toString() ?? '';
 
+  static void _configLog(Object? value, String key, {bool fallback = false}) {
+    if (!kDebugMode) return;
+    final source = fallback ? 'fallback Remote Config' : 'Remote Config';
+    log(value.toString(), name: 'Get $key from $source');
+  }
+
   static Future<Map<String, dynamic>> jsonConfig(String key) async {
     try {
       if (_useFallbackConfig) {
         Map<String, dynamic> json = jsonDecode(_fallbackString(key));
-        log(json.toString(), name: 'Get $key from fallback Remote Config');
+        _configLog(json, key, fallback: true);
         return json;
       }
       var config = await initialization.future;
       var jsonString = config.getString(key);
       Map<String, dynamic> json = jsonDecode(jsonString);
-      log(json.toString(), name: 'Get $key from Remote Config');
+      _configLog(json, key);
       return json;
     } catch (e) {
       return {};
@@ -76,13 +83,13 @@ class FirebaseUtils {
     try {
       if (_useFallbackConfig) {
         List<dynamic> json = jsonDecode(_fallbackString(key));
-        log(json.toString(), name: 'Get $key from fallback Remote Config');
+        _configLog(json, key, fallback: true);
         return json.map((e) => e as Map<String, dynamic>).toList();
       }
       var config = await initialization.future;
       var jsonString = config.getString(key);
       List<dynamic> json = jsonDecode(jsonString);
-      log(json.toString(), name: 'Get $key from Remote Config');
+      _configLog(json, key);
       return json.map((e) => e as Map<String, dynamic>).toList();
     } catch (e) {
       return [];
@@ -92,24 +99,24 @@ class FirebaseUtils {
   static Future<String> stringConfig(String key) async {
     if (_useFallbackConfig) {
       var jsonString = _fallbackString(key);
-      log(jsonString, name: 'Get $key from fallback Remote Config');
+      _configLog(jsonString, key, fallback: true);
       return jsonString;
     }
     var config = await initialization.future;
     var jsonString = config.getString(key);
-    log(jsonString.toString(), name: 'Get $key from Remote Config');
+    _configLog(jsonString, key);
     return jsonString;
   }
 
   static Future<bool> boolConfig(String key) async {
     if (_useFallbackConfig) {
       var value = _fallbackString(key).toLowerCase() == 'true';
-      log(value.toString(), name: 'Get $key from fallback Remote Config');
+      _configLog(value, key, fallback: true);
       return value;
     }
     var config = await initialization.future;
     var jsonString = config.getBool(key);
-    log(jsonString.toString(), name: 'Get $key from Remote Config');
+    _configLog(jsonString, key);
     return jsonString;
   }
 
@@ -121,4 +128,3 @@ class FirebaseUtils {
     return config.getAll();
   }
 }
-

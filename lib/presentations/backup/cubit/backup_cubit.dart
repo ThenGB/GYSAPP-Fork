@@ -56,7 +56,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     var tempEncrypted = await encryptData.encryptFile(backupJson);
     await backupJson.writeAsBytes(await tempEncrypted.readAsBytes());
     if (await promptSaveToLocal()) {
-      String? saveFolder = await FilePicker.platform.getDirectoryPath(
+      String? saveFolder = await FilePicker.getDirectoryPath(
         dialogTitle: 'Select a folder to save the data',
       );
       if (saveFolder != null) {
@@ -166,7 +166,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     var tempEncrypted = await encryptData.encryptFile(backupJson);
     await backupJson.writeAsBytes(await tempEncrypted.readAsBytes());
 
-    String? saveFolder = await FilePicker.platform.getDirectoryPath(
+    String? saveFolder = await FilePicker.getDirectoryPath(
       dialogTitle: 'Select a folder to save the data',
     );
     if (saveFolder != null) {
@@ -183,7 +183,7 @@ class BackupCubit extends HydratedCubit<BackupState> {
     required Function(AppBackupData data) onLoaded,
   }) async {
     try {
-      FilePickerResult? pickedFile = (await FilePicker.platform.pickFiles(
+      FilePickerResult? pickedFile = (await FilePicker.pickFiles(
         allowMultiple: false,
       ));
       if (pickedFile == null) return;
@@ -203,11 +203,9 @@ class BackupCubit extends HydratedCubit<BackupState> {
         '${data.bibleState?.notes.length ?? 0} notes on bible';
     String bibleBookmarks =
         '${data.bibleState?.bookmarks.length ?? 0} bookmarks on bible';
-    String bibleFavorites =
-        '${data.songState?.favoriteSongBook.length ?? 0} favorites on bible';
     emit(
       state.copyWith(
-        localDataSummary: [bibleNotesSummary, bibleBookmarks, bibleFavorites],
+        localDataSummary: [bibleNotesSummary, bibleBookmarks],
         appBackupData: data,
       ),
     );
