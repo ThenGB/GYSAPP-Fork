@@ -20,6 +20,20 @@ class SongPlaylistAutoNextMode {
   static String normalize(String mode) {
     return values.contains(mode) ? mode : off;
   }
+
+  static String cycle(
+    String current, {
+    required bool hasUsableShufflePlaylist,
+  }) {
+    return switch (normalize(current)) {
+      off => one,
+      one => number,
+      number => playlist,
+      playlist => shuffleAll,
+      shuffleAll => hasUsableShufflePlaylist ? shufflePlaylist : off,
+      _ => off,
+    };
+  }
 }
 
 class SongPlaylistItem {
@@ -190,9 +204,7 @@ class SongPlaybackQueue {
     if (currentQueueIndex < songs.length - 1) {
       return songs[currentQueueIndex + 1];
     }
-    if (autoNextMode == SongPlaylistAutoNextMode.playlist ||
-        autoNextMode == SongPlaylistAutoNextMode.shuffleAll ||
-        autoNextMode == SongPlaylistAutoNextMode.shufflePlaylist) {
+    if (_autoNextWraps) {
       return songs.first;
     }
     return null;
@@ -203,32 +215,46 @@ class SongPlaybackQueue {
     return songs[currentQueueIndex - 1];
   }
 
-  Song? _songAtIndex(int index) {
+  Song? get manualNextSong {
     if (songs.isEmpty) return null;
-    final wrapped = index % songs.length;
-    final safeIndex = wrapped < 0 ? wrapped + songs.length : wrapped;
-    if (safeIndex < 0 || safeIndex >= songs.length) return null;
-    return songs[safeIndex];
+    if (songs.length == 1) return currentSong;
+    if (currentQueueIndex < songs.length - 1) {
+      return songs[currentQueueIndex + 1];
+    }
+    return songs.first;
   }
 
-  List<Song> getPreloadSongs(int count) {
-    final result = <Song>[];
-    final clamped = count.clamp(1, 5);
-    if (currentSong != null) {
-      result.add(currentSong!);
+  Song? get manualPreviousSong {
+    if (songs.isEmpty) return null;
+    if (songs.length == 1) return currentSong;
+    if (currentQueueIndex > 0) {
+      return songs[currentQueueIndex - 1];
     }
-    for (var i = 1; i <= clamped; i++) {
-      final prev = _songAtIndex(currentQueueIndex - i);
-      if (prev != null && !result.any((item) => _sameSong(item, prev))) {
-        result.add(prev);
-      }
-      final next = _songAtIndex(currentQueueIndex + i);
-      if (next != null && !result.any((item) => _sameSong(item, next))) {
-        result.add(next);
-      }
-    }
-    return result;
+    return songs.last;
   }
+
+  List<Song> preloadSongs({int count = 1}) {
+    if (songs.length <= 1 || count <= 0) return const [];
+    final preload = <Song>[];
+    final seen = <String>{};
+    void addSong(Song song) {
+      final key = '${song.code ?? ''}:${song.number ?? ''}';
+      if (currentSong != null && _sameSong(song, currentSong!)) return;
+      if (seen.add(key)) preload.add(song);
+    }
+
+    for (var step = 1; step <= count; step++) {
+      addSong(songs[(currentQueueIndex + step) % songs.length]);
+      addSong(songs[(currentQueueIndex - step) % songs.length]);
+    }
+    return List.unmodifiable(preload);
+  }
+
+  bool get _autoNextWraps =>
+      autoNextMode == SongPlaylistAutoNextMode.number ||
+      autoNextMode == SongPlaylistAutoNextMode.playlist ||
+      autoNextMode == SongPlaylistAutoNextMode.shuffleAll ||
+      autoNextMode == SongPlaylistAutoNextMode.shufflePlaylist;
 
   String? get nextBookCode => nextSong?.code;
 

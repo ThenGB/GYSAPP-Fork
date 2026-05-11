@@ -15,6 +15,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../data/data.dart';
 import '../../../di/injection.dart';
 import '../../../router/router.dart';
+import '../../song/widgets/draggable_midi_controls.dart';
 import '../../presentations.dart';
 
 class DashboardNavigationDestination {
@@ -64,7 +65,7 @@ const dashboardNavigationDestinations = [
 ];
 
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
-const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
+const bool kDashboardExtendsBodyForMiniPlayerOverlay = false;
 const double kDashboardMiniPlayerBottomOffset = 78;
 
 double dashboardMiniPlayerBottomOffset({required bool isExpanded}) {
@@ -497,6 +498,19 @@ class _DashboardMidiPlayer extends StatelessWidget {
                     children: [
                       Row(
                         children: [
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            onPressed: songState.songs.length > 1
+                                ? () => cubit.goToPreviousSong()
+                                : null,
+                            icon: Icon(
+                              Icons.skip_previous_rounded,
+                              color: songState.songs.length > 1
+                                  ? colors.onSurface
+                                  : colors.onSurface.withValues(alpha: 0.3),
+                            ),
+                          ),
+                          const SizedBox(width: 4),
                           SizedBox(
                             width: 44,
                             height: 44,
@@ -527,6 +541,20 @@ class _DashboardMidiPlayer extends StatelessWidget {
                                       color: colors.onPrimary,
                                       size: 24,
                                     ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          const SizedBox(width: 4),
+                          IconButton(
+                            visualDensity: VisualDensity.compact,
+                            onPressed: songState.songs.length > 1
+                                ? () => cubit.goToNextSong()
+                                : null,
+                            icon: Icon(
+                              Icons.skip_next_rounded,
+                              color: songState.songs.length > 1
+                                  ? colors.onSurface
+                                  : colors.onSurface.withValues(alpha: 0.3),
                             ),
                           ),
                           const SizedBox(width: 10),
@@ -613,20 +641,71 @@ class _DashboardMidiPlayer extends StatelessWidget {
                             ),
                           ),
                           const Spacer(),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () {},
-                            icon: Icon(
-                              Icons.piano_rounded,
-                              color: colors.onSurfaceVariant,
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: colors.outlineVariant),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () =>
+                                      cubit.setTempo(songState.tempoBpm - 5),
+                                  icon: const Icon(Icons.remove_rounded),
+                                ),
+                                SizedBox(
+                                  width: 40,
+                                  child: Text(
+                                    '${songState.tempoBpm.toInt()}',
+                                    textAlign: TextAlign.center,
+                                    style: context.textTheme.titleSmall,
+                                  ),
+                                ),
+                                IconButton(
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () =>
+                                      cubit.setTempo(songState.tempoBpm + 5),
+                                  icon: const Icon(Icons.add_rounded),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: colors.outlineVariant),
+                            ),
+                            child: IconButton(
+                              visualDensity: VisualDensity.compact,
+                              onPressed: () => cubit.toggleAccidentalMode(),
+                              icon: Text(
+                                songState.chordAccidentalMode ==
+                                        ChordService.accidentalSharp
+                                    ? '♯'
+                                    : '♭',
+                                style: context.textTheme.titleMedium,
+                              ),
                             ),
                           ),
                           IconButton(
                             visualDensity: VisualDensity.compact,
-                            onPressed: cubit.stop,
+                            tooltip: midiLoopModeTooltip(
+                              songState.playlistAutoNextMode,
+                            ),
+                            onPressed: cubit.cycleLoopMode,
                             icon: Icon(
-                              Icons.repeat_rounded,
-                              color: colors.onSurfaceVariant,
+                              midiLoopModeIcon(songState.playlistAutoNextMode),
+                              color:
+                                  midiLoopModeActive(
+                                    songState.playlistAutoNextMode,
+                                  )
+                                  ? colors.primary
+                                  : colors.onSurfaceVariant,
                             ),
                           ),
                         ],
@@ -814,13 +893,26 @@ class _DashboardDrawer extends StatelessWidget {
                                 ),
                           ),
                         ),
-                        _DrawerActivityTile(
-                          icon: Icons.music_note_rounded,
-                          label: 'Terakhir dibuka',
-                          value:
-                              context.read<SongCubit>().state.histories.isEmpty
-                              ? 'Belum ada riwayat'
-                              : 'KR ${context.read<SongCubit>().state.histories.last.index + 1}. Besar Setia-Mu',
+                        Builder(
+                          builder: (context) {
+                            final songCubit = context.read<SongCubit>();
+                            final lastSong = songCubit.state.lastOpenedSong;
+                            return _DrawerActivityTile(
+                              icon: Icons.music_note_rounded,
+                              label: 'Terakhir dibuka',
+                              value: lastSong != null
+                                  ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
+                                  : 'Belum ada riwayat',
+                              onTap: lastSong != null
+                                  ? () {
+                                      Navigator.of(context).maybePop();
+                                      AutoTabsRouter.of(context)
+                                          .setActiveIndex(2);
+                                      songCubit.openSong(lastSong);
+                                    }
+                                  : null,
+                            );
+                          },
                         ),
                         const _DrawerProgressTile(),
                         const SizedBox(height: 10),
@@ -1048,56 +1140,74 @@ class _DrawerActivityTile extends StatelessWidget {
   final IconData icon;
   final String label;
   final String value;
+  final VoidCallback? onTap;
 
   const _DrawerActivityTile({
     required this.icon,
     required this.label,
     required this.value,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainer,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.30),
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: colors.primary, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label.toUpperCase(),
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant.withValues(alpha: 0.70),
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.8,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: colors.onSurface,
-                  ),
-                ),
-              ],
-            ),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: onTap != null
+              ? colors.primaryContainer.withValues(alpha: 0.35)
+              : colors.surfaceContainer,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: onTap != null
+                ? colors.primary.withValues(alpha: 0.25)
+                : colors.outlineVariant.withValues(alpha: 0.30),
           ),
-        ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: colors.primary, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label.toUpperCase(),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant.withValues(alpha: 0.70),
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.8,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    value,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: colors.onSurface,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (onTap != null) ...[
+              const SizedBox(width: 8),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: colors.primary.withValues(alpha: 0.7),
+              ),
+            ],
+          ],
+        ),
       ),
     );
   }

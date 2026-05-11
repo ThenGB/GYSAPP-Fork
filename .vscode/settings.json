@@ -1,7 +1,7 @@
 {
   "nuxt.isNuxtApp": false,
   "peacock.color": "#d04ca6",
-  "dart.flutterSdkPath": ".fvm/versions/3.32.4",
+  "dart.flutterSdkPath": "C:/FlutterSDK",
   "window.autoDetectColorScheme": true,
   "workbench.colorCustomizations": {
     "[Dark 2026]": {}

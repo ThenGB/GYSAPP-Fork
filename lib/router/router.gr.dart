@@ -1110,14 +1110,10 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
     required SongBook Function() currentBook,
     required dynamic Function(String) onTapPageNumber,
     required dynamic Function(String) onChangeBookCode,
-    required bool Function(Song) isFavorite,
-    required dynamic Function(Song) onFavorite,
-    required List<SongBook> Function() favoriteBooks,
-    required dynamic Function(Song) onTapFavorite,
+    required dynamic Function(Song) onOpenSong,
     required String initialSearchText,
     required dynamic Function(String) onSearchTermsChanged,
     required dynamic Function() onBack,
-    required dynamic Function() onPlayFavorite,
     List<PageRouteInfo>? children,
   }) : super(
          SongListRoute.name,
@@ -1127,14 +1123,10 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
            currentBook: currentBook,
            onTapPageNumber: onTapPageNumber,
            onChangeBookCode: onChangeBookCode,
-           isFavorite: isFavorite,
-           onFavorite: onFavorite,
-           favoriteBooks: favoriteBooks,
-           onTapFavorite: onTapFavorite,
+           onOpenSong: onOpenSong,
            initialSearchText: initialSearchText,
            onSearchTermsChanged: onSearchTermsChanged,
            onBack: onBack,
-           onPlayFavorite: onPlayFavorite,
          ),
          initialChildren: children,
        );
@@ -1151,14 +1143,10 @@ class SongListRoute extends PageRouteInfo<SongListRouteArgs> {
         currentBook: args.currentBook,
         onTapPageNumber: args.onTapPageNumber,
         onChangeBookCode: args.onChangeBookCode,
-        isFavorite: args.isFavorite,
-        onFavorite: args.onFavorite,
-        favoriteBooks: args.favoriteBooks,
-        onTapFavorite: args.onTapFavorite,
+        onOpenSong: args.onOpenSong,
         initialSearchText: args.initialSearchText,
         onSearchTermsChanged: args.onSearchTermsChanged,
         onBack: args.onBack,
-        onPlayFavorite: args.onPlayFavorite,
       );
     },
   );
@@ -1171,14 +1159,10 @@ class SongListRouteArgs {
     required this.currentBook,
     required this.onTapPageNumber,
     required this.onChangeBookCode,
-    required this.isFavorite,
-    required this.onFavorite,
-    required this.favoriteBooks,
-    required this.onTapFavorite,
+    required this.onOpenSong,
     required this.initialSearchText,
     required this.onSearchTermsChanged,
     required this.onBack,
-    required this.onPlayFavorite,
   });
 
   final Key? key;
@@ -1191,13 +1175,7 @@ class SongListRouteArgs {
 
   final dynamic Function(String) onChangeBookCode;
 
-  final bool Function(Song) isFavorite;
-
-  final dynamic Function(Song) onFavorite;
-
-  final List<SongBook> Function() favoriteBooks;
-
-  final dynamic Function(Song) onTapFavorite;
+  final dynamic Function(Song) onOpenSong;
 
   final String initialSearchText;
 
@@ -1205,11 +1183,9 @@ class SongListRouteArgs {
 
   final dynamic Function() onBack;
 
-  final dynamic Function() onPlayFavorite;
-
   @override
   String toString() {
-    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, isFavorite: $isFavorite, onFavorite: $onFavorite, favoriteBooks: $favoriteBooks, onTapFavorite: $onTapFavorite, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged, onBack: $onBack, onPlayFavorite: $onPlayFavorite}';
+    return 'SongListRouteArgs{key: $key, books: $books, currentBook: $currentBook, onTapPageNumber: $onTapPageNumber, onChangeBookCode: $onChangeBookCode, onOpenSong: $onOpenSong, initialSearchText: $initialSearchText, onSearchTermsChanged: $onSearchTermsChanged, onBack: $onBack}';
   }
 
   @override

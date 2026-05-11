@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:googleapis/drive/v3.dart' as drive;
@@ -10,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../data/data.dart';
 import '../data/repository/backupsync_repository_impl.dart';
 import '../data/repository/google_repository_impl.dart';
+
 import '../data/utilities/encrypt.dart';
 import '../domain/domain.dart';
 import '../domain/repository/backupsync_repository.dart';
@@ -43,42 +45,42 @@ void _blocs() {
 }
 
 Future<void> _utils(AppConfig appConfig) async {
-  var document = (await getApplicationDocumentsDirectory()).path;
-  var cache = (await getTemporaryDirectory()).path;
-  var support = (await getApplicationSupportDirectory()).path;
+  final directories = await Future.wait([
+    getApplicationDocumentsDirectory(),
+    getTemporaryDirectory(),
+    getApplicationSupportDirectory(),
+  ]);
+  var document = directories[0].path;
+  var cache = directories[1].path;
+  var support = directories[2].path;
   di.registerSingleton(AppDirectory(document, cache, support));
   di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());
   di.registerSingleton(appConfig);
   di.registerFactory(() => Dio()..interceptors.add(loggingInterceptor));
-  di.registerLazySingletonAsync(
-    () async {
-      try {
-        var credentials = await FirebaseUtils.jsonConfig('mailer_credentials');
-        String username = credentials['username'];
-        String password = credentials['password'];
-        return Mailer(username, password);
-      } catch (e) {
-        return Mailer('', '');
-      }
-    },
-  );
+  di.registerLazySingletonAsync(() async {
+    try {
+      var credentials = await FirebaseUtils.jsonConfig('mailer_credentials');
+      String username = credentials['username'];
+      String password = credentials['password'];
+      return Mailer(username, password);
+    } catch (e) {
+      return Mailer('', '');
+    }
+  });
   di.registerSingleton(
-    GoogleSignIn(
-      scopes: [
-        drive.DriveApi.driveAppdataScope,
-      ],
-    ),
+    GoogleSignIn(scopes: [drive.DriveApi.driveAppdataScope]),
   );
 }
 
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => LocalAssetService());
+  
   di.registerLazySingleton(
     () => MidiEngineService(
       di(),
-      cacheDir: '${di<AppDirectory>().songMusicFolder}/preload',
+      cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
   );
 }
@@ -89,9 +91,11 @@ void _repositories() {
   di.registerFactory<SongRepository>(() => SongRepositoryImpl(di()));
   di.registerFactory<AuthRepository>(() => AuthRepositoryImpl());
   di.registerFactory<AccountRepository>(
-      () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi));
+    () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi),
+  );
   di.registerFactory<BackupSyncRepository>(
-      () => BackupSyncRepositoryImpl(di()));
+    () => BackupSyncRepositoryImpl(di()),
+  );
   di.registerFactory<GoogleRepository>(() => GoogleRepositoryImpl(di()));
 }
 
@@ -113,16 +117,22 @@ class AppDirectory {
 
 InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
   onError: (e, handler) {
-    log(e.message ?? '', name: 'HTTP ERROR ');
-    log(e.response?.data.toString() ?? '', name: 'HTTP ERROR ');
+    if (kDebugMode) {
+      log(e.message ?? '', name: 'HTTP ERROR ');
+      log(e.response?.data.toString() ?? '', name: 'HTTP ERROR ');
+    }
     return handler.reject(e);
   },
   onRequest: (options, handler) {
-    log(options.toJson().toString(), name: 'HTTP REQUEST');
+    if (kDebugMode) {
+      log(options.toJson().toString(), name: 'HTTP REQUEST');
+    }
     return handler.next(options);
   },
   onResponse: (e, handler) {
-    log(e.data.toString(), name: 'HTTP RESPONSE');
+    if (kDebugMode) {
+      log(e.data.toString(), name: 'HTTP RESPONSE');
+    }
     return handler.next(e);
   },
 );

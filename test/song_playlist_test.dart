@@ -13,23 +13,99 @@ void main() {
   ];
 
   group('SongPlaybackQueue', () {
-    test(
-      'preloads current neighbors from the visible song list by default',
-      () {
-        final queue = SongPlaybackQueue.resolve(
-          books: books,
-          currentSongs: const [kr001, kr002, kr003],
-          currentSong: kr002,
-          playlists: const [],
-          activePlaylistId: null,
-          autoNextMode: SongPlaylistAutoNextMode.off,
-          shuffleIndex: const [],
-        );
+    test('cycles auto-next modes in the same order as gyschordweb', () {
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.off,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.one,
+      );
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.one,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.number,
+      );
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.number,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.playlist,
+      );
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.playlist,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.shuffleAll,
+      );
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.shuffleAll,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.shufflePlaylist,
+      );
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.shufflePlaylist,
+          hasUsableShufflePlaylist: true,
+        ),
+        SongPlaylistAutoNextMode.off,
+      );
+    });
 
-        expect(queue.getPreloadSongs(1), [kr002, kr001, kr003]);
-        expect(queue.nextSong, kr003);
-      },
-    );
+    test('skips shuffle-playlist when no usable playlist is active', () {
+      expect(
+        SongPlaylistAutoNextMode.cycle(
+          SongPlaylistAutoNextMode.shuffleAll,
+          hasUsableShufflePlaylist: false,
+        ),
+        SongPlaylistAutoNextMode.off,
+      );
+    });
+
+    test('resolves the next song from the visible song list by default', () {
+      final queue = SongPlaybackQueue.resolve(
+        books: books,
+        currentSongs: const [kr001, kr002, kr003],
+        currentSong: kr002,
+        playlists: const [],
+        activePlaylistId: null,
+        autoNextMode: SongPlaylistAutoNextMode.off,
+        shuffleIndex: const [],
+      );
+
+      expect(queue.currentSong, kr002);
+      expect(queue.nextSong, kr003);
+    });
+
+    test('manual navigation wraps around the visible list', () {
+      final atEnd = SongPlaybackQueue.resolve(
+        books: books,
+        currentSongs: const [kr001, kr002, kr003],
+        currentSong: kr003,
+        playlists: const [],
+        activePlaylistId: null,
+        autoNextMode: SongPlaylistAutoNextMode.off,
+        shuffleIndex: const [],
+      );
+      final atStart = SongPlaybackQueue.resolve(
+        books: books,
+        currentSongs: const [kr001, kr002, kr003],
+        currentSong: kr001,
+        playlists: const [],
+        activePlaylistId: null,
+        autoNextMode: SongPlaylistAutoNextMode.off,
+        shuffleIndex: const [],
+      );
+
+      expect(atEnd.manualNextSong, kr001);
+      expect(atStart.manualPreviousSong, kr003);
+    });
 
     test('resolves active playlist order across books', () {
       final playlist = SongPlaylist(
@@ -51,7 +127,6 @@ void main() {
         shuffleIndex: const [],
       );
 
-      expect(queue.getPreloadSongs(1), [kr002, mdr001]);
       expect(queue.nextSong, mdr001);
       expect(queue.nextIndexInBook, 0);
       expect(queue.nextBookCode, 'MDR');
@@ -82,7 +157,21 @@ void main() {
       expect(queue.nextIndexInBook, 1);
     });
 
-    test('uses deterministic shuffle order for shuffle-all preload', () {
+    test('number mode auto-next wraps like gyschordweb', () {
+      final queue = SongPlaybackQueue.resolve(
+        books: books,
+        currentSongs: const [kr001, kr002, kr003],
+        currentSong: kr003,
+        playlists: const [],
+        activePlaylistId: null,
+        autoNextMode: SongPlaylistAutoNextMode.number,
+        shuffleIndex: const [],
+      );
+
+      expect(queue.nextSong, kr001);
+    });
+
+    test('uses deterministic shuffle order for shuffle-all playback', () {
       final queue = SongPlaybackQueue.resolve(
         books: books,
         currentSongs: const [kr001, kr002, kr003],
@@ -93,7 +182,6 @@ void main() {
         shuffleIndex: const [2, 0, 1],
       );
 
-      expect(queue.getPreloadSongs(1), [kr001, kr003, kr002]);
       expect(queue.nextSong, kr002);
     });
 
@@ -132,8 +220,21 @@ void main() {
         shuffleIndex: const [2, 0, 1],
       );
 
-      expect(queue.getPreloadSongs(1), [kr001, kr003, kr002]);
       expect(queue.nextSong, kr002);
+    });
+
+    test('preload songs include both queue neighbors with wrapping', () {
+      final queue = SongPlaybackQueue.resolve(
+        books: books,
+        currentSongs: const [kr001, kr002, kr003],
+        currentSong: kr001,
+        playlists: const [],
+        activePlaylistId: null,
+        autoNextMode: SongPlaylistAutoNextMode.off,
+        shuffleIndex: const [],
+      );
+
+      expect(queue.preloadSongs(count: 1), [kr002, kr003]);
     });
   });
 }

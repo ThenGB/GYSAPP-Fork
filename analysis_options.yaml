@@ -14,8 +14,10 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*assets.dart"
     - "third_party/**"
+    - "tools/**"
   errors:
     invalid_annotation_target: ignore
+    deprecated_member_use: warning
 linter:
   # The lint rules applied to this project can be customized in the
   # section below to disable rules from the `package:flutter_lints/flutter.yaml`

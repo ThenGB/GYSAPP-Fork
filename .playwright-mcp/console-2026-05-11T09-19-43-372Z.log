@@ -1,0 +1,17 @@
+[   12996ms] [LOG] [Preload] Cache MISS for assets/midi/001_Pujilah Allah Yang Maha Esa.mid key=assets/midi/001_Pujilah Allah Yang Maha Esa.mid|0|-1 cacheKeys= [] matchingVariants= [] @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   14814ms] [LOG] [Preload] Inspecting 2 neighbors for cache/queue: Pujilah Allah Yang Mahakudus, Doa Bapa Kami @ http://localhost:8080/js/app.bundle.min.js?v=12:596
+[   14817ms] [LOG] [Preload] Queue neighbor (fallback pending transpose) Pujilah Allah Yang Mahakudus transpose=0 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:596
+[   14818ms] [LOG] [Preload] Queued: assets/midi/002_Pujilah Allah Yang Mahakudus.mid key=assets/midi/002_Pujilah Allah Yang Mahakudus.mid|0|0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   14818ms] [LOG] [Preload] Starting preload for assets/midi/002_Pujilah Allah Yang Mahakudus.mid transpose=0 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   14818ms] [LOG] [Preload] Queue neighbor (fallback pending transpose) Doa Bapa Kami transpose=0 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:596
+[   14818ms] [LOG] [Preload] Queued: assets/midi/530_Doa Bapa Kami.mid key=assets/midi/530_Doa Bapa Kami.mid|0|0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   14830ms] [LOG] [Preload] Fetched assets/midi/002_Pujilah Allah Yang Mahakudus.mid (6.1KB), rendering... @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   14998ms] [LOG] [Preload] Queue neighbor (resolved transpose) Pujilah Allah Yang Mahakudus transpose=-1 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:596
+[   14998ms] [LOG] [Preload] Queued: assets/midi/002_Pujilah Allah Yang Mahakudus.mid key=assets/midi/002_Pujilah Allah Yang Mahakudus.mid|-1|0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   15704ms] [LOG] [Preload] Completed: assets/midi/002_Pujilah Allah Yang Mahakudus.mid duration=93.9s took=0.9s cacheSize=1 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   15705ms] [LOG] [Preload] Starting preload for assets/midi/530_Doa Bapa Kami.mid transpose=0 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   15711ms] [LOG] [Preload] Fetched assets/midi/530_Doa Bapa Kami.mid (3.3KB), rendering... @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   16488ms] [LOG] [Preload] Completed: assets/midi/530_Doa Bapa Kami.mid duration=102.1s took=0.8s cacheSize=2 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   16489ms] [LOG] [Preload] Starting preload for assets/midi/002_Pujilah Allah Yang Mahakudus.mid transpose=-1 instrument=0 @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   16494ms] [LOG] [Preload] Fetched assets/midi/002_Pujilah Allah Yang Mahakudus.mid (6.1KB), rendering... @ http://localhost:8080/js/app.bundle.min.js?v=12:0
+[   17216ms] [LOG] [Preload] Completed: assets/midi/002_Pujilah Allah Yang Mahakudus.mid duration=93.9s took=0.7s cacheSize=3 @ http://localhost:8080/js/app.bundle.min.js?v=12:0

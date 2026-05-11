@@ -142,16 +142,18 @@ class _BackupViewState extends State<BackupView> {
                               ),
                               onPressed: () async {
                                 if (localBackupFile != null) {
-                                  Share.shareXFiles(
-                                    [
-                                      XFile(
-                                        localBackupFile!.path,
-                                        name: 'MY GYS APP Save Data',
-                                      ),
-                                    ],
-                                    subject: 'Hey check this out!'.tr(),
-                                    text: 'My GYS APP Save Data, Try this!'
-                                        .tr(),
+                                  SharePlus.instance.share(
+                                    ShareParams(
+                                      files: [
+                                        XFile(
+                                          localBackupFile!.path,
+                                          name: 'MY GYS APP Save Data',
+                                        ),
+                                      ],
+                                      subject: 'Hey check this out!'.tr(),
+                                      text: 'My GYS APP Save Data, Try this!'
+                                          .tr(),
+                                    ),
                                   );
                                 } else {
                                   localBackupFile = await context

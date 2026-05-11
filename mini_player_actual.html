@@ -1,0 +1,238 @@
+<div id="mini-player" class="mini-player mini-player-enter">
+      <!-- Collapse / Expand toggle -->
+      <button id="mini-collapse-toggle" class="mini-collapse-toggle" aria-label="Collapse mini player" type="button" aria-expanded="true">
+        <span class="material-symbols-outlined">expand_more</span>
+      </button>
+      <!-- Loading bar (shown while MIDI engine renders the first song) -->
+      <div id="mini-player-loading" class="mini-player-loading" style="display: none;">
+        <div class="mini-player-loading-bar"></div>
+      </div>
+      <!-- Row 0: Queue label (collapsible) -->
+      <div class="mini-player-collapsible" style="overflow: visible;">
+        <div class="mini-player-collapsible-inner" style="overflow: visible;">
+          <div class="mini-player-kicker">
+            <span class="mini-status-dot" aria-hidden="true"></span>
+            <span class="mini-player-kicker-label">MIDI Queue</span>
+          </div>
+        </div>
+      </div>
+      <!-- Row 1: Song info + play controls -->
+      <div class="mini-player-top">
+        <div class="mini-player-heading">
+          <div class="mini-player-info">
+            <div id="mini-title" class="mini-title">Pujilah Allah Yang Maha Esa</div>
+            <div id="mini-subtitle" class="mini-subtitle">Mode Loop Mati</div>
+          </div>
+        </div>
+
+        <div class="mini-transport">
+          <button id="mini-prev-btn" class="icon-button mini-btn mini-surface-btn" aria-label="Previous">
+            <span class="material-symbols-outlined">skip_previous</span>
+          </button>
+          <button id="mini-play-btn" class="icon-button mini-btn play-pause" aria-label="Play/Pause">
+            <span class="material-symbols-outlined" id="mini-play-icon">play_arrow</span>
+          </button>
+          <button id="mini-next-btn" class="icon-button mini-btn mini-surface-btn" aria-label="Next">
+            <span class="material-symbols-outlined">skip_next</span>
+          </button>
+        </div>
+        <button id="mini-extras-toggle" class="icon-button mini-btn mini-surface-btn mini-extras-toggle" aria-label="Toggle controls" type="button">
+          <span class="material-symbols-outlined">tune</span>
+        </button>
+      </div>
+
+      <!-- Rows 2+3: Collapsible below transport -->
+      <div class="mini-player-collapsible" style="overflow: visible;">
+        <div class="mini-player-collapsible-inner" style="overflow: visible;">
+      <!-- Row 2: Transpose, instrument, loop -->
+      <div class="mini-player-extras">
+        <div class="mini-transpose-controls">
+          <div class="family-chord-container">
+            <button id="mini-key-info" class="family-chord-btn mini-key-btn" title="Nada Dasar (Key) Saat Ini">D</button>
+            <div class="family-chord-dropdown mini-family-dropdown" hidden=""><button class="family-chord-option">C</button><button class="family-chord-option">C♯</button><button class="family-chord-option selected">D</button><button class="family-chord-option">D♯</button><button class="family-chord-option">E</button><button class="family-chord-option">F</button><button class="family-chord-option">F♯</button><button class="family-chord-option">G</button><button class="family-chord-option">G♯</button><button class="family-chord-option">A</button><button class="family-chord-option">A♯</button><button class="family-chord-option">B</button></div>
+          </div>
+
+          <button class="icon-button mini-btn mini-surface-btn mini-transpose-btn" onclick="if (typeof onTranspose === 'function') onTranspose(-1);">
+            <span class="material-symbols-outlined">remove</span>
+          </button>
+          <span id="mini-transpose-value" class="mini-transpose-value">-1</span>
+          <button class="icon-button mini-btn mini-surface-btn mini-transpose-btn" onclick="if (typeof onTranspose === 'function') onTranspose(1);">
+            <span class="material-symbols-outlined">add</span>
+          </button>
+          <button class="icon-button mini-btn mini-surface-btn mini-accidental-btn transpose-accidental-btn" type="button" aria-label="Switcher accidental (sharp)">
+            <span class="accidental-label">♯</span>
+          </button>
+        </div>
+
+        <div class="instrument-selector-wrapper mini-tempo-action">
+          <button id="mini-tempo-toggle-btn" class="mini-tempo-toggle-btn tempo-popover-toggle" type="button" aria-haspopup="dialog" aria-expanded="false" title="Tempo 76 BPM (100% dari default 76 BPM)" aria-label="Tempo saat ini 76 BPM">
+            <span class="material-symbols-outlined mini-tempo-icon">speed</span>
+            <span class="mini-tempo-readout" id="mini-tempo-toggle-label">
+              <span class="mini-tempo-toggle-value" id="mini-tempo-toggle-value">76</span>
+              <span class="mini-tempo-toggle-unit">BPM</span>
+            </span>
+          </button>
+          <div class="mini-tempo-popover" id="mini-tempo-popover" role="dialog" aria-label="Kontrol tempo mini player">
+            <div class="mini-tempo-popover-header">Tempo MIDI</div>
+            <div class="mini-tempo-popover-body">
+              <input id="mini-tempo-slider" class="mini-tempo-slider" type="range" min="30" max="220" step="1" value="76" aria-label="Tempo mini player">
+              <label class="mini-tempo-number-wrap" for="mini-tempo-input">
+                <input id="mini-tempo-input" class="mini-tempo-input" type="number" min="30" max="220" step="1" value="76" inputmode="numeric" aria-label="Input tempo mini player">
+                <span class="mini-tempo-unit">BPM</span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini Instrument Selector -->
+        <div class="instrument-selector-wrapper">
+          <button class="instrument-capsule-btn mini-instrument-capsule" id="mini-instrument-select" type="button" aria-haspopup="listbox" aria-expanded="false" title="Grand Piano" data-value="0" aria-label="Grand Piano">
+            <span class="material-symbols-outlined cis-icon" id="mini-cis-icon">piano</span>
+            <span id="mini-cis-label" class="cis-label mini-cis-label" style="font-size: 11.5px;">Grand Piano</span>
+          </button>
+          <div class="cis-menu-popover mini-cis-popover" id="mini-cis-menu" role="listbox">
+            <div class="cis-grid"><button type="button" class="cis-option cis-default selected" data-val="0" title="Grand Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> Grand Piano</button>
+<button type="button" class="cis-option" data-val="1" title="Bright Grand Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> Bright Grand Piano</button>
+<button type="button" class="cis-option" data-val="2" title="Electric Grand Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> Electric Grand Piano</button>
+<button type="button" class="cis-option" data-val="3" title="Honky-Tonk Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> Honky-Tonk Piano</button>
+<button type="button" class="cis-option" data-val="4" title="Tine Electric Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> Tine Electric Piano</button>
+<button type="button" class="cis-option" data-val="5" title="FM Electric Piano"><span class="material-symbols-outlined cis-menu-icon">piano</span> FM Electric Piano</button>
+<button type="button" class="cis-option" data-val="6" title="Harpsichord"><span class="material-symbols-outlined cis-menu-icon">piano</span> Harpsichord</button>
+<button type="button" class="cis-option" data-val="7" title="Clavinet"><span class="material-symbols-outlined cis-menu-icon">piano</span> Clavinet</button>
+<button type="button" class="cis-option" data-val="8" title="Celeste"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Celeste</button>
+<button type="button" class="cis-option" data-val="9" title="Glockenspiel"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Glockenspiel</button>
+<button type="button" class="cis-option" data-val="10" title="Music Box"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Music Box</button>
+<button type="button" class="cis-option" data-val="11" title="Vibraphone"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Vibraphone</button>
+<button type="button" class="cis-option" data-val="12" title="Marimba"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Marimba</button>
+<button type="button" class="cis-option" data-val="13" title="Xylophone"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Xylophone</button>
+<button type="button" class="cis-option" data-val="14" title="Tubular Bells"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Tubular Bells</button>
+<button type="button" class="cis-option" data-val="15" title="Dulcimer"><span class="material-symbols-outlined cis-menu-icon">notifications_active</span> Dulcimer</button>
+<button type="button" class="cis-option" data-val="16" title="Tonewheel Organ"><span class="material-symbols-outlined cis-menu-icon">piano</span> Tonewheel Organ</button>
+<button type="button" class="cis-option" data-val="17" title="Percussive Organ"><span class="material-symbols-outlined cis-menu-icon">piano</span> Percussive Organ</button>
+<button type="button" class="cis-option" data-val="18" title="Rock Organ"><span class="material-symbols-outlined cis-menu-icon">piano</span> Rock Organ</button>
+<button type="button" class="cis-option" data-val="19" title="Pipe Organ"><span class="material-symbols-outlined cis-menu-icon">piano</span> Pipe Organ</button>
+<button type="button" class="cis-option" data-val="20" title="Reed Organ"><span class="material-symbols-outlined cis-menu-icon">piano</span> Reed Organ</button>
+<button type="button" class="cis-option" data-val="21" title="Accordion"><span class="material-symbols-outlined cis-menu-icon">piano</span> Accordion</button>
+<button type="button" class="cis-option" data-val="22" title="Harmonica"><span class="material-symbols-outlined cis-menu-icon">piano</span> Harmonica</button>
+<button type="button" class="cis-option" data-val="23" title="Bandoneon"><span class="material-symbols-outlined cis-menu-icon">piano</span> Bandoneon</button>
+<button type="button" class="cis-option" data-val="24" title="Nylon Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Nylon Guitar</button>
+<button type="button" class="cis-option" data-val="25" title="Steel Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Steel Guitar</button>
+<button type="button" class="cis-option" data-val="26" title="Jazz Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Jazz Guitar</button>
+<button type="button" class="cis-option" data-val="27" title="Clean Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Clean Guitar</button>
+<button type="button" class="cis-option" data-val="28" title="Muted Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Muted Guitar</button>
+<button type="button" class="cis-option" data-val="29" title="Overdrive Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Overdrive Guitar</button>
+<button type="button" class="cis-option" data-val="30" title="Distortion Guitar"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Distortion Guitar</button>
+<button type="button" class="cis-option" data-val="31" title="Guitar Harmonics"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Guitar Harmonics</button>
+<button type="button" class="cis-option" data-val="32" title="Acoustic Bass"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Acoustic Bass</button>
+<button type="button" class="cis-option" data-val="33" title="Finger Bass"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Finger Bass</button>
+<button type="button" class="cis-option" data-val="34" title="Pick Bass"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Pick Bass</button>
+<button type="button" class="cis-option" data-val="35" title="Fretless Bass"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Fretless Bass</button>
+<button type="button" class="cis-option" data-val="36" title="Slap Bass 1"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Slap Bass 1</button>
+<button type="button" class="cis-option" data-val="37" title="Slap Bass 2"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Slap Bass 2</button>
+<button type="button" class="cis-option" data-val="38" title="Synth Bass 1"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Synth Bass 1</button>
+<button type="button" class="cis-option" data-val="39" title="Synth Bass 2"><span class="material-symbols-outlined cis-menu-icon">library_music</span> Synth Bass 2</button>
+<button type="button" class="cis-option" data-val="40" title="Violin"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Violin</button>
+<button type="button" class="cis-option" data-val="41" title="Viola"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Viola</button>
+<button type="button" class="cis-option" data-val="42" title="Cello"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Cello</button>
+<button type="button" class="cis-option" data-val="43" title="Double Bass"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Double Bass</button>
+<button type="button" class="cis-option" data-val="44" title="Tremolo Strings"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Tremolo Strings</button>
+<button type="button" class="cis-option" data-val="45" title="Pizzicato Strings"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Pizzicato Strings</button>
+<button type="button" class="cis-option" data-val="46" title="Orchestral Harp"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Orchestral Harp</button>
+<button type="button" class="cis-option" data-val="47" title="Timpani"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Timpani</button>
+<button type="button" class="cis-option" data-val="48" title="Fast Strings"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Fast Strings</button>
+<button type="button" class="cis-option" data-val="49" title="Slow Strings"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Slow Strings</button>
+<button type="button" class="cis-option" data-val="50" title="Synth Strings 1"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Synth Strings 1</button>
+<button type="button" class="cis-option" data-val="51" title="Synth Strings 2"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Synth Strings 2</button>
+<button type="button" class="cis-option" data-val="52" title="Concert Choir"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Concert Choir</button>
+<button type="button" class="cis-option" data-val="53" title="Voice Oohs"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Voice Oohs</button>
+<button type="button" class="cis-option" data-val="54" title="Synth Voice"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Synth Voice</button>
+<button type="button" class="cis-option" data-val="55" title="Orchestra Hit"><span class="material-symbols-outlined cis-menu-icon">graphic_eq</span> Orchestra Hit</button>
+<button type="button" class="cis-option" data-val="56" title="Trumpet"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Trumpet</button>
+<button type="button" class="cis-option" data-val="57" title="Trombone"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Trombone</button>
+<button type="button" class="cis-option" data-val="58" title="Tuba"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Tuba</button>
+<button type="button" class="cis-option" data-val="59" title="Muted Trumpet"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Muted Trumpet</button>
+<button type="button" class="cis-option" data-val="60" title="French Horns"><span class="material-symbols-outlined cis-menu-icon">campaign</span> French Horns</button>
+<button type="button" class="cis-option" data-val="61" title="Brass Section"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Brass Section</button>
+<button type="button" class="cis-option" data-val="62" title="Synth Brass 1"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Synth Brass 1</button>
+<button type="button" class="cis-option" data-val="63" title="Synth Brass 2"><span class="material-symbols-outlined cis-menu-icon">campaign</span> Synth Brass 2</button>
+<button type="button" class="cis-option" data-val="64" title="Soprano Sax"><span class="material-symbols-outlined cis-menu-icon">styler</span> Soprano Sax</button>
+<button type="button" class="cis-option" data-val="65" title="Alto Sax"><span class="material-symbols-outlined cis-menu-icon">styler</span> Alto Sax</button>
+<button type="button" class="cis-option" data-val="66" title="Tenor Sax"><span class="material-symbols-outlined cis-menu-icon">styler</span> Tenor Sax</button>
+<button type="button" class="cis-option" data-val="67" title="Baritone Sax"><span class="material-symbols-outlined cis-menu-icon">styler</span> Baritone Sax</button>
+<button type="button" class="cis-option" data-val="68" title="Oboe"><span class="material-symbols-outlined cis-menu-icon">styler</span> Oboe</button>
+<button type="button" class="cis-option" data-val="69" title="English Horn"><span class="material-symbols-outlined cis-menu-icon">styler</span> English Horn</button>
+<button type="button" class="cis-option" data-val="70" title="Bassoon"><span class="material-symbols-outlined cis-menu-icon">styler</span> Bassoon</button>
+<button type="button" class="cis-option" data-val="71" title="Clarinet"><span class="material-symbols-outlined cis-menu-icon">styler</span> Clarinet</button>
+<button type="button" class="cis-option" data-val="72" title="Piccolo"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Piccolo</button>
+<button type="button" class="cis-option" data-val="73" title="Flute"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Flute</button>
+<button type="button" class="cis-option" data-val="74" title="Recorder"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Recorder</button>
+<button type="button" class="cis-option" data-val="75" title="Pan Flute"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Pan Flute</button>
+<button type="button" class="cis-option" data-val="76" title="Bottle Blow"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Bottle Blow</button>
+<button type="button" class="cis-option" data-val="77" title="Shakuhachi"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Shakuhachi</button>
+<button type="button" class="cis-option" data-val="78" title="Whistle"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Whistle</button>
+<button type="button" class="cis-option" data-val="79" title="Ocarina"><span class="material-symbols-outlined cis-menu-icon">media_link</span> Ocarina</button>
+<button type="button" class="cis-option" data-val="80" title="Square Lead"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Square Lead</button>
+<button type="button" class="cis-option" data-val="81" title="Saw Lead"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Saw Lead</button>
+<button type="button" class="cis-option" data-val="82" title="Synth Calliope"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Synth Calliope</button>
+<button type="button" class="cis-option" data-val="83" title="Chiffer Lead"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Chiffer Lead</button>
+<button type="button" class="cis-option" data-val="84" title="Charang"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Charang</button>
+<button type="button" class="cis-option" data-val="85" title="Solo Vox"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Solo Vox</button>
+<button type="button" class="cis-option" data-val="86" title="5th Saw Wave"><span class="material-symbols-outlined cis-menu-icon">music_note</span> 5th Saw Wave</button>
+<button type="button" class="cis-option" data-val="87" title="Bass &amp; Lead"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Bass &amp; Lead</button>
+<button type="button" class="cis-option" data-val="88" title="Fantasia"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Fantasia</button>
+<button type="button" class="cis-option" data-val="89" title="Warm Pad"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Warm Pad</button>
+<button type="button" class="cis-option" data-val="90" title="Polysynth"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Polysynth</button>
+<button type="button" class="cis-option" data-val="91" title="Space Voice"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Space Voice</button>
+<button type="button" class="cis-option" data-val="92" title="Bowed Glass"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Bowed Glass</button>
+<button type="button" class="cis-option" data-val="93" title="Metal Pad"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Metal Pad</button>
+<button type="button" class="cis-option" data-val="94" title="Halo Pad"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Halo Pad</button>
+<button type="button" class="cis-option" data-val="95" title="Sweep Pad"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Sweep Pad</button>
+<button type="button" class="cis-option" data-val="96" title="Ice Rain"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Ice Rain</button>
+<button type="button" class="cis-option" data-val="97" title="Soundtrack"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Soundtrack</button>
+<button type="button" class="cis-option" data-val="98" title="Crystal"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Crystal</button>
+<button type="button" class="cis-option" data-val="99" title="Atmosphere"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Atmosphere</button>
+<button type="button" class="cis-option" data-val="100" title="Brightness"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Brightness</button>
+<button type="button" class="cis-option" data-val="101" title="Goblin"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Goblin</button>
+<button type="button" class="cis-option" data-val="102" title="Echo Drops"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Echo Drops</button>
+<button type="button" class="cis-option" data-val="103" title="Star Theme"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Star Theme</button>
+<button type="button" class="cis-option" data-val="104" title="Sitar"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Sitar</button>
+<button type="button" class="cis-option" data-val="105" title="Banjo"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Banjo</button>
+<button type="button" class="cis-option" data-val="106" title="Shamisen"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Shamisen</button>
+<button type="button" class="cis-option" data-val="107" title="Koto"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Koto</button>
+<button type="button" class="cis-option" data-val="108" title="Kalimba"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Kalimba</button>
+<button type="button" class="cis-option" data-val="109" title="Bagpipes"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Bagpipes</button>
+<button type="button" class="cis-option" data-val="110" title="Fiddle"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Fiddle</button>
+<button type="button" class="cis-option" data-val="111" title="Shenai"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Shenai</button>
+<button type="button" class="cis-option" data-val="112" title="Tinker Bell"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Tinker Bell</button>
+<button type="button" class="cis-option" data-val="113" title="Agogo"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Agogo</button>
+<button type="button" class="cis-option" data-val="114" title="Steel Drums"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Steel Drums</button>
+<button type="button" class="cis-option" data-val="115" title="Wood Block"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Wood Block</button>
+<button type="button" class="cis-option" data-val="116" title="Taiko Drum"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Taiko Drum</button>
+<button type="button" class="cis-option" data-val="117" title="Melodic Tom"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Melodic Tom</button>
+<button type="button" class="cis-option" data-val="118" title="Synth Drum"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Synth Drum</button>
+<button type="button" class="cis-option" data-val="119" title="Reverse Cymbal"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Reverse Cymbal</button>
+<button type="button" class="cis-option" data-val="120" title="Fret Noise"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Fret Noise</button>
+<button type="button" class="cis-option" data-val="121" title="Breath Noise"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Breath Noise</button>
+<button type="button" class="cis-option" data-val="122" title="Seashore"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Seashore</button>
+<button type="button" class="cis-option" data-val="123" title="Birds"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Birds</button>
+<button type="button" class="cis-option" data-val="124" title="Telephone 1"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Telephone 1</button>
+<button type="button" class="cis-option" data-val="125" title="Helicopter"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Helicopter</button>
+<button type="button" class="cis-option" data-val="126" title="Applause"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Applause</button>
+<button type="button" class="cis-option" data-val="127" title="Gun Shot"><span class="material-symbols-outlined cis-menu-icon">music_note</span> Gun Shot</button></div>
+          </div>
+        </div>
+
+          <button id="mini-loop-btn" class="icon-button mini-btn mini-surface-btn mini-loop" aria-label="Loop">
+            <span class="material-symbols-outlined" id="mini-loop-icon">repeat</span>
+          </button>
+        </div>
+
+      <!-- Row 3: Seekbar -->
+      <div class="mini-player-middle">
+        <div class="player-time" id="mini-time-display">0:00 / 2:45</div>
+        <div class="seekbar-wrapper mini-seekbar-wrapper">
+          <input type="range" class="player-slider" id="mini-seekbar" min="0" max="165.20533333333333" value="0" step="0.1">
+          <div class="seekbar-fill" id="mini-seekbar-fill" style="width: 0%;"></div>
+        </div>
+      </div>        </div>
+      </div>    </div>

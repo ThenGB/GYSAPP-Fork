@@ -171,7 +171,7 @@ class _SongNoteViewState extends State<SongNoteView> {
                   padding: const EdgeInsets.all(14),
                   child: quill.QuillEditor(
                     controller: controller,
-                    configurations: quill.QuillEditorConfigurations(
+                    config: quill.QuillEditorConfig(
                       showCursor: mode == NoteMode.write,
                       padding: EdgeInsets.zero,
                       expands: true,
@@ -200,10 +200,10 @@ class _SongNoteViewState extends State<SongNoteView> {
                     margin:
                         context.mediaQuery.viewInsets +
                         context.mediaQuery.viewPadding,
-                    child: quill.QuillToolbar.simple(
+                    child: quill.QuillSimpleToolbar(
                       controller: controller,
-                      configurations:
-                          const quill.QuillSimpleToolbarConfigurations(),
+                      config:
+                          const quill.QuillSimpleToolbarConfig(),
                     ),
                   ),
           ),

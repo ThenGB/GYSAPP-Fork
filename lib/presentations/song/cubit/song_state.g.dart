@@ -14,11 +14,6 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  favoriteSongBook:
-      (json['favoriteSongBook'] as List<dynamic>?)
-          ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
   bookCode: json['bookCode'] as String? ?? 'KR',
   pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
   verseIndex: (json['verseIndex'] as num?)?.toInt() ?? 0,
@@ -39,8 +34,6 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => SongHistory.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  playOnlyFavorite: json['playOnlyFavorite'] as bool? ?? false,
-  shuffleMode: json['shuffleMode'] as bool? ?? false,
   shuffleIndex:
       (json['shuffleIndex'] as List<dynamic>?)
           ?.map((e) => (e as num).toInt())
@@ -59,10 +52,7 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
           ?.map((e) => (e as num).toInt())
           .toList() ??
       const [],
-  showAudio: json['showAudio'] as bool? ?? true,
-  preloadEnabled: json['preloadEnabled'] as bool? ?? true,
-  preloadCount: (json['preloadCount'] as num?)?.toInt() ?? 1,
-  preloadCacheMax: (json['preloadCacheMax'] as num?)?.toInt() ?? 12,
+  showAudio: json['showAudio'] as bool? ?? false,
   showChord: json['showChord'] as bool? ?? false,
   searchTerms: json['searchTerms'] as String? ?? '',
   defaultFont: json['defaultFont'] as String? ?? 'Roboto',
@@ -87,7 +77,7 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
   tempoBpm: (json['tempoBpm'] as num?)?.toDouble() ?? 76.0,
   defaultTempoBpm: (json['defaultTempoBpm'] as num?)?.toDouble() ?? 76.0,
   midiInstrument: (json['midiInstrument'] as num?)?.toInt(),
-  soundFont: json['soundFont'] as String? ?? 'GeneralUser-GS.sf2',
+  soundFont: json['soundFont'] as String? ?? 'TimGM6mb.sf2',
   isAudioPlaying: json['isAudioPlaying'] as bool? ?? false,
   pdfTwoPageMode: json['pdfTwoPageMode'] as bool? ?? false,
   pdfVerticalScrolling: json['pdfVerticalScrolling'] as bool? ?? false,
@@ -105,7 +95,6 @@ Map<String, dynamic> _$SongStateToJson(
   'isLoading': instance.isLoading,
   'isAudioLoading': instance.isAudioLoading,
   'songBook': instance.songBook,
-  'favoriteSongBook': instance.favoriteSongBook,
   'bookCode': instance.bookCode,
   'pageIndex': instance.pageIndex,
   'verseIndex': instance.verseIndex,
@@ -116,17 +105,12 @@ Map<String, dynamic> _$SongStateToJson(
   'notes': instance.notes,
   'sortNotesBy': instance.sortNotesBy,
   'histories': instance.histories,
-  'playOnlyFavorite': instance.playOnlyFavorite,
-  'shuffleMode': instance.shuffleMode,
   'shuffleIndex': instance.shuffleIndex,
   'playlists': instance.playlists,
   'activePlaylistId': instance.activePlaylistId,
   'playlistAutoNextMode': instance.playlistAutoNextMode,
   'playlistShuffleIndex': instance.playlistShuffleIndex,
   'showAudio': instance.showAudio,
-  'preloadEnabled': instance.preloadEnabled,
-  'preloadCount': instance.preloadCount,
-  'preloadCacheMax': instance.preloadCacheMax,
   'showChord': instance.showChord,
   'searchTerms': instance.searchTerms,
   'defaultFont': instance.defaultFont,

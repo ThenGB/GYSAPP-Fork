@@ -14,7 +14,7 @@ import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../domain/repository/song_repository.dart';
 import 'song_playback_defaults.dart';
-import 'song_preload_key.dart';
+
 import 'song_playlist.dart';
 import 'song_state.dart';
 
@@ -28,23 +28,48 @@ class SongCubit extends HydratedCubit<SongState> {
   MidiEngineService get midiEngine => _midiEngine;
 
   bool get isSelectingSong => state.selectedSong != null;
+  bool get isWarmUpEnabled => _warmUpEnabled;
+
+  void toggleWarmUp([bool? value]) {
+    _warmUpEnabled = value ?? !_warmUpEnabled;
+    if (_warmUpEnabled) {
+      unawaited(_warmUpPlaybackQueue());
+    }
+  }
+
+  Future<void> _warmUpPlaybackQueue({int count = 1}) async {
+    if (!_warmUpEnabled || !state.showAudio || state.songs.isEmpty) return;
+    final queue = _playbackQueue();
+    for (final song in queue.preloadSongs(count: count)) {
+      final midiPath = await _midiPathForSong(song);
+      if (midiPath != null) {
+        final defaults = await _resolvePreloadDefaultsForSong(song);
+        unawaited(
+          _midiEngine.warmUp(
+            midiPath,
+            transpose: defaults.transposeStep,
+            tempoBpm: defaults.tempoBpm,
+            baseTempoBpm: defaults.defaultTempoBpm,
+            instrument: state.midiInstrument,
+          ),
+        );
+      }
+    }
+  }
 
   StreamSubscription<MidiPlaybackState>? _midiStateSub;
   Timer? _debouncer;
   MidiPlaybackState _lastMidiState = const MidiPlaybackState();
   bool _handlingAutoNext = false;
   int _midiLoadGeneration = 0;
-  final Set<String> _activePreloadJobs = <String>{};
+  bool _warmUpEnabled = true;
 
   SongCubit(this.songRepository, this._assetService, this._midiEngine)
     : super(const SongState()) {
     _setupMidiStreams();
-    _midiEngine.setCacheMax(const SongState().preloadCacheMax);
     getData().then((_) async {
       await _midiEngine.initialize();
       await _midiEngine.changeSoundFont(state.soundFont);
-      _midiEngine.setCacheMax(state.preloadCacheMax);
-      _preloadCurrentSongMidi();
     });
   }
 
@@ -87,24 +112,6 @@ class SongCubit extends HydratedCubit<SongState> {
 
   // ─── MIDI Playback ────────────────────────────────────────────
 
-  Future<void> _preloadCurrentSongMidi() async {
-    if (state.songs.isEmpty) return;
-    final song = state.songs[state.pageIndex];
-    final defaults = await _resolvePreloadDefaultsForSong(song);
-    emit(
-      state.copyWith(
-        transposeStep: defaults.transposeStep,
-        tempoBpm: defaults.tempoBpm,
-        defaultTempoBpm: defaults.defaultTempoBpm,
-        originalFamilyChord: defaults.originalFamilyChord,
-        originalPdfKey: defaults.originalPdfKey,
-        baseTransposeOffset: defaults.baseTransposeOffset,
-      ),
-    );
-    await _loadMidiForSong(song, force: true);
-    _preloadNearbySongMidi(state.pageIndex);
-  }
-
   Future<String?> _midiPathForSong(Song song) {
     return _assetService.getMidiPath(song.code ?? '', song.number ?? '');
   }
@@ -146,39 +153,6 @@ class SongCubit extends HydratedCubit<SongState> {
     return !isClosed && loadGeneration == _midiLoadGeneration;
   }
 
-  void _preloadNearbySongMidi(int index) {
-    if (!state.preloadEnabled) return;
-    final queue = _playbackQueue();
-    for (final song in queue.getPreloadSongs(state.preloadCount)) {
-      unawaited(_preloadSong(song));
-    }
-  }
-
-  Future<void> _preloadSong(Song song) async {
-    final midiPath = await _midiPathForSong(song);
-    if (midiPath == null) return;
-    final preset = await _resolveCacheDefaultsForSong(song);
-    final jobKey = songPreloadJobKey(
-      midiPath: midiPath,
-      defaults: preset,
-      soundFont: state.soundFont,
-      instrument: state.midiInstrument,
-    );
-    if (!_activePreloadJobs.add(jobKey)) return;
-    try {
-      await _midiEngine.preload(
-        midiPath,
-        transpose: preset.transposeStep,
-        tempoBpm: preset.tempoBpm,
-        baseTempoBpm: preset.defaultTempoBpm,
-        instrument: state.midiInstrument,
-        soundFont: state.soundFont,
-      );
-    } finally {
-      _activePreloadJobs.remove(jobKey);
-    }
-  }
-
   Future<void> play() async {
     if (!state.showAudio) {
       emit(state.copyWith(showAudio: true));
@@ -196,6 +170,7 @@ class SongCubit extends HydratedCubit<SongState> {
     }
     await _midiEngine.play();
     emit(state.copyWith(isAudioPlaying: true));
+    unawaited(_warmUpPlaybackQueue());
   }
 
   Future<void> pause() async {
@@ -227,7 +202,11 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(showAudio: newValue));
 
     if (newValue && state.songs.isNotEmpty) {
-      unawaited(_loadMidiForSong(state.songs[state.pageIndex]));
+      unawaited(
+        _loadMidiForSong(state.songs[state.pageIndex]).then((_) {
+          return _warmUpPlaybackQueue();
+        }),
+      );
     } else {
       _midiLoadGeneration++;
       unawaited(_midiEngine.stop());
@@ -246,7 +225,6 @@ class SongCubit extends HydratedCubit<SongState> {
     final normalized = semitones.clamp(-12, 12);
     emit(state.copyWith(transposeStep: normalized));
     _midiEngine.setTranspose(normalized);
-    _preloadNearbySongMidi(state.pageIndex);
   }
 
   void setTransposeKey(String key) {
@@ -304,14 +282,21 @@ class SongCubit extends HydratedCubit<SongState> {
     _debouncer?.cancel();
     _debouncer = Timer(const Duration(milliseconds: 250), () {
       _midiEngine.setTempo(bpm);
-      _preloadNearbySongMidi(state.pageIndex);
     });
   }
 
   void setDefaultTempo(double bpm) {
     emit(state.copyWith(defaultTempoBpm: bpm, tempoBpm: bpm));
     _midiEngine.setTempoBase(bpm);
-    _preloadNearbySongMidi(state.pageIndex);
+  }
+
+  // ─── Accidental Mode ─────────────────────────────────────────────
+
+  void toggleAccidentalMode() {
+    final newMode = state.chordAccidentalMode == ChordService.accidentalSharp
+        ? ChordService.accidentalFlat
+        : ChordService.accidentalSharp;
+    emit(state.copyWith(chordAccidentalMode: newMode));
   }
 
   // ─── Instrument ───────────────────────────────────────────────
@@ -319,26 +304,7 @@ class SongCubit extends HydratedCubit<SongState> {
   void setMidiInstrument(int? program) {
     emit(state.copyWith(midiInstrument: program));
     _midiEngine.setInstrument(program ?? -1);
-    _preloadNearbySongMidi(state.pageIndex);
-  }
-
-  void setPreloadEnabled(bool enabled) {
-    emit(state.copyWith(preloadEnabled: enabled));
-    if (enabled) {
-      _preloadNearbySongMidi(state.pageIndex);
-    }
-  }
-
-  void setPreloadCount(int count) {
-    final clamped = count.clamp(1, 5);
-    emit(state.copyWith(preloadCount: clamped));
-    _preloadNearbySongMidi(state.pageIndex);
-  }
-
-  void setPreloadCacheMax(int max) {
-    final clamped = max.clamp(4, 32);
-    _midiEngine.setCacheMax(clamped);
-    emit(state.copyWith(preloadCacheMax: clamped));
+    unawaited(_warmUpPlaybackQueue());
   }
 
   void resetPlaybackSettings() {
@@ -371,7 +337,7 @@ class SongCubit extends HydratedCubit<SongState> {
     await _midiEngine.changeSoundFont(fileName);
     if (state.songs.isNotEmpty) {
       await _loadMidiForSong(state.songs[state.pageIndex], force: true);
-      _preloadNearbySongMidi(state.pageIndex);
+      unawaited(_warmUpPlaybackQueue());
     }
   }
 
@@ -396,7 +362,21 @@ class SongCubit extends HydratedCubit<SongState> {
       ),
     );
     await _loadMidiForSong(song, autoplay: wasPlaying, force: true);
-    _preloadNearbySongMidi(index);
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  Future<void> goToPreviousSong() async {
+    final song = _playbackQueue().manualPreviousSong;
+    if (song != null) {
+      await _openSong(song, autoplay: state.isAudioPlaying);
+    }
+  }
+
+  Future<void> goToNextSong() async {
+    final song = _playbackQueue().manualNextSong;
+    if (song != null) {
+      await _openSong(song, autoplay: state.isAudioPlaying);
+    }
   }
 
   void setPdfTwoPageMode(bool enabled) {
@@ -420,8 +400,6 @@ class SongCubit extends HydratedCubit<SongState> {
   // ─── Chord Data Loading ───────────────────────────────────────
 
   Future<Map<int, List<ChordData>>?> loadChordData(Song song) async {
-    if (song.code != 'KR') return null;
-
     final chordPath = await _assetService.getChordPath(
       song.code ?? '',
       song.number ?? '',
@@ -523,6 +501,12 @@ class SongCubit extends HydratedCubit<SongState> {
     if (_handlingAutoNext) return;
     final mode = SongPlaylistAutoNextMode.normalize(state.playlistAutoNextMode);
     if (mode == SongPlaylistAutoNextMode.off) return;
+    if (mode == SongPlaylistAutoNextMode.one) {
+      await _midiEngine.seek(0);
+      await _midiEngine.play();
+      emit(state.copyWith(isAudioPlaying: true));
+      return;
+    }
     final nextSong = _playbackQueue().nextSong;
     if (nextSong == null) return;
 
@@ -534,6 +518,11 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
+  /// Open a specific [song] by switching to its book and jumping to its page.
+  /// This is the canonical way to navigate to a song from any context
+  Future<void> openSong(Song song, {bool autoplay = false}) =>
+      _openSong(song, autoplay: autoplay);
+
   Future<void> _openSong(Song song, {bool autoplay = false}) async {
     final bookCode = song.code ?? state.bookCode;
     final book = state.songBook.firstWhere(
@@ -544,7 +533,15 @@ class SongCubit extends HydratedCubit<SongState> {
       (item) => item.code == song.code && item.number == song.number,
     );
     if (index < 0) return;
-    emit(state.copyWith(bookCode: bookCode, playOnlyFavorite: false));
+    addToHistory(
+      SongHistory(index: index, bookCode: bookCode, createdAt: DateTime.now()),
+    );
+    // Update bookCode AND pageIndex in a single emit to avoid triggering
+    // the BlocConsumer listener twice (once for bookCode, once for pageIndex).
+    emit(state.copyWith(bookCode: bookCode, pageIndex: index));
+    // Still call changePage to load MIDI and other per-song state.
+    // Note: changePage emits again, but with the same pageIndex so the
+    // listener's listenWhen (pageIndex change) will skip the second fire.
     await changePage(index, 0);
     if (autoplay) {
       await play();
@@ -568,20 +565,6 @@ class SongCubit extends HydratedCubit<SongState> {
     return base.resolveChordBaseline(
       familyChord: familyChord,
       pdfKey: songMatchesCurrent ? state.originalPdfKey : null,
-      preferNaturalChords: true,
-    );
-  }
-
-  Future<SongPlaybackDefaults> _resolveCacheDefaultsForSong(Song song) async {
-    final familyChord = await _detectFamilyChordForSong(song);
-    final base = _currentPlaybackDefaults().resetForSong();
-    // Keep preload cache deterministic:
-    // - transpose 0 by default
-    // - recommended natural transpose when preferNaturalChords is enabled
-    if (!state.preferNaturalChords) return base;
-    return base.resolveChordBaseline(
-      familyChord: familyChord,
-      pdfKey: null,
       preferNaturalChords: true,
     );
   }
@@ -661,15 +644,37 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void setActivePlaylist(String? playlistId) {
-    emit(state.copyWith(activePlaylistId: playlistId));
-    _preloadNearbySongMidi(state.pageIndex);
+    final currentMode = SongPlaylistAutoNextMode.normalize(
+      state.playlistAutoNextMode,
+    );
+    final nextMode =
+        currentMode == SongPlaylistAutoNextMode.playlist ||
+            currentMode == SongPlaylistAutoNextMode.shufflePlaylist
+        ? currentMode
+        : SongPlaylistAutoNextMode.playlist;
+    emit(
+      state.copyWith(
+        activePlaylistId: playlistId,
+        playlistAutoNextMode: playlistId == null ? currentMode : nextMode,
+      ),
+    );
+    _refreshPlaylistShuffleIfNeeded();
+    unawaited(_warmUpPlaybackQueue());
   }
 
   void setPlaylistAutoNextMode(String mode) {
     final normalized = SongPlaylistAutoNextMode.normalize(mode);
     emit(state.copyWith(playlistAutoNextMode: normalized));
     _refreshPlaylistShuffleIfNeeded();
-    _preloadNearbySongMidi(state.pageIndex);
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  void cycleLoopMode() {
+    final nextMode = SongPlaylistAutoNextMode.cycle(
+      state.playlistAutoNextMode,
+      hasUsableShufflePlaylist: activePlaylist?.songs.isNotEmpty ?? false,
+    );
+    setPlaylistAutoNextMode(nextMode);
   }
 
   void addSongToActivePlaylist(Song song) {
@@ -693,7 +698,7 @@ class SongCubit extends HydratedCubit<SongState> {
       ),
     );
     _refreshPlaylistShuffleIfNeeded();
-    _preloadNearbySongMidi(state.pageIndex);
+    unawaited(_warmUpPlaybackQueue());
   }
 
   void removeSongFromPlaylist(String playlistId, int songIndex) {
@@ -712,7 +717,7 @@ class SongCubit extends HydratedCubit<SongState> {
       ),
     );
     _refreshPlaylistShuffleIfNeeded();
-    _preloadNearbySongMidi(state.pageIndex);
+    unawaited(_warmUpPlaybackQueue());
   }
 
   bool isSongInActivePlaylist(Song song) {
@@ -720,76 +725,39 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void _refreshPlaylistShuffleIfNeeded() {
-    if (state.playlistAutoNextMode !=
-        SongPlaylistAutoNextMode.shufflePlaylist) {
+    final mode = SongPlaylistAutoNextMode.normalize(state.playlistAutoNextMode);
+    if (mode == SongPlaylistAutoNextMode.shufflePlaylist) {
+      emit(
+        state.copyWith(
+          playlistShuffleIndex: getRandomUniqueIndex(
+            activePlaylist?.songs.length ?? 0,
+          ),
+        ),
+      );
       return;
     }
-    emit(
-      state.copyWith(
-        playlistShuffleIndex: getRandomUniqueIndex(
-          activePlaylist?.songs.length ?? 0,
-        ),
-      ),
-    );
+    if (mode == SongPlaylistAutoNextMode.shuffleAll) {
+      emit(
+        state.copyWith(shuffleIndex: getRandomUniqueIndex(state.songs.length)),
+      );
+    }
   }
 
-  void changeBookcode(String bookCode, {bool isFavorite = false}) {
-    List<Song> songs = [];
-    for (var book in state.favoriteSongBook) {
-      songs.addAll(book.songs);
-    }
+  void changeBookcode(String bookCode) {
+    final songCount = state.songBook
+        .firstWhere(
+          (book) => book.code == bookCode,
+          orElse: () => SongBook(code: bookCode, songs: const []),
+        )
+        .songs
+        .length;
     emit(
       state.copyWith(
         bookCode: bookCode,
-        playOnlyFavorite: isFavorite,
-        shuffleIndex: getRandomUniqueIndex(songs.length),
+        shuffleIndex: getRandomUniqueIndex(songCount),
       ),
     );
-  }
-
-  // ─── Favorites ────────────────────────────────────────────────
-
-  void modifyFavorite(Song song, {bool playOnlyFav = true}) {
-    List<SongBook> modifiedSongBook = [];
-    if (state.favoriteSongBook.isEmpty) {
-      modifiedSongBook = state.songBook
-          .map((e) => e.copyWith(songs: []))
-          .toList();
-    } else {
-      modifiedSongBook = List.from(state.favoriteSongBook);
-    }
-    modifiedSongBook = modifiedSongBook.map((e) {
-      var temp = e;
-      if (temp.code == song.code) {
-        List<Song> tempSongs = List.from(e.songs);
-        if (tempSongs.any((element) => element.number == song.number)) {
-          tempSongs.removeWhere((element) => element.number == song.number);
-        } else {
-          tempSongs.add(song);
-        }
-        temp = temp.copyWith(songs: tempSongs);
-      }
-      return temp;
-    }).toList();
-    final hasFavoriteSongs = modifiedSongBook.any((sb) => sb.songs.isNotEmpty);
-    emit(
-      state.copyWith(
-        favoriteSongBook: modifiedSongBook,
-        playOnlyFavorite: playOnlyFav && hasFavoriteSongs,
-      ),
-    );
-  }
-
-  bool isSongFavorite(Song? song) {
-    if (song == null) return false;
-    if (state.favoriteSongBook.map((e) => e.code).contains(song.code)) {
-      SongBook songBook = state.favoriteSongBook.firstWhere(
-        (element) => element.code == song.code,
-      );
-      return songBook.songs.map((e) => e.number).contains(song.number);
-    } else {
-      return false;
-    }
+    unawaited(_warmUpPlaybackQueue());
   }
 
   // ─── History ──────────────────────────────────────────────────
@@ -851,15 +819,6 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   // ─── Shuffle ──────────────────────────────────────────────────
-
-  Future<void> toggleShuffle() async {
-    Fluttertoast.cancel();
-    Fluttertoast.showToast(
-      msg: 'Shuffle mode ${state.shuffleMode ? 'disabled' : 'enabled'}',
-    );
-    emit(state.copyWith(shuffleMode: !state.shuffleMode));
-    _preloadNearbySongMidi(state.pageIndex);
-  }
 
   // ─── Font & Text ──────────────────────────────────────────────
 

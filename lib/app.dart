@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:io' show File, Platform;
 import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
-import 'package:device_preview/device_preview.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,11 +11,13 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:pdfrx/pdfrx.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -38,8 +40,12 @@ Future initApplication() async {
     appName: 'GYS APP',
     baseUrlApi: 'https://e.gys.or.id/api/v1',
   );
-  var widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  final isFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');
+  final widgetsBinding = kDebugMode && !isFlutterTest
+      ? MarionetteBinding.ensureInitialized()
+      : WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  _initializePdfRuntime();
   initLog('flutter binding ready');
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: HydratedStorageDirectory(
@@ -52,8 +58,19 @@ Future initApplication() async {
   await setupInjection(appConfig);
   initLog('dependency injection ready');
   if (isNotificationConfiguredForCurrentPlatform) {
-    await _setupNotification();
-    initLog('notifications ready');
+    unawaited(
+      _setupNotification()
+          .then((_) => initLog('notifications ready'))
+          .catchError((Object error, StackTrace stackTrace) {
+            if (kDebugMode) {
+              log(
+                'Notification setup failed',
+                error: error,
+                stackTrace: stackTrace,
+              );
+            }
+          }),
+    );
   }
   if (isFirebaseCoreConfiguredForCurrentPlatform) {
     await Firebase.initializeApp(
@@ -96,17 +113,17 @@ Future initApplication() async {
     initLog('using fallback firebase config');
   }
 
-  await _setupLocalData();
-  initLog('local data ready');
   FlutterNativeSplash.remove();
   initLog('done');
   log('App Initialization DONE');
 }
 
-Future _setupLocalData() async {
-  // Static song and default Bible data are now read lazily from non-SQL
-  // JSON assets, so startup no longer copies large PDFs/DB files.
-  await di<LocalAssetService>().initialize();
+void _initializePdfRuntime() {
+  if (Platform.isWindows) {
+    final executableDir = File(Platform.resolvedExecutable).parent.path;
+    Pdfrx.pdfiumModulePath = '$executableDir\\pdfium.dll';
+  }
+  pdfrxFlutterInitialize();
 }
 
 Future _setupNotification() async {
@@ -125,7 +142,7 @@ Future _setupNotification() async {
         channelGroupName: 'GYS Notification Group',
       ),
     ],
-    debug: true,
+    debug: kDebugMode,
   );
 }
 
@@ -189,16 +206,13 @@ class _AppState extends State<App> {
               // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
               //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
               // });
-              return DevicePreview.appBuilder(
-                context,
-                BlocBuilder<InitialCubit, InitialState>(
-                  builder: (context, state) => MediaQuery(
-                    data: context.mediaQuery.copyWith(
-                      alwaysUse24HourFormat: true,
-                      textScaler: TextScaler.linear(state.defaultTextScale),
-                    ),
-                    child: child!,
+              return BlocBuilder<InitialCubit, InitialState>(
+                builder: (context, state) => MediaQuery(
+                  data: context.mediaQuery.copyWith(
+                    alwaysUse24HourFormat: true,
+                    textScaler: TextScaler.linear(state.defaultTextScale),
                   ),
+                  child: child!,
                 ),
               );
             },

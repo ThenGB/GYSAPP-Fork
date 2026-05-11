@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,7 @@ class _SongViewState extends State<SongView> {
 
   late int currentPageIndex = _initialPageIndex;
   int _currentVerseIndex = 0;
+  bool _isChordEditMode = false;
 
   int _resolveInitialPageIndex() {
     try {
@@ -48,6 +50,8 @@ class _SongViewState extends State<SongView> {
 
   Map<int, List<ChordData>>? _currentChords;
   String? _currentPdfPath;
+  late String _currentBookCode = cubit.state.bookCode;
+  final _pdfViewerController = PdfViewerController();
 
   void pageListener() {
     final newIndex = pageController.page?.round() ?? currentPageIndex;
@@ -57,8 +61,8 @@ class _SongViewState extends State<SongView> {
         _currentVerseIndex = 0;
       });
       cubit.changePage(newIndex, 0);
-      _loadChordData();
-      _loadPdfForCurrentSong();
+      // Note: PDF/chord loading is handled by BlocConsumer listener
+      // to avoid duplicate loading and race conditions
     }
   }
 
@@ -73,28 +77,41 @@ class _SongViewState extends State<SongView> {
     super.initState();
     _loadChordData();
     _loadPdfForCurrentSong();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _openSongSelector();
+    });
   }
 
   Future<void> _loadChordData() async {
     if (currentPageIndex >= cubit.state.songs.length) return;
     final song = cubit.state.songs[currentPageIndex];
+    final expectedCode = song.code;
+    final expectedNumber = song.number;
     final chords = await cubit.loadChordData(song);
-    if (mounted) {
-      setState(() {
-        _currentChords = chords;
-      });
-    }
+    if (!mounted) return;
+    // Discard result if the user navigated to a different song while loading.
+    if (currentPageIndex >= cubit.state.songs.length) return;
+    final current = cubit.state.songs[currentPageIndex];
+    if (current.code != expectedCode || current.number != expectedNumber) return;
+    setState(() {
+      _currentChords = chords;
+    });
   }
 
   Future<void> _loadPdfForCurrentSong() async {
     if (currentPageIndex >= cubit.state.songs.length) return;
     final song = cubit.state.songs[currentPageIndex];
+    final expectedCode = song.code;
+    final expectedNumber = song.number;
     final pdfPath = await cubit.getPdfPath(song.code ?? '', song.number ?? '');
-    if (mounted) {
-      setState(() {
-        _currentPdfPath = pdfPath;
-      });
-    }
+    if (!mounted) return;
+    // Discard result if the user navigated to a different song while loading.
+    if (currentPageIndex >= cubit.state.songs.length) return;
+    final current = cubit.state.songs[currentPageIndex];
+    if (current.code != expectedCode || current.number != expectedNumber) return;
+    setState(() {
+      _currentPdfPath = pdfPath;
+    });
   }
 
   @override
@@ -103,24 +120,34 @@ class _SongViewState extends State<SongView> {
       listenWhen: (previous, current) =>
           previous.pageIndex != current.pageIndex ||
           previous.bookCode != current.bookCode ||
-          previous.playOnlyFavorite != current.playOnlyFavorite,
+          previous.songBook != current.songBook ||
+          previous.showChord != current.showChord,
       listener: (context, state) {
+        final safePageIndex = state.songs.isEmpty
+            ? 0
+            : state.pageIndex.clamp(0, state.songs.length - 1).toInt();
+        final newBookCode = state.bookCode;
+        // True when the actual song changed (not just showChord or other UI)
+        final songChanged =
+            safePageIndex != currentPageIndex || newBookCode != _currentBookCode;
+
         setState(() {
-          currentPageIndex = state.pageIndex;
+          currentPageIndex = safePageIndex;
           _currentVerseIndex = state.verseIndex;
+          _currentBookCode = newBookCode;
+          // Clear stale chord data immediately so the new song never briefly
+          // shows chords that belong to the previous song.
+          if (songChanged) _currentChords = null;
         });
+
         _loadChordData();
-        _loadPdfForCurrentSong();
-        if (!pageController.hasClients) return;
-        pageController.jumpToPage(state.pageIndex);
+        // Only reload the PDF when the song actually changed; skipping this on
+        // showChord-only changes prevents an unnecessary path re-fetch.
+        if (songChanged) _loadPdfForCurrentSong();
       },
       builder: (context, state) {
         final textMode = state.isImageMode == true;
         final colors = Theme.of(context).colorScheme;
-        final isFavorite =
-            state.songs.isNotEmpty && currentPageIndex < state.songs.length
-            ? cubit.isSongFavorite(state.songs[currentPageIndex])
-            : false;
 
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
@@ -151,6 +178,7 @@ class _SongViewState extends State<SongView> {
               canGoNext: currentPageIndex < state.songs.length - 1,
               onPrevious: _goToPreviousSong,
               onNext: _goToNextSong,
+              onEditTriggered: _toggleChordEditMode,
             ),
             actions: [
               IconButton(
@@ -191,6 +219,12 @@ class _SongViewState extends State<SongView> {
                 tooltip: textMode ? 'Mode PDF' : 'Mode teks',
                 onPressed: cubit.changeMode,
               ),
+              if (!textMode)
+                IconButton(
+                  icon: const Icon(Icons.fit_screen_rounded),
+                  tooltip: 'Fit halaman',
+                  onPressed: _fitPdfToPage,
+                ),
               if (textMode)
                 IconButton(
                   icon: const Icon(Icons.tune_rounded),
@@ -200,14 +234,6 @@ class _SongViewState extends State<SongView> {
               PopupMenuButton<String>(
                 onSelected: (value) {
                   switch (value) {
-                    case 'fav':
-                      if (currentPageIndex < state.songs.length) {
-                        cubit.modifyFavorite(
-                          state.songs[currentPageIndex],
-                          playOnlyFav: false,
-                        );
-                      }
-                      break;
                     case 'copy':
                       _copyCurrentVerse(state);
                       break;
@@ -220,21 +246,6 @@ class _SongViewState extends State<SongView> {
                   }
                 },
                 itemBuilder: (context) => [
-                  PopupMenuItem(
-                    value: 'fav',
-                    child: Row(
-                      children: [
-                        Text('Favorite'.tr()),
-                        const Spacer(),
-                        Icon(
-                          isFavorite
-                              ? Icons.star_rounded
-                              : Icons.star_border_rounded,
-                          color: Theme.of(context).colorScheme.secondary,
-                        ),
-                      ],
-                    ),
-                  ),
                   PopupMenuItem(value: 'copy', child: Text('Copy'.tr())),
                   PopupMenuItem(value: 'share', child: Text('Share'.tr())),
                   PopupMenuItem(
@@ -286,8 +297,13 @@ class _SongViewState extends State<SongView> {
                   chordFontSizePercent: state.chordFontSizePercent,
                   chordFillOpacityPercent: state.chordFillOpacityPercent,
                   chordPaddingPercent: state.chordPaddingPercent,
-                  onPdfKeyDetected: cubit.updatePdfKey,
-                  onPdfTempoDetected: cubit.setDefaultTempo,
+                  isEditMode: _isChordEditMode,
+                  onChordsChanged: (updatedChords) {
+                    setState(() {
+                      _currentChords = updatedChords;
+                    });
+                  },
+                  viewerController: _pdfViewerController,
                 ),
 
               // Draggable MIDI Controls
@@ -313,8 +329,9 @@ class _SongViewState extends State<SongView> {
                         'TimGM6mb.sf2',
                       ],
                       availableInstruments: cubit.midiEngine.instruments,
+                      autoNextMode: state.playlistAutoNextMode,
                       onPlayPause: () => cubit.togglePlayPause(),
-                      onStop: () => cubit.stop(),
+                      onLoopModeCycle: cubit.cycleLoopMode,
                       onSeek: (seconds) =>
                           cubit.seek(Duration(seconds: seconds.toInt())),
                       onTranspose: (semitones) => cubit.setTranspose(semitones),
@@ -344,7 +361,7 @@ class _SongViewState extends State<SongView> {
     if (currentPageIndex >= state.songs.length) return;
     final song = state.songs[currentPageIndex];
     final text = '${song.number} - ${song.title}';
-    Share.share(text, subject: song.title);
+    SharePlus.instance.share(ShareParams(text: text, subject: song.title));
   }
 
   Future<void> _openLyricsSettings() {
@@ -368,7 +385,7 @@ class _SongViewState extends State<SongView> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: state.availableFonts.contains(state.defaultFont)
+                  initialValue: state.availableFonts.contains(state.defaultFont)
                       ? state.defaultFont
                       : state.availableFonts.first,
                   decoration: const InputDecoration(labelText: 'Font'),
@@ -440,38 +457,63 @@ class _SongViewState extends State<SongView> {
         currentBook: () =>
             cubit.state.currentSong ??
             SongBook(code: cubit.state.bookCode, songs: const []),
-        favoriteBooks: () => cubit.state.favoriteSongBook,
         initialSearchText: cubit.state.searchTerms,
         onSearchTermsChanged: cubit.onSearchTermsChanged,
         onChangeBookCode: (bookCode) {
           cubit.changeBookcode(bookCode);
-          _jumpToSongIndex(0);
         },
-        onTapPageNumber: (pageNumber) {
-          final index = cubit.state.songs.indexWhere(
-            (song) => song.number == pageNumber,
+        onTapPageNumber: (pageNumber) async {
+          // Find the song in the currently selected book and open it.
+          final song = cubit.state.songs.firstWhereOrNull(
+            (s) => s.number == pageNumber,
           );
           router.maybePop();
-          _jumpToSongIndex(index < 0 ? 0 : index);
-        },
-        onTapFavorite: (song) {
-          cubit.changeBookcode(song.code ?? cubit.state.bookCode);
-          final index = cubit.state.songs.indexWhere(
-            (item) => item.code == song.code && item.number == song.number,
-          );
-          router.maybePop();
-          _jumpToSongIndex(index < 0 ? 0 : index);
-        },
-        isFavorite: cubit.isSongFavorite,
-        onFavorite: (song) => cubit.modifyFavorite(song, playOnlyFav: false),
-        onBack: () => router.maybePop(),
-        onPlayFavorite: () {
-          if (cubit.state.isAudioPlaying) {
-            cubit.pause();
-          } else {
-            cubit.play();
+          if (song != null) {
+            final bookCode = song.code ?? cubit.state.bookCode;
+            final book = cubit.state.songBook.firstWhere(
+              (book) => book.code == bookCode,
+              orElse: () => SongBook(code: bookCode, songs: const []),
+            );
+            final index = book.songs.indexWhere(
+              (item) => item.code == song.code && item.number == song.number,
+            );
+            if (index >= 0) {
+              setState(() {
+                currentPageIndex = index;
+                _currentBookCode = bookCode;
+                _currentChords = null;
+              });
+              if (pageController.hasClients) {
+                pageController.jumpToPage(index);
+              }
+              cubit.openSong(song);
+            }
           }
         },
+        onOpenSong: (song) async {
+          // Handle page jump directly to avoid BlocConsumer listener timing issues
+          router.maybePop();
+          final bookCode = song.code ?? cubit.state.bookCode;
+          final book = cubit.state.songBook.firstWhere(
+            (book) => book.code == bookCode,
+            orElse: () => SongBook(code: bookCode, songs: const []),
+          );
+          final index = book.songs.indexWhere(
+            (item) => item.code == song.code && item.number == song.number,
+          );
+          if (index >= 0) {
+            setState(() {
+              currentPageIndex = index;
+              _currentBookCode = bookCode;
+              _currentChords = null;
+            });
+            if (pageController.hasClients) {
+              pageController.jumpToPage(index);
+            }
+            cubit.openSong(song);
+          }
+        },
+        onBack: () => router.maybePop(),
       ),
     );
   }
@@ -488,40 +530,34 @@ class _SongViewState extends State<SongView> {
     });
   }
 
-  void _jumpToSongIndex(int index) {
-    if (index < 0 || index >= cubit.state.songs.length) return;
-    setState(() {
-      currentPageIndex = index;
-      _currentVerseIndex = 0;
-    });
-    cubit.changePage(index, 0);
-    _loadChordData();
-    if (!pageController.hasClients) return;
-    pageController.jumpToPage(index);
-  }
-
   void _goToPreviousSong() => _animateToSongIndex(currentPageIndex - 1);
 
   void _goToNextSong() => _animateToSongIndex(currentPageIndex + 1);
 
-  void _animateToSongIndex(int index) {
+  void _animateToSongIndex(int index) async {
     if (index < 0 || index >= cubit.state.songs.length) return;
-    setState(() {
-      currentPageIndex = index;
-    });
+    await _loadPdfForCurrentSong();
+    setState(() => currentPageIndex = index);
+    if (pageController.hasClients) {
+      pageController.animateToPage(
+        index,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
+    }
     cubit.changePage(index, 0);
-    _loadChordData();
-    _loadPdfForCurrentSong();
-    if (!pageController.hasClients) return;
-    pageController.animateToPage(
-      index,
-      duration: const Duration(milliseconds: 280),
-      curve: Curves.easeOutCubic,
-    );
+  }
+
+  void _fitPdfToPage() => _pdfViewerController.fitToPage?.call();
+
+  void _toggleChordEditMode() {
+    setState(() {
+      _isChordEditMode = !_isChordEditMode;
+    });
   }
 }
 
-class _SongHeaderTitle extends StatelessWidget {
+class _SongHeaderTitle extends StatefulWidget {
   final String? number;
   final String title;
   final String? familyChord;
@@ -532,6 +568,7 @@ class _SongHeaderTitle extends StatelessWidget {
   final bool canGoNext;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
+  final VoidCallback? onEditTriggered;
 
   const _SongHeaderTitle({
     required this.number,
@@ -544,7 +581,47 @@ class _SongHeaderTitle extends StatelessWidget {
     required this.canGoNext,
     required this.onPrevious,
     required this.onNext,
+    this.onEditTriggered,
   });
+
+  @override
+  State<_SongHeaderTitle> createState() => _SongHeaderTitleState();
+}
+
+class _SongHeaderTitleState extends State<_SongHeaderTitle> {
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+  static const int _requiredTaps = 10;
+  static const Duration _tapWindow = Duration(milliseconds: 2000);
+
+  void _handleTap() {
+    final now = DateTime.now();
+
+    // Reset tap count if too much time has passed
+    if (_lastTapTime != null && now.difference(_lastTapTime!) > _tapWindow) {
+      _tapCount = 0;
+    }
+
+    _tapCount++;
+    _lastTapTime = now;
+
+    // Check if we've reached the required tap count
+    if (_tapCount >= _requiredTaps) {
+      _tapCount = 0;
+      _lastTapTime = null;
+      widget.onEditTriggered?.call();
+
+      // Show feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chord edit mode enabled'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -553,67 +630,75 @@ class _SongHeaderTitle extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Opacity(
-          opacity: canGoPrevious ? 1.0 : 0.0,
+          opacity: widget.canGoPrevious ? 1.0 : 0.0,
           child: IconButton(
             tooltip: 'Pujian sebelumnya',
-            onPressed: canGoPrevious ? onPrevious : null,
+            onPressed: widget.canGoPrevious ? widget.onPrevious : null,
             icon: const Icon(Icons.chevron_left_rounded),
           ),
         ),
         Flexible(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            child: Container(
-              key: ValueKey('$number-$title'),
-              constraints: const BoxConstraints(maxWidth: 420),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: 0.6),
+          child: GestureDetector(
+            onTap: _handleTap,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: Container(
+                key: ValueKey('${widget.number}-${widget.title}'),
+                constraints: const BoxConstraints(maxWidth: 420),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 5,
                 ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    [
-                      if ((number ?? '').isNotEmpty) number,
-                      title,
-                    ].whereType<String>().join(' - '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15.5,
-                    ),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colors.outlineVariant.withValues(alpha: 0.6),
                   ),
-                  if (familyChord != null)
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      'Family ${ChordService.formatChordForDisplay(familyChord!, accidentalMode: accidentalMode, baseTransposeOffset: baseTransposeOffset)}${pdfKey == null ? '' : ' / PDF $pdfKey'}',
+                      [
+                        if ((widget.number ?? '').isNotEmpty) widget.number,
+                        widget.title,
+                      ].whereType<String>().join(' - '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.onSurfaceVariant.withValues(alpha: 0.72),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15.5,
                       ),
                     ),
-                ],
+                    if (widget.familyChord != null)
+                      Text(
+                        'Family ${ChordService.formatChordForDisplay(widget.familyChord!, accidentalMode: widget.accidentalMode, baseTransposeOffset: widget.baseTransposeOffset)}${widget.pdfKey == null ? '' : ' / PDF ${widget.pdfKey}'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: colors.onSurfaceVariant.withValues(
+                            alpha: 0.72,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         Opacity(
-          opacity: canGoNext ? 1.0 : 0.0,
+          opacity: widget.canGoNext ? 1.0 : 0.0,
           child: IconButton(
             tooltip: 'Pujian berikutnya',
-            onPressed: canGoNext ? onNext : null,
+            onPressed: widget.canGoNext ? widget.onNext : null,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
         ),

@@ -171,7 +171,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                   padding: const EdgeInsets.all(14),
                   child: quill.QuillEditor(
                     controller: controller,
-                    configurations: quill.QuillEditorConfigurations(
+                    config: quill.QuillEditorConfig(
                       showCursor: mode == NoteMode.write,
                       padding: EdgeInsets.zero,
                       expands: true,
@@ -200,10 +200,10 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                     margin:
                         context.mediaQuery.viewPadding +
                         context.mediaQuery.viewInsets,
-                    child: quill.QuillToolbar.simple(
+                    child: quill.QuillSimpleToolbar(
                       controller: controller,
-                      configurations:
-                          const quill.QuillSimpleToolbarConfigurations(),
+                      config:
+                          const quill.QuillSimpleToolbarConfig(),
                     ),
                   ),
           ),

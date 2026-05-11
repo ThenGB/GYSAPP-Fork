@@ -3,10 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 void main() {
   test('formats transposed chords with selected accidental style', () {
-    expect(
-      ChordService.transposeChord('C', 1),
-      'C#',
-    );
+    expect(ChordService.transposeChord('C', 1), 'C#');
     expect(
       ChordService.transposeChord(
         'C',
@@ -37,6 +34,44 @@ void main() {
     expect(ChordService.detectFamilyChord(chords), 'C');
   });
 
+  test('parses gyschordweb note-aligned json using page map keys', () {
+    const json = '''
+{
+  "version": 2,
+  "type": "note-aligned",
+  "pages": {
+    "2": [
+      { "noteIdx": -1, "chord": "C" },
+      { "noteIdx": 99999, "chord": "G" }
+    ]
+  }
+}
+''';
+
+    final chords = ChordService.parseChordJson(json);
+
+    expect(chords.keys, [2]);
+    expect(chords[2]!.first.noteIdx, ChordSpecialIndices.before);
+    expect(chords[2]!.first.page, 2);
+    expect(chords[2]!.last.noteIdx, ChordSpecialIndices.after);
+  });
+
+  test('encodes note-aligned json compatible with gyschordweb', () {
+    const chords = {
+      1: [
+        ChordData(noteIdx: 2, chord: 'Am', page: 1),
+        ChordData(noteIdx: 0, chord: 'C', page: 1),
+      ],
+    };
+
+    final decoded = ChordService.parseChordJson(
+      ChordService.encodeChordJson(chords),
+    );
+
+    expect(decoded[1]!.map((chord) => chord.noteIdx), [0, 2]);
+    expect(decoded[1]!.map((chord) => chord.chord), ['C', 'Am']);
+  });
+
   test('maps pdf key notation and aligns chord family to pdf key', () {
     expect(ChordService.parsePdfKeyToSemitone('C'), 0);
     expect(ChordService.parsePdfKeyToSemitone('Bes'), 10);
@@ -44,15 +79,15 @@ void main() {
     expect(ChordService.parsePdfKeyToSemitone('H'), 11);
 
     expect(
-      ChordService.calculateBaseTransposeOffset(
-        pdfKey: 'F',
-        familyChord: 'C',
-      ),
+      ChordService.calculateBaseTransposeOffset(pdfKey: 'F', familyChord: 'C'),
       5,
     );
     expect(
-      ChordService.formatChordForDisplay('C',
-          baseTransposeOffset: 5, accidentalMode: ChordService.accidentalFlat),
+      ChordService.formatChordForDisplay(
+        'C',
+        baseTransposeOffset: 5,
+        accidentalMode: ChordService.accidentalFlat,
+      ),
       'F',
     );
   });
