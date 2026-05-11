@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -32,6 +33,7 @@ class _SongViewState extends State<SongView> {
 
   late int currentPageIndex = _initialPageIndex;
   int _currentVerseIndex = 0;
+  bool _isChordEditMode = false;
 
   int _resolveInitialPageIndex() {
     try {
@@ -48,6 +50,7 @@ class _SongViewState extends State<SongView> {
 
   Map<int, List<ChordData>>? _currentChords;
   String? _currentPdfPath;
+  final _pdfViewerController = PdfViewerController();
 
   void pageListener() {
     final newIndex = pageController.page?.round() ?? currentPageIndex;
@@ -103,16 +106,21 @@ class _SongViewState extends State<SongView> {
       listenWhen: (previous, current) =>
           previous.pageIndex != current.pageIndex ||
           previous.bookCode != current.bookCode ||
-          previous.playOnlyFavorite != current.playOnlyFavorite,
+          previous.playOnlyFavorite != current.playOnlyFavorite ||
+          previous.songBook != current.songBook ||
+          previous.showChord != current.showChord,
       listener: (context, state) {
+        final safePageIndex = state.songs.isEmpty
+            ? 0
+            : state.pageIndex.clamp(0, state.songs.length - 1).toInt();
         setState(() {
-          currentPageIndex = state.pageIndex;
+          currentPageIndex = safePageIndex;
           _currentVerseIndex = state.verseIndex;
         });
         _loadChordData();
         _loadPdfForCurrentSong();
         if (!pageController.hasClients) return;
-        pageController.jumpToPage(state.pageIndex);
+        pageController.jumpToPage(safePageIndex);
       },
       builder: (context, state) {
         final textMode = state.isImageMode == true;
@@ -151,6 +159,7 @@ class _SongViewState extends State<SongView> {
               canGoNext: currentPageIndex < state.songs.length - 1,
               onPrevious: _goToPreviousSong,
               onNext: _goToNextSong,
+              onEditTriggered: _toggleChordEditMode,
             ),
             actions: [
               IconButton(
@@ -191,6 +200,12 @@ class _SongViewState extends State<SongView> {
                 tooltip: textMode ? 'Mode PDF' : 'Mode teks',
                 onPressed: cubit.changeMode,
               ),
+              if (!textMode)
+                IconButton(
+                  icon: const Icon(Icons.fit_screen_rounded),
+                  tooltip: 'Fit halaman',
+                  onPressed: _fitPdfToPage,
+                ),
               if (textMode)
                 IconButton(
                   icon: const Icon(Icons.tune_rounded),
@@ -286,6 +301,13 @@ class _SongViewState extends State<SongView> {
                   chordFontSizePercent: state.chordFontSizePercent,
                   chordFillOpacityPercent: state.chordFillOpacityPercent,
                   chordPaddingPercent: state.chordPaddingPercent,
+                  isEditMode: _isChordEditMode,
+                  onChordsChanged: (updatedChords) {
+                    setState(() {
+                      _currentChords = updatedChords;
+                    });
+                  },
+                  viewerController: _pdfViewerController,
                   onPdfKeyDetected: cubit.updatePdfKey,
                   onPdfTempoDetected: cubit.setDefaultTempo,
                 ),
@@ -344,7 +366,7 @@ class _SongViewState extends State<SongView> {
     if (currentPageIndex >= state.songs.length) return;
     final song = state.songs[currentPageIndex];
     final text = '${song.number} - ${song.title}';
-    Share.share(text, subject: song.title);
+    SharePlus.instance.share(ShareParams(text: text, subject: song.title));
   }
 
   Future<void> _openLyricsSettings() {
@@ -368,7 +390,7 @@ class _SongViewState extends State<SongView> {
                 ),
                 const SizedBox(height: 12),
                 DropdownButtonFormField<String>(
-                  value: state.availableFonts.contains(state.defaultFont)
+                  initialValue: state.availableFonts.contains(state.defaultFont)
                       ? state.defaultFont
                       : state.availableFonts.first,
                   decoration: const InputDecoration(labelText: 'Font'),
@@ -445,22 +467,21 @@ class _SongViewState extends State<SongView> {
         onSearchTermsChanged: cubit.onSearchTermsChanged,
         onChangeBookCode: (bookCode) {
           cubit.changeBookcode(bookCode);
-          _jumpToSongIndex(0);
         },
         onTapPageNumber: (pageNumber) {
-          final index = cubit.state.songs.indexWhere(
-            (song) => song.number == pageNumber,
+          // Find the song in the currently selected book and open it.
+          final song = cubit.state.songs.firstWhereOrNull(
+            (s) => s.number == pageNumber,
           );
           router.maybePop();
-          _jumpToSongIndex(index < 0 ? 0 : index);
+          if (song != null) cubit.openSong(song);
         },
         onTapFavorite: (song) {
-          cubit.changeBookcode(song.code ?? cubit.state.bookCode);
-          final index = cubit.state.songs.indexWhere(
-            (item) => item.code == song.code && item.number == song.number,
-          );
+          // Use openSong: handles book switch + page jump atomically,
+          // avoiding the race condition from separate changeBookcode +
+          // _jumpToSongIndex calls triggering two BlocConsumer listener fires.
           router.maybePop();
-          _jumpToSongIndex(index < 0 ? 0 : index);
+          cubit.openSong(song);
         },
         isFavorite: cubit.isSongFavorite,
         onFavorite: (song) => cubit.modifyFavorite(song, playOnlyFav: false),
@@ -488,18 +509,6 @@ class _SongViewState extends State<SongView> {
     });
   }
 
-  void _jumpToSongIndex(int index) {
-    if (index < 0 || index >= cubit.state.songs.length) return;
-    setState(() {
-      currentPageIndex = index;
-      _currentVerseIndex = 0;
-    });
-    cubit.changePage(index, 0);
-    _loadChordData();
-    if (!pageController.hasClients) return;
-    pageController.jumpToPage(index);
-  }
-
   void _goToPreviousSong() => _animateToSongIndex(currentPageIndex - 1);
 
   void _goToNextSong() => _animateToSongIndex(currentPageIndex + 1);
@@ -519,9 +528,17 @@ class _SongViewState extends State<SongView> {
       curve: Curves.easeOutCubic,
     );
   }
+
+  void _fitPdfToPage() => _pdfViewerController.fitToPage?.call();
+
+  void _toggleChordEditMode() {
+    setState(() {
+      _isChordEditMode = !_isChordEditMode;
+    });
+  }
 }
 
-class _SongHeaderTitle extends StatelessWidget {
+class _SongHeaderTitle extends StatefulWidget {
   final String? number;
   final String title;
   final String? familyChord;
@@ -532,6 +549,7 @@ class _SongHeaderTitle extends StatelessWidget {
   final bool canGoNext;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
+  final VoidCallback? onEditTriggered;
 
   const _SongHeaderTitle({
     required this.number,
@@ -544,7 +562,48 @@ class _SongHeaderTitle extends StatelessWidget {
     required this.canGoNext,
     required this.onPrevious,
     required this.onNext,
+    this.onEditTriggered,
   });
+
+  @override
+  State<_SongHeaderTitle> createState() => _SongHeaderTitleState();
+}
+
+class _SongHeaderTitleState extends State<_SongHeaderTitle> {
+  int _tapCount = 0;
+  DateTime? _lastTapTime;
+  static const int _requiredTaps = 10;
+  static const Duration _tapWindow = Duration(milliseconds: 2000);
+
+  void _handleTap() {
+    final now = DateTime.now();
+    
+    // Reset tap count if too much time has passed
+    if (_lastTapTime != null && 
+        now.difference(_lastTapTime!) > _tapWindow) {
+      _tapCount = 0;
+    }
+    
+    _tapCount++;
+    _lastTapTime = now;
+    
+    // Check if we've reached the required tap count
+    if (_tapCount >= _requiredTaps) {
+      _tapCount = 0;
+      _lastTapTime = null;
+      widget.onEditTriggered?.call();
+      
+      // Show feedback
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Chord edit mode enabled'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -553,67 +612,70 @@ class _SongHeaderTitle extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Opacity(
-          opacity: canGoPrevious ? 1.0 : 0.0,
+          opacity: widget.canGoPrevious ? 1.0 : 0.0,
           child: IconButton(
             tooltip: 'Pujian sebelumnya',
-            onPressed: canGoPrevious ? onPrevious : null,
+            onPressed: widget.canGoPrevious ? widget.onPrevious : null,
             icon: const Icon(Icons.chevron_left_rounded),
           ),
         ),
         Flexible(
-          child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 200),
-            transitionBuilder: (child, animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
-            child: Container(
-              key: ValueKey('$number-$title'),
-              constraints: const BoxConstraints(maxWidth: 420),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: 0.6),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    [
-                      if ((number ?? '').isNotEmpty) number,
-                      title,
-                    ].whereType<String>().join(' - '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 15.5,
-                    ),
+          child: GestureDetector(
+            onTap: _handleTap,
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              child: Container(
+                key: ValueKey('${widget.number}-${widget.title}'),
+                constraints: const BoxConstraints(maxWidth: 420),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+                decoration: BoxDecoration(
+                  color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: colors.outlineVariant.withValues(alpha: 0.6),
                   ),
-                  if (familyChord != null)
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     Text(
-                      'Family ${ChordService.formatChordForDisplay(familyChord!, accidentalMode: accidentalMode, baseTransposeOffset: baseTransposeOffset)}${pdfKey == null ? '' : ' / PDF $pdfKey'}',
+                      [
+                        if ((widget.number ?? '').isNotEmpty) widget.number,
+                        widget.title,
+                      ].whereType<String>().join(' - '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: colors.onSurfaceVariant.withValues(alpha: 0.72),
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 15.5,
                       ),
                     ),
-                ],
+                    if (widget.familyChord != null)
+                      Text(
+                        'Family ${ChordService.formatChordForDisplay(widget.familyChord!, accidentalMode: widget.accidentalMode, baseTransposeOffset: widget.baseTransposeOffset)}${widget.pdfKey == null ? '' : ' / PDF ${widget.pdfKey}'}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: colors.onSurfaceVariant.withValues(alpha: 0.72),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
         Opacity(
-          opacity: canGoNext ? 1.0 : 0.0,
+          opacity: widget.canGoNext ? 1.0 : 0.0,
           child: IconButton(
             tooltip: 'Pujian berikutnya',
-            onPressed: canGoNext ? onNext : null,
+            onPressed: widget.canGoNext ? widget.onNext : null,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
         ),

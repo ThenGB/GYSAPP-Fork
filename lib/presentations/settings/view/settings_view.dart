@@ -883,24 +883,22 @@ class _SongSettingsSection extends StatelessWidget {
                   icon: Icons.library_music_outlined,
                   title: 'SoundFont',
                   description: 'Bank suara MIDI',
-                  trailing: PopupMenuButton<String>(
-                    initialValue: state.soundFont,
-                    onSelected: songCubit.setSoundFont,
-                    itemBuilder: (context) => const [
-                      PopupMenuItem(
-                        value: 'GeneralUser-GS.sf2',
-                        child: Text('GeneralUser GS'),
-                      ),
-                      PopupMenuItem(
-                        value: 'TimGM6mb.sf2',
-                        child: Text('TimGM6mb'),
-                      ),
-                    ],
-                    child: Text(
-                      state.soundFont == 'GeneralUser-GS.sf2'
-                          ? 'GeneralUser GS'
-                          : 'TimGM6mb',
-                    ),
+                  trailing: FutureBuilder<List<String>>(
+                    future: songCubit.midiEngine.getAvailableSoundFonts(),
+                    builder: (context, snapshot) {
+                      final soundfonts = snapshot.data ?? ['TimGM6mb.sf2'];
+                      return PopupMenuButton<String>(
+                        initialValue: state.soundFont,
+                        onSelected: songCubit.setSoundFont,
+                        itemBuilder: (context) => soundfonts
+                            .map((sf) => PopupMenuItem(
+                                  value: sf,
+                                  child: Text(sf.replaceAll('.sf2', '')),
+                                ))
+                            .toList(),
+                        child: Text(state.soundFont.replaceAll('.sf2', '')),
+                      );
+                    },
                   ),
                 ),
                 Divider(
@@ -910,55 +908,11 @@ class _SongSettingsSection extends StatelessWidget {
                   ),
                 ),
                 _SettingsSwitchTile(
-                  icon: Icons.download_rounded,
-                  title: 'Preload MIDI',
-                  description:
-                      'Preload lagu sebelum & sesudah untuk transisi cepat',
-                  value: state.preloadEnabled,
-                  onChanged: songCubit.setPreloadEnabled,
-                ),
-                Divider(
-                  height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(
-                    alpha: 0.3,
-                  ),
-                ),
-                _SettingsTile(
-                  icon: Icons.queue_music_rounded,
-                  title: 'Jumlah Preload',
-                  description: '${state.preloadCount} lagu sebelum & sesudah',
-                  trailing: SizedBox(
-                    width: 120,
-                    child: Slider(
-                      value: state.preloadCount.toDouble(),
-                      min: 1,
-                      max: 5,
-                      divisions: 4,
-                      onChanged: (v) => songCubit.setPreloadCount(v.round()),
-                    ),
-                  ),
-                ),
-                Divider(
-                  height: 1,
-                  color: context.colorScheme.outlineVariant.withValues(
-                    alpha: 0.3,
-                  ),
-                ),
-                _SettingsTile(
-                  icon: Icons.storage_rounded,
-                  title: 'Cache Maksimum',
-                  description:
-                      '${state.preloadCacheMax} lagu tersimpan di disk',
-                  trailing: SizedBox(
-                    width: 120,
-                    child: Slider(
-                      value: state.preloadCacheMax.toDouble(),
-                      min: 4,
-                      max: 32,
-                      divisions: 7,
-                      onChanged: (v) => songCubit.setPreloadCacheMax(v.round()),
-                    ),
-                  ),
+                  icon: Icons.bolt_outlined,
+                  title: 'Cache Ahead MIDI',
+                  description: 'Render lagu berikutnya di latar belakang',
+                  value: songCubit.isWarmUpEnabled,
+                  onChanged: (_) => songCubit.toggleWarmUp(),
                 ),
               ],
             ),

@@ -10,6 +10,7 @@ import 'local_asset_service.dart';
 import 'native_midi/midi_render_settings.dart';
 import 'native_midi/midi_tempo_detector.dart';
 import 'native_midi/native_midi_renderer.dart';
+import '../../presentations/song/cubit/song_preload_key.dart';
 
 const String defaultMidiSoundFont = 'GeneralUser-GS.sf2';
 
@@ -112,6 +113,37 @@ class MidiEngineService extends ChangeNotifier {
     log('Native MIDI engine initialized', name: 'MidiEngine');
   }
 
+  /// Cache-ahead render for the given MIDI without touching playback state.
+  /// Errors are swallowed and logged so that background warm-up never
+  /// interrupts the user.
+  Future<void> warmUp(
+    String midiPath, {
+    int transpose = 0,
+    double tempoBpm = 76,
+    double? baseTempoBpm,
+    int? instrument,
+  }) async {
+    await initialize();
+    
+    // Skip preload for non-neutral tempo rates (song-state specific)
+    if (!isTempoNeutral(tempoBpm, baseTempoBpm ?? 76)) {
+      return;
+    }
+    
+    try {
+      final settings = MidiRenderSettings(
+        transpose: transpose,
+        tempoBpm: tempoBpm,
+        baseTempoBpm: baseTempoBpm ?? _settings.baseTempoBpm,
+        instrument: instrument,
+        soundFont: _soundFont,
+      ).normalized;
+      await _loadRenderedSource(midiPath, settings, emitProgress: false);
+    } catch (e, stackTrace) {
+      log('Warm-up failed for $midiPath: $e', name: 'MidiEngine', stackTrace: stackTrace);
+    }
+  }
+
   Future<void> loadMidi(
     String midiPath, {
     int transpose = 0,
@@ -206,7 +238,14 @@ class MidiEngineService extends ChangeNotifier {
     bool emitProgress = false,
   }) async {
     final normalized = settings.normalized;
-    final cacheKey = '$midiPath|${normalized.cacheKey}';
+    final cacheKey = generateMidiPreloadKey(
+      midiPath: midiPath,
+      transpose: normalized.transpose,
+      tempoBpm: normalized.tempoBpm,
+      baseTempoBpm: normalized.baseTempoBpm,
+      instrument: normalized.instrument,
+      soundFont: normalized.soundFont,
+    );
     final inflight = _inflightSourceLoads[cacheKey];
     if (inflight != null) {
       return inflight;
@@ -343,7 +382,7 @@ class MidiEngineService extends ChangeNotifier {
     if (source == null) return;
 
     await _stopCurrentHandle(emit: false);
-    _currentHandle = await SoLoud.instance.play(
+    _currentHandle = SoLoud.instance.play(
       source,
       volume: _volume,
       paused: true,
@@ -393,6 +432,14 @@ class MidiEngineService extends ChangeNotifier {
       );
     }
     _setState(_state.copyWith(position: clamped));
+    // Pause position timer briefly after seek to allow SoLoud to settle
+    // and prevent the slider from jumping due to timer updates
+    _positionTimer?.cancel();
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (_state.isPlaying && _currentHandle != null) {
+        _startPositionTimer();
+      }
+    });
   }
 
   Future<void> setTranspose(int semitones) async {
@@ -415,22 +462,25 @@ class MidiEngineService extends ChangeNotifier {
     );
   }
 
-  Future<void> changeSoundFont(String soundFontFileName) async {
-    await initialize();
+  void setSoundFont(String soundFontFileName) {
     _soundFont = _normaliseSoundFontFileName(soundFontFileName);
     _settings = _settings.copyWith(soundFont: _soundFont).normalized;
     _instruments = [];
     if (!_disposed) notifyListeners();
+  }
 
+  Future<void> changeSoundFont(String soundFontFileName) async {
+    await initialize();
     try {
-      final soundFontBytes = await _loadSoundFontBytes(_soundFont);
-      _instruments = await NativeMidiRenderer.readInstruments(soundFontBytes);
-      if (!_disposed) notifyListeners();
-    } catch (e) {
-      log('Failed to read SoundFont presets: $e', name: 'MidiEngine');
+      setSoundFont(soundFontFileName);
+      await _rerenderCurrent(_settings, force: true);
+    } catch (e, stackTrace) {
+      log('Failed to load soundfont $soundFontFileName, falling back to TimGM6mb.sf2: $e',
+          name: 'MidiEngine', stackTrace: stackTrace);
+      // Fallback to the smaller, more compatible soundfont
+      setSoundFont(defaultMidiSoundFont);
+      await _rerenderCurrent(_settings, force: true);
     }
-
-    await _rerenderCurrent(_settings, force: true);
   }
 
   Future<void> setVolume(double volume) async {
@@ -438,42 +488,6 @@ class MidiEngineService extends ChangeNotifier {
     final handle = _currentHandle;
     if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
       SoLoud.instance.setVolume(handle, _volume);
-    }
-  }
-
-  Future<void> preload(
-    String midiPath, {
-    int transpose = 0,
-    double? tempoBpm,
-    double? baseTempoBpm,
-    int? instrument,
-    String? soundFont,
-  }) async {
-    await initialize();
-    await _preloadRenderedSource(
-      midiPath,
-      _settings.copyWith(
-        transpose: transpose,
-        tempoBpm: tempoBpm,
-        baseTempoBpm: baseTempoBpm,
-        instrument: instrument,
-        soundFont: soundFont,
-      ),
-    );
-  }
-
-  Future<void> _preloadRenderedSource(
-    String midiPath,
-    MidiRenderSettings settings,
-  ) async {
-    try {
-      await _loadRenderedSource(midiPath, settings);
-    } catch (e, stackTrace) {
-      log(
-        'MIDI preload failed: $e',
-        name: 'MidiEngine',
-        stackTrace: stackTrace,
-      );
     }
   }
 

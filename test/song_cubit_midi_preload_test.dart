@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:church/data/services/local_asset_service.dart';
 import 'package:church/data/services/midi_engine_service.dart';
+import 'package:church/data/services/pdf_preload_service.dart';
 import 'package:church/data/utilities/variables/failure.dart';
 import 'package:church/domain/entity/song/song_entity.dart';
 import 'package:church/domain/repository/song_repository.dart';
@@ -11,8 +12,52 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   setUp(() {
     HydratedBloc.storage = _MemoryStorage();
+  });
+
+  test('does not warm up native midi before audio is requested', () async {
+    final engine = _FakeMidiEngine();
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      _FakeAssetService(),
+      engine,
+      _FakePdfPreloadService(),
+    );
+    await _flushAsync();
+
+    expect(engine.events, isNot(contains('cache:12')));
+    expect(engine.events, isNot(contains('initialize')));
+    expect(engine.events, isNot(contains('soundfont:TimGM6mb.sf2')));
+    expect(engine.events.where((event) => event.startsWith('load:')), isEmpty);
+
+    await cubit.close();
+  });
+
+  test('loads HYMNE chord data through KR fallback asset path', () async {
+    final assetService = _FakeAssetService(
+      chordPath:
+          'assets/data/chord/kr/001_Pujilah Allah Yang Maha Esa.chord.json',
+    );
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      assetService,
+      _FakeMidiEngine(),
+      _FakePdfPreloadService(),
+    );
+    await _flushAsync();
+
+    final chords = await cubit.loadChordData(
+      const Song(code: 'HYMNE', number: '001', title: 'Pujilah Allah'),
+    );
+
+    expect(assetService.chordRequests, ['HYMNE:001']);
+    expect(chords, isNotNull);
+    expect(chords!.values.expand((page) => page), isNotEmpty);
+
+    await cubit.close();
   });
 
   test(
@@ -23,7 +68,10 @@ void main() {
         _FakeSongRepository(),
         _FakeAssetService(),
         engine,
+        _FakePdfPreloadService(),
       );
+      await _flushAsync();
+      cubit.toggleAudio(true);
       await _flushAsync();
       engine.events.clear();
 
@@ -48,7 +96,10 @@ void main() {
         _FakeSongRepository(),
         _FakeAssetService(),
         engine,
+        _FakePdfPreloadService(),
       );
+      await _flushAsync();
+      cubit.toggleAudio(true);
       await _flushAsync();
       engine.events.clear();
 
@@ -129,13 +180,21 @@ class _FakeSongRepository implements SongRepository {
 }
 
 class _FakeAssetService extends LocalAssetService {
+  final String? chordPath;
+  final List<String> chordRequests = [];
+
+  _FakeAssetService({this.chordPath});
+
   @override
   Future<String?> getMidiPath(String bookCode, String number) async {
     return 'assets/data/midi/${bookCode.toLowerCase()}/$number.mid';
   }
 
   @override
-  Future<String?> getChordPath(String bookCode, String number) async => null;
+  Future<String?> getChordPath(String bookCode, String number) async {
+    chordRequests.add('$bookCode:$number');
+    return chordPath;
+  }
 }
 
 class _FakeMidiEngine extends MidiEngineService {
@@ -154,8 +213,8 @@ class _FakeMidiEngine extends MidiEngineService {
   }
 
   @override
-  void setCacheMax(int max) {
-    events.add('cache:$max');
+  void setSoundFont(String soundFontFileName) {
+    events.add('selectSoundFont:$soundFontFileName');
   }
 
   @override
@@ -170,18 +229,6 @@ class _FakeMidiEngine extends MidiEngineService {
     events.add(
       'load:$midiPath:t$transpose:tempo$tempoBpm:base${baseTempoBpm ?? 76}',
     );
-  }
-
-  @override
-  Future<void> preload(
-    String midiPath, {
-    int transpose = 0,
-    double? tempoBpm,
-    double? baseTempoBpm,
-    int? instrument,
-    String? soundFont,
-  }) async {
-    events.add('preload:$midiPath:t$transpose:sf$soundFont');
   }
 
   @override
@@ -222,4 +269,8 @@ class _BlockingMidiEngine extends _FakeMidiEngine {
     );
     await blockedLoads[midiPath]?.future;
   }
+}
+
+class _FakePdfPreloadService extends PdfPreloadService {
+  _FakePdfPreloadService();
 }
