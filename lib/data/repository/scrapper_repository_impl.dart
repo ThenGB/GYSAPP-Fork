@@ -57,7 +57,11 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
             imageUrl = media[0]['source_url'] ?? '';
           }
         }
-        log('SBJ API: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
+        
+        // Extract Bible verse from excerpt or content
+        String description = _extractBibleVerse(post);
+        
+        log('SBJ API: title="$title" imageUrl="$imageUrl" verse="$description"', name: 'Scrapper');
         if (title.isEmpty || url == '#' || seenUrls.contains(url)) {
           continue;
         }
@@ -65,7 +69,7 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
         data.add(
           Sauh(
             title: title,
-            description: '---',
+            description: description,
             url: url,
             imageUrl: _absoluteTjcUrl(imageUrl),
           ),
@@ -80,7 +84,7 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
   }
 
   String _extractImageUrl(dynamic element) {
-    final img = element.tagName == 'img' ? element : element.querySelector('img');
+    final img = element.querySelector('img');
     if (img == null) return '';
 
     final bestFromSrcSet = _bestSrcSetUrl(
@@ -145,39 +149,145 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     return url;
   }
 
+  String _extractBibleVerse(Map<String, dynamic> post) {
+    // Try to extract from excerpt first
+    final excerpt = post['excerpt']?['rendered'] ?? '';
+    if (excerpt.isNotEmpty) {
+      final verseFromExcerpt = _parseVerseFromHtml(excerpt);
+      if (verseFromExcerpt.isNotEmpty) {
+        return verseFromExcerpt;
+      }
+    }
+
+    // Try to extract from content
+    final content = post['content']?['rendered'] ?? '';
+    if (content.isNotEmpty) {
+      final verseFromContent = _parseVerseFromHtml(content);
+      if (verseFromContent.isNotEmpty) {
+        return verseFromContent;
+      }
+    }
+
+    // Fallback to ---
+    return '---';
+  }
+
+  String _parseVerseFromHtml(String html) {
+    // Remove HTML tags
+    final text = html.replaceAll(RegExp(r'<[^>]*>'), '').trim();
+    
+    // Look for Bible verse pattern (e.g., "Matius 6:1-4", "Kejadian 1:1", etc.)
+    // Common Indonesian Bible book names
+    final bookNames = [
+      'Kejadian', 'Keluaran', 'Imamat', 'Bilangan', 'Ulangan',
+      'Yosua', 'Hakim-hakim', 'Rut', '1 Samuel', '2 Samuel',
+      '1 Raja-raja', '2 Raja-raja', '1 Tawarikh', '2 Tawarikh',
+      'Ezra', 'Nehemia', 'Ester', 'Ayub', 'Mazmur',
+      'Amsal', 'Pengkhotbah', 'Kidung Agung', 'Yesaya', 'Yeremia',
+      'Ratapan', 'Yehezkiel', 'Daniel', 'Hosea', 'Yoel',
+      'Amos', 'Obaja', 'Yona', 'Mikha', 'Nahum',
+      'Habakuk', 'Zefanya', 'Haggai', 'Zakharia', 'Maleakhi',
+      'Matius', 'Markus', 'Lukas', 'Yohanes', 'Kisah Para Rasul',
+      'Roma', '1 Korintus', '2 Korintus', 'Galatia', 'Efesus',
+      'Filipi', 'Kolose', '1 Tesalonika', '2 Tesalonika',
+      '1 Timotius', '2 Timotius', 'Titus', 'Filemon', 'Ibrani',
+      'Yakobus', '1 Petrus', '2 Petrus', '1 Yohanes', '2 Yohanes',
+      '3 Yohanes', 'Yudas', 'Wahyu'
+    ];
+
+    for (final book in bookNames) {
+      // Pattern: BookName chapter:verse (e.g., "Matius 6:1-4")
+      final pattern = RegExp('$book\\s+\\d+:\\d+(?:-\\d+)?', caseSensitive: false);
+      final match = pattern.firstMatch(text);
+      if (match != null) {
+        return match.group(0) ?? '';
+      }
+    }
+
+    // Fallback pattern: any word followed by chapter:verse
+    final fallbackPattern = RegExp(r'\b[A-Za-z]+\s+\d+:\d+(?:-\d+)?');
+    final fallbackMatch = fallbackPattern.firstMatch(text);
+    if (fallbackMatch != null) {
+      return fallbackMatch.group(0) ?? '';
+    }
+
+    return '';
+  }
+
   @override
   Future<Either<Failure, List<TrueVoice>>> getSuaraSejati() async {
     bool hasError = false;
     List<TrueVoice> data = [];
     late Failure failure;
     try {
+      log('SS: Loading page...', name: 'Scrapper');
       var parser = await chaleno.load('https://tjc.org/id/suarasejati/');
-      if (parser == null) throw "Can't get data online";
-      var parent = Parser(parser.querySelector('.grid4').html);
+      if (parser == null) throw 'Can\'t get data online';
 
-      var articles = parent.getElementsByTagName('article')?.toList();
-      if (articles != null) {
-        for (var article in articles) {
-          var title = article.querySelector('.post-title')?.text ?? '';
-          var description = (article.querySelector('p')?.text ?? '').trim();
-          var url = article.querySelector('a')?.href ?? '#';
-          var imageUrl = _absoluteTjcUrl(
-            _preferOriginalWordPressImage(_extractImageUrl(article)),
-          );
-          log('SS: title="$title" imageUrl="$imageUrl"', name: 'Scrapper');
+      log('SS: Page loaded, querying articles...', name: 'Scrapper');
+      var articles = parser.querySelectorAll('.grid4 article');
+      log('SS: Found ${articles.length} articles', name: 'Scrapper');
 
-          data.add(
-            TrueVoice(
+      final List<Future<TrueVoice?>> tasks = [];
+
+      for (var i = 0; i < articles.length; i++) {
+        final article = articles[i];
+        final title = article.querySelector('.post-title')?.text ?? '';
+        final description = (article.querySelector('p')?.text ?? '').trim();
+        final url = article.querySelector('a')?.attr('href') ?? '#';
+        final imageUrl = _absoluteTjcUrl(
+          _preferOriginalWordPressImage(_extractImageUrl(article)),
+        );
+
+        tasks.add(() async {
+          try {
+            var creator = description;
+            if (url != '#') {
+              final articleParser = await chaleno.load(url);
+              if (articleParser != null) {
+                // Try to find in the first paragraph or first 500 chars of body
+                final firstP = articleParser.querySelector('.entry-content p').text ?? '';
+                final bodyText = articleParser.querySelector('body').text ?? '';
+                var searchArea = firstP.length > 20 ? firstP : bodyText.substring(0, bodyText.length > 500 ? 500 : bodyText.length);
+                
+                // Improved regex: handles Indonesian quotes and multiple city/location parts
+                final creatorPattern = RegExp(
+                  r'(?:Sdri\.|Sdr\.|Pdt\.|Pnt\.|Dkn\.)\s*[^,”，"(\n]+(?:,\s*Gereja\s+cabang\s+[^,”，"(\n]+)?(?:,\s*[^,”，"(\n]+)?',
+                  caseSensitive: false,
+                );
+                
+                var match = creatorPattern.firstMatch(searchArea);
+                
+                // If not found in search area, search whole body (less efficient but robust fallback)
+                match ??= creatorPattern.firstMatch(bodyText);
+
+                if (match != null) {
+                  creator = match.group(0)?.trim() ?? description;
+                  // Clean up trailing quotes or commas
+                  creator = creator.replaceAll(RegExp(r'[”，"，" ]+$'), '').replaceAll(RegExp(r'^[，“" ]+'), '');
+                }
+              }
+            }
+            return TrueVoice(
               title: title,
               description: description,
               url: url,
               imageUrl: imageUrl,
-            ),
-          );
-        }
+              creator: creator,
+            );
+          } catch (e) {
+            return null;
+          }
+        }());
       }
-      log(articles.toString());
+
+      final results = await Future.wait(tasks);
+      data = results.whereType<TrueVoice>().toList();
+
+      if (data.isEmpty) throw 'No articles found or parsed';
+      log('SS: Successfully parsed ${data.length} articles', name: 'Scrapper');
     } catch (e) {
+      log('SS Error: $e', name: 'Scrapper');
       hasError = true;
       failure = Failure.fromError(e);
     }
@@ -226,15 +336,14 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
       var parser =
           await chaleno.load('https://tjc.org/id/literatur/warta-sejati/');
       if (parser == null) throw "Can't get data online";
-      var parent = Parser(parser.querySelector('.grid4').html);
 
-      var articles = parent.getElementsByTagName('article')?.toList();
-      if (articles != null) {
+      var articles = parser.querySelectorAll('.grid4 article');
+      if (articles.isNotEmpty) {
         for (var article in articles) {
           var title = article.querySelector('.post-title')?.text ?? '';
           var description = (article.querySelector('p')?.text ?? '').trim();
-          var url = article.querySelector('a')?.href ?? '#';
-          var imageUrl = article.querySelector('img')?.src ?? '';
+          var url = article.querySelector('a')?.attr('href') ?? '#';
+          var imageUrl = article.querySelector('img')?.attr('src') ?? '';
 
           data.add(
             Warta(

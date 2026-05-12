@@ -13,7 +13,6 @@ import '../../../data/services/chord_service.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
-import '../widgets/draggable_midi_controls.dart';
 import '../widgets/song_pdf_viewer.dart';
 
 @RoutePage()
@@ -269,6 +268,7 @@ class _SongViewState extends State<SongView> {
             ],
           ),
           body: Stack(
+            fit: StackFit.expand,
             children: [
               // PDF Viewer
               PageView.builder(
@@ -319,44 +319,7 @@ class _SongViewState extends State<SongView> {
                     },
                     viewerController: _pdfViewerController,
                   ),
-                ),
-
-              // Draggable MIDI Controls
-              if (state.showAudio)
-                AnimatedBuilder(
-                  animation: cubit.midiEngine,
-                  builder: (context, child) {
-                    final midiState = cubit.midiEngine.state;
-                    return DraggableMidiControls(
-                      nowPlayingTitle: state.getSongTitleAt(currentPageIndex),
-                      isPlaying: midiState.isPlaying,
-                      isLoading: midiState.isLoading,
-                      position: midiState.position,
-                      duration: midiState.duration,
-                      transposeStep: state.transposeStep,
-                      currentKey: state.activeKeyLabel,
-                      availableKeys: state.transposeKeyOptions,
-                      tempoBpm: state.tempoBpm,
-                      midiInstrument: state.midiInstrument,
-                      soundFont: state.soundFont,
-                      availableSoundFonts: const [
-                        'GeneralUser-GS.sf2',
-                        'TimGM6mb.sf2',
-                      ],
-                      availableInstruments: cubit.midiEngine.instruments,
-                      autoNextMode: state.playlistAutoNextMode,
-                      onPlayPause: () => cubit.togglePlayPause(),
-                      onLoopModeCycle: cubit.cycleLoopMode,
-                      onSeek: (seconds) =>
-                          cubit.seek(Duration(seconds: seconds.toInt())),
-                      onTranspose: (semitones) => cubit.setTranspose(semitones),
-                      onKeySelected: cubit.setTransposeKey,
-                      onTempo: (bpm) => cubit.setTempo(bpm),
-                      onInstrument: cubit.setMidiInstrument,
-                      onSoundFont: cubit.setSoundFont,
-                    );
-                  },
-                ),
+              ),
             ],
           ),
         );

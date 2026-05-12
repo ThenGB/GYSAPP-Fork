@@ -179,15 +179,24 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   }
 
   void _onViewerReady(pdfrx.PdfDocument? document, pdfrx.PdfViewerController ctrl) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       if (!mounted) return;
+      
       // Only fit-to-page on the FIRST ready event after a new PDF is
       // loaded. Subsequent onViewerReady calls (e.g. from invalidate
       // after chord/transpose changes) must NOT reset the user's zoom.
       if (_needsInitialFit) {
         _needsInitialFit = false;
+        
+        // Small delay to ensure layout is computed
+        await Future.delayed(const Duration(milliseconds: 50));
+        if (!mounted) return;
+        
         _fitToPageInstant();
+        // Force an additional redraw of the current page
+        _pdfCtrl.invalidate();
       }
+      
       // Fade back in after the PDF is ready and positioned.
       _navFadeCtrl.reverse();
     });

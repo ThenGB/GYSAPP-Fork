@@ -6,7 +6,9 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -637,26 +639,11 @@ class SauhBagiJiwa extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Stack(
-                children: [
-                  _safeNetworkImage(
-                    item.imageUrl,
-                    height: 130,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                  Positioned(
-                    left: 14,
-                    top: 12,
-                    child: Text(
-                      item.title.toUpperCase(),
-                      style: context.textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                  ),
-                ],
+              _safeNetworkImage(
+                item.imageUrl,
+                height: 130,
+                fit: BoxFit.cover,
+                width: double.infinity,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
@@ -665,6 +652,8 @@ class SauhBagiJiwa extends StatelessWidget {
                   children: [
                     Text(
                       item.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: context.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w600,
                         color: context.colorScheme.onSurface,
@@ -673,6 +662,8 @@ class SauhBagiJiwa extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       item.description,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
                         fontStyle: FontStyle.italic,
@@ -689,92 +680,192 @@ class SauhBagiJiwa extends StatelessWidget {
   }
 }
 
-class SuaraSejati extends StatelessWidget {
+class SuaraSejati extends StatefulWidget {
   final List<TrueVoice> trueVoices;
   const SuaraSejati({super.key, required this.trueVoices});
 
   @override
+  State<SuaraSejati> createState() => _SuaraSejatiState();
+}
+
+class _SuaraSejatiState extends State<SuaraSejati> {
+  late PageController _pageController;
+  int _currentPage = 0;
+  double _scrollAccumulator = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _pageController = PageController(
+      viewportFraction: 0.24,
+      initialPage: 0,
+    );
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _handleScroll(PointerScrollEvent event) {
+    final keys = HardwareKeyboard.instance.logicalKeysPressed;
+    final isShiftPressed = keys.contains(LogicalKeyboardKey.shiftLeft) || 
+                           keys.contains(LogicalKeyboardKey.shiftRight);
+
+    // Get deltas
+    final dx = event.scrollDelta.dx;
+    final dy = event.scrollDelta.dy;
+
+    // We decide whether to handle this scroll horizontally or let it be vertical
+    bool shouldHandleHorizontally = false;
+    double delta = 0;
+
+    if (isShiftPressed) {
+      // If shift is held, we always want to scroll horizontally
+      // We take the dominant delta (usually dy on Windows shift+scroll)
+      shouldHandleHorizontally = true;
+      delta = dx != 0 ? dx : dy;
+    } else if (dx.abs() > dy.abs()) {
+      // If not shift, only handle if it's already a horizontal scroll event (e.g. side-tilt wheel)
+      shouldHandleHorizontally = true;
+      delta = dx;
+    }
+
+    if (shouldHandleHorizontally && delta != 0) {
+      _scrollAccumulator += delta;
+
+      // Sensitivity threshold
+      if (_scrollAccumulator.abs() > 20) {
+        final direction = _scrollAccumulator > 0 ? 1 : -1;
+        final targetPage = (_currentPage + direction).clamp(0, widget.trueVoices.length - 1);
+
+        if (targetPage != _currentPage) {
+          _pageController.animateToPage(
+            targetPage,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeOutQuart,
+          );
+          setState(() {
+            _currentPage = targetPage;
+          });
+        }
+        _scrollAccumulator = 0;
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    if (trueVoices.isEmpty) return SizedBox();
-    final featured = trueVoices.first;
+    if (widget.trueVoices.isEmpty) return SizedBox();
     return Section(
       label: 'Suara Sejati'.tr(),
-      child: (gap) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: gap),
-        child: InkWell(
-          onTap: () {
-            router.push(WebpageRoute(url: featured.url));
+      child: (gap) => SizedBox(
+        height: 280,
+        child: Listener(
+          behavior: HitTestBehavior.translucent,
+          onPointerSignal: (event) {
+            if (event is PointerScrollEvent) {
+              _handleScroll(event);
+            }
           },
-          child: Container(
-            decoration: BoxDecoration(
-              color: context.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: context.colorScheme.outlineVariant.withValues(
-                  alpha: 0.6,
-                ),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(12),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 146,
-                    child: _safeNetworkImage(
-                      featured.imageUrl,
-                      fit: BoxFit.cover,
+          child: PageView.builder(
+            scrollDirection: Axis.horizontal,
+            controller: _pageController,
+            padEnds: false,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: widget.trueVoices.length,
+            onPageChanged: (page) {
+              setState(() {
+                _currentPage = page;
+              });
+            },
+            itemBuilder: (context, index) {
+              final item = widget.trueVoices[index];
+              return Padding(
+                padding: EdgeInsets.only(left: index == 0 ? gap : 3, right: 3),
+                child: InkWell(
+                  onTap: () {
+                    router.push(WebpageRoute(url: item.url));
+                  },
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: context.colorScheme.surfaceContainerLow,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: context.colorScheme.outlineVariant.withValues(
+                          alpha: 0.6,
+                        ),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(12),
+                          ),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 110,
+                            child: _safeNetworkImage(
+                              item.imageUrl,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 5,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: context.colorScheme.surfaceContainer,
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  'ARTIKEL',
+                                  style: context.textTheme.labelSmall?.copyWith(
+                                    color: context.colorScheme.primary,
+                                    fontSize: 9,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                item.title,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.textTheme.titleMedium?.copyWith(
+                                  color: context.colorScheme.onSurface,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                item.creator.trim(),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: context.colorScheme.onSurfaceVariant,
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 3,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.surfaceContainer,
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Text(
-                          'ARTIKEL',
-                          style: context.textTheme.labelSmall?.copyWith(
-                            color: context.colorScheme.primary,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        featured.title,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.headlineSmall?.copyWith(
-                          color: context.colorScheme.onSurface,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        featured.description.trim(),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.bodyMedium?.copyWith(
-                          color: context.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              );
+            },
           ),
         ),
       ),

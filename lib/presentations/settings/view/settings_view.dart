@@ -16,6 +16,24 @@ import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
+List<String> settingsSoundFontMenuValues({
+  required List<String>? availableSoundFonts,
+  required String selectedSoundFont,
+}) {
+  final values = <String>[];
+  void addValue(String value) {
+    if (value.isNotEmpty && !values.contains(value)) {
+      values.add(value);
+    }
+  }
+
+  addValue(selectedSoundFont);
+  for (final soundFont in availableSoundFonts ?? const ['TimGM6mb.sf2']) {
+    addValue(soundFont);
+  }
+  return values;
+}
+
 @RoutePage()
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -886,15 +904,20 @@ class _SongSettingsSection extends StatelessWidget {
                   trailing: FutureBuilder<List<String>>(
                     future: songCubit.midiEngine.getAvailableSoundFonts(),
                     builder: (context, snapshot) {
-                      final soundfonts = snapshot.data ?? ['TimGM6mb.sf2'];
+                      final soundfonts = settingsSoundFontMenuValues(
+                        availableSoundFonts: snapshot.data,
+                        selectedSoundFont: state.soundFont,
+                      );
                       return PopupMenuButton<String>(
                         initialValue: state.soundFont,
                         onSelected: songCubit.setSoundFont,
                         itemBuilder: (context) => soundfonts
-                            .map((sf) => PopupMenuItem(
-                                  value: sf,
-                                  child: Text(sf.replaceAll('.sf2', '')),
-                                ))
+                            .map(
+                              (sf) => PopupMenuItem(
+                                value: sf,
+                                child: Text(sf.replaceAll('.sf2', '')),
+                              ),
+                            )
                             .toList(),
                         child: Text(state.soundFont.replaceAll('.sf2', '')),
                       );
@@ -911,8 +934,8 @@ class _SongSettingsSection extends StatelessWidget {
                   icon: Icons.bolt_outlined,
                   title: 'Cache Ahead MIDI',
                   description: 'Render lagu berikutnya di latar belakang',
-                  value: songCubit.isWarmUpEnabled,
-                  onChanged: (_) => songCubit.toggleWarmUp(),
+                  value: state.midiPreloadEnabled,
+                  onChanged: songCubit.toggleWarmUp,
                 ),
                 if (state.midiPreloadEnabled)
                   Divider(
@@ -931,10 +954,8 @@ class _SongSettingsSection extends StatelessWidget {
                       onSelected: songCubit.setMidiCacheMaxCount,
                       itemBuilder: (context) => [4, 8, 12, 16, 20, 24, 32]
                           .map(
-                            (v) => PopupMenuItem(
-                              value: v,
-                              child: Text('$v lagu'),
-                            ),
+                            (v) =>
+                                PopupMenuItem(value: v, child: Text('$v lagu')),
                           )
                           .toList(),
                       child: Text('${state.midiCacheMaxCount} lagu'),
@@ -960,9 +981,7 @@ class _SongSettingsSection extends StatelessWidget {
                           .map(
                             (v) => PopupMenuItem(
                               value: v,
-                              child: Text(
-                                v == 0 ? 'Mati' : '$v lagu',
-                              ),
+                              child: Text(v == 0 ? 'Mati' : '$v lagu'),
                             ),
                           )
                           .toList(),

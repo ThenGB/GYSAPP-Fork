@@ -187,15 +187,16 @@ void main() {
     expect(songCubitSource, isNot(contains('playOnlyFavorite')));
   });
 
-  test('dashboard body does not extend behind bottom navigation', () {
+  test('dashboard mini player overlays without reserving background space', () {
     final source = File(
       'lib/presentations/dashboard/view/dashboard_view.dart',
     ).readAsStringSync();
 
     expect(
       source,
-      contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = false'),
+      contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = true'),
     );
+    expect(source, isNot(contains('72 + playerHeight')));
   });
 
   test('large pdf asset folders stay consolidated as master documents', () {

@@ -60,8 +60,10 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
       context,
       keys: [widgetKey],
       callback: (h) {
+        if (!mounted) return;
         childHeight = h;
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
+          if (!mounted) return;
           setState(() {});
         });
       },

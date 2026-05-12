@@ -125,8 +125,8 @@ class _WebpageViewState extends State<WebpageView> {
               ),
               initialSettings: InAppWebViewSettings(
                 mediaPlaybackRequiresUserGesture: false,
-                useShouldOverrideUrlLoading: true,
                 allowsInlineMediaPlayback: true,
+                transparentBackground: true,
               ),
               onWebViewCreated: (c) {
                 controller = c;

@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$TrueVoice {
 
- String get title; String get description; String get url; String get imageUrl;
+ String get title; String get description; String get url; String get imageUrl; String get creator;
 /// Create a copy of TrueVoice
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $TrueVoiceCopyWith<TrueVoice> get copyWith => _$TrueVoiceCopyWithImpl<TrueVoice>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrueVoice&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is TrueVoice&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.creator, creator) || other.creator == creator));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,url,imageUrl);
+int get hashCode => Object.hash(runtimeType,title,description,url,imageUrl,creator);
 
 @override
 String toString() {
-  return 'TrueVoice(title: $title, description: $description, url: $url, imageUrl: $imageUrl)';
+  return 'TrueVoice(title: $title, description: $description, url: $url, imageUrl: $imageUrl, creator: $creator)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $TrueVoiceCopyWith<$Res>  {
   factory $TrueVoiceCopyWith(TrueVoice value, $Res Function(TrueVoice) _then) = _$TrueVoiceCopyWithImpl;
 @useResult
 $Res call({
- String title, String description, String url, String imageUrl
+ String title, String description, String url, String imageUrl, String creator
 });
 
 
@@ -65,12 +65,13 @@ class _$TrueVoiceCopyWithImpl<$Res>
 
 /// Create a copy of TrueVoice
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? description = null,Object? url = null,Object? imageUrl = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? description = null,Object? url = null,Object? imageUrl = null,Object? creator = null,}) {
   return _then(_self.copyWith(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String,creator: null == creator ? _self.creator : creator // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -156,10 +157,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String description,  String url,  String imageUrl)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String title,  String description,  String url,  String imageUrl,  String creator)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _TrueVoice() when $default != null:
-return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
+return $default(_that.title,_that.description,_that.url,_that.imageUrl,_that.creator);case _:
   return orElse();
 
 }
@@ -177,10 +178,10 @@ return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String description,  String url,  String imageUrl)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String title,  String description,  String url,  String imageUrl,  String creator)  $default,) {final _that = this;
 switch (_that) {
 case _TrueVoice():
-return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
+return $default(_that.title,_that.description,_that.url,_that.imageUrl,_that.creator);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -197,10 +198,10 @@ return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String description,  String url,  String imageUrl)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String title,  String description,  String url,  String imageUrl,  String creator)?  $default,) {final _that = this;
 switch (_that) {
 case _TrueVoice() when $default != null:
-return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
+return $default(_that.title,_that.description,_that.url,_that.imageUrl,_that.creator);case _:
   return null;
 
 }
@@ -212,13 +213,14 @@ return $default(_that.title,_that.description,_that.url,_that.imageUrl);case _:
 @JsonSerializable()
 
 class _TrueVoice extends TrueVoice {
-  const _TrueVoice({required this.title, required this.description, required this.url, required this.imageUrl}): super._();
+  const _TrueVoice({required this.title, required this.description, required this.url, required this.imageUrl, this.creator = ''}): super._();
   factory _TrueVoice.fromJson(Map<String, dynamic> json) => _$TrueVoiceFromJson(json);
 
 @override final  String title;
 @override final  String description;
 @override final  String url;
 @override final  String imageUrl;
+@override@JsonKey() final  String creator;
 
 /// Create a copy of TrueVoice
 /// with the given fields replaced by the non-null parameter values.
@@ -233,16 +235,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrueVoice&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _TrueVoice&&(identical(other.title, title) || other.title == title)&&(identical(other.description, description) || other.description == description)&&(identical(other.url, url) || other.url == url)&&(identical(other.imageUrl, imageUrl) || other.imageUrl == imageUrl)&&(identical(other.creator, creator) || other.creator == creator));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,description,url,imageUrl);
+int get hashCode => Object.hash(runtimeType,title,description,url,imageUrl,creator);
 
 @override
 String toString() {
-  return 'TrueVoice(title: $title, description: $description, url: $url, imageUrl: $imageUrl)';
+  return 'TrueVoice(title: $title, description: $description, url: $url, imageUrl: $imageUrl, creator: $creator)';
 }
 
 
@@ -253,7 +255,7 @@ abstract mixin class _$TrueVoiceCopyWith<$Res> implements $TrueVoiceCopyWith<$Re
   factory _$TrueVoiceCopyWith(_TrueVoice value, $Res Function(_TrueVoice) _then) = __$TrueVoiceCopyWithImpl;
 @override @useResult
 $Res call({
- String title, String description, String url, String imageUrl
+ String title, String description, String url, String imageUrl, String creator
 });
 
 
@@ -270,12 +272,13 @@ class __$TrueVoiceCopyWithImpl<$Res>
 
 /// Create a copy of TrueVoice
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? description = null,Object? url = null,Object? imageUrl = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? description = null,Object? url = null,Object? imageUrl = null,Object? creator = null,}) {
   return _then(_TrueVoice(
 title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
 as String,description: null == description ? _self.description : description // ignore: cast_nullable_to_non_nullable
 as String,url: null == url ? _self.url : url // ignore: cast_nullable_to_non_nullable
 as String,imageUrl: null == imageUrl ? _self.imageUrl : imageUrl // ignore: cast_nullable_to_non_nullable
+as String,creator: null == creator ? _self.creator : creator // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }

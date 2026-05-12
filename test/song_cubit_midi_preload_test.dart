@@ -19,6 +19,44 @@ void main() {
     HydratedBloc.storage = _MemoryStorage();
   });
 
+  test('restored song state clears transient selected song', () async {
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      _FakeAssetService(),
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+
+    final restored = cubit.fromJson({
+      'selectedSong': {'code': 'KR', 'number': '001', 'lyric': 'One'},
+    });
+
+    expect(restored?.selectedSong, isNull);
+    expect(cubit.isSelectingSong, isFalse);
+
+    await cubit.close();
+  });
+
+  test('synced song state clears transient selected song', () async {
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      _FakeAssetService(),
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+
+    cubit.sync(
+      const SongState(
+        selectedSong: Song(code: 'KR', number: '001', title: 'One'),
+      ),
+    );
+
+    expect(cubit.state.selectedSong, isNull);
+    expect(cubit.isSelectingSong, isFalse);
+
+    await cubit.close();
+  });
+
   test('does not warm up native midi before audio is requested', () async {
     final engine = _FakeMidiEngine();
     final cubit = SongCubit(_FakeSongRepository(), _FakeAssetService(), engine);

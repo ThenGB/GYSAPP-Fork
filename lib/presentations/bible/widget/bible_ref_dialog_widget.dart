@@ -49,6 +49,16 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
     });
   }
 
+  /// Helper method to create a Verse from a non-null integer id
+  Verse _verseFromId(int id) {
+    return Verse(
+      id: id,
+      bookId: id ~/ 1000000,
+      chapterId: (id % 1000000) ~/ 1000,
+      verseId: id % 1000,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
@@ -145,24 +155,16 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
                                     (e) => Padding(
                                       padding: const EdgeInsets.only(right: 8),
                                       child: FutureBuilder(
-                                        future: widget.cubit.getBibleTitle([
-                                          if (e.sv != null)
-                                            Verse(
-                                              id: e.sv!,
-                                              bookId: e.sv! ~/ 1000000,
-                                              chapterId:
-                                                  (e.sv! % 1000000) ~/ 1000,
-                                              verseId: e.sv! % 1000,
-                                            ),
-                                          if (e.ev != null && e.ev != 0)
-                                            Verse(
-                                              id: e.ev!,
-                                              bookId: e.ev! ~/ 1000000,
-                                              chapterId:
-                                                  (e.ev! % 1000000) ~/ 1000,
-                                              verseId: e.ev! % 1000,
-                                            ),
-                                        ], withVerse: true),
+                                        future: (() {
+                                          final verses = <Verse>[];
+                                          if (e.sv != null) {
+                                            verses.add(_verseFromId(e.sv!));
+                                          }
+                                          if (e.ev != null && e.ev != 0) {
+                                            verses.add(_verseFromId(e.ev!));
+                                          }
+                                          return widget.cubit.getBibleTitle(verses, withVerse: true);
+                                        })(),
                                         builder: (context, snapshot) {
                                           return ElevatedButton(
                                             style: ElevatedButton.styleFrom(
