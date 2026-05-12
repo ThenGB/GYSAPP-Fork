@@ -50,9 +50,10 @@ Future<void> _utils(AppConfig appConfig) async {
     getTemporaryDirectory(),
     getApplicationSupportDirectory(),
   ]);
-  var document = directories[0].path;
-  var cache = directories[1].path;
-  var support = directories[2].path;
+  // Safe bounds check for directory access
+  var document = directories.isNotEmpty ? directories[0].path : '';
+  var cache = directories.length > 1 ? directories[1].path : '';
+  var support = directories.length > 2 ? directories[2].path : '';
   di.registerSingleton(AppDirectory(document, cache, support));
   di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());

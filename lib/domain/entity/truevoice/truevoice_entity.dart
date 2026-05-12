@@ -11,6 +11,7 @@ abstract class TrueVoice with _$TrueVoice {
     required String description,
     required String url,
     required String imageUrl,
+    @Default('') String creator,
   }) = _TrueVoice;
 
   factory TrueVoice.fromJson(Map<String, dynamic> json) =>

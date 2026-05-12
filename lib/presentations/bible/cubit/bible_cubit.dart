@@ -622,50 +622,71 @@ class BibleCubit extends HydratedCubit<BibleState> {
     //   withVerse: false,
     // );
 
-    final bibleContent = _usesAssetBible
-        ? await bibleAssetService.getVerses(
-            state.currentBibleCode,
-            bookId: bookId,
-            chapterId: chapterId,
-          )
-        : bibleDb != null
-        ? await bibleRepository.getVerses(
-            bibleDb!,
-            bookId: bookId,
-            chapterId: chapterId,
-          )
-        : <Verse>[];
-    final bookContent = _usesAssetBible
-        ? await bibleAssetService.getBooks(state.currentBibleCode)
-        : bibleDb != null
-        ? await bibleRepository.getBooks(bibleDb!)
-        : <BibleBook>[];
-    final pericopes = _usesAssetBible
-        ? await bibleAssetService.getPericopes(
-            state.currentBibleCode,
-            bookId: bookId,
-            chapterId: chapterId,
-          )
-        : bibleDb != null
-        ? await bibleRepository.getPericope(
-            bibleDb!,
-            bookId: bookId,
-            chapterId: chapterId,
-          )
-        : <Pericope>[];
-    final pericopeParalels = _usesAssetBible
-        ? await bibleAssetService.getPericopeParalels(
-            state.currentBibleCode,
-            bc: bcvbc.bc!,
-          )
-        : bibleDb != null
-        ? await bibleRepository.getPericopeParalel(bibleDb!, bc: bcvbc.bc!)
-        : <PericopeParalel>[];
-    final references = _usesAssetBible
-        ? await bibleAssetService.getRefs(state.currentBibleCode, bc: bcvbc.bc!)
-        : bibleDb != null
-        ? await bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!)
-        : <BibleRef>[];
+    // Parallelize all data fetches for better performance
+    late List<Verse> bibleContent;
+    late List<BibleBook> bookContent;
+    late List<Pericope> pericopes;
+    late List<PericopeParalel> pericopeParalels;
+    late List<BibleRef> references;
+
+    if (_usesAssetBible) {
+      // Fetch all data in parallel when using asset Bible
+      final results = await Future.wait([
+        bibleAssetService.getVerses(
+          state.currentBibleCode,
+          bookId: bookId,
+          chapterId: chapterId,
+        ),
+        bibleAssetService.getBooks(state.currentBibleCode),
+        bibleAssetService.getPericopes(
+          state.currentBibleCode,
+          bookId: bookId,
+          chapterId: chapterId,
+        ),
+        bibleAssetService.getPericopeParalels(
+          state.currentBibleCode,
+          bc: bcvbc.bc!,
+        ),
+        bibleAssetService.getRefs(
+          state.currentBibleCode,
+          bc: bcvbc.bc!,
+        ),
+      ]);
+      bibleContent = results[0] as List<Verse>;
+      bookContent = results[1] as List<BibleBook>;
+      pericopes = results[2] as List<Pericope>;
+      pericopeParalels = results[3] as List<PericopeParalel>;
+      references = results[4] as List<BibleRef>;
+    } else if (bibleDb != null) {
+      // Fetch all data in parallel when using database
+      final results = await Future.wait([
+        bibleRepository.getVerses(
+          bibleDb!,
+          bookId: bookId,
+          chapterId: chapterId,
+        ),
+        bibleRepository.getBooks(bibleDb!),
+        bibleRepository.getPericope(
+          bibleDb!,
+          bookId: bookId,
+          chapterId: chapterId,
+        ),
+        bibleRepository.getPericopeParalel(bibleDb!, bc: bcvbc.bc!),
+        bibleRepository.getRef(bibleDb!, bc: bcvbc.bc!),
+      ]);
+      bibleContent = results[0] as List<Verse>;
+      bookContent = results[1] as List<BibleBook>;
+      pericopes = results[2] as List<Pericope>;
+      pericopeParalels = results[3] as List<PericopeParalel>;
+      references = results[4] as List<BibleRef>;
+    } else {
+      // Default to empty lists if no data source is available
+      bibleContent = <Verse>[];
+      bookContent = <BibleBook>[];
+      pericopes = <Pericope>[];
+      pericopeParalels = <PericopeParalel>[];
+      references = <BibleRef>[];
+    }
     var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
     verseKeys = List.generate(
       bibleContent.length,
@@ -789,8 +810,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
           lastOpenBible: DateTime.now(),
         ),
       );
-    } catch (e) {
-      log('test');
+    } catch (e, stackTrace) {
+      log('Error in getContent: $e', name: 'BibleCubit', stackTrace: stackTrace);
     }
   }
 
@@ -972,8 +993,11 @@ Future<String?> convertIDtoNameAlkitab(
   String? zvt;
   int error = 0;
   int type = 0; //0 single,1 =book=chapter, 2 =book!chapter, 3 !book
+  // Non-nullable local variable for id1 (initialized to 0, will be set if id1 is not null)
+  int id1Val = 0;
 
   if (id1 != null) {
+    id1Val = id1;
     query = 'select bs,bl from book where id = ($id1/1000000)';
     var data = await bibleDb.rawQuery(query);
     zb1 = StringUtil.castToString(data.first['bs']);
@@ -988,13 +1012,14 @@ Future<String?> convertIDtoNameAlkitab(
   }
 
   if (id2 != null && error == 0) {
-    if (((id1! / 1000000) - (id2 / 1000000)) <= 0) {
+    // Use id1Val which is non-null when error == 0
+    if (((id1Val / 1000000) - (id2 / 1000000)) <= 0) {
       // book validation
       String id2s = id2.toString();
       zc2 = id2s.substring(id2s.length - 6, id2s.length).substring(0, 3);
       zv2 = id2s.substring(id2s.length - 3, id2s.length);
 
-      if (((id1 / 1000000) - (id2 / 1000000)) < 0) {
+      if (((id1Val / 1000000) - (id2 / 1000000)) < 0) {
         //second book
         query = 'select bs, bl from book where id = ($id2/1000000)';
         var data = await bibleDb.rawQuery(query);
@@ -1004,7 +1029,7 @@ Future<String?> convertIDtoNameAlkitab(
         }
         type = 3;
       }
-      if ((id1 / 1000000).floor() - (id2 / 1000000).floor() == 0) {
+      if ((id1Val / 1000000).floor() - (id2 / 1000000).floor() == 0) {
         //same book
         if (int.parse(zc1!) - int.parse(zc2) <= 0) {
           // chapter validation

@@ -84,17 +84,35 @@ class LocalBibleAssetService {
     if (toId == 0) toId = null;
     toId ??= fromId;
 
-    final verses = <Verse>[];
+    // Group verse IDs by book and chapter for batch fetching
+    final Map<String, List<int>> chaptersToFetch = {};
     for (var id = fromId; id <= toId; id++) {
       final bookId = id ~/ 1000000;
       final chapterId = (id % 1000000) ~/ 1000;
-      final chapter = await getVerses(
-        code,
-        bookId: bookId,
-        chapterId: chapterId,
-      );
-      final verse = chapter.where((item) => item.id == id).firstOrNull;
-      if (verse != null) verses.add(verse);
+      final key = '$bookId-$chapterId';
+      chaptersToFetch.putIfAbsent(key, () => []).add(id);
+    }
+
+    // Fetch all chapters in parallel
+    final futures = chaptersToFetch.entries.map((entry) async {
+      final parts = entry.key.split('-');
+      final bookId = int.parse(parts[0]);
+      final chapterId = int.parse(parts[1]);
+      final chapter = await getVerses(code, bookId: bookId, chapterId: chapterId);
+      return MapEntry(entry.key, chapter);
+    });
+
+    final chapterResults = await Future.wait(futures.toList());
+    final chapterMap = Map.fromEntries(chapterResults);
+
+    // Extract specific verses from each chapter
+    final verses = <Verse>[];
+    for (final entry in chaptersToFetch.entries) {
+      final chapter = chapterMap[entry.key] ?? [];
+      for (final id in entry.value) {
+        final verse = chapter.where((item) => item.id == id).firstOrNull;
+        if (verse != null) verses.add(verse);
+      }
     }
     return verses;
   }
@@ -122,22 +140,31 @@ class LocalBibleAssetService {
         .where((word) => word.trim().isNotEmpty)
         .toList();
 
-    final results = <Verse>[];
+    // Collect all chapter pairs to fetch in parallel
     final books = await getBooks(code);
-    for (final book
-        in books.where((book) => selectedBookIds.contains(book.id))) {
+    final filteredBooks = books.where((book) => selectedBookIds.contains(book.id)).toList();
+
+    // Create list of all (bookId, chapterId) pairs
+    final chapterPairs = <MapEntry<int, int>>[];
+    for (final book in filteredBooks) {
       for (var chapter = 1; chapter <= (book.chapterCount ?? 0); chapter++) {
-        final verses = await getVerses(
-          code,
-          bookId: book.id,
-          chapterId: chapter,
-        );
-        for (final verse in verses) {
-          final text = (verse.verse ?? '').toLowerCase();
-          final matchesPhrases = phrases.every(text.contains);
-          final matchesWords = words.every(text.contains);
-          if (matchesPhrases && matchesWords) results.add(verse);
-        }
+        chapterPairs.add(MapEntry(book.id, chapter));
+      }
+    }
+
+    // Fetch all chapters in parallel
+    final chapterResults = await Future.wait(
+      chapterPairs.map((pair) => getVerses(code, bookId: pair.key, chapterId: pair.value)),
+    );
+
+    // Search through all fetched verses
+    final results = <Verse>[];
+    for (final verses in chapterResults) {
+      for (final verse in verses) {
+        final text = (verse.verse ?? '').toLowerCase();
+        final matchesPhrases = phrases.every(text.contains);
+        final matchesWords = words.every(text.contains);
+        if (matchesPhrases && matchesWords) results.add(verse);
       }
     }
     return results;

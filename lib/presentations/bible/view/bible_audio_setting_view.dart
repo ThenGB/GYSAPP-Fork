@@ -50,17 +50,23 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     if (tts == null) {
       try {
         Fluttertoast.cancel();
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
+      }
       try {
         Fluttertoast.showToast(msg: 'Not available'.tr());
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to show toast: $e', name: 'AudioSettings');
+      }
       return;
     }
 
     if (isSpeaking) {
       try {
         await tts.stop();
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to stop: $e', name: 'AudioSettings');
+      }
       isSpeaking = false;
       if (isLangSpeaking(locale)) {
         langSpeaking = '';
@@ -70,13 +76,17 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     await Future.delayed(Duration(milliseconds: 200));
     try {
       await tts.awaitSpeakCompletion(true);
-    } catch (_) {}
+    } catch (e) {
+      log('TTS: Failed await completion: $e', name: 'AudioSettings');
+    }
     await tts.setLanguage(locale);
     var voiceForLocale = voices[locale];
     if (voiceForLocale != null) {
       try {
         await tts.setVoice(voiceForLocale.cast());
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to set voice: $e', name: 'AudioSettings');
+      }
     }
     await tts.setPitch(pitch);
     await tts.setSpeechRate(speed);
@@ -87,10 +97,14 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     } catch (e) {
       try {
         Fluttertoast.cancel();
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
+      }
       try {
         Fluttertoast.showToast(msg: Failure.fromError(e).message);
-      } catch (_) {}
+      } catch (e) {
+        log('TTS: Failed to show error toast: $e', name: 'AudioSettings');
+      }
     }
     langSpeaking = '';
     isSpeaking = false;
@@ -217,10 +231,14 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                   router.maybePop();
                   try {
                     Fluttertoast.cancel();
-                  } catch (_) {}
+                  } catch (e) {
+                    log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
+                  }
                   try {
                     Fluttertoast.showToast(msg: 'Saved'.tr());
-                  } catch (_) {}
+                  } catch (e) {
+                    log('TTS: Failed to show saved toast: $e', name: 'AudioSettings');
+                  }
                   widget.onSave(voices, pitch, speed);
                 });
           },

@@ -81,9 +81,14 @@ class HomeCubit extends HydratedCubit<HomeState> {
   }
 
   Future<void> scrappTrueVoice() async {
+    log('SS: Starting fetch', name: 'HomeCubit');
     var result = await repository.getSuaraSejati();
-    result.fold((failure) {}, (res) {
+    result.fold((failure) {
+      log('SS: Failed to fetch - $failure', name: 'HomeCubit');
+    }, (res) {
+      log('SS: Successfully fetched ${res.length} items', name: 'HomeCubit');
       emit(state.copyWith(trueVoices: res));
+      log('SS: State updated, isSuaraSejatiEnabled=${state.isSuaraSejatiEnabled}', name: 'HomeCubit');
     });
   }
 

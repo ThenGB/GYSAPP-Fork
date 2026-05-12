@@ -66,10 +66,69 @@ const dashboardNavigationDestinations = [
 
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
 const bool kDashboardExtendsBodyForMiniPlayerOverlay = false;
-const double kDashboardMiniPlayerBottomOffset = 78;
+const double kDashboardMiniPlayerNavGap = 6;
+const double kDashboardExpandedMiniPlayerHeight = 168;
+const double kDashboardPortraitBottomNavHeight = 72;
+const double kDashboardLandscapeBottomNavHeight = 56;
+const double kDashboardCompactNavOuterVerticalPadding = 3;
+const double kDashboardCompactNavInnerVerticalPadding = 3;
+const double kDashboardCompactNavIconSize = 20;
+const double kDashboardCompactNavLabelFontSize = 9;
+const double kDashboardCompactNavIconLabelGap = 1;
+const double kDashboardRegularNavOuterVerticalPadding = 6;
+const double kDashboardRegularNavInnerVerticalPadding = 6;
+const double kDashboardRegularNavIconSize = 22;
+const double kDashboardRegularNavLabelFontSize = 10;
+const double kDashboardRegularNavIconLabelGap = 2;
 
-double dashboardMiniPlayerBottomOffset({required bool isExpanded}) {
-  return kDashboardMiniPlayerBottomOffset;
+double dashboardMiniPlayerBottomOffset({
+  required bool isExpanded,
+  double navHeight = kDashboardPortraitBottomNavHeight,
+}) {
+  return navHeight + kDashboardMiniPlayerNavGap;
+}
+
+double dashboardMiniPlayerHeight({required bool isExpanded}) {
+  return isExpanded
+      ? kDashboardExpandedMiniPlayerHeight
+      : kMidiCollapsedBarHeight;
+}
+
+double dashboardMiniPlayerHitTestHeight({
+  required bool isVisible,
+  required bool isExpanded,
+  required double navHeight,
+}) {
+  if (!isVisible) {
+    return navHeight;
+  }
+  return dashboardMiniPlayerBottomOffset(
+        isExpanded: isExpanded,
+        navHeight: navHeight,
+      ) +
+      dashboardMiniPlayerHeight(isExpanded: isExpanded);
+}
+
+double dashboardBottomNavContentHeight({
+  required double navHeight,
+  required double bottomInset,
+}) {
+  final availableHeight = navHeight - bottomInset;
+  return availableHeight < 0 ? 0 : availableHeight;
+}
+
+double dashboardBottomNavItemHeight({
+  required double outerVerticalPadding,
+  required double innerVerticalPadding,
+  required double iconSize,
+  required double labelFontSize,
+  required double iconLabelGap,
+}) {
+  return (outerVerticalPadding * 2) +
+      (innerVerticalPadding * 2) +
+      iconSize +
+      iconLabelGap +
+      labelFontSize;
 }
 
 void openDashboardDrawer() {
@@ -222,194 +281,93 @@ class _DashboardViewState extends State<DashboardView> {
 
                 return true;
               },
-              child: AutoTabsScaffold(
-                scaffoldKey: dashboardScaffoldKey,
-                backgroundColor: context.colorScheme.surface,
-                extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
-                drawer: const _DashboardDrawer(),
-                routes: pages.map((e) => e.page).toList(),
-                transitionBuilder: (context, child, animation) {
-                  return Column(
-                    children: [
-                      Expanded(
-                        child: FadeTransition(opacity: animation, child: child),
-                      ),
-                      AnimatedSize(
-                        alignment: Alignment.bottomCenter,
-                        duration: kThemeAnimationDuration,
-                        child: (state.isSyncing)
-                            ? SafeArea(
-                                top: false,
-                                child: Text(
-                                  state.message ?? 'Syncing',
-                                  style: context.textTheme.labelSmall,
-                                ),
-                              )
-                            : const SizedBox(width: double.infinity),
-                      ),
-                    ],
-                  );
-                },
-                bottomNavigationBuilder: (context, tabsRouter) {
-                  tabRouter = tabsRouter;
-                  return BlocBuilder<SongCubit, SongState>(
-                    builder: (context, songState) => BlocBuilder<FaithCubit, FaithState>(
-                      builder: (context, faithState) =>
-                          BlocBuilder<BibleCubit, BibleState>(
-                            builder: (context, state) => AnimatedSize(
-                              duration: kThemeAnimationDuration,
-                              alignment: Alignment.bottomCenter,
-                              curve: Curves.easeOut,
-                              child: OrientationBuilder(
-                                builder: (context, orientation) {
-                                  var bibleCondition =
-                                      state.selectedVerse.isNotEmpty;
-                                  var faithCondition =
-                                      faithState.selectedFaith.isNotEmpty;
-                                  var songCondition2 =
-                                      songState.selectedSong != null;
-                                  if (bibleCondition ||
-                                      faithCondition ||
-                                      songCondition2) {
-                                    return const SizedBox(
-                                      width: double.infinity,
-                                    );
-                                  }
+              child: BlocBuilder<SongCubit, SongState>(
+              builder: (context, songState) => Stack(
+                children: [
+                  AutoTabsScaffold(
+                    scaffoldKey: dashboardScaffoldKey,
+                    backgroundColor: context.colorScheme.surface,
+                    extendBody: false, 
+                    drawer: const _DashboardDrawer(),
+                    routes: pages.map((e) => e.page).toList(),
+                    transitionBuilder: (context, child, animation) {
+                      return FadeTransition(opacity: animation, child: child);
+                    },
+                    bottomNavigationBuilder: (context, tabsRouter) {
+                      tabRouter = tabsRouter;
+                      return _HymnalBottomNav(
+                        destinations: pages,
+                        activeIndex: tabsRouter.activeIndex,
+                        onTap: (value) {
+                          context.read<BibleCubit>().stopSpeaking();
+                          tabsRouter.setActiveIndex(value);
+                        },
+                      );
+                    },
+                  ),
 
-                                  final nav = _HymnalBottomNav(
-                                    destinations: pages,
-                                    activeIndex: tabsRouter.activeIndex,
-                                    onTap: (value) {
-                                      context.read<BibleCubit>().stopSpeaking();
-                                      tabsRouter.setActiveIndex(value);
-                                      var list = [
-                                        BibleRoute,
-                                        FaithRoute,
-                                        SongRoute,
-                                      ];
-                                      if (Platform.isAndroid) {
-                                        if (list.contains(
-                                          pages
-                                              .elementAt(value)
-                                              .page
-                                              .runtimeType,
-                                        )) {
-                                          WakelockPlus.enable();
-                                        } else {
-                                          WakelockPlus.disable();
-                                        }
-                                      }
-                                    },
-                                  );
+                  // Global MIDI Player as an Overlay
+                  if (songState.showAudio)
+                    AnimatedBuilder(
+                      animation: context.read<SongCubit>().midiEngine,
+                      builder: (context, _) {
+                        final cubit = context.read<SongCubit>();
+                        final songState = cubit.state;
+                        final midiState = cubit.midiEngine.state;
+                        
+                        final isLandscape =
+                            MediaQuery.orientationOf(context) == Orientation.landscape;
+                        final navHeight = isLandscape
+                            ? kDashboardLandscapeBottomNavHeight
+                            : kDashboardPortraitBottomNavHeight;
 
-                                  final showGlobalPlayer = songState.showAudio;
-                                  final isSongTab = tabsRouter.activeIndex == 2;
-                                  final effectiveExpanded =
-                                      showGlobalPlayer &&
-                                      !isSongTab &&
-                                      _globalMidiExpanded;
-                                  final playerHeight =
-                                      showGlobalPlayer && !isSongTab
-                                      ? (effectiveExpanded ? 208.0 : 74.0)
-                                      : 0.0;
-                                  final size = 68.0;
-                                  final midiPlayer = showGlobalPlayer && !isSongTab
-                                      ? Builder(
-                                          builder: (context) {
-                                            final cubit = context.read<SongCubit>();
-                                            return AnimatedBuilder(
-                                              animation: cubit.midiEngine,
-                                              builder: (context, _) {
-                                                final midiState = cubit.midiEngine.state;
-                                                return DraggableMidiControls(
-                                                  isExpanded: effectiveExpanded,
-                                                  onExpandedChanged: (value) {
-                                                    if (_globalMidiExpanded == value) return;
-                                                    setState(() => _globalMidiExpanded = value);
-                                                  },
-                                                  onPreviousSong: cubit.goToPreviousSong,
-                                                  onNextSong: cubit.goToNextSong,
-                                                  usePositioned: false,
-                                                  isPlaying: midiState.isPlaying,
-                                                  isLoading: midiState.isLoading,
-                                                  position: midiState.position,
-                                                  duration: midiState.duration,
-                                                  transposeStep: songState.transposeStep,
-                                                  currentKey: songState.activeKeyLabel,
-                                                  availableKeys: songState.transposeKeyOptions,
-                                                  tempoBpm: songState.tempoBpm,
-                                                  midiInstrument: songState.midiInstrument,
-                                                  soundFont: songState.soundFont,
-                                                  availableSoundFonts: const [
-                                                    'GeneralUser-GS.sf2',
-                                                    'TimGM6mb.sf2',
-                                                  ],
-                                                  availableInstruments: cubit.midiEngine.instruments,
-                                                  autoNextMode: songState.playlistAutoNextMode,
-                                                  onPlayPause: cubit.togglePlayPause,
-                                                  onLoopModeCycle: cubit.cycleLoopMode,
-                                                  onSeek: (seconds) => cubit.seek(Duration(seconds: seconds.toInt())),
-                                                  onTranspose: cubit.setTranspose,
-                                                  onKeySelected: cubit.setTransposeKey,
-                                                  onTempo: cubit.setTempo,
-                                                  onInstrument: cubit.setMidiInstrument,
-                                                  onSoundFont: cubit.setSoundFont,
-                                                  nowPlayingTitle: songState.getSongTitleAt(songState.pageIndex),
-                                                );
-                                              },
-                                            );
-                                          },
-                                        )
-                                      : const SizedBox.shrink();
-                                  return Stack(
-                                    clipBehavior: Clip.none,
-                                    children: [
-                                      // Bottom nav with slide-up animation
-                                      PlayAnimationBuilder(
-                                        key: const ValueKey('nav-slide'),
-                                        duration: kThemeAnimationDuration,
-                                        tween: Tween<double>(begin: 0, end: 1),
-                                        delay: kThemeAnimationDuration,
-                                        curve: Curves.easeOut,
-                                        builder: (context, value, child) =>
-                                            Transform.translate(
-                                          offset: Offset(
-                                            0,
-                                            size - size * value,
-                                          ),
-                                          child: SizedBox(
-                                            height: 72 + playerHeight,
-                                            child: Align(
-                                              alignment: Alignment.bottomCenter,
-                                              child: nav,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      // MIDI player positioned above nav
-                                      // Kept outside the PlayAnimationBuilder so it
-                                      // doesn't slide in/out when switching tabs.
-                                      Positioned(
-                                        left: 0,
-                                        right: 0,
-                                        bottom: dashboardMiniPlayerBottomOffset(
-                                          isExpanded: effectiveExpanded,
-                                        ),
-                                        child: AnimatedSwitcher(
-                                          duration: Duration.zero,
-                                          child: midiPlayer,
-                                        ),
-                                      ),
-                                    ],
-                                  );
-                                },
-                              ),
-                            ),
+                        return DraggableMidiControls(
+                          key: const ValueKey('global-midi-player'),
+                          isExpanded: _globalMidiExpanded,
+                          onExpandedChanged: (value) {
+                            if (_globalMidiExpanded == value) return;
+                            setState(() => _globalMidiExpanded = value);
+                          },
+                          onPreviousSong: cubit.goToPreviousSong,
+                          onNextSong: cubit.goToNextSong,
+                          usePositioned: true, 
+                          isPlaying: midiState.isPlaying,
+                          isLoading: midiState.isLoading,
+                          position: midiState.position,
+                          duration: midiState.duration,
+                          transposeStep: songState.transposeStep,
+                          currentKey: songState.activeKeyLabel,
+                          availableKeys: songState.transposeKeyOptions,
+                          tempoBpm: songState.tempoBpm,
+                          midiInstrument: songState.midiInstrument,
+                          soundFont: songState.soundFont,
+                          availableSoundFonts: const [
+                            'GeneralUser-GS.sf2',
+                            'TimGM6mb.sf2',
+                          ],
+                          availableInstruments: cubit.midiEngine.instruments,
+                          autoNextMode: songState.playlistAutoNextMode,
+                          onPlayPause: cubit.togglePlayPause,
+                          onLoopModeCycle: cubit.cycleLoopMode,
+                          onSeek: (seconds) => cubit.seek(
+                            Duration(seconds: seconds.toInt()),
                           ),
+                          onTranspose: cubit.setTranspose,
+                          onKeySelected: cubit.setTransposeKey,
+                          onTempo: cubit.setTempo,
+                          onInstrument: cubit.setMidiInstrument,
+                          onSoundFont: cubit.setSoundFont,
+                          nowPlayingTitle: songState.getSongTitleAt(
+                            songState.pageIndex,
+                          ),
+                          // sit above the navbar
+                          bottomOffset: navHeight + kDashboardMiniPlayerNavGap,
+                        );
+                      },
                     ),
-                  );
-                },
+                ],
               ),
+            ),
             ),
           );
         },
@@ -434,46 +392,54 @@ class _HymnalBottomNav extends StatelessWidget {
     final colors = context.colorScheme;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final navHeight = isLandscape ? 56.0 : 72.0;
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: colors.surface.withValues(alpha: 0.90),
-        border: const Border(
-          top: BorderSide(
-            color: Color(0xFFD4AF37),
-            width: 1,
+    final navHeight = isLandscape
+        ? kDashboardLandscapeBottomNavHeight
+        : kDashboardPortraitBottomNavHeight;
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
+    final contentHeight = dashboardBottomNavContentHeight(
+      navHeight: navHeight,
+      bottomInset: bottomInset,
+    );
+    return SizedBox(
+      height: navHeight,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.90),
+          border: const Border(
+            top: BorderSide(color: Color(0xFFD4AF37), width: 1),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.06),
+              blurRadius: 24,
+              offset: const Offset(0, -8),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.06),
-            blurRadius: 24,
-            offset: const Offset(0, -8),
-          ),
-        ],
-      ),
-      child: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-          child: SafeArea(
-            top: false,
-            child: SizedBox(
-              height: navHeight,
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 560),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      for (var i = 0; i < destinations.length; i++)
-                        Flexible(
-                          child: _HymnalBottomNavItem(
-                            destination: destinations[i],
-                            selected: i == activeIndex,
-                            onTap: () => onTap(i),
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+            child: Padding(
+              padding: EdgeInsets.only(bottom: bottomInset),
+              child: SizedBox(
+                height: contentHeight,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 560),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        for (var i = 0; i < destinations.length; i++)
+                          Flexible(
+                            child: _HymnalBottomNavItem(
+                              destination: destinations[i],
+                              selected: i == activeIndex,
+                              compact: isLandscape || contentHeight < 60,
+                              onTap: () => onTap(i),
+                            ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -488,11 +454,13 @@ class _HymnalBottomNav extends StatelessWidget {
 class _HymnalBottomNavItem extends StatelessWidget {
   final DashboardNavigationDestination destination;
   final bool selected;
+  final bool compact;
   final VoidCallback onTap;
 
   const _HymnalBottomNavItem({
     required this.destination,
     required this.selected,
+    required this.compact,
     required this.onTap,
   });
 
@@ -502,8 +470,26 @@ class _HymnalBottomNavItem extends StatelessWidget {
     final foreground = selected
         ? colors.primary
         : colors.onSurface.withValues(alpha: 0.68);
+    final outerVerticalPadding = compact
+        ? kDashboardCompactNavOuterVerticalPadding
+        : kDashboardRegularNavOuterVerticalPadding;
+    final innerVerticalPadding = compact
+        ? kDashboardCompactNavInnerVerticalPadding
+        : kDashboardRegularNavInnerVerticalPadding;
+    final iconSize = compact
+        ? kDashboardCompactNavIconSize
+        : kDashboardRegularNavIconSize;
+    final labelFontSize = compact
+        ? kDashboardCompactNavLabelFontSize
+        : kDashboardRegularNavLabelFontSize;
+    final iconLabelGap = compact
+        ? kDashboardCompactNavIconLabelGap
+        : kDashboardRegularNavIconLabelGap;
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+      padding: EdgeInsets.symmetric(
+        horizontal: 2,
+        vertical: outerVerticalPadding,
+      ),
       child: AnimatedScale(
         scale: selected ? 0.96 : 1.0,
         duration: kThemeAnimationDuration,
@@ -517,7 +503,10 @@ class _HymnalBottomNavItem extends StatelessWidget {
             child: AnimatedContainer(
               duration: kThemeAnimationDuration,
               curve: Curves.easeOut,
-              padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 6),
+              padding: EdgeInsets.symmetric(
+                horizontal: 2,
+                vertical: innerVerticalPadding,
+              ),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
               ),
@@ -529,17 +518,18 @@ class _HymnalBottomNavItem extends StatelessWidget {
                     selected
                         ? (destination.selectedIcon ?? destination.icon)
                         : destination.icon,
-                    size: 22,
+                    size: iconSize,
                     color: foreground,
                   ),
-                  const SizedBox(height: 2),
+                  SizedBox(height: iconLabelGap),
                   FittedBox(
                     fit: BoxFit.scaleDown,
                     child: Text(
                       destination.label.tr(),
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
                         color: foreground,
-                        fontSize: 10,
+                        fontSize: labelFontSize,
+                        height: 1,
                         letterSpacing: 0.5,
                         fontWeight: FontWeight.w800,
                       ),
@@ -610,8 +600,9 @@ class _DashboardDrawer extends StatelessWidget {
                               onTap: lastSong != null
                                   ? () {
                                       Navigator.of(context).maybePop();
-                                      AutoTabsRouter.of(context)
-                                          .setActiveIndex(2);
+                                      AutoTabsRouter.of(
+                                        context,
+                                      ).setActiveIndex(2);
                                       songCubit.openSong(lastSong);
                                     }
                                   : null,

@@ -5,6 +5,9 @@ import '../entity/account/account_entity.dart';
 
 abstract class AccountRepository {
   Future<Either<Failure, Account>> getProfile(String token);
-  Future<Either<Failure, Account>> updateProfile();
+  Future<Either<Failure, Account>> updateProfile({
+    String? displayName,
+    String? photoUrl,
+  });
 }
 

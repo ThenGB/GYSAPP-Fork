@@ -11,6 +11,7 @@ _TrueVoice _$TrueVoiceFromJson(Map<String, dynamic> json) => _TrueVoice(
   description: json['description'] as String,
   url: json['url'] as String,
   imageUrl: json['imageUrl'] as String,
+  creator: json['creator'] as String? ?? '',
 );
 
 Map<String, dynamic> _$TrueVoiceToJson(_TrueVoice instance) =>
@@ -19,4 +20,5 @@ Map<String, dynamic> _$TrueVoiceToJson(_TrueVoice instance) =>
       'description': instance.description,
       'url': instance.url,
       'imageUrl': instance.imageUrl,
+      'creator': instance.creator,
     };

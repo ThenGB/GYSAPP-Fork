@@ -1,8 +1,31 @@
+import 'dart:io';
+
 import 'package:church/presentations/song/widgets/draggable_midi_controls.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  test('dashboard global mini player overlays instead of reserving space', () {
+    final source = File(
+      'lib/presentations/dashboard/view/dashboard_view.dart',
+    ).readAsStringSync();
+
+    expect(
+      source,
+      contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = true'),
+    );
+    expect(source, isNot(contains('72 + playerHeight')));
+  });
+
+  test('dashboard mini player hit area includes the painted overlay', () {
+    final source = File(
+      'lib/presentations/dashboard/view/dashboard_view.dart',
+    ).readAsStringSync();
+
+    expect(source, contains('dashboardMiniPlayerHitTestHeight('));
+    expect(source, contains('height: stackHeight'));
+  });
+
   testWidgets('midi controls expand without overflow on a compact screen', (
     tester,
   ) async {

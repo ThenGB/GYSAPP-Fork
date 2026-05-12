@@ -13,9 +13,25 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     CreateAndAttachConsole();
   }
 
-  // Initialize COM, so that it is available for use in the library and/or
-  // plugins.
-  ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  // Initialize COM for WebView2 and other plugins.
+  // Use CoInitializeEx with COINIT_APARTMENTTHREADED as required by WebView2.
+  // We call CoUninitialize first to ensure we can set the threading model we need,
+  // in case another library already initialized it differently.
+  ::CoUninitialize(); 
+  HRESULT hr = ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  if (FAILED(hr)) {
+    if (hr == RPC_E_CHANGED_MODE) {
+      // If we still get this, it means we really can't change it on this thread.
+    } else {
+      return EXIT_FAILURE;
+    }
+  }
+
+  // Also initialize OLE for drag-and-drop and other shell interactions.
+  ::OleUninitialize(); // Clear existing OLE if any
+  if (FAILED(::OleInitialize(nullptr))) {
+    // If OleInitialize fails, we still have COM from CoInitializeEx.
+  }
 
   flutter::DartProject project(L"data");
 
@@ -38,6 +54,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     ::DispatchMessage(&msg);
   }
 
+  ::OleUninitialize();
   ::CoUninitialize();
   return EXIT_SUCCESS;
 }

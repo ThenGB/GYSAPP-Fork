@@ -40,7 +40,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> _warmUpPlaybackQueue() async {
     try {
-      if (!state.midiPreloadEnabled || !state.showAudio || state.songs.isEmpty) {
+      if (!state.midiPreloadEnabled ||
+          !state.showAudio ||
+          state.songs.isEmpty) {
         log(
           'Warm-up skipped: enabled=${state.midiPreloadEnabled}, showAudio=${state.showAudio}, songs=${state.songs.length}',
           name: 'SongCubit',
@@ -967,7 +969,7 @@ class SongCubit extends HydratedCubit<SongState> {
 
   @override
   SongState? fromJson(Map<String, dynamic> json) {
-    return SongState.fromJson(json);
+    return _clearTransientSelection(SongState.fromJson(json));
   }
 
   @override
@@ -995,7 +997,11 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void sync(SongState songState) {
-    emit(songState);
+    emit(_clearTransientSelection(songState));
+  }
+
+  SongState _clearTransientSelection(SongState songState) {
+    return songState.copyWith(selectedSong: null);
   }
 
   @override

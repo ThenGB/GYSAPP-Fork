@@ -1,14 +1,19 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:vector_math/vector_math_64.dart' show Vector4;
 
 import '../cubit/song_playlist.dart';
 
-const double kMidiOverlayHorizontalMargin = 24;
+const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
 const double kMidiCollapsedBarHeight = 48;
 const double kMidiCollapsedMaxWidth = 220;
 const double kMidiExpandedMaxWidth = 520;
+const double kMidiSidebarButtonSize = 56;
+const double kMidiSidebarButtonMargin = 16;
+const double kMidiSidebarBarWidth = 48;
+const double kMidiSidebarBarHeight = 48;
 
 IconData midiLoopModeIcon(String mode) {
   return switch (SongPlaylistAutoNextMode.normalize(mode)) {
@@ -116,7 +121,7 @@ class DraggableMidiControls extends StatefulWidget {
 
 class _DraggableMidiControlsState extends State<DraggableMidiControls>
     with TickerProviderStateMixin {
-  bool _expanded = true;
+  bool _expanded = false;
   final GlobalKey _instrumentButtonKey = GlobalKey();
   late AnimationController _animationController;
   late AnimationController _pulseController;
@@ -125,10 +130,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   late Animation<double> _pulseAnimation;
   double _seekValue = 0;
 
-  // Floating button snap state
-  bool _snapRight = true;
-  double _dragX = 0;
-  bool _isDragging = false;
+  // Sidebar button state
+  double _sidebarButtonY = 200; // Initial vertical position
+  bool _snapRight = true; // Snap to right or left side
+  double _dragX = 0; // Horizontal drag offset
 
   bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
 
@@ -238,21 +243,28 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
-  void _handlePanUpdate(DragUpdateDetails details) {
+  void _handleSidebarPanUpdate(DragUpdateDetails details) {
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final barHeight = kMidiSidebarBarHeight;
+    final margin = kMidiSidebarButtonMargin;
+    
     setState(() {
-      _isDragging = true;
-      _dragX -= details.delta.dx;
+      // Allow full screen vertical movement
+      _sidebarButtonY = (_sidebarButtonY + details.delta.dy).clamp(
+        margin, 
+        screenHeight - barHeight - margin,
+      );
+      // Update dragX for smooth horizontal movement feedback
+      _dragX += details.delta.dx;
     });
   }
 
-  void _handlePanEnd(DragEndDetails details) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final buttonCenter = _snapRight
-        ? screenWidth - widget.rightMargin - 24 - _dragX
-        : widget.leftMargin + 24 + _dragX;
+  void _handleSidebarPanEnd(DragEndDetails details) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    
     setState(() {
-      _isDragging = false;
-      _snapRight = buttonCenter >= screenWidth / 2;
+      final currentPos = _snapRight ? screenWidth + _dragX : _dragX;
+      _snapRight = currentPos > screenWidth / 2;
       _dragX = 0;
     });
   }
@@ -262,83 +274,129 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
 
-    if (!_effectiveExpanded) {
-      final content = _buildCollapsedTrigger(context, colors);
+    if (_effectiveExpanded) {
+      Widget expandedPanel = SlideTransition(
+        position: _slideAnimation,
+        child: FadeTransition(
+          opacity: _fadeAnimation,
+          child: _buildExpandedPanel(context, colors),
+        ),
+      );
+
+      final content = Material(
+        type: MaterialType.transparency,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          heightFactor: 1.0,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: widget.bottomOffset),
+            child: expandedPanel,
+          ),
+        ),
+      );
+
       if (widget.usePositioned) {
         return Positioned(
-          left: widget.leftMargin,
-          right: widget.rightMargin,
-          bottom: widget.bottomOffset,
+          left: 0,
+          right: 0,
+          bottom: 0,
           child: content,
         );
       }
       return content;
     }
 
-    Widget content = SlideTransition(
-      position: _slideAnimation,
-      child: FadeTransition(
-        opacity: _fadeAnimation,
-        child: _buildExpandedPanel(context, colors),
+    // Collapsed state - sidebar button
+    final collapsedTrigger = Material(
+      type: MaterialType.transparency,
+      child: Transform.translate(
+        offset: Offset(_dragX, 0),
+        child: _buildCollapsedTrigger(context, colors),
       ),
     );
 
     if (widget.usePositioned) {
       return Positioned(
-        left: widget.leftMargin,
-        right: widget.rightMargin,
-        bottom: widget.bottomOffset,
-        child: content,
+        top: _sidebarButtonY,
+        left: _snapRight ? null : 0,
+        right: _snapRight ? 0 : null,
+        child: collapsedTrigger,
       );
     }
-    return content;
+
+    return Align(
+      alignment: _snapRight ? Alignment.topRight : Alignment.topLeft,
+      child: Padding(
+        padding: EdgeInsets.only(top: _sidebarButtonY),
+        child: collapsedTrigger,
+      ),
+    );
   }
 
   Widget _buildCollapsedTrigger(BuildContext context, ColorScheme colors) {
-    final alignment = _snapRight ? Alignment.bottomRight : Alignment.bottomLeft;
-    return Align(
-      alignment: alignment,
-      child: GestureDetector(
-        onPanUpdate: _handlePanUpdate,
-        onPanEnd: _handlePanEnd,
-        onTap: () => _setExpanded(true),
-        child: AnimatedContainer(
-          duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
-          curve: Curves.easeOutCubic,
-          transform: Matrix4.translationValues(
-            _snapRight
-                ? -_dragX.clamp(0, 200).toDouble()
-                : _dragX.clamp(0, 200).toDouble(),
-            0,
-            0,
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onPanUpdate: _handleSidebarPanUpdate,
+      onPanEnd: _handleSidebarPanEnd,
+      onTap: () => _setExpanded(true),
+      onDoubleTap: () {
+        setState(() {
+          _snapRight = !_snapRight;
+        });
+      },
+      child: Container(
+        // The trigger itself
+        width: kMidiSidebarBarWidth,
+        height: kMidiSidebarBarHeight,
+        decoration: BoxDecoration(
+          color: colors.primary,
+          borderRadius: BorderRadius.only(
+            topLeft: _snapRight ? const Radius.circular(24) : Radius.zero,
+            bottomLeft: _snapRight ? const Radius.circular(24) : Radius.zero,
+            topRight: _snapRight ? Radius.zero : const Radius.circular(24),
+            bottomRight: _snapRight ? Radius.zero : const Radius.circular(24),
           ),
-          child: Material(
-            key: const ValueKey('midi-collapsed'),
-            color: colors.primary,
-            shape: const CircleBorder(),
-            clipBehavior: Clip.antiAlias,
-            elevation: 3,
-            shadowColor: colors.primary.withValues(alpha: 0.25),
-            child: SizedBox(
-              width: 48,
-              height: 48,
-              child: Center(
-                child: AnimatedBuilder(
-                  animation: _pulseAnimation,
-                  builder: (context, child) {
-                    return Transform.scale(
-                      scale: _pulseAnimation.value,
-                      child: Icon(
-                        Icons.music_note_rounded,
-                        size: 20,
-                        color: colors.onPrimary,
-                      ),
-                    );
-                  },
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.15),
+              blurRadius: 10,
+              offset: Offset(_snapRight ? -2 : 2, 4),
+            ),
+          ],
+        ),
+        child: AnimatedBuilder(
+          animation: _pulseAnimation,
+          builder: (context, child) {
+            double scale = _pulseAnimation.value;
+            double rotation = 0;
+            double translationY = 0;
+            double translationX = 0;
+
+            if (widget.isPlaying) {
+              // Musical rhythmic dance
+              final t = (DateTime.now().millisecondsSinceEpoch % 600) / 600.0;
+              final jump = (t < 0.5) ? t * 2 : (1.0 - t) * 2;
+              translationY = jump * -12;
+              rotation = 0.2 * (t < 0.5 ? 1 : -1) * jump;
+              // Subtle horizontal vibration
+              translationX = 2 * (t < 0.25 || t > 0.75 ? 1 : -1);
+            }
+
+            return Center(
+              child: Transform(
+                transform: Matrix4.identity()
+                  ..setTranslationRaw(translationX, translationY, 0.0)
+                  ..rotateZ(rotation)
+                  ..setDiagonal(Vector4(scale, scale, 1.0, 1.0)),
+                alignment: Alignment.center,
+                child: Icon(
+                  Icons.music_note_rounded,
+                  size: 32,
+                  color: colors.onPrimary,
                 ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -351,9 +409,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         child: Container(
           key: const ValueKey('midi-expanded'),
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             border: Border.all(
               color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
             ),
@@ -367,9 +423,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             ],
           ),
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(16),
-            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             child: BackdropFilter(
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: ColoredBox(
@@ -378,271 +432,298 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     InkWell(
-            key: const ValueKey('midi-collapse-toggle'),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            onTap: () {
-              setState(() => _expanded = false);
-              _animationController.reverse();
-            },
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              decoration: BoxDecoration(
-                color: colors.primary,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-              ),
-              child: Row(
-                children: [
-                  AnimatedBuilder(
-                    animation: _pulseAnimation,
-                    builder: (context, child) {
-                      return Transform.scale(
-                        scale: _pulseAnimation.value,
-                        child: Icon(
-                          Icons.music_note_rounded,
-                          size: 16,
-                          color: colors.onPrimary,
-                        ),
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      widget.nowPlayingTitle.trim().isEmpty
-                          ? 'Now Playing'
-                          : 'Now Playing: ${widget.nowPlayingTitle}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onPrimary,
-                        letterSpacing: 1.3,
-                        fontWeight: FontWeight.w800,
+                      key: const ValueKey('midi-collapse-toggle'),
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(16),
                       ),
-                    ),
-                  ),
-                  AnimatedRotation(
-                    turns: _expanded ? 0 : 0.5,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                    child: Icon(Icons.expand_more, color: colors.onPrimary),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    SizedBox(
-                      width: 40,
-                      height: 40,
-                      child: FilledButton(
-                        onPressed: widget.isLoading ? null : widget.onPlayPause,
-                        style: FilledButton.styleFrom(
-                          shape: const CircleBorder(),
-                          padding: EdgeInsets.zero,
-                          backgroundColor: colors.primary,
+                      onTap: () => _setExpanded(false),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                        decoration: BoxDecoration(
+                          color: colors.primary,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(16),
+                          ),
                         ),
-                        child: widget.isLoading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    colors.onPrimary,
+                        child: Row(
+                          children: [
+                            AnimatedBuilder(
+                              animation: _pulseAnimation,
+                              builder: (context, child) {
+                                return Transform.scale(
+                                  scale: _pulseAnimation.value,
+                                  child: Icon(
+                                    Icons.music_note_rounded,
+                                    size: 16,
+                                    color: colors.onPrimary,
                                   ),
-                                ),
-                              )
-                            : Icon(
-                                widget.isPlaying
-                                    ? Icons.pause_rounded
-                                    : Icons.play_arrow_rounded,
-                                color: colors.onPrimary,
-                                size: 28,
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          thumbShape: const RoundSliderThumbShape(
-                            enabledThumbRadius: 6,
-                          ),
-                          overlayShape: const RoundSliderOverlayShape(
-                            overlayRadius: 12,
-                          ),
-                          trackHeight: 6,
-                        ),
-                        child: Slider(
-                          value: _seekValue > 0
-                              ? _seekValue
-                              : (widget.duration > 0
-                                    ? widget.position.clamp(0, widget.duration)
-                                    : 0),
-                          max: widget.duration > 0 ? widget.duration : 1,
-                          onChanged: widget.duration > 0
-                              ? (value) {
-                                  setState(() {
-                                    _seekValue = value;
-                                  });
-                                }
-                              : null,
-                          onChangeEnd: widget.duration > 0
-                              ? (value) {
-                                  widget.onSeek(value);
-                                  setState(() {
-                                    _seekValue = 0;
-                                  });
-                                }
-                              : null,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                        letterSpacing: 0.1,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final compact = constraints.maxWidth < 340;
-                    final iconConstraints = BoxConstraints.tightFor(
-                      width: compact ? 36 : 40,
-                      height: compact ? 36 : 40,
-                    );
-
-                    Widget transposeControl = Container(
-                      decoration: BoxDecoration(
-                        color: colors.surfaceContainerLowest,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: colors.outlineVariant),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          IconButton(
-                            constraints: iconConstraints,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () =>
-                                widget.onTranspose(widget.transposeStep - 1),
-                            icon: const Icon(Icons.remove_rounded),
-                          ),
-                          SizedBox(
-                            width: compact ? 22 : 24,
-                            child: Text(
-                              '${widget.transposeStep}',
-                              textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.titleMedium,
+                                );
+                              },
                             ),
-                          ),
-                          IconButton(
-                            constraints: iconConstraints,
-                            visualDensity: VisualDensity.compact,
-                            onPressed: () =>
-                                widget.onTranspose(widget.transposeStep + 1),
-                            icon: const Icon(Icons.add_rounded),
-                          ),
-                        ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                widget.nowPlayingTitle.trim().isEmpty
+                                    ? 'Now Playing'
+                                    : 'Now Playing: ${widget.nowPlayingTitle}',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: colors.onPrimary,
+                                      letterSpacing: 1.3,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                            AnimatedRotation(
+                              turns: _expanded ? 0 : 0.5,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.easeInOut,
+                              child: Icon(
+                                Icons.expand_more,
+                                color: colors.onPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    );
-
-                    Widget iconActions = Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          key: _instrumentButtonKey,
-                          constraints: iconConstraints,
-                          visualDensity: VisualDensity.compact,
-                          onPressed: () => _showInstrumentMenu(context),
-                          icon: Icon(
-                            Icons.piano_rounded,
-                            color: colors.onSurfaceVariant,
-                          ),
-                        ),
-                        IconButton(
-                          constraints: iconConstraints,
-                          visualDensity: VisualDensity.compact,
-                          tooltip: midiLoopModeTooltip(widget.autoNextMode),
-                          onPressed: widget.onLoopModeCycle,
-                          icon: Icon(
-                            midiLoopModeIcon(widget.autoNextMode),
-                            color: midiLoopModeActive(widget.autoNextMode)
-                                ? colors.primary
-                                : colors.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    );
-
-                    if (compact) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
                         children: [
                           Row(
                             children: [
+                              SizedBox(
+                                width: 40,
+                                height: 40,
+                                child: FilledButton(
+                                  onPressed: widget.isLoading
+                                      ? null
+                                      : widget.onPlayPause,
+                                  style: FilledButton.styleFrom(
+                                    shape: const CircleBorder(),
+                                    padding: EdgeInsets.zero,
+                                    backgroundColor: colors.primary,
+                                  ),
+                                  child: widget.isLoading
+                                      ? SizedBox(
+                                          width: 20,
+                                          height: 20,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            valueColor: AlwaysStoppedAnimation(
+                                              colors.onPrimary,
+                                            ),
+                                          ),
+                                        )
+                                      : Icon(
+                                          widget.isPlaying
+                                              ? Icons.pause_rounded
+                                              : Icons.play_arrow_rounded,
+                                          color: colors.onPrimary,
+                                          size: 28,
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: SliderTheme(
+                                  data: SliderTheme.of(context).copyWith(
+                                    thumbShape: const RoundSliderThumbShape(
+                                      enabledThumbRadius: 6,
+                                    ),
+                                    overlayShape: const RoundSliderOverlayShape(
+                                      overlayRadius: 12,
+                                    ),
+                                    trackHeight: 6,
+                                  ),
+                                  child: Slider(
+                                    value: _seekValue > 0
+                                        ? _seekValue
+                                        : (widget.duration > 0
+                                              ? widget.position.clamp(
+                                                  0,
+                                                  widget.duration,
+                                                )
+                                              : 0),
+                                    max: widget.duration > 0
+                                        ? widget.duration
+                                        : 1,
+                                    onChanged: widget.duration > 0
+                                        ? (value) {
+                                            setState(() {
+                                              _seekValue = value;
+                                            });
+                                          }
+                                        : null,
+                                    onChangeEnd: widget.duration > 0
+                                        ? (value) {
+                                            widget.onSeek(value);
+                                            setState(() {
+                                              _seekValue = 0;
+                                            });
+                                          }
+                                        : null,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                               Text(
-                                'Transpose',
+                                '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
                                 style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colors.onSurfaceVariant,
                                       letterSpacing: 0.1,
                                     ),
                               ),
-                              const SizedBox(width: 8),
-                              transposeControl,
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          Align(
-                            alignment: Alignment.centerRight,
-                            child: iconActions,
+                          const SizedBox(height: 14),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final compact = constraints.maxWidth < 340;
+                              final iconConstraints = BoxConstraints.tightFor(
+                                width: compact ? 36 : 40,
+                                height: compact ? 36 : 40,
+                              );
+
+                              Widget transposeControl = Container(
+                                decoration: BoxDecoration(
+                                  color: colors.surfaceContainerLowest,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: colors.outlineVariant,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      constraints: iconConstraints,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () => widget.onTranspose(
+                                        widget.transposeStep - 1,
+                                      ),
+                                      icon: const Icon(Icons.remove_rounded),
+                                    ),
+                                    SizedBox(
+                                      width: compact ? 22 : 24,
+                                      child: Text(
+                                        '${widget.transposeStep}',
+                                        textAlign: TextAlign.center,
+                                        style: Theme.of(
+                                          context,
+                                        ).textTheme.titleMedium,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      constraints: iconConstraints,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () => widget.onTranspose(
+                                        widget.transposeStep + 1,
+                                      ),
+                                      icon: const Icon(Icons.add_rounded),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              Widget iconActions = Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  IconButton(
+                                    key: _instrumentButtonKey,
+                                    constraints: iconConstraints,
+                                    visualDensity: VisualDensity.compact,
+                                    onPressed: () =>
+                                        _showInstrumentMenu(context),
+                                    icon: Icon(
+                                      Icons.piano_rounded,
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    constraints: iconConstraints,
+                                    visualDensity: VisualDensity.compact,
+                                    tooltip: midiLoopModeTooltip(
+                                      widget.autoNextMode,
+                                    ),
+                                    onPressed: widget.onLoopModeCycle,
+                                    icon: Icon(
+                                      midiLoopModeIcon(widget.autoNextMode),
+                                      color:
+                                          midiLoopModeActive(
+                                            widget.autoNextMode,
+                                          )
+                                          ? colors.primary
+                                          : colors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              );
+
+                              if (compact) {
+                                return Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Text(
+                                          'Transpose',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: colors.onSurfaceVariant,
+                                                letterSpacing: 0.1,
+                                              ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        transposeControl,
+                                      ],
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Align(
+                                      alignment: Alignment.centerRight,
+                                      child: iconActions,
+                                    ),
+                                  ],
+                                );
+                              }
+
+                              return Row(
+                                children: [
+                                  Text(
+                                    'Transpose',
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                          letterSpacing: 0.1,
+                                        ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  transposeControl,
+                                  const Spacer(),
+                                  iconActions,
+                                ],
+                              );
+                            },
                           ),
                         ],
-                      );
-                    }
-
-                    return Row(
-                      children: [
-                        Text(
-                          'Transpose',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: colors.onSurfaceVariant,
-                                letterSpacing: 0.1,
-                              ),
-                        ),
-                        const SizedBox(width: 10),
-                        transposeControl,
-                        const Spacer(),
-                        iconActions,
-                      ],
-                    );
-                  },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ],
+        ),
       ),
-    ),
-  ),
-),
-),
-),
-);
+    );
   }
 }
