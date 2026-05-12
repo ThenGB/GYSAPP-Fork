@@ -914,6 +914,65 @@ class _SongSettingsSection extends StatelessWidget {
                   value: songCubit.isWarmUpEnabled,
                   onChanged: (_) => songCubit.toggleWarmUp(),
                 ),
+                if (state.midiPreloadEnabled)
+                  Divider(
+                    height: 1,
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                if (state.midiPreloadEnabled)
+                  _SettingsTile(
+                    icon: Icons.queue_music_outlined,
+                    title: 'Jumlah lagu di-cache',
+                    description: 'Batas cache MIDI engine',
+                    trailing: PopupMenuButton<int>(
+                      initialValue: state.midiCacheMaxCount,
+                      onSelected: songCubit.setMidiCacheMaxCount,
+                      itemBuilder: (context) => [4, 8, 12, 16, 20, 24, 32]
+                          .map(
+                            (v) => PopupMenuItem(
+                              value: v,
+                              child: Text('$v lagu'),
+                            ),
+                          )
+                          .toList(),
+                      child: Text('${state.midiCacheMaxCount} lagu'),
+                    ),
+                  ),
+                if (state.midiPreloadEnabled)
+                  Divider(
+                    height: 1,
+                    color: context.colorScheme.outlineVariant.withValues(
+                      alpha: 0.3,
+                    ),
+                  ),
+                if (state.midiPreloadEnabled)
+                  _SettingsTile(
+                    icon: Icons.cached_outlined,
+                    title: 'Preload tetangga',
+                    description:
+                        'Berapa lagu di sekitar yang di-render lebih awal',
+                    trailing: PopupMenuButton<int>(
+                      initialValue: state.midiPreloadNeighborCount,
+                      onSelected: songCubit.setMidiPreloadNeighborCount,
+                      itemBuilder: (context) => [0, 1, 2, 3, 4, 5]
+                          .map(
+                            (v) => PopupMenuItem(
+                              value: v,
+                              child: Text(
+                                v == 0 ? 'Mati' : '$v lagu',
+                              ),
+                            ),
+                          )
+                          .toList(),
+                      child: Text(
+                        state.midiPreloadNeighborCount == 0
+                            ? 'Mati'
+                            : '${state.midiPreloadNeighborCount} lagu',
+                      ),
+                    ),
+                  ),
               ],
             ),
           ),

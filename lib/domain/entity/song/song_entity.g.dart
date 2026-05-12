@@ -31,6 +31,8 @@ _Song _$SongFromJson(Map<String, dynamic> json) => _Song(
   verses:
       (json['verses'] as List<dynamic>?)?.map((e) => e as String).toList() ??
       const [],
+  midiMappedFrom: json['midiMappedFrom'] as String?,
+  midiMappedNumber: json['midiMappedNumber'] as String?,
 );
 
 Map<String, dynamic> _$SongToJson(_Song instance) => <String, dynamic>{
@@ -42,4 +44,6 @@ Map<String, dynamic> _$SongToJson(_Song instance) => <String, dynamic>{
   'pages': instance.pageLength,
   'page': instance.pageStart,
   'verses': instance.verses,
+  'midiMappedFrom': instance.midiMappedFrom,
+  'midiMappedNumber': instance.midiMappedNumber,
 };

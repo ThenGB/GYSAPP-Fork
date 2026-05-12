@@ -108,6 +108,8 @@ dependencies:
   dart_melty_soundfont: ^2.0.0
   flutter_soloud: ^4.0.4
   marionette_flutter: ^0.5.0
+  sqflite_common_ffi: ^2.4.0+3
+  sqlite3_flutter_libs: ^0.6.0+eol
 
 dev_dependencies:
   flutter_test:
@@ -168,7 +170,6 @@ flutter:
     - assets/data/index/
     - assets/data/pdf/
     - assets/data/pdf/kr/
-    - assets/data/pdf/hymne/
     - assets/data/pdf/mdr/
     - assets/data/pdf/asm_i/
     - assets/data/pdf/asm_m/

@@ -121,12 +121,15 @@ class _SongViewState extends State<SongView> {
           previous.pageIndex != current.pageIndex ||
           previous.bookCode != current.bookCode ||
           previous.songBook != current.songBook ||
-          previous.showChord != current.showChord,
+          previous.showChord != current.showChord ||
+          (previous.songs.isEmpty && current.songs.isNotEmpty),
       listener: (context, state) {
         final safePageIndex = state.songs.isEmpty
             ? 0
             : state.pageIndex.clamp(0, state.songs.length - 1).toInt();
         final newBookCode = state.bookCode;
+        final songsJustLoaded =
+            state.songs.isNotEmpty && _currentPdfPath == null;
         // True when the actual song changed (not just showChord or other UI)
         final songChanged =
             safePageIndex != currentPageIndex || newBookCode != _currentBookCode;
@@ -140,10 +143,19 @@ class _SongViewState extends State<SongView> {
           if (songChanged) _currentChords = null;
         });
 
+        // Sync the PageController so the visible page matches the state.
+        // This fixes the case where the controller was created before songs
+        // were available and ended up stuck on page 0.
+        if (songsJustLoaded &&
+            pageController.hasClients &&
+            pageController.page?.round() != safePageIndex) {
+          pageController.jumpToPage(safePageIndex);
+        }
+
         _loadChordData();
-        // Only reload the PDF when the song actually changed; skipping this on
-        // showChord-only changes prevents an unnecessary path re-fetch.
-        if (songChanged) _loadPdfForCurrentSong();
+        // Load PDF when the song changed OR when we have never loaded a PDF
+        // (e.g. songs just became available after initState ran too early).
+        if (songChanged || _currentPdfPath == null) _loadPdfForCurrentSong();
       },
       builder: (context, state) {
         final textMode = state.isImageMode == true;
@@ -284,26 +296,29 @@ class _SongViewState extends State<SongView> {
 
               // Single persistent PDF viewer (not per-page, WebView/JS is not reloaded on song switch)
               if (!textMode && _currentPdfPath != null)
-                SongPdfViewer(
-                  key: const ValueKey('pdf_viewer'),
-                  pdfPath: _currentPdfPath,
-                  showChord: state.showChord,
-                  chords: _currentChords,
-                  transposeStep: state.transposeStep,
-                  baseTransposeOffset: state.baseTransposeOffset,
-                  chordAccidentalMode: state.chordAccidentalMode,
-                  twoPageMode: state.pdfTwoPageMode,
-                  verticalScrolling: state.pdfVerticalScrolling,
-                  chordFontSizePercent: state.chordFontSizePercent,
-                  chordFillOpacityPercent: state.chordFillOpacityPercent,
-                  chordPaddingPercent: state.chordPaddingPercent,
-                  isEditMode: _isChordEditMode,
-                  onChordsChanged: (updatedChords) {
-                    setState(() {
-                      _currentChords = updatedChords;
-                    });
-                  },
-                  viewerController: _pdfViewerController,
+                Positioned.fill(
+                  child: SongPdfViewer(
+                    key: const ValueKey('pdf_viewer'),
+                    pdfPath: _currentPdfPath,
+                    showChord: state.showChord,
+                    chords: _currentChords,
+                    transposeStep: state.transposeStep,
+                    baseTransposeOffset: state.baseTransposeOffset,
+                    chordAccidentalMode: state.chordAccidentalMode,
+                    twoPageMode: state.pdfTwoPageMode,
+                    verticalScrolling: state.pdfVerticalScrolling,
+                    chordFontSizePercent: state.chordFontSizePercent,
+                    chordFillOpacityPercent: state.chordFillOpacityPercent,
+                    chordPaddingPercent: state.chordPaddingPercent,
+                    isEditMode: _isChordEditMode,
+                    onChordsChanged: (updatedChords) {
+                      setState(() {
+                        _currentChords = updatedChords;
+                      });
+                      cubit.detectAndUpdateFamilyChord(updatedChords);
+                    },
+                    viewerController: _pdfViewerController,
+                  ),
                 ),
 
               // Draggable MIDI Controls
@@ -536,8 +551,8 @@ class _SongViewState extends State<SongView> {
 
   void _animateToSongIndex(int index) async {
     if (index < 0 || index >= cubit.state.songs.length) return;
-    await _loadPdfForCurrentSong();
     setState(() => currentPageIndex = index);
+    await _loadPdfForCurrentSong();
     if (pageController.hasClients) {
       pageController.animateToPage(
         index,

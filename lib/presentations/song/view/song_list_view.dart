@@ -165,7 +165,7 @@ class _SongListViewState extends State<SongListView>
                 borderRadius: const BorderRadius.horizontal(
                   right: Radius.circular(100),
                 ),
-                onPressed: () => tabController.animateTo(2),
+                onPressed: () => tabController.animateTo(1),
               ),
             ],
           ),

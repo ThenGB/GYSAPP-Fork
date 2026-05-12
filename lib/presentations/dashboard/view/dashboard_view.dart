@@ -313,57 +313,94 @@ class _DashboardViewState extends State<DashboardView> {
                                       ? (effectiveExpanded ? 208.0 : 74.0)
                                       : 0.0;
                                   final size = 68.0;
-                                  return PlayAnimationBuilder(
-                                    duration: kThemeAnimationDuration,
-                                    tween: Tween<double>(begin: 0, end: 1),
-                                    delay: kThemeAnimationDuration,
-                                    curve: Curves.easeOut,
-                                    builder: (context, value, child) =>
-                                        Transform.translate(
+                                  final midiPlayer = showGlobalPlayer && !isSongTab
+                                      ? Builder(
+                                          builder: (context) {
+                                            final cubit = context.read<SongCubit>();
+                                            return AnimatedBuilder(
+                                              animation: cubit.midiEngine,
+                                              builder: (context, _) {
+                                                final midiState = cubit.midiEngine.state;
+                                                return DraggableMidiControls(
+                                                  isExpanded: effectiveExpanded,
+                                                  onExpandedChanged: (value) {
+                                                    if (_globalMidiExpanded == value) return;
+                                                    setState(() => _globalMidiExpanded = value);
+                                                  },
+                                                  onPreviousSong: cubit.goToPreviousSong,
+                                                  onNextSong: cubit.goToNextSong,
+                                                  usePositioned: false,
+                                                  isPlaying: midiState.isPlaying,
+                                                  isLoading: midiState.isLoading,
+                                                  position: midiState.position,
+                                                  duration: midiState.duration,
+                                                  transposeStep: songState.transposeStep,
+                                                  currentKey: songState.activeKeyLabel,
+                                                  availableKeys: songState.transposeKeyOptions,
+                                                  tempoBpm: songState.tempoBpm,
+                                                  midiInstrument: songState.midiInstrument,
+                                                  soundFont: songState.soundFont,
+                                                  availableSoundFonts: const [
+                                                    'GeneralUser-GS.sf2',
+                                                    'TimGM6mb.sf2',
+                                                  ],
+                                                  availableInstruments: cubit.midiEngine.instruments,
+                                                  autoNextMode: songState.playlistAutoNextMode,
+                                                  onPlayPause: cubit.togglePlayPause,
+                                                  onLoopModeCycle: cubit.cycleLoopMode,
+                                                  onSeek: (seconds) => cubit.seek(Duration(seconds: seconds.toInt())),
+                                                  onTranspose: cubit.setTranspose,
+                                                  onKeySelected: cubit.setTransposeKey,
+                                                  onTempo: cubit.setTempo,
+                                                  onInstrument: cubit.setMidiInstrument,
+                                                  onSoundFont: cubit.setSoundFont,
+                                                  nowPlayingTitle: songState.getSongTitleAt(songState.pageIndex),
+                                                );
+                                              },
+                                            );
+                                          },
+                                        )
+                                      : const SizedBox.shrink();
+                                  return Stack(
+                                    clipBehavior: Clip.none,
+                                    children: [
+                                      // Bottom nav with slide-up animation
+                                      PlayAnimationBuilder(
+                                        key: const ValueKey('nav-slide'),
+                                        duration: kThemeAnimationDuration,
+                                        tween: Tween<double>(begin: 0, end: 1),
+                                        delay: kThemeAnimationDuration,
+                                        curve: Curves.easeOut,
+                                        builder: (context, value, child) =>
+                                            Transform.translate(
                                           offset: Offset(
                                             0,
                                             size - size * value,
                                           ),
                                           child: SizedBox(
                                             height: 72 + playerHeight,
-                                            child: Stack(
-                                              clipBehavior: Clip.none,
-                                              children: [
-                                                Align(
-                                                  alignment:
-                                                      Alignment.bottomCenter,
-                                                  child: nav,
-                                                ),
-                                                if (showGlobalPlayer &&
-                                                    !isSongTab)
-                                                  Positioned(
-                                                    left: 0,
-                                                    right: 0,
-                                                    bottom:
-                                                        dashboardMiniPlayerBottomOffset(
-                                                          isExpanded:
-                                                              effectiveExpanded,
-                                                        ),
-                                                    child: _DashboardMidiPlayer(
-                                                      songState: songState,
-                                                      isExpanded:
-                                                          effectiveExpanded,
-                                                      onExpandedChanged: (value) {
-                                                        if (_globalMidiExpanded ==
-                                                            value) {
-                                                          return;
-                                                        }
-                                                        setState(() {
-                                                          _globalMidiExpanded =
-                                                              value;
-                                                        });
-                                                      },
-                                                    ),
-                                                  ),
-                                              ],
+                                            child: Align(
+                                              alignment: Alignment.bottomCenter,
+                                              child: nav,
                                             ),
                                           ),
                                         ),
+                                      ),
+                                      // MIDI player positioned above nav
+                                      // Kept outside the PlayAnimationBuilder so it
+                                      // doesn't slide in/out when switching tabs.
+                                      Positioned(
+                                        left: 0,
+                                        right: 0,
+                                        bottom: dashboardMiniPlayerBottomOffset(
+                                          isExpanded: effectiveExpanded,
+                                        ),
+                                        child: AnimatedSwitcher(
+                                          duration: Duration.zero,
+                                          child: midiPlayer,
+                                        ),
+                                      ),
+                                    ],
                                   );
                                 },
                               ),
@@ -377,347 +414,6 @@ class _DashboardViewState extends State<DashboardView> {
           );
         },
       ),
-    );
-  }
-}
-
-class _DashboardMidiPlayer extends StatelessWidget {
-  final SongState songState;
-  final bool isExpanded;
-  final ValueChanged<bool> onExpandedChanged;
-
-  const _DashboardMidiPlayer({
-    required this.songState,
-    required this.isExpanded,
-    required this.onExpandedChanged,
-  });
-
-  String _formatTime(double seconds) {
-    final m = seconds ~/ 60;
-    final s = (seconds % 60).toInt();
-    return '$m:${s.toString().padLeft(2, '0')}';
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final cubit = context.read<SongCubit>();
-    final title = songState.getSongTitleAt(songState.pageIndex);
-    return AnimatedBuilder(
-      animation: cubit.midiEngine,
-      builder: (context, _) {
-        final midiState = cubit.midiEngine.state;
-        if (!isExpanded) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                width: 52,
-                height: 52,
-                child: FilledButton(
-                  onPressed: () => onExpandedChanged(true),
-                  style: FilledButton.styleFrom(
-                    padding: EdgeInsets.zero,
-                    backgroundColor: colors.primary,
-                    foregroundColor: colors.onPrimary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(26),
-                    ),
-                  ),
-                  child: const Icon(Icons.music_note_rounded, size: 22),
-                ),
-              ),
-            ),
-          );
-        }
-        return Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerHighest,
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
-                bottom: Radius.circular(12),
-              ),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.75),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.1),
-                  blurRadius: 14,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                InkWell(
-                  onTap: () => onExpandedChanged(false),
-                  child: Container(
-                    color: colors.primary,
-                    width: double.infinity,
-                    padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
-                    child: Row(
-                      children: [
-                        Icon(
-                          Icons.music_note_rounded,
-                          size: 16,
-                          color: colors.onPrimary,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            title.trim().isEmpty
-                                ? 'Mini Player'
-                                : 'Mini Player: $title',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: context.textTheme.labelLarge?.copyWith(
-                              color: colors.onPrimary,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.2,
-                            ),
-                          ),
-                        ),
-                        Icon(
-                          Icons.keyboard_arrow_down_rounded,
-                          color: colors.onPrimary,
-                          size: 22,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: songState.songs.length > 1
-                                ? () => cubit.goToPreviousSong()
-                                : null,
-                            icon: Icon(
-                              Icons.skip_previous_rounded,
-                              color: songState.songs.length > 1
-                                  ? colors.onSurface
-                                  : colors.onSurface.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          SizedBox(
-                            width: 44,
-                            height: 44,
-                            child: FilledButton(
-                              onPressed: songState.isAudioLoading
-                                  ? null
-                                  : cubit.togglePlayPause,
-                              style: FilledButton.styleFrom(
-                                shape: const CircleBorder(),
-                                padding: EdgeInsets.zero,
-                                backgroundColor: colors.primary,
-                              ),
-                              child: songState.isAudioLoading
-                                  ? SizedBox(
-                                      width: 16,
-                                      height: 16,
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                        valueColor: AlwaysStoppedAnimation(
-                                          colors.onPrimary,
-                                        ),
-                                      ),
-                                    )
-                                  : Icon(
-                                      midiState.isPlaying
-                                          ? Icons.pause_rounded
-                                          : Icons.play_arrow_rounded,
-                                      color: colors.onPrimary,
-                                      size: 24,
-                                    ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          const SizedBox(width: 4),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            onPressed: songState.songs.length > 1
-                                ? () => cubit.goToNextSong()
-                                : null,
-                            icon: Icon(
-                              Icons.skip_next_rounded,
-                              color: songState.songs.length > 1
-                                  ? colors.onSurface
-                                  : colors.onSurface.withValues(alpha: 0.3),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: SliderTheme(
-                              data: SliderTheme.of(context).copyWith(
-                                thumbShape: const RoundSliderThumbShape(
-                                  enabledThumbRadius: 0,
-                                ),
-                                overlayShape: const RoundSliderOverlayShape(
-                                  overlayRadius: 0,
-                                ),
-                                trackHeight: 4,
-                              ),
-                              child: Slider(
-                                value: midiState.duration > 0
-                                    ? midiState.position.clamp(
-                                        0,
-                                        midiState.duration,
-                                      )
-                                    : 0,
-                                max: midiState.duration > 0
-                                    ? midiState.duration
-                                    : 1,
-                                onChanged: midiState.duration > 0
-                                    ? (seconds) => cubit.seek(
-                                        Duration(seconds: seconds.toInt()),
-                                      )
-                                    : null,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            '${_formatTime(midiState.position)} / ${_formatTime(midiState.duration)}',
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-                      Row(
-                        children: [
-                          Text(
-                            'Transpose',
-                            style: context.textTheme.bodyMedium?.copyWith(
-                              color: colors.onSurfaceVariant,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: colors.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: colors.outlineVariant),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => cubit.setTranspose(
-                                    songState.transposeStep - 1,
-                                  ),
-                                  icon: const Icon(Icons.remove_rounded),
-                                ),
-                                SizedBox(
-                                  width: 24,
-                                  child: Text(
-                                    '${songState.transposeStep}',
-                                    textAlign: TextAlign.center,
-                                    style: context.textTheme.titleMedium,
-                                  ),
-                                ),
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () => cubit.setTranspose(
-                                    songState.transposeStep + 1,
-                                  ),
-                                  icon: const Icon(Icons.add_rounded),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const Spacer(),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: colors.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: colors.outlineVariant),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () =>
-                                      cubit.setTempo(songState.tempoBpm - 5),
-                                  icon: const Icon(Icons.remove_rounded),
-                                ),
-                                SizedBox(
-                                  width: 40,
-                                  child: Text(
-                                    '${songState.tempoBpm.toInt()}',
-                                    textAlign: TextAlign.center,
-                                    style: context.textTheme.titleSmall,
-                                  ),
-                                ),
-                                IconButton(
-                                  visualDensity: VisualDensity.compact,
-                                  onPressed: () =>
-                                      cubit.setTempo(songState.tempoBpm + 5),
-                                  icon: const Icon(Icons.add_rounded),
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Container(
-                            decoration: BoxDecoration(
-                              color: colors.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: colors.outlineVariant),
-                            ),
-                            child: IconButton(
-                              visualDensity: VisualDensity.compact,
-                              onPressed: () => cubit.toggleAccidentalMode(),
-                              icon: Text(
-                                songState.chordAccidentalMode ==
-                                        ChordService.accidentalSharp
-                                    ? '♯'
-                                    : '♭',
-                                style: context.textTheme.titleMedium,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            visualDensity: VisualDensity.compact,
-                            tooltip: midiLoopModeTooltip(
-                              songState.playlistAutoNextMode,
-                            ),
-                            onPressed: cubit.cycleLoopMode,
-                            icon: Icon(
-                              midiLoopModeIcon(songState.playlistAutoNextMode),
-                              color:
-                                  midiLoopModeActive(
-                                    songState.playlistAutoNextMode,
-                                  )
-                                  ? colors.primary
-                                  : colors.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 }
@@ -736,12 +432,15 @@ class _HymnalBottomNav extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final isLandscape =
+        MediaQuery.of(context).orientation == Orientation.landscape;
+    final navHeight = isLandscape ? 56.0 : 72.0;
     return DecoratedBox(
       decoration: BoxDecoration(
         color: colors.surface.withValues(alpha: 0.90),
-        border: Border(
+        border: const Border(
           top: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.5),
+            color: Color(0xFFD4AF37),
             width: 1,
           ),
         ),
@@ -759,19 +458,24 @@ class _HymnalBottomNav extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: SizedBox(
-              height: 72,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  for (var i = 0; i < destinations.length; i++)
-                    Flexible(
-                      child: _HymnalBottomNavItem(
-                        destination: destinations[i],
-                        selected: i == activeIndex,
-                        onTap: () => onTap(i),
-                      ),
-                    ),
-                ],
+              height: navHeight,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 560),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      for (var i = 0; i < destinations.length; i++)
+                        Flexible(
+                          child: _HymnalBottomNavItem(
+                            destination: destinations[i],
+                            selected: i == activeIndex,
+                            onTap: () => onTap(i),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
