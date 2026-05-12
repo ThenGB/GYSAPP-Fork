@@ -1,607 +1,607 @@
 {
   "bookCode": "ASM-P",
-  "masterPath": "assets/data/pdf/asm_p/asm_p_master.pdf",
+  "masterPath": "assets/data/pdf/asm_p/ASM-P.pdf",
   "sourceFileCount": 100,
   "mappedSongCount": 100,
-  "pageCount": 100,
+  "pageCount": 39,
   "songs": {
     "001": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
       "startPage": 1,
       "pageCount": 1,
       "source": "001_PUJI_ALLAH.pdf"
     },
     "002": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 2,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 1,
       "pageCount": 1,
       "source": "002_LAGU_TITIK-TITIK_AIR.pdf"
     },
     "003": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 3,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 1,
       "pageCount": 1,
       "source": "003_ALLAH_KASIHI_MANUSIA.pdf"
     },
     "004": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 4,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 2,
       "pageCount": 1,
       "source": "004_KUPERSEMBAHKAN_TANGANKU_UNTUK_TUHAN.pdf"
     },
     "005": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 5,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 2,
       "pageCount": 1,
       "source": "005_LANGIT_BUMI_DAN_SEGALA_ISINYA.pdf"
     },
     "006": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 6,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 3,
       "pageCount": 1,
       "source": "006_TUHAN_DISALIB.pdf"
     },
     "007": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 7,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 3,
       "pageCount": 1,
       "source": "007_YESUS_DENGARKANLAH.pdf"
     },
     "008": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 8,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 3,
       "pageCount": 1,
       "source": "008_YESUS_GEMBALAKU.pdf"
     },
     "009": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 9,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 4,
       "pageCount": 1,
       "source": "009_DENGAR_DENGAR_SUARA_TUHAN.pdf"
     },
     "010": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 10,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 4,
       "pageCount": 1,
       "source": "010_PULANG_KE_RUMAH.pdf"
     },
     "011": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 11,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 4,
       "pageCount": 1,
       "source": "011_MOHON_TUHAN_PIMPIN.pdf"
     },
     "012": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 12,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 4,
       "pageCount": 1,
       "source": "012_TUHAN_YESUS_DATANG_MENCARIKU.pdf"
     },
     "013": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 13,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 5,
       "pageCount": 1,
       "source": "013_KU_MAU_JADI_PENGINJIL_KECIL.pdf"
     },
     "014": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 14,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 5,
       "pageCount": 1,
       "source": "014_JANGAN_TAKUT.pdf"
     },
     "015": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 15,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 5,
       "pageCount": 1,
       "source": "015_IBLIS_ADALAH_SERIGALA_BESAR.pdf"
     },
     "016": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 16,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 6,
       "pageCount": 1,
       "source": "016_TERBANGLAH.pdf"
     },
     "017": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 17,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 6,
       "pageCount": 1,
       "source": "017_TRAP_TRAP_TRAP.pdf"
     },
     "018": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 18,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 6,
       "pageCount": 1,
       "source": "018_BIARKAN_ANAK_DATANG_KEPADA-KU.pdf"
     },
     "019": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 19,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 7,
       "pageCount": 1,
       "source": "019_HOSANA.pdf"
     },
     "020": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 20,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 7,
       "pageCount": 1,
       "source": "020_SEMUA_DIPAKAI_UNTUK_TUHAN.pdf"
     },
     "021": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 21,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 7,
       "pageCount": 1,
       "source": "021_RELA_MEMBERI_PERSEMBAHAN.pdf"
     },
     "022": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 22,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 8,
       "pageCount": 1,
       "source": "022_YESUS_CINTA_ANAK_KECIL.pdf"
     },
     "023": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 23,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 8,
       "pageCount": 1,
       "source": "023_DOMBA_KECIL_YANG_TERSESAT_PULANGLAH.pdf"
     },
     "024": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 24,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 8,
       "pageCount": 1,
       "source": "024_BANYAK_BERBUAH_BAIK.pdf"
     },
     "025": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 25,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 9,
       "pageCount": 1,
       "source": "025_DARAH_YESUS_BERKHASIAT.pdf"
     },
     "026": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 26,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 9,
       "pageCount": 1,
       "source": "026_SAHABAT_KECIL.pdf"
     },
     "027": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 27,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 9,
       "pageCount": 1,
       "source": "027_BAGAIMANA_MEJAGA_PERBUATAN.pdf"
     },
     "028": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 28,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 10,
       "pageCount": 1,
       "source": "028_BURUNG_KECIL_DI_LANGIT_TINGGI.pdf"
     },
     "029": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 29,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 10,
       "pageCount": 1,
       "source": "029_TUHAN_SAHABAT_AJAIB_ANAK.pdf"
     },
     "030": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 30,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 10,
       "pageCount": 1,
       "source": "030_MOHON_TUHAN_DATANGLAH.pdf"
     },
     "031": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 31,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 11,
       "pageCount": 1,
       "source": "031_TUHAN_AKU_T_LAH_BERDOSA.pdf"
     },
     "032": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 32,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 11,
       "pageCount": 1,
       "source": "032_SELANGKAH.pdf"
     },
     "033": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 33,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 11,
       "pageCount": 1,
       "source": "033_BERDOA_PADA_TUHAN.pdf"
     },
     "034": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 34,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 11,
       "pageCount": 1,
       "source": "034_BAPA_BERFIRMAN.pdf"
     },
     "035": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 35,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 12,
       "pageCount": 1,
       "source": "035_KU_MAU_MENELADAN_DANIEL.pdf"
     },
     "036": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 36,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 12,
       "pageCount": 1,
       "source": "036_HARUS_MEMULIAKAN_TUHAN.pdf"
     },
     "037": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 37,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 12,
       "pageCount": 1,
       "source": "037_KU_YAKIN_ALLAH_DENGAR_DOAKU.pdf"
     },
     "038": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 38,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 13,
       "pageCount": 1,
       "source": "038_SEBUAH_BINTANG_BESAR_BERSINAR.pdf"
     },
     "039": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 39,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 13,
       "pageCount": 1,
       "source": "039_HARI_PENGHAKIMAN.pdf"
     },
     "040": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 40,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 13,
       "pageCount": 1,
       "source": "040_DOA_MALAM_HARI.pdf"
     },
     "041": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 41,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 14,
       "pageCount": 1,
       "source": "041_DOA.pdf"
     },
     "042": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 42,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 14,
       "pageCount": 1,
       "source": "042_MENELADAN_TUHAN_YESUS_TAAT_KEPADA_AYAH-IBU.pdf"
     },
     "043": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 43,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 14,
       "pageCount": 1,
       "source": "043_PUJI_NAMA-NYA.pdf"
     },
     "044": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 44,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 15,
       "pageCount": 1,
       "source": "044_TUHAN_KAMI_DI_HADAPANMU_S_KARANG.pdf"
     },
     "045": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 45,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 15,
       "pageCount": 1,
       "source": "045_HIDUP_DAMAI.pdf"
     },
     "046": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 46,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 15,
       "pageCount": 1,
       "source": "046_CERITA_MUSA.pdf"
     },
     "047": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 47,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 16,
       "pageCount": 1,
       "source": "047_DALAM_NAMA_YESUS.pdf"
     },
     "048": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 48,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 16,
       "pageCount": 1,
       "source": "048_JANGAN_TAKUT.pdf"
     },
     "049": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 49,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 17,
       "pageCount": 1,
       "source": "049_DI_DEPANMU_BERLIMPAH_SUKACITA.pdf"
     },
     "050": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 50,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 17,
       "pageCount": 1,
       "source": "050_PERLU_YESUS.pdf"
     },
     "051": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 51,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 17,
       "pageCount": 1,
       "source": "051_YESUS_IALAH_JALAN_KEBENARAN_DAN_HIDUP.pdf"
     },
     "052": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 52,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 18,
       "pageCount": 1,
       "source": "052_AKU_MENABURKAN_BENIH_SETIAP_HARI.pdf"
     },
     "053": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 53,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 18,
       "pageCount": 1,
       "source": "053_JANGAN_LUPA.pdf"
     },
     "054": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 54,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 18,
       "pageCount": 1,
       "source": "054_ANUGERAH_YANG_TAK_TERNILAI.pdf"
     },
     "055": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 55,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 19,
       "pageCount": 1,
       "source": "055_TUHAN_YESUS_CINTAKU.pdf"
     },
     "056": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 56,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 19,
       "pageCount": 1,
       "source": "056_LAGU_ANAK_KECIL.pdf"
     },
     "057": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 57,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 19,
       "pageCount": 1,
       "source": "057_APA_YANG_KAMU_PERHATIKAN.pdf"
     },
     "058": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 58,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 20,
       "pageCount": 1,
       "source": "058_TUHANLAH_GEMBALAKU.pdf"
     },
     "059": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 59,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 20,
       "pageCount": 1,
       "source": "059_YESUS_LAHIR.pdf"
     },
     "060": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 60,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 21,
       "pageCount": 1,
       "source": "060_KEMULIAAN_BAGI_YESUS.pdf"
     },
     "061": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 61,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 21,
       "pageCount": 1,
       "source": "061_ZAKHEUS.pdf"
     },
     "062": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 62,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 22,
       "pageCount": 1,
       "source": "062_TANGAN_KECIL.pdf"
     },
     "063": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 63,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 22,
       "pageCount": 1,
       "source": "063_LIMA_ROTI_DUA_IKAN.pdf"
     },
     "064": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 64,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 23,
       "pageCount": 1,
       "source": "064_ALLAH_MENCIPTAKAN_DUNIA_YANG_INDAH.pdf"
     },
     "065": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 65,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 23,
       "pageCount": 1,
       "source": "065_BIAR_GUNUNG_BERANJAK.pdf"
     },
     "066": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 66,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 23,
       "pageCount": 1,
       "source": "066_TUHAN_YESUS_SUDAH_BANGKIT.pdf"
     },
     "067": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 67,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 24,
       "pageCount": 1,
       "source": "067_ALKITAB_YANG_BERHARGA.pdf"
     },
     "068": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 68,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 24,
       "pageCount": 1,
       "source": "068_KAMI_MENYAMBUTMU.pdf"
     },
     "069": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 69,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 24,
       "pageCount": 1,
       "source": "069_YESUS_JURUSELAMAT.pdf"
     },
     "070": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 70,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 24,
       "pageCount": 1,
       "source": "070_YAKIN_PADA_YESUS_SEKARANG.pdf"
     },
     "071": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 71,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 25,
       "pageCount": 1,
       "source": "071_HALELUYA_PUJI_ALLAH.pdf"
     },
     "072": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 72,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 25,
       "pageCount": 1,
       "source": "072_AKU_SANGAT_GIRANG.pdf"
     },
     "073": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 73,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 25,
       "pageCount": 1,
       "source": "073_DIA_LEBIH_CINTAKU.pdf"
     },
     "074": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 74,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 26,
       "pageCount": 1,
       "source": "074_TEMAN_YANG_BAIK.pdf"
     },
     "075": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 75,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 26,
       "pageCount": 1,
       "source": "075_SINAR_SURYA_DAN_RINTIK_HUJAN.pdf"
     },
     "076": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 76,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 26,
       "pageCount": 1,
       "source": "076_BUAH_ROH_KUDUS.pdf"
     },
     "077": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 77,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 26,
       "pageCount": 1,
       "source": "077_ADAKAH_NAMAKU_.pdf"
     },
     "078": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 78,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 27,
       "pageCount": 1,
       "source": "078_TUHAN_KETUK_PINTU_HATIMU.pdf"
     },
     "079": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 79,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 27,
       "pageCount": 1,
       "source": "079_PERGIKAH_KE_SURGA_.pdf"
     },
     "080": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 80,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 27,
       "pageCount": 1,
       "source": "080_SURGA_TELAH_DATANG.pdf"
     },
     "081": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 81,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 27,
       "pageCount": 1,
       "source": "081_ANUGERAH_DI_SALIB-NYA.pdf"
     },
     "082": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 82,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 28,
       "pageCount": 1,
       "source": "082_HARI_SABAT.pdf"
     },
     "083": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 83,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 28,
       "pageCount": 1,
       "source": "083_YESUS_SAHABAT_TERBAIKKU.pdf"
     },
     "084": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 84,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 28,
       "pageCount": 1,
       "source": "084_WAKTU_KU_MOHON_PADA-MU.pdf"
     },
     "085": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 85,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 28,
       "pageCount": 1,
       "source": "085_PUJI_PUJI.pdf"
     },
     "086": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 86,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 29,
       "pageCount": 1,
       "source": "086_YESUS_CINTAKU.pdf"
     },
     "087": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 87,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 29,
       "pageCount": 1,
       "source": "087_KU_SIMPAN_FIRMAN_DI_HATI.pdf"
     },
     "088": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 88,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 29,
       "pageCount": 1,
       "source": "088_BAPA_TERIMA_KASIH.pdf"
     },
     "089": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 89,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 29,
       "pageCount": 1,
       "source": "089_DENGAR_SUARA_ALLAH.pdf"
     },
     "090": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 90,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 30,
       "pageCount": 1,
       "source": "090_DOMBA_KECIL.pdf"
     },
     "091": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 91,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 30,
       "pageCount": 1,
       "source": "091_AKU_IALAH_ANAK_RAJA.pdf"
     },
     "092": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 92,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 30,
       "pageCount": 1,
       "source": "092_SELAMAT_TAHUN_BARU.pdf"
     },
     "093": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 93,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 31,
       "pageCount": 1,
       "source": "093_BETAPA_AKU_MENGASIHI_YESUS.pdf"
     },
     "094": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 94,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 31,
       "pageCount": 1,
       "source": "094_PEREMPUAN_SAMARIA.pdf"
     },
     "095": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 95,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 31,
       "pageCount": 1,
       "source": "095_KRISTUS_JADI_NAHKODAKU.pdf"
     },
     "096": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 96,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 32,
       "pageCount": 1,
       "source": "096_DAUD_RIANG_MENARI.pdf"
     },
     "097": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 97,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 32,
       "pageCount": 1,
       "source": "097_YESUS-KU_AJAIB.pdf"
     },
     "098": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 98,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 32,
       "pageCount": 1,
       "source": "098_FIRMAN_ALLAH_DALAM_KITAB.pdf"
     },
     "099": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 99,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 33,
       "pageCount": 1,
       "source": "099_IKUT_YESUS.pdf"
     },
     "100": {
-      "path": "assets/data/pdf/asm_p/asm_p_master.pdf",
-      "startPage": 100,
+      "path": "assets/data/pdf/asm_p/ASM-P.pdf",
+      "startPage": 33,
       "pageCount": 1,
       "source": "100_KEBAKTIAN_TELAH_USAI.pdf"
     }

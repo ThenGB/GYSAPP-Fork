@@ -2,8 +2,8 @@
   "bookCode": "HYMNE",
   "masterPath": "assets/data/pdf/hymne/hymne_master.pdf",
   "sourceFileCount": 533,
-  "mappedSongCount": 533,
-  "pageCount": 585,
+  "mappedSongCount": 532,
+  "pageCount": 608,
   "songs": {
     "001": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
@@ -110,7 +110,7 @@
     "018": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 18,
-      "pageCount": 1,
+      "pageCount": 5,
       "source": "018_When_We_All_Get_to_Heaven.pdf"
     },
     "019": {
@@ -728,7 +728,7 @@
     "120": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 120,
-      "pageCount": 1,
+      "pageCount": 10,
       "source": "120_I_Surrender_All.pdf"
     },
     "121": {
@@ -740,7 +740,7 @@
     "122": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 122,
-      "pageCount": 1,
+      "pageCount": 10,
       "source": "122_Blest_Be_the_Tie.pdf"
     },
     "123": {
@@ -1550,7 +1550,7 @@
     "255": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 276,
-      "pageCount": 1,
+      "pageCount": 2,
       "source": "255_Jesus_Loves_the_Little_Children.pdf"
     },
     "256": {
@@ -2036,7 +2036,7 @@
     "336": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 265,
-      "pageCount": 1,
+      "pageCount": 101,
       "source": "336_Does_Jesus_Care.pdf"
     },
     "337": {
@@ -2516,7 +2516,7 @@
     "416": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 456,
-      "pageCount": 1,
+      "pageCount": 58,
       "source": "416_Are_Ye_Able_Said_the_Master.pdf"
     },
     "417": {
@@ -2840,7 +2840,7 @@
     "470": {
       "path": "assets/data/pdf/hymne/hymne_master.pdf",
       "startPage": 513,
-      "pageCount": 1,
+      "pageCount": 2,
       "source": "470_O_Zion_Haste.pdf"
     },
     "472": {
@@ -3197,5 +3197,79 @@
       "pageCount": 2,
       "source": "530_The_Lords_Prayer.pdf"
     }
-  }
+  },
+  "chunkDb": "assets/data/pdf/hymne/hymne_chunks.db",
+  "chunks": [
+    {
+      "index": 0,
+      "startPage": 5,
+      "endPage": 64,
+      "compressedSize": 517550,
+      "uncompressedSize": 546096
+    },
+    {
+      "index": 1,
+      "startPage": 65,
+      "endPage": 122,
+      "compressedSize": 497220,
+      "uncompressedSize": 524774
+    },
+    {
+      "index": 2,
+      "startPage": 123,
+      "endPage": 184,
+      "compressedSize": 515370,
+      "uncompressedSize": 544200
+    },
+    {
+      "index": 3,
+      "startPage": 185,
+      "endPage": 244,
+      "compressedSize": 486906,
+      "uncompressedSize": 514813
+    },
+    {
+      "index": 4,
+      "startPage": 245,
+      "endPage": 301,
+      "compressedSize": 456429,
+      "uncompressedSize": 483644
+    },
+    {
+      "index": 5,
+      "startPage": 302,
+      "endPage": 361,
+      "compressedSize": 483422,
+      "uncompressedSize": 512308
+    },
+    {
+      "index": 6,
+      "startPage": 366,
+      "endPage": 425,
+      "compressedSize": 501609,
+      "uncompressedSize": 530441
+    },
+    {
+      "index": 7,
+      "startPage": 426,
+      "endPage": 486,
+      "compressedSize": 576681,
+      "uncompressedSize": 605027
+    },
+    {
+      "index": 8,
+      "startPage": 487,
+      "endPage": 546,
+      "compressedSize": 510266,
+      "uncompressedSize": 539023
+    },
+    {
+      "index": 9,
+      "startPage": 547,
+      "endPage": 585,
+      "compressedSize": 329032,
+      "uncompressedSize": 348749
+    }
+  ],
+  "chunkFile": "assets/data/pdf/hymne/hymne_chunks.bin"
 }

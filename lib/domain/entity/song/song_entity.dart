@@ -27,6 +27,8 @@ abstract class Song with _$Song {
     @JsonKey(name: 'pages') int? pageLength,
     @JsonKey(name: 'page') int? pageStart,
     @Default([]) @JsonKey(name: 'verses') List<String> verses,
+    @JsonKey(name: 'midiMappedFrom') String? midiMappedFrom,
+    @JsonKey(name: 'midiMappedNumber') String? midiMappedNumber,
   }) = _Song;
 
   factory Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);

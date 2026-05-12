@@ -1,2798 +1,3206 @@
 {
-  "masterPath": "assets/data/pdf/mdr/mdr_master.pdf",
-  "sourceFileCount": 465,
-  "mappedSongCount": 465,
-  "pageCount": 482,
+  "masterPath": "assets/data/pdf/mdr/MDR.pdf",
+  "sourceFileCount": 533,
+  "mappedSongCount": 533,
+  "pageCount": 559,
   "songs": {
     "001": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 17,
       "pageCount": 1,
       "source": "001_頌讚獨一真神.pdf"
     },
     "002": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 2,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 18,
       "pageCount": 1,
       "source": "002_讚美聖父.pdf"
     },
     "004": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 3,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 20,
       "pageCount": 1,
       "source": "004_讚美天父.pdf"
     },
     "005": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 4,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 21,
       "pageCount": 1,
       "source": "005_萬有讚美天父.pdf"
     },
     "006": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 5,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 22,
       "pageCount": 1,
       "source": "006_頌主造化大功.pdf"
     },
     "007": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 6,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 23,
       "pageCount": 1,
       "source": "007_萬有齊頌主.pdf"
     },
     "008": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 7,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 24,
       "pageCount": 1,
       "source": "008_當向神歌頌.pdf"
     },
     "009": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 8,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 25,
       "pageCount": 1,
       "source": "009_向主歡呼.pdf"
     },
     "010": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 9,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 26,
       "pageCount": 1,
       "source": "010_榮耀歸耶穌.pdf"
     },
     "011": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 10,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 27,
       "pageCount": 1,
       "source": "011_在主內頂快樂.pdf"
     },
     "012": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 11,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 28,
       "pageCount": 1,
       "source": "012_耶穌尊名.pdf"
     },
     "013": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 12,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 29,
       "pageCount": 1,
       "source": "013_無人能比耶穌.pdf"
     },
     "014": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 13,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 30,
       "pageCount": 1,
       "source": "014_萬王之王.pdf"
     },
     "015": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 14,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 31,
       "pageCount": 1,
       "source": "015_頌讚耶穌.pdf"
     },
     "016": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 15,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 32,
       "pageCount": 1,
       "source": "016_敬拜天地主宰.pdf"
     },
     "017": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 16,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 33,
       "pageCount": 1,
       "source": "017_頌讚主慈愛.pdf"
     },
     "018": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 17,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 34,
       "pageCount": 1,
       "source": "018_歌頌主恩.pdf"
     },
     "019": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 18,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 35,
       "pageCount": 1,
       "source": "019_和散那.pdf"
     },
     "020": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 19,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 36,
       "pageCount": 1,
       "source": "020_尊主為王.pdf"
     },
     "021": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 20,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 37,
       "pageCount": 1,
       "source": "021_美哉主耶穌.pdf"
     },
     "022": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 21,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 38,
       "pageCount": 1,
       "source": "022_讚美經訓.pdf"
     },
     "023": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 22,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 39,
       "pageCount": 1,
       "source": "023_聖經寶貴.pdf"
     },
     "024": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 23,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 40,
       "pageCount": 1,
       "source": "024_生命之道.pdf"
     },
     "025": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 24,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 41,
       "pageCount": 1,
       "source": "025_神言純潔真誠.pdf"
     },
     "026": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 25,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 42,
       "pageCount": 1,
       "source": "026_求主向我發言.pdf"
     },
     "027": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 26,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 43,
       "pageCount": 1,
       "source": "027_耶穌愛我.pdf"
     },
     "028": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 27,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 44,
       "pageCount": 1,
       "source": "028_耶穌仁愛.pdf"
     },
     "029": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 28,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 45,
       "pageCount": 1,
       "source": "029_主尋亡羊.pdf"
     },
     "030": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 29,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 46,
       "pageCount": 1,
       "source": "030_妙愛找我.pdf"
     },
     "031": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 30,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 47,
       "pageCount": 1,
       "source": "031_主全為我.pdf"
     },
     "032": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 31,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 48,
       "pageCount": 1,
       "source": "032_耶穌肯收納罪人.pdf"
     },
     "033": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 32,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 49,
       "pageCount": 1,
       "source": "033_到新耶路撒冷.pdf"
     },
     "034": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 33,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 50,
       "pageCount": 1,
       "source": "034_耶穌恩召.pdf"
     },
     "035": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 34,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 51,
+      "pageCount": 2,
       "source": "035_雨夜過後見光明.pdf"
     },
     "036": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 35,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 53,
       "pageCount": 2,
       "source": "036_微聲盼望.pdf"
     },
     "037": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 37,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 55,
       "pageCount": 2,
       "source": "037_硃紅罪變如雪.pdf"
     },
     "038": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 39,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 57,
       "pageCount": 1,
       "source": "038_我聞耶穌呼聲.pdf"
     },
     "039": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 40,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 58,
       "pageCount": 1,
       "source": "039_惟獨主血有效.pdf"
     },
     "040": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 41,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 59,
       "pageCount": 1,
       "source": "040_主之寶血.pdf"
     },
     "041": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 42,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 60,
       "pageCount": 1,
       "source": "041_主血有權能.pdf"
     },
     "042": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 43,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 61,
       "pageCount": 2,
       "source": "042_羔羊寶血.pdf"
     },
     "043": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 45,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 63,
       "pageCount": 1,
       "source": "043_寶血洗淨.pdf"
     },
     "044": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 46,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 64,
       "pageCount": 1,
       "source": "044_惟有主能救我.pdf"
     },
     "045": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 47,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 65,
       "pageCount": 1,
       "source": "045_搭救罪人.pdf"
     },
     "046": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 48,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 66,
       "pageCount": 1,
       "source": "046_主開心眼.pdf"
     },
     "047": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 49,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 67,
       "pageCount": 1,
       "source": "047_耶穌救我.pdf"
     },
     "048": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 50,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 68,
       "pageCount": 1,
       "source": "048_救恩成在十架.pdf"
     },
     "049": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 51,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 69,
       "pageCount": 1,
       "source": "049_主拯救我.pdf"
     },
     "050": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 52,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 70,
       "pageCount": 1,
       "source": "050_惟獨耶穌.pdf"
     },
     "051A": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 53,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 71,
       "pageCount": 2,
       "source": "051A_萬古靈磐.pdf"
     },
     "051B": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 55,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 73,
       "pageCount": 1,
       "source": "051B_萬古靈磐.pdf"
     },
     "052": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 56,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 74,
       "pageCount": 1,
       "source": "052_主恩浩大.pdf"
     },
     "053": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 57,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 75,
       "pageCount": 1,
       "source": "053_天父慈仁.pdf"
     },
     "054": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 58,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 76,
       "pageCount": 1,
       "source": "054_離暗就光.pdf"
     },
     "055": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 59,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 77,
       "pageCount": 1,
       "source": "055_蒙主釋放.pdf"
     },
     "056": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 60,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 78,
       "pageCount": 1,
       "source": "056_禧年已到.pdf"
     },
     "057": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 61,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 79,
       "pageCount": 1,
       "source": "057_我罪極重.pdf"
     },
     "058": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 62,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 80,
       "pageCount": 1,
       "source": "058_耶穌領我.pdf"
     },
     "059": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 63,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 81,
       "pageCount": 1,
       "source": "059_求主引導.pdf"
     },
     "060": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 64,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 82,
       "pageCount": 1,
       "source": "060_行走天路.pdf"
     },
     "061": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 65,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 83,
       "pageCount": 1,
       "source": "061_求主引路.pdf"
     },
     "062": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 66,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 84,
       "pageCount": 1,
       "source": "062_願主偕行.pdf"
     },
     "063": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 67,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 85,
       "pageCount": 1,
       "source": "063_願主領路.pdf"
     },
     "064": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 68,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 86,
       "pageCount": 1,
       "source": "064_真光領導.pdf"
     },
     "065": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 69,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 87,
       "pageCount": 1,
       "source": "065_靠近主.pdf"
     },
     "066": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 70,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 88,
       "pageCount": 1,
       "source": "066_主我等候祢.pdf"
     },
     "067": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 71,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 89,
       "pageCount": 1,
       "source": "067_求主指引我路.pdf"
     },
     "068": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 72,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 90,
       "pageCount": 1,
       "source": "068_求主攜我手.pdf"
     },
     "069": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 73,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 91,
       "pageCount": 1,
       "source": "069_求主掌我舵.pdf"
     },
     "070": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 74,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 92,
       "pageCount": 1,
       "source": "070_主有萬福.pdf"
     },
     "071": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 75,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 93,
       "pageCount": 1,
       "source": "071_耶穌我主.pdf"
     },
     "072": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 76,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 94,
       "pageCount": 1,
       "source": "072_萬福之主.pdf"
     },
     "073": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 77,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 95,
       "pageCount": 1,
       "source": "073_賜福救主.pdf"
     },
     "074": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 78,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 96,
       "pageCount": 1,
       "source": "074_救主降生.pdf"
     },
     "075": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 79,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 97,
       "pageCount": 1,
       "source": "075_基督降生.pdf"
     },
     "076": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 80,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 98,
       "pageCount": 1,
       "source": "076_耶穌受死.pdf"
     },
     "077": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 81,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 99,
       "pageCount": 1,
       "source": "077_高舉十架.pdf"
     },
     "078": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 82,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 100,
       "pageCount": 1,
       "source": "078_樂主復活.pdf"
     },
     "079": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 83,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 101,
       "pageCount": 1,
       "source": "079_耶穌復活頌.pdf"
     },
     "080": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 84,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 102,
       "pageCount": 1,
       "source": "080_主已戰勝死亡.pdf"
     },
     "081": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 85,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 103,
       "pageCount": 1,
       "source": "081_耶穌再臨.pdf"
     },
     "082": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 86,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 104,
       "pageCount": 1,
       "source": "082_儆醒預備.pdf"
     },
     "083": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 87,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 105,
       "pageCount": 1,
       "source": "083_耶穌來時.pdf"
     },
     "084": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 88,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 106,
       "pageCount": 1,
       "source": "084_歡迎我王.pdf"
     },
     "085": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 89,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 107,
       "pageCount": 1,
       "source": "085_主快再來.pdf"
     },
     "086": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 90,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 108,
       "pageCount": 1,
       "source": "086_善惡有報.pdf"
     },
     "087": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 91,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 109,
       "pageCount": 1,
       "source": "087_審判大日.pdf"
     },
     "088": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 92,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 110,
       "pageCount": 1,
       "source": "088_救主恩功.pdf"
     },
     "089": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 93,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 111,
+      "pageCount": 2,
       "source": "089_主恩更多.pdf"
     },
     "090": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 94,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 113,
       "pageCount": 2,
       "source": "090_數算恩典.pdf"
     },
     "091": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 96,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 115,
       "pageCount": 1,
       "source": "091_想念主愛.pdf"
     },
     "092": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 97,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 116,
       "pageCount": 1,
       "source": "092_病癒感恩.pdf"
     },
     "093": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 98,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 117,
       "pageCount": 1,
       "source": "093_更新感恩.pdf"
     },
     "094": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 99,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 118,
       "pageCount": 1,
       "source": "094_主恩長存.pdf"
     },
     "095": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 100,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 119,
       "pageCount": 1,
       "source": "095_受膏的君王.pdf"
     },
     "096": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 101,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 120,
       "pageCount": 1,
       "source": "096_奇異恩典.pdf"
     },
     "097": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 102,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 121,
       "pageCount": 1,
       "source": "097_我主離開象牙宮.pdf"
     },
     "098": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 103,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 122,
       "pageCount": 1,
       "source": "098_當我思量十架.pdf"
     },
     "099": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 104,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 123,
       "pageCount": 1,
       "source": "099_愛主更深.pdf"
     },
     "100": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 105,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 124,
       "pageCount": 1,
       "source": "100_捨己為主.pdf"
     },
     "101": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 106,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 125,
       "pageCount": 1,
       "source": "101_專愛耶穌.pdf"
     },
     "102": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 107,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 126,
       "pageCount": 1,
       "source": "102_為主而活.pdf"
     },
     "104": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 108,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 128,
       "pageCount": 1,
       "source": "104_深愛耶穌.pdf"
     },
     "105": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 109,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 129,
       "pageCount": 1,
       "source": "105_為主捨命.pdf"
     },
     "106": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 110,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 130,
       "pageCount": 1,
       "source": "106_我是耶穌門徒.pdf"
     },
     "108": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 111,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 132,
       "pageCount": 1,
       "source": "108_跟從救主.pdf"
     },
     "109": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 112,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 133,
       "pageCount": 1,
       "source": "109_踐主跡行.pdf"
     },
     "110": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 113,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 134,
       "pageCount": 1,
       "source": "110_撇物從主.pdf"
     },
     "111": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 114,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 135,
       "pageCount": 1,
       "source": "111_跟隨救主.pdf"
     },
     "112": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 115,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 136,
       "pageCount": 1,
       "source": "112_我跟隨主.pdf"
     },
     "113": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 116,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 137,
       "pageCount": 1,
       "source": "113_奉獻會堂.pdf"
     },
     "114": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 117,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 138,
       "pageCount": 1,
       "source": "114_感恩奉獻.pdf"
     },
     "115": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 118,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 139,
       "pageCount": 1,
       "source": "115_會堂落成.pdf"
     },
     "116": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 119,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 140,
       "pageCount": 1,
       "source": "116_獻上身心.pdf"
     },
     "117": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 120,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 141,
       "pageCount": 1,
       "source": "117_奉獻祈納.pdf"
     },
     "118": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 121,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 142,
       "pageCount": 1,
       "source": "118_奉獻全生.pdf"
     },
     "119": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 122,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 143,
       "pageCount": 1,
       "source": "119_都歸耶穌我救主.pdf"
     },
     "120": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 123,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 144,
       "pageCount": 1,
       "source": "120_奉獻所有.pdf"
     },
     "121": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 124,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 145,
       "pageCount": 1,
       "source": "121_我獻何物給耶穌.pdf"
     },
     "122": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 125,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 146,
       "pageCount": 1,
       "source": "122_彼此相愛.pdf"
     },
     "123": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 126,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 147,
       "pageCount": 1,
       "source": "123_聖徒送行.pdf"
     },
     "124A": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 127,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 148,
       "pageCount": 1,
       "source": "124A_實行愛心.pdf"
     },
     "124B": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 128,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 149,
       "pageCount": 1,
       "source": "124B_實行愛心.pdf"
     },
     "125": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 129,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 150,
       "pageCount": 1,
       "source": "125_別離詩.pdf"
     },
     "126": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 130,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 151,
       "pageCount": 1,
       "source": "126_兄弟相愛.pdf"
     },
     "127": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 131,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 152,
       "pageCount": 1,
       "source": "127_切實相愛.pdf"
     },
     "128": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 132,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 153,
       "pageCount": 1,
       "source": "128_快樂聖日.pdf"
     },
     "129": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 133,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 154,
       "pageCount": 1,
       "source": "129_紀念聖日.pdf"
     },
     "130": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 134,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 155,
       "pageCount": 1,
       "source": "130_安息聖日.pdf"
     },
     "131": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 135,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 156,
       "pageCount": 1,
       "source": "131_樂守聖日.pdf"
     },
     "132A": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 136,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 157,
       "pageCount": 1,
       "source": "132A_求主蔭庇.pdf"
     },
     "132B": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 137,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 158,
       "pageCount": 1,
       "source": "132B_求主蔭庇.pdf"
     },
     "133": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 138,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 159,
       "pageCount": 2,
       "source": "133_耶穌不改變.pdf"
     },
     "134": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 140,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 161,
       "pageCount": 1,
       "source": "134_仰望救主.pdf"
     },
     "135": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 141,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 162,
       "pageCount": 1,
       "source": "135_為什麼忙.pdf"
     },
     "136": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 142,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 163,
       "pageCount": 1,
       "source": "136_我知所信的是誰.pdf"
     },
     "137": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 143,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 164,
       "pageCount": 1,
       "source": "137_主是我良友.pdf"
     },
     "139": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 144,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 166,
       "pageCount": 1,
       "source": "139_聞主過路.pdf"
     },
     "140": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 145,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 167,
       "pageCount": 1,
       "source": "140_救主明白你憂傷.pdf"
     },
     "141": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 146,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 168,
       "pageCount": 1,
       "source": "141_永樂或永苦.pdf"
     },
     "142": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 147,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 169,
       "pageCount": 1,
       "source": "142_靠主消除憂傷.pdf"
     },
     "143": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 148,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 170,
       "pageCount": 1,
       "source": "143_我要投靠主.pdf"
     },
     "144": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 149,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 171,
       "pageCount": 1,
       "source": "144_專心仰賴主.pdf"
     },
     "145": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 150,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 172,
       "pageCount": 1,
       "source": "145_倚靠耶穌.pdf"
     },
     "146": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 151,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 173,
       "pageCount": 1,
       "source": "146_時刻靠主.pdf"
     },
     "147": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 152,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 174,
       "pageCount": 1,
       "source": "147_先求神國神義.pdf"
     },
     "148": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 153,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 175,
       "pageCount": 1,
       "source": "148_耶穌牧我.pdf"
     },
     "149": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 154,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 176,
       "pageCount": 1,
       "source": "149_安息在主膀臂中.pdf"
     },
     "150": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 155,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 177,
       "pageCount": 1,
       "source": "150_善牧看顧.pdf"
     },
     "151": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 156,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 178,
       "pageCount": 1,
       "source": "151_天父必看顧你.pdf"
     },
     "152": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 157,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 179,
       "pageCount": 1,
       "source": "152_主必預備.pdf"
     },
     "153": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 158,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 180,
       "pageCount": 1,
       "source": "153_時刻交託主.pdf"
     },
     "154": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 159,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 181,
       "pageCount": 1,
       "source": "154_耶稣是我坚固保障庄严雄峻永坚强.pdf"
     },
     "155": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 160,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 182,
       "pageCount": 1,
       "source": "155_主常看顧我.pdf"
     },
     "156": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 161,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 183,
       "pageCount": 1,
       "source": "156_與主同行.pdf"
     },
     "157": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 162,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 184,
       "pageCount": 1,
       "source": "157_神國在心.pdf"
     },
     "158": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 163,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 185,
       "pageCount": 1,
       "source": "158_走在主路上.pdf"
     },
     "159": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 164,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 186,
       "pageCount": 1,
       "source": "159_主賜真平安.pdf"
     },
     "160": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 165,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 187,
       "pageCount": 1,
       "source": "160_真光在心.pdf"
     },
     "161": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 166,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 188,
       "pageCount": 1,
       "source": "161_在主蔭下.pdf"
     },
     "162": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 167,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 189,
       "pageCount": 1,
       "source": "162_主負我重擔.pdf"
     },
     "163": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 168,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 190,
       "pageCount": 1,
       "source": "163_我靈魂永安樂.pdf"
     },
     "164": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 169,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 191,
       "pageCount": 1,
       "source": "164_主恩夠用.pdf"
     },
     "165": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 170,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 192,
       "pageCount": 1,
       "source": "165_耶穌懷抱我.pdf"
     },
     "166": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 171,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 193,
       "pageCount": 1,
       "source": "166_在主蔭庇之下.pdf"
     },
     "167": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 172,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 194,
       "pageCount": 1,
       "source": "167_十架精兵.pdf"
     },
     "168": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 173,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 195,
       "pageCount": 1,
       "source": "168_精兵前進.pdf"
     },
     "169": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 174,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 196,
       "pageCount": 1,
       "source": "169_善惡對敵.pdf"
     },
     "170": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 175,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 197,
       "pageCount": 1,
       "source": "170_為主勇往.pdf"
     },
     "171": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 176,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 198,
       "pageCount": 1,
       "source": "171_教會惟一根基.pdf"
     },
     "172": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 177,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 199,
       "pageCount": 1,
       "source": "172_你該得勝.pdf"
     },
     "173": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 178,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 200,
       "pageCount": 1,
       "source": "173_十架旌旗.pdf"
     },
     "174": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 179,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 201,
       "pageCount": 1,
       "source": "174_真教會必興起.pdf"
     },
     "175": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 180,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 202,
       "pageCount": 1,
       "source": "175_百折不回.pdf"
     },
     "176": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 181,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 203,
       "pageCount": 1,
       "source": "176_常常有勝利.pdf"
     },
     "177": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 182,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 204,
       "pageCount": 1,
       "source": "177_切莫順從誘惑.pdf"
     },
     "179": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 183,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 206,
       "pageCount": 1,
       "source": "179_預備進天國.pdf"
     },
     "180": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 184,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 207,
       "pageCount": 1,
       "source": "180_永生門路.pdf"
     },
     "181": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 185,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 208,
       "pageCount": 1,
       "source": "181_我必前進.pdf"
     },
     "182": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 186,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 209,
       "pageCount": 1,
       "source": "182_往前走.pdf"
     },
     "183": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 187,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 210,
       "pageCount": 1,
       "source": "183_勇往直前.pdf"
     },
     "184": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 188,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 211,
       "pageCount": 1,
       "source": "184_奔跑天路.pdf"
     },
     "185": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 189,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 212,
       "pageCount": 1,
       "source": "185_思慕天家.pdf"
     },
     "186": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 190,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 213,
       "pageCount": 1,
       "source": "186_我今日直奔要歸我家鄉.pdf"
     },
     "187": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 191,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 214,
       "pageCount": 1,
       "source": "187_來到美地.pdf"
     },
     "188": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 192,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 215,
       "pageCount": 1,
       "source": "188_榮歸天鄉.pdf"
     },
     "189": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 193,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 216,
       "pageCount": 1,
       "source": "189_天城美景.pdf"
     },
     "190": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 194,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 217,
       "pageCount": 1,
       "source": "190_天國的人.pdf"
     },
     "191": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 195,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 218,
       "pageCount": 1,
       "source": "191_我家在天.pdf"
     },
     "192": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 196,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 219,
       "pageCount": 1,
       "source": "192_十架領路.pdf"
     },
     "193": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 197,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 220,
       "pageCount": 1,
       "source": "193_榮耀天國.pdf"
     },
     "194": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 198,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 221,
       "pageCount": 1,
       "source": "194_安息在天家.pdf"
     },
     "195": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 199,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 222,
       "pageCount": 1,
       "source": "195_羨慕福地.pdf"
     },
     "196": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 200,
-      "pageCount": 2,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 223,
+      "pageCount": 276,
       "source": "196_榮美福地.pdf"
     },
     "197": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 202,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 499,
       "pageCount": 1,
       "source": "197_歸家_456.pdf"
     },
     "198": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 203,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 226,
       "pageCount": 1,
       "source": "198_靠主領回天家.pdf"
     },
     "199": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 204,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 227,
       "pageCount": 1,
       "source": "199_天上快樂家.pdf"
     },
     "200": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 205,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 228,
       "pageCount": 1,
       "source": "200_思慕天鄉.pdf"
     },
     "201": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 206,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 229,
       "pageCount": 1,
       "source": "201_永遠的榮耀.pdf"
     },
     "202": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 207,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 230,
       "pageCount": 1,
       "source": "202_天上安樂處.pdf"
     },
     "203": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 208,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 231,
       "pageCount": 2,
       "source": "203_百合花.pdf"
     },
     "204": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 210,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 233,
       "pageCount": 1,
       "source": "204_因信有盼望.pdf"
     },
     "205": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 211,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 234,
       "pageCount": 1,
       "source": "205_在基督裡必復活.pdf"
     },
     "206": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 212,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 235,
       "pageCount": 1,
       "source": "206_我必親見主面.pdf"
     },
     "207": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 213,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 236,
       "pageCount": 1,
       "source": "207_思念主來.pdf"
     },
     "208": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 214,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 237,
       "pageCount": 2,
       "source": "208_聖徒被提.pdf"
     },
     "209": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 216,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 239,
       "pageCount": 1,
       "source": "209_我必當面見主.pdf"
     },
     "210": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 217,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 240,
       "pageCount": 1,
       "source": "210_當我行完今生路.pdf"
     },
     "211": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 218,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 241,
       "pageCount": 1,
       "source": "211_天父監察.pdf"
     },
     "212": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 219,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 242,
       "pageCount": 1,
       "source": "212_為主發光.pdf"
     },
     "213": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 220,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 243,
       "pageCount": 1,
       "source": "213_積少成多.pdf"
     },
     "214": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 221,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 244,
       "pageCount": 1,
       "source": "214_八福頌.pdf"
     },
     "215": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 222,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 245,
       "pageCount": 1,
       "source": "215_真教會美德.pdf"
     },
     "216": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 223,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 246,
       "pageCount": 1,
       "source": "216_聖徒美德.pdf"
     },
     "217": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 224,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 247,
       "pageCount": 1,
       "source": "217_力行主道.pdf"
     },
     "218": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 225,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 248,
       "pageCount": 1,
       "source": "218_聖靈佳果.pdf"
     },
     "219": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 226,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 249,
       "pageCount": 1,
       "source": "219_隨處發光.pdf"
     },
     "220": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 227,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 250,
       "pageCount": 1,
       "source": "220_火煉精金.pdf"
     },
     "221": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 228,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 251,
       "pageCount": 1,
       "source": "221_克制情慾.pdf"
     },
     "222": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 229,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 252,
       "pageCount": 1,
       "source": "222_清心有福.pdf"
     },
     "223": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 230,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 253,
       "pageCount": 1,
       "source": "223_選民靈歌.pdf"
     },
     "224": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 231,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 254,
       "pageCount": 1,
       "source": "224_求主察看.pdf"
     },
     "225": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 232,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 255,
       "pageCount": 1,
       "source": "225_順從聖靈.pdf"
     },
     "226": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 233,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 256,
       "pageCount": 1,
       "source": "226_願成主旨.pdf"
     },
     "227": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 234,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 257,
       "pageCount": 1,
       "source": "227_聽命有福.pdf"
     },
     "228": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 235,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 258,
       "pageCount": 1,
       "source": "228_遵命有福.pdf"
     },
     "229": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 236,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 259,
       "pageCount": 1,
       "source": "229_謹守十誡.pdf"
     },
     "230": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 237,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 260,
       "pageCount": 1,
       "source": "230_義人有福.pdf"
     },
     "231": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 238,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 261,
       "pageCount": 1,
       "source": "231_照主所願.pdf"
     },
     "232": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 239,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 262,
       "pageCount": 1,
       "source": "232_要同耶穌一樣.pdf"
     },
     "233": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 240,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 263,
       "pageCount": 1,
       "source": "233_聯屬耶穌.pdf"
     },
     "234": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 241,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 264,
       "pageCount": 1,
       "source": "234_與主日近.pdf"
     },
     "235": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 242,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 265,
       "pageCount": 1,
       "source": "235_主我一體.pdf"
     },
     "236": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 243,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 266,
       "pageCount": 1,
       "source": "236_我屬耶穌.pdf"
     },
     "237": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 244,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 267,
       "pageCount": 1,
       "source": "237_耶穌住在我心.pdf"
     },
     "238": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 245,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 268,
       "pageCount": 1,
       "source": "238_來居我心主耶穌.pdf"
     },
     "239": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 246,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 269,
       "pageCount": 1,
       "source": "239_求主同住.pdf"
     },
     "240": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 247,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 270,
       "pageCount": 1,
       "source": "240_與主同樂.pdf"
     },
     "241": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 248,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 271,
       "pageCount": 1,
       "source": "241_我生命的君王.pdf"
     },
     "242": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 249,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 272,
       "pageCount": 1,
       "source": "242_主在門外等候.pdf"
     },
     "243": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 250,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 273,
       "pageCount": 1,
       "source": "243_引我更親近.pdf"
     },
     "244": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 251,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 274,
       "pageCount": 1,
       "source": "244_主我願像_.pdf"
     },
     "245": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 252,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 275,
       "pageCount": 1,
       "source": "245_求主密相契.pdf"
     },
     "246": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 253,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 276,
       "pageCount": 1,
       "source": "246_懇求聖靈.pdf"
     },
     "247": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 254,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 277,
       "pageCount": 1,
       "source": "247_聖靈權能.pdf"
     },
     "248": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 255,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 278,
       "pageCount": 1,
       "source": "248_我要求聖靈.pdf"
     },
     "249": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 256,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 279,
       "pageCount": 1,
       "source": "249_靈洗各人.pdf"
     },
     "250": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 257,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 280,
       "pageCount": 1,
       "source": "250_從新得力.pdf"
     },
     "251": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 258,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 281,
       "pageCount": 1,
       "source": "251_聖靈的洗.pdf"
     },
     "252": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 259,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 282,
       "pageCount": 1,
       "source": "252_渴慕聖靈充滿.pdf"
     },
     "253": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 260,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 283,
       "pageCount": 1,
       "source": "253_聖靈已來.pdf"
     },
     "254": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 261,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 284,
+      "pageCount": 231,
       "source": "254_方言寶貴.pdf"
     },
     "255": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 262,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 515,
       "pageCount": 2,
       "source": "255_靈恩大會.pdf"
     },
     "256": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 264,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 286,
       "pageCount": 1,
       "source": "256_恩雨大降.pdf"
     },
     "257": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 265,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 287,
       "pageCount": 1,
       "source": "257_儆醒祈禱.pdf"
     },
     "258": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 266,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 288,
       "pageCount": 1,
       "source": "258_禁食祈禱.pdf"
     },
     "259": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 267,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 289,
       "pageCount": 1,
       "source": "259_恆切禱告.pdf"
     },
     "260": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 268,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 290,
       "pageCount": 1,
       "source": "260_清晨頌主.pdf"
     },
     "261": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 269,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 291,
       "pageCount": 1,
       "source": "261_晚禱感恩.pdf"
     },
     "262": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 270,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 292,
       "pageCount": 1,
       "source": "262_與神靈交.pdf"
     },
     "263": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 271,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 293,
       "pageCount": 1,
       "source": "263_耶穌恩友.pdf"
     },
     "264": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 272,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 294,
       "pageCount": 1,
       "source": "264_求主垂憐.pdf"
     },
     "265": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 273,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 295,
       "pageCount": 1,
       "source": "265_快告訴耶穌.pdf"
     },
     "266": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 274,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 296,
       "pageCount": 1,
       "source": "266_傳揚福音.pdf"
     },
     "267": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 275,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 297,
       "pageCount": 1,
       "source": "267_聽主差遣.pdf"
     },
     "268": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 276,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 298,
       "pageCount": 1,
       "source": "268_聽從主呼召.pdf"
     },
     "269": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 277,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 299,
       "pageCount": 1,
       "source": "269_聞主呼召我.pdf"
     },
     "270": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 278,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 300,
       "pageCount": 1,
       "source": "270_到遙遠地方.pdf"
     },
     "271": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 279,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 301,
       "pageCount": 1,
       "source": "271_不要懼怕.pdf"
     },
     "272": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 280,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 302,
       "pageCount": 1,
       "source": "272_保惠師已經到.pdf"
     },
     "273": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 281,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 303,
       "pageCount": 2,
       "source": "273_大喜信息.pdf"
     },
     "274": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 283,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 305,
+      "pageCount": 2,
       "source": "274_晚雨降臨.pdf"
     },
     "275": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 284,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 307,
       "pageCount": 1,
       "source": "275_禾捆收回家.pdf"
     },
     "276": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 285,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 308,
       "pageCount": 1,
       "source": "276_來聽福音.pdf"
     },
     "277": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 286,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 309,
       "pageCount": 1,
       "source": "277_喜傳福音.pdf"
     },
     "278": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 287,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 310,
       "pageCount": 1,
       "source": "278_主拯救.pdf"
     },
     "279": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 288,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 311,
       "pageCount": 1,
       "source": "279_敞開恩門.pdf"
     },
     "280": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 289,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 312,
       "pageCount": 1,
       "source": "280_廣傳福音.pdf"
     },
     "281": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 290,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 313,
       "pageCount": 1,
       "source": "281_嘆未得人.pdf"
     },
     "282": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 291,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 314,
       "pageCount": 1,
       "source": "282_努力工作.pdf"
     },
     "283": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 292,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 315,
       "pageCount": 1,
       "source": "283_為主收莊稼.pdf"
     },
     "284": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 293,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 316,
       "pageCount": 1,
       "source": "284_發出福音真光.pdf"
     },
     "285": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 294,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 317,
       "pageCount": 1,
       "source": "285_開船入深海.pdf"
     },
     "286": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 295,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 318,
       "pageCount": 1,
       "source": "286_傳佈救恩.pdf"
     },
     "287": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 296,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 319,
       "pageCount": 1,
       "source": "287_為耶穌勞力.pdf"
     },
     "288": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 297,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 320,
       "pageCount": 1,
       "source": "288_趕快工作.pdf"
     },
     "289": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 298,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 321,
       "pageCount": 1,
       "source": "289_派任聖職.pdf"
     },
     "290": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 299,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 322,
       "pageCount": 1,
       "source": "290_按立禮.pdf"
     },
     "291": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 300,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 323,
       "pageCount": 1,
       "source": "291_洗罪泉源.pdf"
     },
     "292": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 301,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 324,
       "pageCount": 1,
       "source": "292_贖罪妙恩.pdf"
     },
     "293": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 302,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 325,
       "pageCount": 1,
       "source": "293_洗淨罪愆.pdf"
     },
     "294": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 303,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 326,
+      "pageCount": 2,
       "source": "294_我來就祢.pdf"
     },
     "295": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 304,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 328,
       "pageCount": 1,
       "source": "295_洗腳禮.pdf"
     },
     "296": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 305,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 329,
+      "pageCount": 2,
       "source": "296_紀念主死.pdf"
     },
     "297": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 306,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 331,
       "pageCount": 1,
       "source": "297_為主我立何志.pdf"
     },
     "298": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 307,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 332,
       "pageCount": 1,
       "source": "298_聖徒婚禮.pdf"
     },
     "299": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 308,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 333,
       "pageCount": 1,
       "source": "299_婚禮祝歌.pdf"
     },
     "300": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 309,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 334,
       "pageCount": 1,
       "source": "300_祝新婚之樂.pdf"
     },
     "301": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 310,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 335,
       "pageCount": 1,
       "source": "301_人生不長.pdf"
     },
     "302": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 311,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 336,
       "pageCount": 1,
       "source": "302_安葬.pdf"
     },
     "303": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 312,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 337,
       "pageCount": 1,
       "source": "303_天國來了.pdf"
     },
     "304": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 313,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 338,
       "pageCount": 1,
       "source": "304_浪子回家.pdf"
     },
     "305": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 314,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 339,
       "pageCount": 1,
       "source": "305_儆醒自責.pdf"
     },
     "306": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 315,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 340,
       "pageCount": 1,
       "source": "306_悔改重生.pdf"
     },
     "307": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 316,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 341,
       "pageCount": 1,
       "source": "307_回來罷.pdf"
     },
     "309": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 317,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 343,
       "pageCount": 1,
       "source": "309_新年祈望.pdf"
     },
     "310": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 318,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 344,
       "pageCount": 1,
       "source": "310_年終感頌.pdf"
     },
     "311": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 319,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 345,
       "pageCount": 1,
       "source": "311_一齊來歌頌.pdf"
     },
     "312": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 320,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 346,
       "pageCount": 1,
       "source": "312_齊聚主前.pdf"
     },
     "315": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 321,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 349,
       "pageCount": 1,
       "source": "315_永世的君王.pdf"
     },
     "316": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 322,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 350,
       "pageCount": 1,
       "source": "316_敬拜榮耀王.pdf"
     },
     "317": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 323,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 351,
       "pageCount": 1,
       "source": "317_我救主已來到.pdf"
     },
     "318": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 324,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 352,
       "pageCount": 1,
       "source": "318_安穩港口.pdf"
     },
     "319": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 325,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 353,
       "pageCount": 1,
       "source": "319_敬拜基督新生王.pdf"
     },
     "320": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 326,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 354,
       "pageCount": 1,
       "source": "320_天使歌唱.pdf"
     },
     "321": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 327,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 355,
       "pageCount": 1,
       "source": "321_信徒齊來頌主.pdf"
     },
     "322": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 328,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 356,
       "pageCount": 1,
       "source": "322_榮耀歸於天父.pdf"
     },
     "323": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 329,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 357,
       "pageCount": 1,
       "source": "323_獻上千萬榮冠.pdf"
     },
     "325": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 330,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 359,
       "pageCount": 1,
       "source": "325_救主耶穌是我至寶.pdf"
     },
     "326": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 331,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 360,
       "pageCount": 1,
       "source": "326_歡唱詠不停.pdf"
     },
     "327": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 332,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 361,
       "pageCount": 1,
       "source": "327_多認識耶穌.pdf"
     },
     "328": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 333,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 362,
       "pageCount": 1,
       "source": "328_讚美真神創造主.pdf"
     },
     "329": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 334,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 363,
       "pageCount": 1,
       "source": "329_天父我神.pdf"
     },
     "330": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 335,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 364,
       "pageCount": 1,
       "source": "330_奇妙平安由神來.pdf"
     },
     "332": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 336,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 366,
       "pageCount": 1,
       "source": "332_真神大愛.pdf"
     },
     "333": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 337,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 367,
       "pageCount": 1,
       "source": "333_欣逢聖日.pdf"
     },
     "334": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 338,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 368,
       "pageCount": 1,
       "source": "334_耶穌沙崙玫瑰.pdf"
     },
     "336": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 339,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 370,
       "pageCount": 1,
       "source": "336_耶穌是否仍然看顧我.pdf"
     },
     "338": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 340,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 372,
       "pageCount": 1,
       "source": "338_祂拯救我.pdf"
     },
     "339": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 341,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 373,
       "pageCount": 1,
       "source": "339_耶穌是我一切所有.pdf"
     },
     "340": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 342,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 374,
       "pageCount": 1,
       "source": "340_奇妙的救主.pdf"
     },
     "341": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 343,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 375,
       "pageCount": 1,
       "source": "341_讓主耶穌進入你心.pdf"
     },
     "342": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 344,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 376,
       "pageCount": 1,
       "source": "342_你的光當照耀.pdf"
     },
     "343": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 345,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 377,
       "pageCount": 1,
       "source": "343_愛拯救我.pdf"
     },
     "345": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 346,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 379,
       "pageCount": 1,
       "source": "345_深哉深哉耶穌的愛.pdf"
     },
     "346": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 347,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 380,
       "pageCount": 1,
       "source": "346_耶穌溫柔慈聲呼喚.pdf"
     },
     "347": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 348,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 381,
       "pageCount": 1,
       "source": "347_萬古磐石藏身所.pdf"
     },
     "350": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 349,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 503,
       "pageCount": 1,
       "source": "350_你在哪裡458.pdf"
     },
     "352": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 350,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 386,
       "pageCount": 1,
       "source": "352_主藏我靈.pdf"
     },
     "353": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 351,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 386,
       "pageCount": 1,
       "source": "353_在主十架下.pdf"
     },
     "355": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 352,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 389,
       "pageCount": 2,
       "source": "355_平安永在我心.pdf"
     },
     "356": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 354,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 391,
       "pageCount": 1,
       "source": "356_信心使我得勝.pdf"
     },
     "357": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 355,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 392,
       "pageCount": 1,
       "source": "357_主耶和華是我牧者.pdf"
     },
     "359": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 356,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 394,
       "pageCount": 1,
       "source": "359_同心前往錫安.pdf"
     },
     "360": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 357,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 395,
       "pageCount": 1,
       "source": "360_你心可有住處為主.pdf"
     },
     "361": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 358,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 330,
+      "pageCount": 67,
       "source": "361_豈能讓主獨背十架_296_乙_.pdf"
     },
     "362": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 359,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 397,
       "pageCount": 1,
       "source": "362_求主擘生命餅.pdf"
     },
     "363": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 360,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 398,
       "pageCount": 1,
       "source": "363_堅立在應許上.pdf"
     },
     "364": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 361,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 399,
       "pageCount": 1,
       "source": "364_主話語深藏我心.pdf"
     },
     "365": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 362,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 400,
       "pageCount": 1,
       "source": "365_救主受難.pdf"
     },
     "367": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 363,
-      "pageCount": 2,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 403,
+      "pageCount": 1,
       "source": "367_祂看顧麻雀.pdf"
     },
     "370": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 365,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 407,
       "pageCount": 1,
       "source": "370_主幫助我們.pdf"
     },
     "371": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 366,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 408,
       "pageCount": 1,
       "source": "371_面臨試煉時候.pdf"
     },
     "373": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 367,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 410,
       "pageCount": 1,
       "source": "373_只要相信.pdf"
     },
     "374": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 368,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 411,
       "pageCount": 1,
       "source": "374_求永恆君王前導.pdf"
     },
     "375": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 369,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 412,
       "pageCount": 1,
       "source": "375_主釘痕手.pdf"
     },
     "376": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 370,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 413,
       "pageCount": 1,
       "source": "376_堅固磐石.pdf"
     },
     "377": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 371,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 414,
       "pageCount": 1,
       "source": "377_主常常顧念我.pdf"
     },
     "378": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 372,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 415,
       "pageCount": 1,
       "source": "378_信靠順服.pdf"
     },
     "379": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 373,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 416,
       "pageCount": 1,
       "source": "379_轉眼仰望耶穌.pdf"
     },
     "380": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 374,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 417,
       "pageCount": 1,
       "source": "380_我主是我生命標竿.pdf"
     },
     "381": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 375,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 418,
       "pageCount": 1,
       "source": "381_我何等愛耶穌.pdf"
     },
     "382": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 376,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 419,
       "pageCount": 1,
       "source": "382_我心常吟讚美詩.pdf"
     },
     "383": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 377,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 420,
       "pageCount": 1,
       "source": "383_將有一天.pdf"
     },
     "385": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 378,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 504,
       "pageCount": 1,
       "source": "385_約旦河畔_459.pdf"
     },
     "386": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 379,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 423,
       "pageCount": 1,
       "source": "386_我得一友.pdf"
     },
     "387": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 380,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 424,
       "pageCount": 1,
       "source": "387_求主對我述說.pdf"
     },
     "388": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 381,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 425,
       "pageCount": 1,
       "source": "388_靠近耶穌慈懷.pdf"
     },
     "389": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 382,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 426,
       "pageCount": 1,
       "source": "389_親近更親近.pdf"
     },
     "390": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 383,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 427,
+      "pageCount": 2,
       "source": "390_主我願更親近祢.pdf"
     },
     "391": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 384,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 429,
       "pageCount": 2,
       "source": "391_永不孤單.pdf"
     },
     "392": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 386,
-      "pageCount": 2,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 431,
+      "pageCount": 1,
       "source": "392_任主差派.pdf"
     },
     "394": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 388,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 434,
       "pageCount": 1,
       "source": "394_感謝神.pdf"
     },
     "395": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 389,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 435,
       "pageCount": 1,
       "source": "395_向高處行.pdf"
     },
     "396": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 390,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 436,
       "pageCount": 1,
       "source": "396_我要真誠.pdf"
     },
     "397": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 391,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 437,
       "pageCount": 1,
       "source": "397_從你認識耶穌.pdf"
     },
     "398": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 392,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 438,
       "pageCount": 1,
       "source": "398_為主而活.pdf"
     },
     "399": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 393,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 439,
       "pageCount": 1,
       "source": "399_主我願做_門徒.pdf"
     },
     "400": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 394,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 440,
       "pageCount": 1,
       "source": "400_我深願更像耶穌.pdf"
     },
     "401": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 395,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 441,
       "pageCount": 1,
       "source": "401_須用工夫成聖.pdf"
     },
     "402": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 396,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 442,
       "pageCount": 1,
       "source": "402_神的道路.pdf"
     },
     "403": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 397,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 443,
+      "pageCount": 62,
       "source": "403_任憑主旨意.pdf"
     },
     "404": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 398,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 505,
       "pageCount": 1,
       "source": "404_願主賜福保佑你_460.pdf"
     },
     "405": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 399,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 445,
       "pageCount": 1,
       "source": "405_你是否已禱告.pdf"
     },
     "406": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 400,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 446,
       "pageCount": 1,
       "source": "406_要告訴耶穌.pdf"
     },
     "407": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 401,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 447,
       "pageCount": 1,
       "source": "407_在花園裡.pdf"
     },
     "411": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 402,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 453,
       "pageCount": 1,
       "source": "411_美麗的禱告花園.pdf"
     },
     "412": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 403,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 454,
       "pageCount": 1,
       "source": "412_寶貴禱告良辰.pdf"
     },
     "415": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 404,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 457,
       "pageCount": 2,
       "source": "415_獻上至好的.pdf"
     },
     "416": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 406,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 459,
       "pageCount": 1,
       "source": "416_你可情願.pdf"
     },
     "418": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 407,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 461,
       "pageCount": 1,
       "source": "418_一切獻在壇上.pdf"
     },
     "419": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 408,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 462,
       "pageCount": 1,
       "source": "419_因我得福.pdf"
     },
     "420": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 409,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 463,
       "pageCount": 1,
       "source": "420_奉獻與祢.pdf"
     },
     "421": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 410,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 464,
       "pageCount": 1,
       "source": "421_請來赴宴.pdf"
     },
     "423": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 411,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 466,
       "pageCount": 1,
       "source": "423_對我述說耶穌故事.pdf"
     },
     "424": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 412,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 467,
+      "pageCount": 39,
       "source": "424_我王之事工.pdf"
     },
     "425": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 413,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 506,
       "pageCount": 1,
       "source": "425_快拋救生索_461.pdf"
     },
     "426": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 414,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 469,
       "pageCount": 1,
       "source": "426_何等奇妙的救主.pdf"
     },
     "427": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 415,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 470,
       "pageCount": 1,
       "source": "427_有一故事傳給萬邦.pdf"
     },
     "429": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 416,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 472,
       "pageCount": 1,
       "source": "429_我必親見榮耀主.pdf"
     },
     "430": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 417,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 473,
       "pageCount": 1,
       "source": "430_我們聚集生命河邊.pdf"
     },
     "431": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 418,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 474,
       "pageCount": 1,
       "source": "431_全備的愛.pdf"
     },
     "433": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 419,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 476,
       "pageCount": 1,
       "source": "433_奇妙平安.pdf"
     },
     "434": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 420,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 477,
       "pageCount": 1,
       "source": "434_在那榮耀國度.pdf"
     },
     "435": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 421,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 478,
       "pageCount": 1,
       "source": "435_祂關懷我需求.pdf"
     },
     "436": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 422,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 479,
       "pageCount": 1,
       "source": "436_我一生蒙救主引導.pdf"
     },
     "438": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 423,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 481,
       "pageCount": 1,
       "source": "438_頌主創造美好.pdf"
     },
     "439": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 424,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 482,
       "pageCount": 1,
       "source": "439_時刻交託主.pdf"
     },
     "441": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 425,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 508,
       "pageCount": 1,
       "source": "441_當歡欣喜樂_463.pdf"
     },
     "442": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 426,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 485,
+      "pageCount": 24,
       "source": "442_神一路引領.pdf"
     },
     "443": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 427,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 509,
       "pageCount": 1,
       "source": "443_先賢所信_464.pdf"
     },
     "445": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 428,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 488,
       "pageCount": 1,
       "source": "445_恩典大過我罪愆.pdf"
     },
     "446": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 429,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 489,
+      "pageCount": 2,
       "source": "446_頌讚主聖名.pdf"
     },
     "447": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 430,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 491,
       "pageCount": 1,
       "source": "447_歡欣主為君王.pdf"
     },
     "449": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 431,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 492,
       "pageCount": 1,
       "source": "449_何能如此.pdf"
     },
     "450": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 432,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 493,
+      "pageCount": 17,
       "source": "450_吹響徵戰號.pdf"
     },
     "451": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 433,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 510,
       "pageCount": 1,
       "source": "451_到各山嶺去傳揚_465.pdf"
     },
     "452": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 434,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 495,
       "pageCount": 1,
       "source": "452_我願常見祢.pdf"
     },
     "453": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 435,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 496,
       "pageCount": 1,
       "source": "453_我是君王后嗣.pdf"
     },
     "454": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 436,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 497,
       "pageCount": 1,
       "source": "454_以馬內利懇求降臨.pdf"
     },
     "455": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 437,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 498,
       "pageCount": 1,
       "source": "455_最美聖名.pdf"
     },
     "456": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 438,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 347,
       "pageCount": 1,
       "source": "456_這世界的光是耶穌_313.pdf"
     },
     "459": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 439,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 348,
       "pageCount": 1,
       "source": "459_耶穌呼召.pdf"
     },
     "462": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 440,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 358,
+      "pageCount": 7,
       "source": "462_慈愛的救主_324.pdf"
     },
     "463": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 441,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 365,
       "pageCount": 1,
       "source": "463_聖靈信實保惠師_332.pdf"
     },
     "466": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 442,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 385,
+      "pageCount": 3,
       "source": "466_每一天_351.pdf"
     },
     "467": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 443,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 388,
+      "pageCount": 5,
       "source": "467_只要信祂_354.pdf"
     },
     "468": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 444,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 393,
+      "pageCount": 8,
       "source": "468_基督活在我心_358.pdf"
     },
     "469": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 445,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 401,
+      "pageCount": 4,
       "source": "469_照主旨意行_366.pdf"
     },
     "470": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 446,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 405,
       "pageCount": 1,
       "source": "470_快傳福音.pdf"
     },
     "471": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 447,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 406,
+      "pageCount": 3,
       "source": "471_在各各他.pdf"
     },
     "472": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 448,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 409,
       "pageCount": 1,
       "source": "472_降百福甘霖.pdf"
     },
     "475": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 449,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 383,
       "pageCount": 1,
       "source": "475_救主正在等待.pdf"
     },
     "478": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 450,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 421,
+      "pageCount": 12,
       "source": "478_我願效法耶穌.pdf"
     },
     "479": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 451,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 433,
       "pageCount": 1,
       "source": "479_聽良牧慈聲.pdf"
     },
     "481": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 452,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 444,
       "pageCount": 1,
       "source": "481_讚美救主.pdf"
     },
     "486": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 453,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 451,
       "pageCount": 1,
       "source": "486_我可願作十架精兵.pdf"
     },
     "488": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 454,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 342,
       "pageCount": 1,
       "source": "488_天父接納我.pdf"
     },
     "490": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 455,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 511,
       "pageCount": 1,
       "source": "490_讚美耶穌基督.pdf"
     },
     "493": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 456,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 455,
       "pageCount": 1,
       "source": "493_我們同心聚集.pdf"
     },
     "494": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 457,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 456,
       "pageCount": 1,
       "source": "494_恩主與我同在.pdf"
     },
     "495": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 458,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 127,
       "pageCount": 1,
       "source": "495_快親近主_103.pdf"
     },
     "497": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 459,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 512,
       "pageCount": 1,
       "source": "497_主的應許.pdf"
     },
     "498": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
+      "path": "assets/data/pdf/mdr/MDR.pdf",
       "startPage": 460,
-      "pageCount": 1,
+      "pageCount": 15,
       "source": "498_耶穌領我回家.pdf"
     },
     "499": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 461,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 475,
+      "pageCount": 5,
       "source": "499_祂大能手扶持我.pdf"
     },
     "500": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 462,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 480,
       "pageCount": 1,
       "source": "500_誰正守候在門外.pdf"
     },
     "501": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 463,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 371,
+      "pageCount": 11,
       "source": "501_耶穌揀選我.pdf"
     },
     "502": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 464,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 382,
+      "pageCount": 2,
       "source": "502_祂是奇妙救主.pdf"
     },
     "503": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 465,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 384,
       "pageCount": 1,
       "source": "503_主比生命更宝贵_350.pdf"
     },
     "505": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 466,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 205,
+      "pageCount": 217,
       "source": "505_趁還有今天_178.pdf"
     },
     "506": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 467,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 422,
       "pageCount": 1,
       "source": "506_救贖.pdf"
     },
     "508": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 468,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 465,
+      "pageCount": 3,
       "source": "508_我錨堅固牢靠.pdf"
     },
     "509": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 469,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 468,
+      "pageCount": 2,
       "source": "509_我屬我王_425.pdf"
     },
     "510": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
+      "path": "assets/data/pdf/mdr/MDR.pdf",
       "startPage": 470,
       "pageCount": 1,
       "source": "510_耶穌與我同行_428.pdf"
     },
     "512": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 471,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 131,
+      "pageCount": 154,
       "source": "512_容我與主同行_107.pdf"
     },
     "513": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 472,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 285,
+      "pageCount": 198,
       "source": "513_主今夜賜福_255.pdf"
     },
     "514": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 473,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 483,
+      "pageCount": 30,
       "source": "514_在主愛中團契_440.pdf"
     },
     "515": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 474,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 513,
       "pageCount": 1,
       "source": "515_寶貴回憶.pdf"
     },
     "516": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 475,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 484,
       "pageCount": 1,
       "source": "516_我立下決心_441.pdf"
     },
     "517": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 476,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 18,
+      "pageCount": 450,
       "source": "517_亞伯拉罕的神_3.pdf"
     },
     "518": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 477,
-      "pageCount": 1,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 468,
+      "pageCount": 26,
       "source": "518_榮耀永歸耶穌_443.pdf"
     },
     "519": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 478,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 494,
       "pageCount": 1,
       "source": "519_藏身主裡_451.pdf"
     },
     "524": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 479,
-      "pageCount": 2,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 449,
+      "pageCount": 1,
       "source": "524_若主今日再臨_408.pdf"
     },
     "526": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 481,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 490,
       "pageCount": 1,
       "source": "526_高唱和散那_447.pdf"
     },
     "527": {
-      "path": "assets/data/pdf/mdr/mdr_master.pdf",
-      "startPage": 482,
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 452,
       "pageCount": 1,
       "source": "527_在等不多時_410.pdf"
+    },
+    "003": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 19,
+      "pageCount": 1,
+      "source": "003_song.pdf"
+    },
+    "103": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 127,
+      "pageCount": 1,
+      "source": "103_song.pdf"
+    },
+    "107": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 131,
+      "pageCount": 1,
+      "source": "107_song.pdf"
+    },
+    "138": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 165,
+      "pageCount": 1,
+      "source": "138_song.pdf"
+    },
+    "178": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 205,
+      "pageCount": 1,
+      "source": "178_song.pdf"
+    },
+    "308": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 342,
+      "pageCount": 1,
+      "source": "308_song.pdf"
+    },
+    "313": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 347,
+      "pageCount": 1,
+      "source": "313_song.pdf"
+    },
+    "314": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 347,
+      "pageCount": 2,
+      "source": "314_song.pdf"
+    },
+    "324": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 358,
+      "pageCount": 1,
+      "source": "324_song.pdf"
+    },
+    "331": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 365,
+      "pageCount": 1,
+      "source": "331_song.pdf"
+    },
+    "335": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 369,
+      "pageCount": 1,
+      "source": "335_song.pdf"
+    },
+    "337": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 371,
+      "pageCount": 1,
+      "source": "337_song.pdf"
+    },
+    "344": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 378,
+      "pageCount": 1,
+      "source": "344_song.pdf"
+    },
+    "348": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 382,
+      "pageCount": 1,
+      "source": "348_song.pdf"
+    },
+    "349": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 382,
+      "pageCount": 121,
+      "source": "349_song.pdf"
+    },
+    "351": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 504,
+      "pageCount": 1,
+      "source": "351_song.pdf"
+    },
+    "354": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 387,
+      "pageCount": 2,
+      "source": "354_song.pdf"
+    },
+    "358": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 393,
+      "pageCount": 1,
+      "source": "358_song.pdf"
+    },
+    "366": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 401,
+      "pageCount": 2,
+      "source": "366_song.pdf"
+    },
+    "368": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 404,
+      "pageCount": 1,
+      "source": "368_song.pdf"
+    },
+    "369": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 404,
+      "pageCount": 3,
+      "source": "369_song.pdf"
+    },
+    "372": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 409,
+      "pageCount": 1,
+      "source": "372_song.pdf"
+    },
+    "384": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 421,
+      "pageCount": 83,
+      "source": "384_song.pdf"
+    },
+    "393": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 432,
+      "pageCount": 2,
+      "source": "393_song.pdf"
+    },
+    "408": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 448,
+      "pageCount": 1,
+      "source": "408_song.pdf"
+    },
+    "409": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 448,
+      "pageCount": 1,
+      "source": "409_song.pdf"
+    },
+    "410": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 448,
+      "pageCount": 5,
+      "source": "410_song.pdf"
+    },
+    "413": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 455,
+      "pageCount": 1,
+      "source": "413_song.pdf"
+    },
+    "414": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 455,
+      "pageCount": 2,
+      "source": "414_song.pdf"
+    },
+    "417": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 460,
+      "pageCount": 1,
+      "source": "417_song.pdf"
+    },
+    "422": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 465,
+      "pageCount": 1,
+      "source": "422_song.pdf"
+    },
+    "428": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 471,
+      "pageCount": 1,
+      "source": "428_song.pdf"
+    },
+    "432": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 475,
+      "pageCount": 1,
+      "source": "432_song.pdf"
+    },
+    "437": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 480,
+      "pageCount": 1,
+      "source": "437_song.pdf"
+    },
+    "440": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 483,
+      "pageCount": 25,
+      "source": "440_song.pdf"
+    },
+    "444": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 510,
+      "pageCount": 1,
+      "source": "444_song.pdf"
+    },
+    "448": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 492,
+      "pageCount": 1,
+      "source": "448_song.pdf"
+    },
+    "457": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 348,
+      "pageCount": 1,
+      "source": "457_song.pdf"
+    },
+    "458": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 348,
+      "pageCount": 1,
+      "source": "458_song.pdf"
+    },
+    "460": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 349,
+      "pageCount": 1,
+      "source": "460_song.pdf"
+    },
+    "461": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 349,
+      "pageCount": 9,
+      "source": "461_song.pdf"
+    },
+    "464": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 366,
+      "pageCount": 12,
+      "source": "464_song.pdf"
+    },
+    "465": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 378,
+      "pageCount": 7,
+      "source": "465_song.pdf"
+    },
+    "473": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 410,
+      "pageCount": 1,
+      "source": "473_song.pdf"
+    },
+    "474": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 410,
+      "pageCount": 1,
+      "source": "474_song.pdf"
+    },
+    "476": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 384,
+      "pageCount": 1,
+      "source": "476_song.pdf"
+    },
+    "477": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 384,
+      "pageCount": 37,
+      "source": "477_song.pdf"
+    },
+    "480": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 434,
+      "pageCount": 10,
+      "source": "480_song.pdf"
+    },
+    "482": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 445,
+      "pageCount": 1,
+      "source": "482_song.pdf"
+    },
+    "483": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 445,
+      "pageCount": 1,
+      "source": "483_song.pdf"
+    },
+    "484": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 445,
+      "pageCount": 1,
+      "source": "484_song.pdf"
+    },
+    "485": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 445,
+      "pageCount": 6,
+      "source": "485_song.pdf"
+    },
+    "487": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 452,
+      "pageCount": 1,
+      "source": "487_song.pdf"
+    },
+    "489": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 255,
+      "pageCount": 256,
+      "source": "489_song.pdf"
+    },
+    "491": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 512,
+      "pageCount": 1,
+      "source": "491_song.pdf"
+    },
+    "492": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 512,
+      "pageCount": 1,
+      "source": "492_song.pdf"
+    },
+    "496": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 128,
+      "pageCount": 384,
+      "source": "496_song.pdf"
+    },
+    "504": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 385,
+      "pageCount": 1,
+      "source": "504_song.pdf"
+    },
+    "507": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 423,
+      "pageCount": 42,
+      "source": "507_song.pdf"
+    },
+    "511": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 471,
+      "pageCount": 1,
+      "source": "511_song.pdf"
+    },
+    "520": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 495,
+      "pageCount": 1,
+      "source": "520_song.pdf"
+    },
+    "521": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 495,
+      "pageCount": 1,
+      "source": "521_song.pdf"
+    },
+    "522": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 495,
+      "pageCount": 1,
+      "source": "522_song.pdf"
+    },
+    "523": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 495,
+      "pageCount": 1,
+      "source": "523_song.pdf"
+    },
+    "525": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 450,
+      "pageCount": 40,
+      "source": "525_song.pdf"
+    },
+    "528": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 453,
+      "pageCount": 1,
+      "source": "528_song.pdf"
+    },
+    "529": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 453,
+      "pageCount": 1,
+      "source": "529_song.pdf"
+    },
+    "530": {
+      "path": "assets/data/pdf/mdr/MDR.pdf",
+      "startPage": 453,
+      "pageCount": 1,
+      "source": "530_song.pdf"
     }
   }
 }

@@ -28,22 +28,92 @@ class SongCubit extends HydratedCubit<SongState> {
   MidiEngineService get midiEngine => _midiEngine;
 
   bool get isSelectingSong => state.selectedSong != null;
-  bool get isWarmUpEnabled => _warmUpEnabled;
+  bool get isWarmUpEnabled => state.midiPreloadEnabled;
 
   void toggleWarmUp([bool? value]) {
-    _warmUpEnabled = value ?? !_warmUpEnabled;
-    if (_warmUpEnabled) {
+    final newValue = value ?? !state.midiPreloadEnabled;
+    emit(state.copyWith(midiPreloadEnabled: newValue));
+    if (newValue) {
       unawaited(_warmUpPlaybackQueue());
     }
   }
 
-  Future<void> _warmUpPlaybackQueue({int count = 1}) async {
-    if (!_warmUpEnabled || !state.showAudio || state.songs.isEmpty) return;
-    final queue = _playbackQueue();
-    for (final song in queue.preloadSongs(count: count)) {
-      final midiPath = await _midiPathForSong(song);
+  Future<void> _warmUpPlaybackQueue() async {
+    try {
+      if (!state.midiPreloadEnabled || !state.showAudio || state.songs.isEmpty) {
+        log(
+          'Warm-up skipped: enabled=${state.midiPreloadEnabled}, showAudio=${state.showAudio}, songs=${state.songs.length}',
+          name: 'SongCubit',
+        );
+        return;
+      }
+      final count = state.midiPreloadNeighborCount.clamp(0, 5);
+      final queue = _playbackQueue();
+      final preloadSongs = queue.preloadSongs(count: count);
+      log(
+        'Warm-up starting: mode=${queue.autoNextMode}, count=$count, preloadSongs=${preloadSongs.length}',
+        name: 'SongCubit',
+      );
+      for (final song in preloadSongs) {
+        final midiPath = await _midiPathForSong(song);
+        if (midiPath != null) {
+          final defaults = await _resolvePreloadDefaultsForSong(song);
+          log(
+            'Warm-up song: ${song.code} ${song.number} → $midiPath',
+            name: 'SongCubit',
+          );
+          unawaited(
+            _midiEngine.warmUp(
+              midiPath,
+              transpose: defaults.transposeStep,
+              tempoBpm: defaults.tempoBpm,
+              baseTempoBpm: defaults.defaultTempoBpm,
+              instrument: state.midiInstrument,
+            ),
+          );
+        }
+      }
+      log('Warm-up finished', name: 'SongCubit');
+    } catch (e, st) {
+      log('Warm-up error: $e', name: 'SongCubit', error: e, stackTrace: st);
+    }
+  }
+
+  StreamSubscription<MidiPlaybackState>? _midiStateSub;
+  Timer? _debouncer;
+  MidiPlaybackState _lastMidiState = const MidiPlaybackState();
+  bool _handlingAutoNext = false;
+  int _midiLoadGeneration = 0;
+
+  SongCubit(this.songRepository, this._assetService, this._midiEngine)
+    : super(const SongState()) {
+    _setupMidiStreams();
+    _initializeAsync();
+  }
+
+  Future<void> _initializeAsync() async {
+    // Run data loading and MIDI engine init in parallel so they don't
+    // block each other at startup.
+    final dataFuture = getData();
+    final midiInitFuture = _midiEngine.initialize();
+    await Future.wait([dataFuture, midiInitFuture]);
+
+    // Apply persisted engine settings.
+    await _midiEngine.changeSoundFont(state.soundFont);
+    _midiEngine.setCacheMax(state.midiCacheMaxCount);
+
+    // If audio was enabled in a previous session, pre-warm the current
+    // song's MIDI in the background so playback starts instantly.
+    if (state.showAudio && state.songs.isNotEmpty) {
+      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+      final currentSong = state.songs[currentIdx];
+      final midiPath = await _midiPathForSong(currentSong);
       if (midiPath != null) {
-        final defaults = await _resolvePreloadDefaultsForSong(song);
+        final defaults = await _resolvePreloadDefaultsForSong(currentSong);
+        log(
+          'Startup warm-up current song: ${currentSong.code} ${currentSong.number} → $midiPath',
+          name: 'SongCubit',
+        );
         unawaited(
           _midiEngine.warmUp(
             midiPath,
@@ -54,23 +124,8 @@ class SongCubit extends HydratedCubit<SongState> {
           ),
         );
       }
+      unawaited(_warmUpPlaybackQueue());
     }
-  }
-
-  StreamSubscription<MidiPlaybackState>? _midiStateSub;
-  Timer? _debouncer;
-  MidiPlaybackState _lastMidiState = const MidiPlaybackState();
-  bool _handlingAutoNext = false;
-  int _midiLoadGeneration = 0;
-  bool _warmUpEnabled = true;
-
-  SongCubit(this.songRepository, this._assetService, this._midiEngine)
-    : super(const SongState()) {
-    _setupMidiStreams();
-    getData().then((_) async {
-      await _midiEngine.initialize();
-      await _midiEngine.changeSoundFont(state.soundFont);
-    });
   }
 
   void _setupMidiStreams() {
@@ -113,7 +168,9 @@ class SongCubit extends HydratedCubit<SongState> {
   // ─── MIDI Playback ────────────────────────────────────────────
 
   Future<String?> _midiPathForSong(Song song) {
-    return _assetService.getMidiPath(song.code ?? '', song.number ?? '');
+    final midiCode = song.midiMappedFrom ?? song.code ?? '';
+    final midiNumber = song.midiMappedNumber ?? song.number ?? '';
+    return _assetService.getMidiPath(midiCode, midiNumber);
   }
 
   Future<void> _loadMidiForSong(
@@ -341,12 +398,30 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
+  // ─── Preload Settings ───────────────────────────────────────
+
+  void setMidiPreloadNeighborCount(int count) {
+    final clamped = count.clamp(0, 5);
+    emit(state.copyWith(midiPreloadNeighborCount: clamped));
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  void setMidiCacheMaxCount(int count) {
+    final clamped = count.clamp(4, 32);
+    emit(state.copyWith(midiCacheMaxCount: clamped));
+    _midiEngine.setCacheMax(clamped);
+  }
+
   // ─── Page Navigation ──────────────────────────────────────────
 
   Future<void> changePage(int index, int verseIndex) async {
     if (index < 0 || index >= state.songs.length) return;
     final wasPlaying = state.isAudioPlaying;
     final song = state.songs[index];
+    log(
+      'changePage: ${song.code} ${song.number} (index=$index, wasPlaying=$wasPlaying)',
+      name: 'SongCubit',
+    );
     final reset = await _resolvePreloadDefaultsForSong(song);
     emit(
       state.copyWith(
@@ -467,6 +542,30 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
+  /// Re-detect family chord from edited chords (e.g. from the PDF viewer's
+  /// note-aligned chord editor) and update transpose baseline accordingly.
+  /// This mirrors gyschordweb's detectNoteAlignedFamilyChord.
+  void detectAndUpdateFamilyChord(Map<int, List<ChordData>> chords) {
+    final familyChord = ChordService.detectFamilyChord(chords);
+    final baseline = _currentPlaybackDefaults().resolveChordBaseline(
+      familyChord: familyChord,
+      pdfKey: state.originalPdfKey,
+      preferNaturalChords: state.preferNaturalChords,
+    );
+    final previousTranspose = state.transposeStep;
+    emit(
+      state.copyWith(
+        originalFamilyChord: baseline.originalFamilyChord,
+        originalPdfKey: baseline.originalPdfKey,
+        baseTransposeOffset: baseline.baseTransposeOffset,
+        transposeStep: baseline.transposeStep,
+      ),
+    );
+    if (baseline.transposeStep != previousTranspose) {
+      _midiEngine.setTranspose(baseline.transposeStep);
+    }
+  }
+
   SongPlaybackDefaults _currentPlaybackDefaults() {
     return SongPlaybackDefaults(
       transposeStep: state.transposeStep,
@@ -531,6 +630,10 @@ class SongCubit extends HydratedCubit<SongState> {
     );
     final index = book.songs.indexWhere(
       (item) => item.code == song.code && item.number == song.number,
+    );
+    log(
+      'openSong: ${song.code} ${song.number} → book=$bookCode, index=$index',
+      name: 'SongCubit',
     );
     if (index < 0) return;
     addToHistory(

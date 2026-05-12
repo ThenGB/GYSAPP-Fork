@@ -1,11 +1,14 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 
 import '../cubit/song_playlist.dart';
 
-const double kMidiOverlayHorizontalMargin = 16;
+const double kMidiOverlayHorizontalMargin = 24;
 const double kMidiOverlayBottomOffset = 0;
 const double kMidiCollapsedBarHeight = 48;
 const double kMidiCollapsedMaxWidth = 220;
+const double kMidiExpandedMaxWidth = 520;
 
 IconData midiLoopModeIcon(String mode) {
   return switch (SongPlaylistAutoNextMode.normalize(mode)) {
@@ -57,6 +60,22 @@ class DraggableMidiControls extends StatefulWidget {
   final ValueChanged<String> onSoundFont;
   final String nowPlayingTitle;
 
+  /// When provided the panel's expand/collapse state is controlled externally
+  /// (e.g. by the Dashboard which needs the height for layout calculations).
+  final bool? isExpanded;
+  final ValueChanged<bool>? onExpandedChanged;
+
+  /// Optional prev/next song callbacks; shown in the expanded panel when set.
+  final VoidCallback? onPreviousSong;
+  final VoidCallback? onNextSong;
+
+  /// Whether to wrap the panel in a [Positioned] widget.  Set to `false` when
+  /// the caller already handles positioning (e.g. the Dashboard).
+  final bool usePositioned;
+  final double leftMargin;
+  final double rightMargin;
+  final double bottomOffset;
+
   const DraggableMidiControls({
     super.key,
     required this.isPlaying,
@@ -81,6 +100,14 @@ class DraggableMidiControls extends StatefulWidget {
     required this.onInstrument,
     required this.onSoundFont,
     this.nowPlayingTitle = '',
+    this.isExpanded,
+    this.onExpandedChanged,
+    this.onPreviousSong,
+    this.onNextSong,
+    this.usePositioned = true,
+    this.leftMargin = kMidiOverlayHorizontalMargin,
+    this.rightMargin = kMidiOverlayHorizontalMargin,
+    this.bottomOffset = kMidiOverlayBottomOffset,
   });
 
   @override
@@ -98,12 +125,22 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   late Animation<double> _pulseAnimation;
   double _seekValue = 0;
 
+  // Floating button snap state
+  bool _snapRight = true;
+  double _dragX = 0;
+  bool _isDragging = false;
+
+  bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
+
   @override
   void initState() {
     super.initState();
+    final initiallyExpanded = _effectiveExpanded;
+    _expanded = initiallyExpanded;
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 280),
       vsync: this,
+      value: initiallyExpanded ? 1.0 : 0.0,
     );
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -122,7 +159,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
-    _animationController.forward();
+    if (initiallyExpanded) {
+      _animationController.forward(from: 1.0);
+    }
   }
 
   @override
@@ -130,6 +169,21 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _animationController.dispose();
     _pulseController.dispose();
     super.dispose();
+  }
+
+  @override
+  void didUpdateWidget(covariant DraggableMidiControls oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isExpanded != null &&
+        oldWidget.isExpanded != widget.isExpanded) {
+      final newValue = widget.isExpanded!;
+      _expanded = newValue;
+      if (newValue) {
+        _animationController.forward();
+      } else {
+        _animationController.reverse();
+      }
+    }
   }
 
   String _formatTime(double seconds) {
@@ -171,78 +225,116 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
+  void _setExpanded(bool value) {
+    if (widget.onExpandedChanged != null) {
+      widget.onExpandedChanged!(value);
+    } else {
+      setState(() => _expanded = value);
+    }
+    if (value) {
+      _animationController.forward();
+    } else {
+      _animationController.reverse();
+    }
+  }
+
+  void _handlePanUpdate(DragUpdateDetails details) {
+    setState(() {
+      _isDragging = true;
+      _dragX -= details.delta.dx;
+    });
+  }
+
+  void _handlePanEnd(DragEndDetails details) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final buttonCenter = _snapRight
+        ? screenWidth - widget.rightMargin - 24 - _dragX
+        : widget.leftMargin + 24 + _dragX;
+    setState(() {
+      _isDragging = false;
+      _snapRight = buttonCenter >= screenWidth / 2;
+      _dragX = 0;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
-    return Positioned(
-      left: kMidiOverlayHorizontalMargin,
-      right: kMidiOverlayHorizontalMargin,
-      bottom: kMidiOverlayBottomOffset,
-      child: SlideTransition(
-        position: _slideAnimation,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: _expanded
-              ? _buildExpandedPanel(context, colors)
-              : _buildCollapsedTrigger(context, colors),
-        ),
+    if (!_effectiveExpanded) {
+      final content = _buildCollapsedTrigger(context, colors);
+      if (widget.usePositioned) {
+        return Positioned(
+          left: widget.leftMargin,
+          right: widget.rightMargin,
+          bottom: widget.bottomOffset,
+          child: content,
+        );
+      }
+      return content;
+    }
+
+    Widget content = SlideTransition(
+      position: _slideAnimation,
+      child: FadeTransition(
+        opacity: _fadeAnimation,
+        child: _buildExpandedPanel(context, colors),
       ),
     );
+
+    if (widget.usePositioned) {
+      return Positioned(
+        left: widget.leftMargin,
+        right: widget.rightMargin,
+        bottom: widget.bottomOffset,
+        child: content,
+      );
+    }
+    return content;
   }
 
   Widget _buildCollapsedTrigger(BuildContext context, ColorScheme colors) {
-    final title = widget.nowPlayingTitle.trim();
+    final alignment = _snapRight ? Alignment.bottomRight : Alignment.bottomLeft;
     return Align(
-      alignment: Alignment.bottomRight,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: kMidiCollapsedMaxWidth),
-        child: Material(
-          key: const ValueKey('midi-collapsed'),
-          color: colors.primary,
-          borderRadius: BorderRadius.circular(16),
-          clipBehavior: Clip.antiAlias,
-          elevation: 2,
-          shadowColor: colors.primary.withValues(alpha: 0.18),
-          child: InkWell(
-            onTap: () {
-              setState(() => _expanded = true);
-              _animationController.forward();
-            },
+      alignment: alignment,
+      child: GestureDetector(
+        onPanUpdate: _handlePanUpdate,
+        onPanEnd: _handlePanEnd,
+        onTap: () => _setExpanded(true),
+        child: AnimatedContainer(
+          duration: _isDragging ? Duration.zero : const Duration(milliseconds: 300),
+          curve: Curves.easeOutCubic,
+          transform: Matrix4.translationValues(
+            _snapRight
+                ? -_dragX.clamp(0, 200).toDouble()
+                : _dragX.clamp(0, 200).toDouble(),
+            0,
+            0,
+          ),
+          child: Material(
+            key: const ValueKey('midi-collapsed'),
+            color: colors.primary,
+            shape: const CircleBorder(),
+            clipBehavior: Clip.antiAlias,
+            elevation: 3,
+            shadowColor: colors.primary.withValues(alpha: 0.25),
             child: SizedBox(
-              height: kMidiCollapsedBarHeight,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 14),
-                child: Row(
-                  children: [
-                    AnimatedBuilder(
-                      animation: _pulseAnimation,
-                      builder: (context, child) {
-                        return Transform.scale(
-                          scale: _pulseAnimation.value,
-                          child: Icon(
-                            Icons.music_note_rounded,
-                            size: 17,
-                            color: colors.onPrimary,
-                          ),
-                        );
-                      },
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        title.isEmpty ? 'Now Playing' : 'Now Playing: $title',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colors.onPrimary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.2,
-                        ),
+              width: 48,
+              height: 48,
+              child: Center(
+                child: AnimatedBuilder(
+                  animation: _pulseAnimation,
+                  builder: (context, child) {
+                    return Transform.scale(
+                      scale: _pulseAnimation.value,
+                      child: Icon(
+                        Icons.music_note_rounded,
+                        size: 20,
+                        color: colors.onPrimary,
                       ),
-                    ),
-                    Icon(Icons.expand_more, color: colors.onPrimary, size: 22),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -253,24 +345,39 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   }
 
   Widget _buildExpandedPanel(BuildContext context, ColorScheme colors) {
-    return Container(
-      key: const ValueKey('midi-expanded'),
-      decoration: BoxDecoration(
-        color: colors.surfaceContainerHighest,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-        border: Border.all(color: colors.outlineVariant),
-        boxShadow: [
-          BoxShadow(
-            color: colors.primary.withValues(alpha: 0.12),
-            blurRadius: 20,
-            offset: const Offset(0, 6),
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kMidiExpandedMaxWidth),
+        child: Container(
+          key: const ValueKey('midi-expanded'),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
+            border: Border.all(
+              color: const Color(0xFFD4AF37).withValues(alpha: 0.35),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.primary.withValues(alpha: 0.08),
+                blurRadius: 32,
+                spreadRadius: 4,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
-        ],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InkWell(
+          child: ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(16),
+            ),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+              child: ColoredBox(
+                color: colors.surfaceContainerLowest.withValues(alpha: 0.82),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
             key: const ValueKey('midi-collapse-toggle'),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             onTap: () {
@@ -531,6 +638,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           ),
         ],
       ),
-    );
+    ),
+  ),
+),
+),
+),
+);
   }
 }

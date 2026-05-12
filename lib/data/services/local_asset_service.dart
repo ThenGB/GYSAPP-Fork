@@ -1,7 +1,10 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
 
@@ -12,6 +15,10 @@ class LocalAssetService {
   final Map<String, Map<String, dynamic>> _pdfManifestCache = {};
   Map<String, String>? _normalizedAssetPathMap;
   Map<String, Map<String, String>>? _pdfPathByBookAndNumber;
+
+  /// Maps asset paths (e.g. `assets/data/pdf/mdr/mdr_master.pdf`) to temp file
+  /// paths extracted on disk so pdfrx can open them with `PdfViewer.file`.
+  final Map<String, String> _masterPdfTempPaths = {};
 
   Future<void> initialize() async {}
 
@@ -86,6 +93,7 @@ class LocalAssetService {
   Future<String?> getPdfPath(String bookCode, String number) async {
     final song = await _findSong(bookCode, number);
     if (song.isEmpty) return null;
+
     final masterPath = await _resolveMasterPdfPath(bookCode, number);
     if (masterPath != null) return masterPath;
 
@@ -108,28 +116,56 @@ class LocalAssetService {
     final resolved = bookIndex?[number] ?? bookIndex?[number.padLeft(3, '0')];
     if (resolved != null) return resolved;
 
-    log('PDF path not found for $bookCode $number', name: 'LocalAssetService');
+    // No PDF for this song — not an error, many songs legitimately have
+    // no sheet-music PDF (e.g. MDR songs 003, 103, etc.).
     return null;
   }
 
   Future<String?> _resolveMasterPdfPath(String bookCode, String number) async {
     final manifest = await _loadPdfManifest(bookCode);
+    if (manifest.isEmpty) {
+      log('Manifest empty for $bookCode', name: 'LocalAssetService');
+      return null;
+    }
+
     final songs = manifest['songs'];
-    if (songs is! Map<String, dynamic>) return null;
+    if (songs is! Map<String, dynamic>) {
+      log('Manifest songs missing for $bookCode', name: 'LocalAssetService');
+      return null;
+    }
 
     final entry = songs[number] ?? songs[number.padLeft(3, '0')];
-    if (entry is! Map<String, dynamic>) return null;
+    if (entry is! Map<String, dynamic>) {
+      log('Song $number not found in $bookCode manifest', name: 'LocalAssetService');
+      return null;
+    }
 
     final path = entry['path'] as String? ?? manifest['masterPath'] as String?;
     final startPage = entry['startPage'];
     final pageCount = entry['pageCount'];
-    if (path == null || startPage is! int || pageCount is! int) return null;
+    if (path == null || startPage is! int || pageCount is! int) {
+      log('Incomplete entry for $bookCode $number', name: 'LocalAssetService');
+      return null;
+    }
+
+    // Extract large master PDFs to temp files so pdfrx opens them via
+    // PdfViewer.file() instead of PdfViewer.asset().  This avoids flaky
+    // asset-loading on Windows desktop with multi-ten-megabyte files.
+    if (path.startsWith('assets/')) {
+      final tempPath = await _extractMasterPdfToTemp(path);
+      if (tempPath != null) {
+        return '$tempPath#page=$startPage&pages=$pageCount';
+      }
+    }
 
     return '$path#page=$startPage&pages=$pageCount';
   }
 
   Future<Map<String, dynamic>> _loadPdfManifest(String bookCode) async {
-    if (_pdfManifestCache.containsKey(bookCode)) {
+    // Only return cached value if it is a real manifest (not an empty error
+    // placeholder) so that transient load failures are retried next time.
+    if (_pdfManifestCache.containsKey(bookCode) &&
+        _pdfManifestCache[bookCode]!.isNotEmpty) {
       return _pdfManifestCache[bookCode]!;
     }
 
@@ -143,16 +179,52 @@ class LocalAssetService {
       final jsonString = await rootBundle.loadString(
         'assets/data/index/${folder}_pdf_manifest.json',
       );
-      _pdfManifestCache[bookCode] =
-          jsonDecode(jsonString) as Map<String, dynamic>;
-    } catch (e) {
-      _pdfManifestCache[bookCode] = {};
+      final manifest = jsonDecode(jsonString) as Map<String, dynamic>;
+      _pdfManifestCache[bookCode] = manifest;
+      return manifest;
+    } catch (e, st) {
+      log(
+        'Failed to load PDF manifest for $bookCode: $e\n$st',
+        name: 'LocalAssetService',
+      );
+      return {};
     }
-    return _pdfManifestCache[bookCode]!;
+  }
+
+  /// Copy a master PDF asset to a temp file once per session so pdfrx can
+  /// open it with PdfViewer.file() which is more reliable than .asset() for
+  /// large files on Windows desktop.
+  Future<String?> _extractMasterPdfToTemp(String assetPath) async {
+    if (_masterPdfTempPaths.containsKey(assetPath)) {
+      final cached = _masterPdfTempPaths[assetPath]!;
+      if (await File(cached).exists()) return cached;
+      _masterPdfTempPaths.remove(assetPath);
+    }
+
+    try {
+      final tempDir = await getTemporaryDirectory();
+      final fileName = p.basename(assetPath);
+      final tempFile = File(p.join(tempDir.path, 'master_pdfs', fileName));
+      if (await tempFile.exists()) {
+        _masterPdfTempPaths[assetPath] = tempFile.path;
+        return tempFile.path;
+      }
+
+      final byteData = await rootBundle.load(assetPath);
+      await tempFile.parent.create(recursive: true);
+      await tempFile.writeAsBytes(byteData.buffer.asUint8List());
+      _masterPdfTempPaths[assetPath] = tempFile.path;
+      log('Extracted master PDF to ${tempFile.path}', name: 'LocalAssetService');
+      return tempFile.path;
+    } catch (e) {
+      log('Failed to extract master PDF $assetPath: $e', name: 'LocalAssetService');
+      return null;
+    }
   }
 
   String? _pdfFolderForBookCode(String bookCode) {
     return switch (bookCode) {
+      'KR' => 'kr',
       'MDR' => 'mdr',
       'HYMNE' => 'hymne',
       'ASM-I' => 'asm_i',
@@ -254,7 +326,7 @@ class LocalAssetService {
       }
     }
 
-    log('Asset path not found: $path', name: 'LocalAssetService');
+    // Asset not found — the song may simply have no PDF file.
     return null;
   }
 

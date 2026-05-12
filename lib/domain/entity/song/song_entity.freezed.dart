@@ -287,7 +287,7 @@ as List<Song>,
 /// @nodoc
 mixin _$Song {
 
-@JsonKey(name: 'code') String? get code;@JsonKey(name: 'number') String? get number;@JsonKey(name: 'number2') String? get number2;@JsonKey(name: 'lyric') String? get title;@JsonKey(name: 'song') String? get soundfilePath;@JsonKey(name: 'pages') int? get pageLength;@JsonKey(name: 'page') int? get pageStart;@JsonKey(name: 'verses') List<String> get verses;
+@JsonKey(name: 'code') String? get code;@JsonKey(name: 'number') String? get number;@JsonKey(name: 'number2') String? get number2;@JsonKey(name: 'lyric') String? get title;@JsonKey(name: 'song') String? get soundfilePath;@JsonKey(name: 'pages') int? get pageLength;@JsonKey(name: 'page') int? get pageStart;@JsonKey(name: 'verses') List<String> get verses;@JsonKey(name: 'midiMappedFrom') String? get midiMappedFrom;@JsonKey(name: 'midiMappedNumber') String? get midiMappedNumber;
 /// Create a copy of Song
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -300,16 +300,16 @@ $SongCopyWith<Song> get copyWith => _$SongCopyWithImpl<Song>(this as Song, _$ide
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Song&&(identical(other.code, code) || other.code == code)&&(identical(other.number, number) || other.number == number)&&(identical(other.number2, number2) || other.number2 == number2)&&(identical(other.title, title) || other.title == title)&&(identical(other.soundfilePath, soundfilePath) || other.soundfilePath == soundfilePath)&&(identical(other.pageLength, pageLength) || other.pageLength == pageLength)&&(identical(other.pageStart, pageStart) || other.pageStart == pageStart)&&const DeepCollectionEquality().equals(other.verses, verses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Song&&(identical(other.code, code) || other.code == code)&&(identical(other.number, number) || other.number == number)&&(identical(other.number2, number2) || other.number2 == number2)&&(identical(other.title, title) || other.title == title)&&(identical(other.soundfilePath, soundfilePath) || other.soundfilePath == soundfilePath)&&(identical(other.pageLength, pageLength) || other.pageLength == pageLength)&&(identical(other.pageStart, pageStart) || other.pageStart == pageStart)&&const DeepCollectionEquality().equals(other.verses, verses)&&(identical(other.midiMappedFrom, midiMappedFrom) || other.midiMappedFrom == midiMappedFrom)&&(identical(other.midiMappedNumber, midiMappedNumber) || other.midiMappedNumber == midiMappedNumber));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,number,number2,title,soundfilePath,pageLength,pageStart,const DeepCollectionEquality().hash(verses));
+int get hashCode => Object.hash(runtimeType,code,number,number2,title,soundfilePath,pageLength,pageStart,const DeepCollectionEquality().hash(verses),midiMappedFrom,midiMappedNumber);
 
 @override
 String toString() {
-  return 'Song(code: $code, number: $number, number2: $number2, title: $title, soundfilePath: $soundfilePath, pageLength: $pageLength, pageStart: $pageStart, verses: $verses)';
+  return 'Song(code: $code, number: $number, number2: $number2, title: $title, soundfilePath: $soundfilePath, pageLength: $pageLength, pageStart: $pageStart, verses: $verses, midiMappedFrom: $midiMappedFrom, midiMappedNumber: $midiMappedNumber)';
 }
 
 
@@ -320,7 +320,7 @@ abstract mixin class $SongCopyWith<$Res>  {
   factory $SongCopyWith(Song value, $Res Function(Song) _then) = _$SongCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'code') String? code,@JsonKey(name: 'number') String? number,@JsonKey(name: 'number2') String? number2,@JsonKey(name: 'lyric') String? title,@JsonKey(name: 'song') String? soundfilePath,@JsonKey(name: 'pages') int? pageLength,@JsonKey(name: 'page') int? pageStart,@JsonKey(name: 'verses') List<String> verses
+@JsonKey(name: 'code') String? code,@JsonKey(name: 'number') String? number,@JsonKey(name: 'number2') String? number2,@JsonKey(name: 'lyric') String? title,@JsonKey(name: 'song') String? soundfilePath,@JsonKey(name: 'pages') int? pageLength,@JsonKey(name: 'page') int? pageStart,@JsonKey(name: 'verses') List<String> verses,@JsonKey(name: 'midiMappedFrom') String? midiMappedFrom,@JsonKey(name: 'midiMappedNumber') String? midiMappedNumber
 });
 
 
@@ -337,7 +337,7 @@ class _$SongCopyWithImpl<$Res>
 
 /// Create a copy of Song
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? code = freezed,Object? number = freezed,Object? number2 = freezed,Object? title = freezed,Object? soundfilePath = freezed,Object? pageLength = freezed,Object? pageStart = freezed,Object? verses = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? code = freezed,Object? number = freezed,Object? number2 = freezed,Object? title = freezed,Object? soundfilePath = freezed,Object? pageLength = freezed,Object? pageStart = freezed,Object? verses = null,Object? midiMappedFrom = freezed,Object? midiMappedNumber = freezed,}) {
   return _then(_self.copyWith(
 code: freezed == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String?,number: freezed == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
@@ -347,7 +347,9 @@ as String?,soundfilePath: freezed == soundfilePath ? _self.soundfilePath : sound
 as String?,pageLength: freezed == pageLength ? _self.pageLength : pageLength // ignore: cast_nullable_to_non_nullable
 as int?,pageStart: freezed == pageStart ? _self.pageStart : pageStart // ignore: cast_nullable_to_non_nullable
 as int?,verses: null == verses ? _self.verses : verses // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,midiMappedFrom: freezed == midiMappedFrom ? _self.midiMappedFrom : midiMappedFrom // ignore: cast_nullable_to_non_nullable
+as String?,midiMappedNumber: freezed == midiMappedNumber ? _self.midiMappedNumber : midiMappedNumber // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 
@@ -432,10 +434,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses, @JsonKey(name: 'midiMappedFrom')  String? midiMappedFrom, @JsonKey(name: 'midiMappedNumber')  String? midiMappedNumber)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Song() when $default != null:
-return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses);case _:
+return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses,_that.midiMappedFrom,_that.midiMappedNumber);case _:
   return orElse();
 
 }
@@ -453,10 +455,10 @@ return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfil
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses, @JsonKey(name: 'midiMappedFrom')  String? midiMappedFrom, @JsonKey(name: 'midiMappedNumber')  String? midiMappedNumber)  $default,) {final _that = this;
 switch (_that) {
 case _Song():
-return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses);case _:
+return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses,_that.midiMappedFrom,_that.midiMappedNumber);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -473,10 +475,10 @@ return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfil
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'code')  String? code, @JsonKey(name: 'number')  String? number, @JsonKey(name: 'number2')  String? number2, @JsonKey(name: 'lyric')  String? title, @JsonKey(name: 'song')  String? soundfilePath, @JsonKey(name: 'pages')  int? pageLength, @JsonKey(name: 'page')  int? pageStart, @JsonKey(name: 'verses')  List<String> verses, @JsonKey(name: 'midiMappedFrom')  String? midiMappedFrom, @JsonKey(name: 'midiMappedNumber')  String? midiMappedNumber)?  $default,) {final _that = this;
 switch (_that) {
 case _Song() when $default != null:
-return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses);case _:
+return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfilePath,_that.pageLength,_that.pageStart,_that.verses,_that.midiMappedFrom,_that.midiMappedNumber);case _:
   return null;
 
 }
@@ -488,7 +490,7 @@ return $default(_that.code,_that.number,_that.number2,_that.title,_that.soundfil
 @JsonSerializable()
 
 class _Song extends Song {
-  const _Song({@JsonKey(name: 'code') this.code, @JsonKey(name: 'number') this.number, @JsonKey(name: 'number2') this.number2, @JsonKey(name: 'lyric') this.title, @JsonKey(name: 'song') this.soundfilePath, @JsonKey(name: 'pages') this.pageLength, @JsonKey(name: 'page') this.pageStart, @JsonKey(name: 'verses') final  List<String> verses = const []}): _verses = verses,super._();
+  const _Song({@JsonKey(name: 'code') this.code, @JsonKey(name: 'number') this.number, @JsonKey(name: 'number2') this.number2, @JsonKey(name: 'lyric') this.title, @JsonKey(name: 'song') this.soundfilePath, @JsonKey(name: 'pages') this.pageLength, @JsonKey(name: 'page') this.pageStart, @JsonKey(name: 'verses') final  List<String> verses = const [], @JsonKey(name: 'midiMappedFrom') this.midiMappedFrom, @JsonKey(name: 'midiMappedNumber') this.midiMappedNumber}): _verses = verses,super._();
   factory _Song.fromJson(Map<String, dynamic> json) => _$SongFromJson(json);
 
 @override@JsonKey(name: 'code') final  String? code;
@@ -505,6 +507,8 @@ class _Song extends Song {
   return EqualUnmodifiableListView(_verses);
 }
 
+@override@JsonKey(name: 'midiMappedFrom') final  String? midiMappedFrom;
+@override@JsonKey(name: 'midiMappedNumber') final  String? midiMappedNumber;
 
 /// Create a copy of Song
 /// with the given fields replaced by the non-null parameter values.
@@ -519,16 +523,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Song&&(identical(other.code, code) || other.code == code)&&(identical(other.number, number) || other.number == number)&&(identical(other.number2, number2) || other.number2 == number2)&&(identical(other.title, title) || other.title == title)&&(identical(other.soundfilePath, soundfilePath) || other.soundfilePath == soundfilePath)&&(identical(other.pageLength, pageLength) || other.pageLength == pageLength)&&(identical(other.pageStart, pageStart) || other.pageStart == pageStart)&&const DeepCollectionEquality().equals(other._verses, _verses));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _Song&&(identical(other.code, code) || other.code == code)&&(identical(other.number, number) || other.number == number)&&(identical(other.number2, number2) || other.number2 == number2)&&(identical(other.title, title) || other.title == title)&&(identical(other.soundfilePath, soundfilePath) || other.soundfilePath == soundfilePath)&&(identical(other.pageLength, pageLength) || other.pageLength == pageLength)&&(identical(other.pageStart, pageStart) || other.pageStart == pageStart)&&const DeepCollectionEquality().equals(other._verses, _verses)&&(identical(other.midiMappedFrom, midiMappedFrom) || other.midiMappedFrom == midiMappedFrom)&&(identical(other.midiMappedNumber, midiMappedNumber) || other.midiMappedNumber == midiMappedNumber));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,code,number,number2,title,soundfilePath,pageLength,pageStart,const DeepCollectionEquality().hash(_verses));
+int get hashCode => Object.hash(runtimeType,code,number,number2,title,soundfilePath,pageLength,pageStart,const DeepCollectionEquality().hash(_verses),midiMappedFrom,midiMappedNumber);
 
 @override
 String toString() {
-  return 'Song(code: $code, number: $number, number2: $number2, title: $title, soundfilePath: $soundfilePath, pageLength: $pageLength, pageStart: $pageStart, verses: $verses)';
+  return 'Song(code: $code, number: $number, number2: $number2, title: $title, soundfilePath: $soundfilePath, pageLength: $pageLength, pageStart: $pageStart, verses: $verses, midiMappedFrom: $midiMappedFrom, midiMappedNumber: $midiMappedNumber)';
 }
 
 
@@ -539,7 +543,7 @@ abstract mixin class _$SongCopyWith<$Res> implements $SongCopyWith<$Res> {
   factory _$SongCopyWith(_Song value, $Res Function(_Song) _then) = __$SongCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'code') String? code,@JsonKey(name: 'number') String? number,@JsonKey(name: 'number2') String? number2,@JsonKey(name: 'lyric') String? title,@JsonKey(name: 'song') String? soundfilePath,@JsonKey(name: 'pages') int? pageLength,@JsonKey(name: 'page') int? pageStart,@JsonKey(name: 'verses') List<String> verses
+@JsonKey(name: 'code') String? code,@JsonKey(name: 'number') String? number,@JsonKey(name: 'number2') String? number2,@JsonKey(name: 'lyric') String? title,@JsonKey(name: 'song') String? soundfilePath,@JsonKey(name: 'pages') int? pageLength,@JsonKey(name: 'page') int? pageStart,@JsonKey(name: 'verses') List<String> verses,@JsonKey(name: 'midiMappedFrom') String? midiMappedFrom,@JsonKey(name: 'midiMappedNumber') String? midiMappedNumber
 });
 
 
@@ -556,7 +560,7 @@ class __$SongCopyWithImpl<$Res>
 
 /// Create a copy of Song
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? code = freezed,Object? number = freezed,Object? number2 = freezed,Object? title = freezed,Object? soundfilePath = freezed,Object? pageLength = freezed,Object? pageStart = freezed,Object? verses = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? code = freezed,Object? number = freezed,Object? number2 = freezed,Object? title = freezed,Object? soundfilePath = freezed,Object? pageLength = freezed,Object? pageStart = freezed,Object? verses = null,Object? midiMappedFrom = freezed,Object? midiMappedNumber = freezed,}) {
   return _then(_Song(
 code: freezed == code ? _self.code : code // ignore: cast_nullable_to_non_nullable
 as String?,number: freezed == number ? _self.number : number // ignore: cast_nullable_to_non_nullable
@@ -566,7 +570,9 @@ as String?,soundfilePath: freezed == soundfilePath ? _self.soundfilePath : sound
 as String?,pageLength: freezed == pageLength ? _self.pageLength : pageLength // ignore: cast_nullable_to_non_nullable
 as int?,pageStart: freezed == pageStart ? _self.pageStart : pageStart // ignore: cast_nullable_to_non_nullable
 as int?,verses: null == verses ? _self._verses : verses // ignore: cast_nullable_to_non_nullable
-as List<String>,
+as List<String>,midiMappedFrom: freezed == midiMappedFrom ? _self.midiMappedFrom : midiMappedFrom // ignore: cast_nullable_to_non_nullable
+as String?,midiMappedNumber: freezed == midiMappedNumber ? _self.midiMappedNumber : midiMappedNumber // ignore: cast_nullable_to_non_nullable
+as String?,
   ));
 }
 

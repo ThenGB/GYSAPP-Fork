@@ -87,6 +87,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   late final AnimationController _navFadeCtrl;
   late final Animation<double> _navOpacity;
 
+  /// Incremented on every pdfPath change so stale fade completions are ignored.
+  int _pathGeneration = 0;
+
   @override
   void initState() {
     super.initState();
@@ -165,12 +168,28 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       return;
     }
     // Song navigation — fade out, swap PDF, then fade in (in onViewerReady).
+    final gen = ++_pathGeneration;
     _navFadeCtrl.forward(from: _navFadeCtrl.value).whenComplete(() {
-      if (!mounted) return;
+      if (!mounted || gen != _pathGeneration) return;
       _noteCache.clear();
       _noteInfoCache.clear();
       _needsInitialFit = true;
       setState(() => _pdfRequest = newRequest);
+    });
+  }
+
+  void _onViewerReady(pdfrx.PdfDocument? document, pdfrx.PdfViewerController ctrl) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      // Only fit-to-page on the FIRST ready event after a new PDF is
+      // loaded. Subsequent onViewerReady calls (e.g. from invalidate
+      // after chord/transpose changes) must NOT reset the user's zoom.
+      if (_needsInitialFit) {
+        _needsInitialFit = false;
+        _fitToPageInstant();
+      }
+      // Fade back in after the PDF is ready and positioned.
+      _navFadeCtrl.reverse();
     });
   }
 
@@ -275,37 +294,43 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
 
     final theme = Theme.of(context);
-    return AnimatedBuilder(
-      animation: _navFadeCtrl,
-      child: pdfrx.PdfViewer.asset(
-        request.assetPath,
-        controller: _pdfCtrl,
-        initialPageNumber: request.startPage,
-        params: pdfrx.PdfViewerParams(
-          // Match the web app's viewer-shell-background which uses the theme's
-          // surface color. Without this, pdfrx defaults to a white background.
-          backgroundColor: theme.colorScheme.surface,
-          layoutPages: _buildLayout,
-          onViewerReady: (_, _) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!mounted) return;
-              // Only fit-to-page on the FIRST ready event after a new PDF is
-              // loaded. Subsequent onViewerReady calls (e.g. from invalidate
-              // after chord/transpose changes) must NOT reset the user's zoom.
-              if (_needsInitialFit) {
-                _needsInitialFit = false;
-                _fitToPageInstant();
-              }
-              // Fade back in after the PDF is ready and positioned.
-              _navFadeCtrl.reverse();
-            });
-          },
-          pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
+    // Use an instance method for onViewerReady so the tear-off is stable
+    // across rebuilds; pdfrx re-initialises the viewer when params change.
+    final params = pdfrx.PdfViewerParams(
+      backgroundColor: theme.colorScheme.surface,
+      layoutPages: _buildLayout,
+      onViewerReady: _onViewerReady,
+      pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
+    );
+
+    // Force recreation of the PdfViewer whenever the file path or start page
+    // changes so pdfrx definitely loads the new document / page.
+    final viewerKey = ValueKey('${request.assetPath}#p${request.startPage}');
+
+    final viewer = request.isFile
+        ? pdfrx.PdfViewer.file(
+            request.assetPath,
+            key: viewerKey,
+            controller: _pdfCtrl,
+            initialPageNumber: request.startPage,
+            params: params,
+          )
+        : pdfrx.PdfViewer.asset(
+            request.assetPath,
+            key: viewerKey,
+            controller: _pdfCtrl,
+            initialPageNumber: request.startPage,
+            params: params,
+          );
+
+    return SizedBox.expand(
+      child: AnimatedBuilder(
+        animation: _navFadeCtrl,
+        child: viewer,
+        builder: (context, child) => Opacity(
+          opacity: _navOpacity.value,
+          child: child,
         ),
-      ),
-      builder: (context, child) => Opacity(
-        opacity: _navOpacity.value,
-        child: child,
       ),
     );
   }
@@ -946,25 +971,44 @@ class _PdfDocumentRequest {
     required this.assetPath,
     required this.startPage,
     required this.pageCount,
+    required this.isFile,
   });
 
   final String assetPath;
   final int startPage;
   final int? pageCount;
 
+  /// Whether this path points to a file on disk (as opposed to a bundled asset).
+  final bool isFile;
+
+  static final _driveLetterPattern = RegExp(r'^[A-Za-z]:/');
+
   static _PdfDocumentRequest parse(String value) {
     final normalized = value.replaceAll('\\', '/');
     final fragmentIndex = normalized.indexOf('#');
+
+    String assetPath;
+    String? fragment;
     if (fragmentIndex < 0) {
-      return _PdfDocumentRequest(
-        assetPath: normalized,
-        startPage: 1,
-        pageCount: null,
-      );
+      assetPath = normalized;
+      fragment = null;
+    } else {
+      assetPath = normalized.substring(0, fragmentIndex);
+      fragment = normalized.substring(fragmentIndex + 1);
     }
 
-    final assetPath = normalized.substring(0, fragmentIndex);
-    final fragment = normalized.substring(fragmentIndex + 1);
+    // File paths start with '/' (Unix/macOS) or a drive letter like 'C:/' (Windows).
+    // Asset paths never start with either.
+    final isFile = assetPath.startsWith('/') || _driveLetterPattern.hasMatch(assetPath);
+
+    if (fragment == null) {
+      return _PdfDocumentRequest(
+        assetPath: assetPath,
+        startPage: 1,
+        pageCount: null,
+        isFile: isFile,
+      );
+    }
 
     // Supports query-style fragment: page=N&pages=M
     final params = Uri.splitQueryString(fragment);
@@ -975,6 +1019,7 @@ class _PdfDocumentRequest {
       assetPath: assetPath,
       startPage: startPage,
       pageCount: pageCount,
+      isFile: isFile,
     );
   }
 }
