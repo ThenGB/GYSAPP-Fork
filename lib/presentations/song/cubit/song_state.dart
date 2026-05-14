@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../data/services/chord_service.dart';
 import '../../../data/utilities/extensions/extensions.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../domain/entity/song_history/song_history.dart';
@@ -20,6 +21,8 @@ abstract class SongState with _$SongState {
   const factory SongState({
     @Default(false) bool isLoading,
     @Default(false) bool isAudioLoading,
+    @Default(false) bool isPdfLoading,
+    String? currentPdfPath,
     @Default([]) List<SongBook> songBook,
     @Default('KR') String bookCode,
     @Default(0) int pageIndex,
@@ -47,7 +50,8 @@ abstract class SongState with _$SongState {
     // New gyschordweb fields
     @Default(0) int transposeStep,
     @Default('sharp') String chordAccidentalMode,
-    @Default(false) bool preferNaturalChords,
+    // Enable natural chord detection by default for automatic transpose based on family chord
+    @Default(true) bool preferNaturalChords,
     String? originalFamilyChord,
     String? originalPdfKey,
     @Default(0) int baseTransposeOffset,
@@ -66,6 +70,7 @@ abstract class SongState with _$SongState {
     @Default(100) int chordFontSizePercent,
     @Default(94) int chordFillOpacityPercent,
     @Default(100) int chordPaddingPercent,
+    @Default({}) Map<int, List<ChordData>> currentChords,
   }) = _SongState;
 
   SongBook? get currentSong {

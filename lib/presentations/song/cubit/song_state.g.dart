@@ -9,6 +9,8 @@ part of 'song_state.dart';
 _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
   isLoading: json['isLoading'] as bool? ?? false,
   isAudioLoading: json['isAudioLoading'] as bool? ?? false,
+  isPdfLoading: json['isPdfLoading'] as bool? ?? false,
+  currentPdfPath: json['currentPdfPath'] as String?,
   songBook:
       (json['songBook'] as List<dynamic>?)
           ?.map((e) => SongBook.fromJson(e as Map<String, dynamic>))
@@ -91,6 +93,16 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
   chordFillOpacityPercent:
       (json['chordFillOpacityPercent'] as num?)?.toInt() ?? 94,
   chordPaddingPercent: (json['chordPaddingPercent'] as num?)?.toInt() ?? 100,
+  currentChords:
+      (json['currentChords'] as Map<String, dynamic>?)?.map(
+        (k, e) => MapEntry(
+          int.parse(k),
+          (e as List<dynamic>)
+              .map((e) => ChordData.fromJson(e as Map<String, dynamic>))
+              .toList(),
+        ),
+      ) ??
+      const {},
 );
 
 Map<String, dynamic> _$SongStateToJson(
@@ -98,6 +110,8 @@ Map<String, dynamic> _$SongStateToJson(
 ) => <String, dynamic>{
   'isLoading': instance.isLoading,
   'isAudioLoading': instance.isAudioLoading,
+  'isPdfLoading': instance.isPdfLoading,
+  'currentPdfPath': instance.currentPdfPath,
   'songBook': instance.songBook,
   'bookCode': instance.bookCode,
   'pageIndex': instance.pageIndex,
@@ -145,4 +159,7 @@ Map<String, dynamic> _$SongStateToJson(
   'chordFontSizePercent': instance.chordFontSizePercent,
   'chordFillOpacityPercent': instance.chordFillOpacityPercent,
   'chordPaddingPercent': instance.chordPaddingPercent,
+  'currentChords': instance.currentChords.map(
+    (k, e) => MapEntry(k.toString(), e),
+  ),
 };

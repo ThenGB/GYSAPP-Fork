@@ -110,5 +110,30 @@ void main() {
 
       expect(pruneBody, isNot(contains('.delete()')));
     });
+
+    test(
+      'loadMidi starts buffer-stream autoplay before full render completes',
+      () {
+        final source = File(
+          'lib/data/services/midi_engine_service.dart',
+        ).readAsStringSync();
+        final loadBody =
+            RegExp(
+              r'Future<void> loadMidi\([\s\S]*?\n  String _wavCachePath',
+            ).firstMatch(source)?.group(0) ??
+            '';
+
+        expect(loadBody, contains('setBufferStream'));
+        expect(loadBody, contains('addAudioDataStream'));
+        final streamIndex = loadBody.indexOf('setBufferStream');
+        final awaitRenderIndex = loadBody.indexOf('await renderedFuture');
+        final streamAutoplayIndex = loadBody.indexOf(
+          'if (autoplay)',
+          streamIndex,
+        );
+        expect(streamIndex, lessThan(awaitRenderIndex));
+        expect(streamAutoplayIndex, lessThan(awaitRenderIndex));
+      },
+    );
   });
 }

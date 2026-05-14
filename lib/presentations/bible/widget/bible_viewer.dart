@@ -22,12 +22,14 @@ class BibleViewer extends StatefulWidget {
     required this.onScaleUpdate,
     required this.onScaleEnd,
     required this.textScale,
+    required this.lockScroll,
   });
 
   final Function(ScaleStartDetails details) onScaleStart;
   final Function(ScaleUpdateDetails details) onScaleUpdate;
   final Function(ScaleEndDetails details) onScaleEnd;
   final double textScale;
+  final bool lockScroll;
 
   final ScrollController scrollController;
   final List<GlobalKey<VerseWidgetState>> verseKeys;
@@ -111,12 +113,14 @@ class _BibleViewerState extends State<BibleViewer> {
                         key: ValueKey('${widget.isSplit}_$index'),
                         onVisibilityChanged: (info) {
                           widget.onVerseVisibility(
-                            e.value.verseId,
+                            index,
                             info.size,
                             info.visibleFraction,
                           );
                         },
                         child: VerseWidget(
+                          lockScroll: widget.lockScroll,
+                          isSplit: widget.isSplit,
                           textScale: widget.textScale,
                           isSpeaking:
                               state.isSpeaking && state.currentBible == e.value,
@@ -132,16 +136,6 @@ class _BibleViewerState extends State<BibleViewer> {
                                     .getBibleTitle([note.first.verses.first]),
                               ),
                             );
-                            // router.push(BibleNoteRoute(
-                            //   initialData: note.first,
-                            //   cubit: cubit,
-                            //   mode: NoteMode.viewOnly,
-                            //   onSave: (data) {
-                            //     cubit.saveNote(data);
-                            //     router.maybePop();
-                            //     // router.push(BibleNoteListRoute(cubit: context.read()));
-                            //   },
-                            // ));
                           },
                           notes: state.notes
                               .where(
@@ -157,9 +151,11 @@ class _BibleViewerState extends State<BibleViewer> {
                           ),
                           hightlightedVerse: state.hightlightedVerse,
                           selectedVerse: state.selectedVerse,
-                          key: index > (widget.verseKeys.length - 1)
-                              ? GlobalKey()
-                              : widget.verseKeys[index],
+                          key: widget.isSplit
+                              ? ValueKey('split_verse_${e.value.id}')
+                              : (index > (widget.verseKeys.length - 1)
+                                  ? GlobalKey()
+                                  : widget.verseKeys[index]),
                           index: index,
                           hasBookmark:
                               state.bookmarks.firstWhereOrNull(

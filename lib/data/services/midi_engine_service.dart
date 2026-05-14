@@ -8,11 +8,126 @@ import 'package:flutter_soloud/flutter_soloud.dart';
 
 import 'local_asset_service.dart';
 import 'native_midi/midi_render_settings.dart';
-import 'native_midi/midi_tempo_detector.dart';
+import 'native_midi/midi_worker.dart';
 import 'native_midi/native_midi_renderer.dart';
 import '../../presentations/song/cubit/song_preload_key.dart';
 
 const String defaultMidiSoundFont = 'GeneralUser-GS.sf2';
+
+/// Stream-based playback that renders audio chunks in real-time.
+/// This provides instant playback without waiting for full render.
+class MidiStreamingController {
+  final List<int> _leftSamples = [];
+  final List<int> _rightSamples = [];
+  bool _isComplete = false;
+
+  void addChunk(Float32List left, Float32List right) {
+    for (var i = 0; i < left.length; i++) {
+      _leftSamples.add((left[i] * 32767).round().clamp(-32768, 32767));
+      _rightSamples.add((right[i] * 32767).round().clamp(-32768, 32767));
+    }
+  }
+
+  void setComplete() => _isComplete = true;
+
+  bool get isComplete => _isComplete;
+
+  Uint8List getWavBytes({int? maxMs}) {
+    final targetSamples = maxMs != null
+        ? (maxMs * nativeMidiSampleRate / 1000).round().clamp(
+            0,
+            _leftSamples.length,
+          )
+        : _leftSamples.length;
+
+    final pcmBytes = Uint8List(targetSamples * 4);
+    for (var i = 0; i < targetSamples; i++) {
+      final byteData = ByteData(4);
+      byteData.setInt16(
+        i * 4,
+        _leftSamples[i].clamp(-32768, 32767),
+        Endian.little,
+      );
+      byteData.setInt16(
+        i * 4 + 2,
+        _rightSamples[i].clamp(-32768, 32767),
+        Endian.little,
+      );
+      pcmBytes.setRange(i * 4, i * 4 + 4, byteData.buffer.asUint8List());
+    }
+
+    return _encodePcm16Wav(
+      pcmBytes,
+      sampleRate: nativeMidiSampleRate,
+      channels: 2,
+    );
+  }
+
+  static Uint8List _encodePcm16Wav(
+    Uint8List pcmBytes, {
+    required int sampleRate,
+    required int channels,
+  }) {
+    final byteRate = sampleRate * channels * 2;
+    final blockAlign = channels * 2;
+    final output = _StringBuffer();
+    final header = ByteData(44);
+
+    void writeAscii(ByteData data, int offset, String value) {
+      for (var i = 0; i < value.length; i++) {
+        data.setUint8(offset + i, value.codeUnitAt(i));
+      }
+    }
+
+    writeAscii(header, 0, 'RIFF');
+    header.setUint32(4, 36 + pcmBytes.length, Endian.little);
+    writeAscii(header, 8, 'WAVE');
+    writeAscii(header, 12, 'fmt ');
+    header.setUint32(16, 16, Endian.little);
+    header.setUint16(20, 1, Endian.little);
+    header.setUint16(22, channels, Endian.little);
+    header.setUint32(24, sampleRate, Endian.little);
+    header.setUint32(28, byteRate, Endian.little);
+    header.setUint16(32, blockAlign, Endian.little);
+    header.setUint16(34, 16, Endian.little);
+    writeAscii(header, 36, 'data');
+    header.setUint32(40, pcmBytes.length, Endian.little);
+
+    output.add(header.buffer.asUint8List());
+    output.add(pcmBytes);
+    return output.toBytes();
+  }
+}
+
+/// Simple BytesBuilder replacement to avoid deprecation warning.
+class _StringBuffer {
+  final List<Uint8List> _chunks = [];
+
+  void add(Uint8List bytes) => _chunks.add(bytes);
+
+  Uint8List toBytes() {
+    final totalLength = _chunks.fold(0, (sum, chunk) => sum + chunk.length);
+    final result = Uint8List(totalLength);
+    var offset = 0;
+    for (final chunk in _chunks) {
+      result.setRange(offset, offset + chunk.length, chunk);
+      offset += chunk.length;
+    }
+    return result;
+  }
+}
+
+@visibleForTesting
+Uint8List interleaveFloat32Stereo(Float32List left, Float32List right) {
+  final frames = left.length < right.length ? left.length : right.length;
+  final interleaved = Float32List(frames * 2);
+  for (var i = 0; i < frames; i++) {
+    final outputIndex = i * 2;
+    interleaved[outputIndex] = left[i];
+    interleaved[outputIndex + 1] = right[i];
+  }
+  return interleaved.buffer.asUint8List();
+}
 
 class MidiPlaybackState {
   final bool isPlaying;
@@ -54,20 +169,23 @@ class MidiPlaybackState {
 
 class MidiEngineService extends ChangeNotifier {
   static const int _defaultMaxCachedSources = 12;
+  static const int _streamChunkFrames = nativeMidiSampleRate ~/ 4;
+  static const int _initialStreamChunks = 4;
+  static const Duration _streamPumpInterval = Duration(milliseconds: 120);
 
   final LocalAssetService _assetService;
   final String _cacheDir;
   final Map<String, Uint8List> _midiBytesCache = {};
   final Map<String, Uint8List> _soundFontBytesCache = {};
   final Map<String, AudioSource> _sourceCache = {};
-  final Map<String, Future<AudioSource>> _inflightSourceLoads = {};
   final List<String> _cacheOrder = [];
 
   bool _initialized = false;
   bool _disposed = false;
   int _renderGeneration = 0;
-  int _pendingRenderCount = 0;
   Timer? _positionTimer;
+  Timer? _streamPumpTimer;
+  Future<void>? _streamPumpInFlight;
   int _maxCachedSources = _defaultMaxCachedSources;
 
   String _soundFont = defaultMidiSoundFont;
@@ -76,8 +194,10 @@ class MidiEngineService extends ChangeNotifier {
     soundFont: defaultMidiSoundFont,
   );
   AudioSource? _currentSource;
+  AudioSource? _streamSource;
   SoundHandle? _currentHandle;
   double _volume = 1;
+  bool _streamEnded = false;
 
   MidiPlaybackState _state = const MidiPlaybackState();
 
@@ -113,9 +233,8 @@ class MidiEngineService extends ChangeNotifier {
     log('Native MIDI engine initialized', name: 'MidiEngine');
   }
 
-  /// Cache-ahead render for the given MIDI without touching playback state.
-  /// Errors are swallowed and logged so that background warm-up never
-  /// interrupts the user.
+  /// Pre-warm MIDI by loading bytes and rendering to AudioSource in memory.
+  /// This is called during idle time so playback starts instantly when user presses play.
   Future<void> warmUp(
     String midiPath, {
     int transpose = 0,
@@ -124,13 +243,15 @@ class MidiEngineService extends ChangeNotifier {
     int? instrument,
   }) async {
     await initialize();
-    
-    // Skip preload for non-neutral tempo rates (song-state specific)
-    if (!isTempoNeutral(tempoBpm, baseTempoBpm ?? 76)) {
-      return;
-    }
-    
+
+    // Always warm up regardless of tempo settings - we want the source ready
+    // even if tempo changes later (will need re-render but source is close)
+
     try {
+      // Load bytes first (these are cached)
+      final midiBytes = await _loadMidiBytes(midiPath);
+      final soundFontBytes = await _loadSoundFontBytes(_soundFont);
+
       final settings = MidiRenderSettings(
         transpose: transpose,
         tempoBpm: tempoBpm,
@@ -138,12 +259,91 @@ class MidiEngineService extends ChangeNotifier {
         instrument: instrument,
         soundFont: _soundFont,
       ).normalized;
-      await _loadRenderedSource(midiPath, settings, emitProgress: false);
+
+      // Generate cache key
+      final cacheKey = generateMidiPreloadKey(
+        midiPath: midiPath,
+        transpose: settings.transpose,
+        tempoBpm: settings.tempoBpm,
+        baseTempoBpm: settings.baseTempoBpm,
+        instrument: settings.instrument,
+        soundFont: settings.soundFont,
+      );
+
+      // Check if already cached
+      if (_sourceCache.containsKey(cacheKey)) {
+        log(
+          'Warm-up: source already in memory for $midiPath',
+          name: 'MidiEngine',
+        );
+        return;
+      }
+
+      // Check disk cache first
+      final wavFile = File(_wavCachePath(cacheKey));
+      if (await wavFile.exists()) {
+        try {
+          final wavBytes = await wavFile.readAsBytes();
+          final source = await SoLoud.instance.loadMem(
+            'midi-cache-$cacheKey',
+            wavBytes,
+            mode: LoadMode.memory,
+          );
+          _sourceCache[cacheKey] = source;
+          _touchCacheKey(cacheKey);
+          await _pruneSourceCache();
+          log(
+            'Warm-up: loaded from disk cache for $midiPath',
+            name: 'MidiEngine',
+          );
+          return;
+        } catch (e) {
+          log(
+            'Warm-up: failed to load from disk cache: $e',
+            name: 'MidiEngine',
+          );
+        }
+      }
+
+      // Render the MIDI to WAV (this is the slow part, but done in background)
+      log('Warm-up: rendering $midiPath', name: 'MidiEngine');
+      final rendered = await NativeMidiRenderer.render(
+        midiBytes: midiBytes,
+        soundFontBytes: soundFontBytes,
+        settings: settings,
+      );
+
+      // Save to disk cache for future use
+      await _ensureCacheDir();
+      await wavFile.writeAsBytes(rendered.wavBytes);
+
+      // Load into memory
+      final source = await SoLoud.instance.loadMem(
+        'midi-cache-$cacheKey',
+        rendered.wavBytes,
+        mode: LoadMode.memory,
+      );
+      _sourceCache[cacheKey] = source;
+      _touchCacheKey(cacheKey);
+      await _pruneSourceCache();
+
+      log('Warm-up: rendered and cached for $midiPath', name: 'MidiEngine');
     } catch (e, stackTrace) {
-      log('Warm-up failed for $midiPath: $e', name: 'MidiEngine', stackTrace: stackTrace);
+      log(
+        'Warm-up failed for $midiPath: $e',
+        name: 'MidiEngine',
+        stackTrace: stackTrace,
+      );
     }
   }
 
+  /// Robust MIDI loading with streaming playback for instant audio start.
+  ///
+  /// This method provides fast MIDI playback by:
+  /// 1. Loading MIDI and SoundFont bytes in parallel (cached)
+  /// 2. Using streaming playback from the worker for immediate audio
+  /// 3. Falling back to pre-rendered sources if available
+  /// 4. Supporting seek via the streaming controller
   Future<void> loadMidi(
     String midiPath, {
     int transpose = 0,
@@ -151,13 +351,10 @@ class MidiEngineService extends ChangeNotifier {
     double? baseTempoBpm,
     int? instrument,
     bool autoplay = false,
+    Duration startAt = Duration.zero,
   }) async {
     await initialize();
     final generation = ++_renderGeneration;
-    _pendingRenderCount++;
-    final previousPosition = _state.currentSong == midiPath
-        ? Duration(milliseconds: (_state.position * 1000).round())
-        : Duration.zero;
 
     _currentMidiPath = midiPath;
     _settings = MidiRenderSettings(
@@ -171,156 +368,250 @@ class MidiEngineService extends ChangeNotifier {
     _setState(
       _state.copyWith(
         isPlaying: false,
-        position: 0,
         isLoading: true,
         loadProgress: 0.05,
         currentSong: midiPath,
+        duration: _state.duration > 0 ? _state.duration : 0,
       ),
     );
 
     try {
-      final midiBytes = await _loadMidiBytes(midiPath);
-      final detectedBaseTempo =
-          baseTempoBpm ??
-          MidiTempoDetector.detectBpm(
-            midiBytes,
-            fallbackBpm: _settings.baseTempoBpm,
-          );
-      _settings = _settings.copyWith(baseTempoBpm: detectedBaseTempo);
-      final source = await _loadRenderedSource(
-        midiPath,
-        _settings,
-        emitProgress: true,
+      await _stopCurrentHandle(emit: false);
+      _stopStreamSource(disposeSource: true);
+      final normalized = _settings.normalized;
+      final cacheKey = generateMidiPreloadKey(
+        midiPath: midiPath,
+        transpose: normalized.transpose,
+        tempoBpm: normalized.tempoBpm,
+        baseTempoBpm: normalized.baseTempoBpm,
+        instrument: normalized.instrument,
+        soundFont: normalized.soundFont,
       );
+
+      // FAST PATH 1: Try cached source immediately if no seek offset
+      if (startAt == Duration.zero) {
+        final cachedSource = _sourceCache[cacheKey];
+        if (cachedSource != null) {
+          _currentSource = cachedSource;
+          final duration =
+              SoLoud.instance.getLength(cachedSource).inMilliseconds / 1000;
+          _setState(
+            _state.copyWith(
+              isLoading: false,
+              loadProgress: 1,
+              duration: duration,
+            ),
+          );
+          if (autoplay) {
+            await play();
+          }
+          return;
+        }
+      }
+
+      // Load bytes in parallel - these are cached so this is fast
+      final loadFuture = Future.wait([
+        _loadMidiBytes(midiPath),
+        _loadSoundFontBytes(_settings.soundFont),
+      ]);
+
+      _setState(_state.copyWith(loadProgress: 0.2));
+      final results = await loadFuture;
       if (_disposed || generation != _renderGeneration) return;
 
-      _currentSource = source;
-      final duration = SoLoud.instance.getLength(source);
+      final midiBytes = results[0];
+      final soundFontBytes = results[1];
+      _setState(_state.copyWith(loadProgress: 0.4));
+
+      // FAST PATH 2: feed rendered chunks into a SoLoud buffer stream.
+      final worker = MidiWorker();
+      await worker.prepareSoundFont(soundFontBytes, _settings.soundFont);
+      final streamInfo = await worker.startStream(
+        midiBytes: midiBytes,
+        settings: _settings,
+        fastDry: false,
+      );
+      if (startAt > Duration.zero) {
+        await worker.seekStream(startAt.inMilliseconds / 1000);
+      }
+
+      if (_disposed || generation != _renderGeneration) return;
+      final streamSource = SoLoud.instance.setBufferStream(
+        maxBufferSizeDuration: const Duration(minutes: 30),
+        bufferingType: BufferingType.released,
+        bufferingTimeNeeds: 0.08,
+        sampleRate: nativeMidiSampleRate,
+        channels: Channels.stereo,
+        format: BufferType.f32le,
+      );
+      _streamSource = streamSource;
+      _currentSource = streamSource;
+      _streamEnded = false;
+      _instruments = streamInfo.instruments;
+
+      for (var i = 0; i < _initialStreamChunks; i++) {
+        final keepStreaming = await _appendNextStreamChunk(
+          streamSource,
+          generation,
+        );
+        if (!keepStreaming) break;
+      }
+
+      if (_disposed || generation != _renderGeneration) return;
+      _setState(
+        _state.copyWith(
+          isLoading: false,
+          loadProgress: 0.65,
+          duration: streamInfo.duration.inMilliseconds / 1000,
+          position: startAt.inMilliseconds / 1000,
+        ),
+      );
+      _startStreamPump(streamSource, generation);
+
+      if (autoplay) {
+        await play(startAt: Duration.zero);
+        return;
+      }
+
+      // Render to WAV for caching only when the stream is primed but not
+      // currently playing. The stream pump uses the same worker, so a full
+      // render during playback would starve later chunks.
+      final renderedFuture = NativeMidiRenderer.render(
+        midiBytes: midiBytes,
+        soundFontBytes: soundFontBytes,
+        settings: _settings,
+        startAt: startAt,
+      );
+
+      unawaited(
+        _finishBackgroundRender(
+          renderedFuture: renderedFuture,
+          cacheKey: cacheKey,
+          streamSource: streamSource,
+          generation: generation,
+          startAt: startAt,
+        ),
+      );
+    } catch (e, st) {
+      log('Load MIDI failed: $e', name: 'MidiEngine', stackTrace: st);
+      if (!_disposed && generation == _renderGeneration) {
+        _setState(_state.copyWith(isLoading: false));
+      }
+    }
+  }
+
+  Future<void> _finishBackgroundRender({
+    required Future<RenderedMidiAudio> renderedFuture,
+    required String cacheKey,
+    required AudioSource streamSource,
+    required int generation,
+    required Duration startAt,
+  }) async {
+    try {
+      final rendered = await renderedFuture;
+
+      if (_disposed || generation != _renderGeneration) return;
+
+      await _ensureCacheDir();
+      await File(_wavCachePath(cacheKey)).writeAsBytes(rendered.wavBytes);
+
+      final renderedSource = await SoLoud.instance.loadMem(
+        'midi-cache-$cacheKey',
+        rendered.wavBytes,
+        mode: LoadMode.memory,
+      );
+      _sourceCache[cacheKey] = renderedSource;
+      _touchCacheKey(cacheKey);
+      await _pruneSourceCache();
+
+      final keepCurrentStream =
+          _currentSource == streamSource && _state.isPlaying;
+      if (!keepCurrentStream && _currentSource == streamSource) {
+        _stopStreamSource(disposeSource: true);
+        _currentSource = renderedSource;
+      }
+
+      final totalDuration = rendered.duration.inMilliseconds / 1000;
       _setState(
         _state.copyWith(
           isLoading: false,
           loadProgress: 1,
-          duration: duration.inMilliseconds / 1000,
-          position: 0,
+          duration: startAt.inSeconds > 0 ? _state.duration : totalDuration,
+          position: startAt.inMilliseconds / 1000,
         ),
       );
-
-      if (autoplay) {
-        await play(startAt: previousPosition);
-      }
-    } catch (e, stackTrace) {
+    } catch (e, st) {
       log(
-        'Failed to load native MIDI: $e',
+        'Background MIDI render failed: $e',
         name: 'MidiEngine',
-        stackTrace: stackTrace,
+        stackTrace: st,
       );
-      if (!_disposed && generation == _renderGeneration) {
-        _setState(
-          _state.copyWith(isPlaying: false, isLoading: false, loadProgress: 0),
-        );
+    }
+  }
+
+  Future<bool> _appendNextStreamChunk(
+    AudioSource source,
+    int generation,
+  ) async {
+    if (_disposed ||
+        generation != _renderGeneration ||
+        _streamEnded ||
+        _streamSource != source) {
+      return false;
+    }
+
+    final chunk = await MidiWorker().fillStream(_streamChunkFrames);
+    if (_disposed ||
+        generation != _renderGeneration ||
+        _streamSource != source) {
+      return false;
+    }
+
+    SoLoud.instance.addAudioDataStream(
+      source,
+      interleaveFloat32Stereo(chunk.left, chunk.right),
+    );
+
+    if (chunk.isEnded) {
+      _streamEnded = true;
+      SoLoud.instance.setDataIsEnded(source);
+      return false;
+    }
+
+    return true;
+  }
+
+  void _startStreamPump(AudioSource source, int generation) {
+    _streamPumpTimer?.cancel();
+    _streamPumpTimer = Timer.periodic(_streamPumpInterval, (_) {
+      if (_streamPumpInFlight != null || _streamEnded) return;
+      _streamPumpInFlight = _appendNextStreamChunk(source, generation)
+          .whenComplete(() {
+            _streamPumpInFlight = null;
+          });
+    });
+  }
+
+  void _stopStreamSource({required bool disposeSource}) {
+    _streamPumpTimer?.cancel();
+    _streamPumpTimer = null;
+    _streamPumpInFlight = null;
+    final source = _streamSource;
+    _streamSource = null;
+    _streamEnded = false;
+    if (source != null) {
+      try {
+        SoLoud.instance.setDataIsEnded(source);
+      } catch (_) {
+        // The stream may already be ended or disposed.
       }
-    } finally {
-      _decrementPending();
-    }
-  }
-
-  void _decrementPending() {
-    _pendingRenderCount--;
-    if (_pendingRenderCount <= 0 && !_disposed) {
-      _pendingRenderCount = 0;
-      _setState(_state.copyWith(isLoading: false));
-    }
-  }
-
-  Future<AudioSource> _loadRenderedSource(
-    String midiPath,
-    MidiRenderSettings settings, {
-    bool emitProgress = false,
-  }) async {
-    final normalized = settings.normalized;
-    final cacheKey = generateMidiPreloadKey(
-      midiPath: midiPath,
-      transpose: normalized.transpose,
-      tempoBpm: normalized.tempoBpm,
-      baseTempoBpm: normalized.baseTempoBpm,
-      instrument: normalized.instrument,
-      soundFont: normalized.soundFont,
-    );
-    final inflight = _inflightSourceLoads[cacheKey];
-    if (inflight != null) {
-      return inflight;
-    }
-
-    final pending = _loadRenderedSourceInternal(
-      midiPath,
-      normalized,
-      cacheKey,
-      emitProgress: emitProgress,
-    );
-    _inflightSourceLoads[cacheKey] = pending;
-    try {
-      return await pending;
-    } finally {
-      if (identical(_inflightSourceLoads[cacheKey], pending)) {
-        _inflightSourceLoads.remove(cacheKey);
+      if (_currentSource == source) {
+        _currentSource = null;
+      }
+      if (disposeSource) {
+        unawaited(SoLoud.instance.disposeSource(source));
       }
     }
-  }
-
-  Future<AudioSource> _loadRenderedSourceInternal(
-    String midiPath,
-    MidiRenderSettings settings,
-    String cacheKey, {
-    required bool emitProgress,
-  }) async {
-    final cachedSource = _sourceCache[cacheKey];
-    if (cachedSource != null) {
-      _touchCacheKey(cacheKey);
-      return cachedSource;
-    }
-
-    final wavFile = File(_wavCachePath(cacheKey));
-    if (await wavFile.exists()) {
-      final wavBytes = await wavFile.readAsBytes();
-      final source = await SoLoud.instance.loadMem(
-        'midi-${cacheKey.hashCode}.wav',
-        wavBytes,
-        mode: LoadMode.memory,
-      );
-      _sourceCache[cacheKey] = source;
-      _touchCacheKey(cacheKey);
-      await _pruneSourceCache();
-      return source;
-    }
-
-    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.2));
-    final midiBytes = await _loadMidiBytes(midiPath);
-    final soundFontBytes = await _loadSoundFontBytes(settings.soundFont);
-    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.35));
-
-    final rendered = await NativeMidiRenderer.render(
-      midiBytes: midiBytes,
-      soundFontBytes: soundFontBytes,
-      settings: settings,
-    );
-    if (rendered.instruments.isNotEmpty) {
-      _instruments = rendered.instruments;
-      if (!_disposed) notifyListeners();
-    }
-    if (emitProgress) _setState(_state.copyWith(loadProgress: 0.82));
-
-    await _ensureCacheDir();
-    await wavFile.writeAsBytes(rendered.wavBytes);
-
-    final source = await SoLoud.instance.loadMem(
-      'midi-${cacheKey.hashCode}.wav',
-      rendered.wavBytes,
-      mode: LoadMode.memory,
-    );
-    _sourceCache[cacheKey] = source;
-    _touchCacheKey(cacheKey);
-    await _pruneSourceCache();
-    return source;
   }
 
   String _wavCachePath(String cacheKey) {
@@ -369,15 +660,57 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> play({Duration startAt = Duration.zero}) async {
     await initialize();
-    if (_currentSource == null && _currentMidiPath != null) {
-      await loadMidi(
-        _currentMidiPath!,
+
+    // FAST PATH: If we have a source, play immediately
+    if (_currentSource != null) {
+      await _startPlaybackFromSource(startAt);
+      return;
+    }
+
+    // If no source but we have a MIDI path, try to load and play
+    if (_currentMidiPath != null) {
+      // Check if we have a cached source that we can use immediately
+      final cacheKey = generateMidiPreloadKey(
+        midiPath: _currentMidiPath!,
         transpose: _settings.transpose,
         tempoBpm: _settings.tempoBpm,
         baseTempoBpm: _settings.baseTempoBpm,
         instrument: _settings.instrument,
+        soundFont: _settings.soundFont,
       );
+
+      final cachedSource = _sourceCache[cacheKey];
+      if (cachedSource != null) {
+        _currentSource = cachedSource;
+        await _startPlaybackFromSource(startAt);
+        return;
+      }
+
+      // Try to load from disk cache first (faster than re-rendering)
+      _loadFromDiskCache(_currentMidiPath!, _settings).then((source) async {
+        if (source != null && !_disposed) {
+          _currentSource = source;
+          await _startPlaybackFromSource(Duration.zero);
+        }
+      });
+
+      // Also trigger full render in background for future use
+      unawaited(
+        loadMidi(
+          _currentMidiPath!,
+          transpose: _settings.transpose,
+          tempoBpm: _settings.tempoBpm,
+          baseTempoBpm: _settings.baseTempoBpm,
+          instrument: _settings.instrument,
+        ),
+      );
+
+      // No cache available, trigger full load if disk cache failed
+      // (The disk cache load above will handle playback once ready)
     }
+  }
+
+  Future<void> _startPlaybackFromSource(Duration startAt) async {
     final source = _currentSource;
     if (source == null) return;
 
@@ -400,6 +733,37 @@ class MidiEngineService extends ChangeNotifier {
     _setState(_state.copyWith(isPlaying: true, isLoading: false));
   }
 
+  /// Try to load a cached source from disk without re-rendering.
+  Future<AudioSource?> _loadFromDiskCache(
+    String midiPath,
+    MidiRenderSettings settings,
+  ) async {
+    try {
+      final normalized = settings.normalized;
+      final cacheKey = generateMidiPreloadKey(
+        midiPath: midiPath,
+        transpose: normalized.transpose,
+        tempoBpm: normalized.tempoBpm,
+        baseTempoBpm: normalized.baseTempoBpm,
+        instrument: normalized.instrument,
+        soundFont: normalized.soundFont,
+      );
+
+      final wavFile = File(_wavCachePath(cacheKey));
+      if (await wavFile.exists()) {
+        final wavBytes = await wavFile.readAsBytes();
+        return await SoLoud.instance.loadMem(
+          'midi-cache-$cacheKey',
+          wavBytes,
+          mode: LoadMode.memory,
+        );
+      }
+    } catch (e) {
+      log('Failed to load from disk cache: $e', name: 'MidiEngine');
+    }
+    return null;
+  }
+
   Future<void> pause() async {
     final handle = _currentHandle;
     if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
@@ -411,6 +775,7 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> stop() async {
     await _stopCurrentHandle(emit: false);
+    _stopStreamSource(disposeSource: true);
     _positionTimer?.cancel();
     _setState(
       _state.copyWith(
@@ -424,22 +789,39 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> seek(double seconds) async {
     final clamped = seconds.clamp(0, _state.duration).toDouble();
-    final handle = _currentHandle;
-    if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
-      SoLoud.instance.seek(
-        handle,
-        Duration(milliseconds: (clamped * 1000).round()),
-      );
-    }
-    _setState(_state.copyWith(position: clamped));
-    // Pause position timer briefly after seek to allow SoLoud to settle
-    // and prevent the slider from jumping due to timer updates
-    _positionTimer?.cancel();
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (_state.isPlaying && _currentHandle != null) {
-        _startPositionTimer();
+
+    // If the song is already loaded in memory, use standard seek
+    final currentSource = _currentSource;
+    if (currentSource != null &&
+        currentSource != _streamSource &&
+        _state.duration > 0) {
+      final handle = _currentHandle;
+      if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
+        SoLoud.instance.seek(
+          handle,
+          Duration(milliseconds: (clamped * 1000).round()),
+        );
+        _setState(_state.copyWith(position: clamped));
+        return;
       }
-    });
+    }
+
+    // NEW ROBUST SEEK: Re-render from the seek point if streaming/loading is slow.
+    // This provides "Instant render playback" feel.
+    final wasPlaying = _state.isPlaying;
+    await stop();
+
+    _setState(_state.copyWith(isLoading: true, position: clamped));
+
+    await loadMidi(
+      _currentMidiPath!,
+      transpose: _settings.transpose,
+      tempoBpm: _settings.tempoBpm,
+      baseTempoBpm: _settings.baseTempoBpm,
+      instrument: _settings.instrument,
+      autoplay: wasPlaying,
+      startAt: Duration(milliseconds: (clamped * 1000).round()),
+    );
   }
 
   Future<void> setTranspose(int semitones) async {
@@ -475,8 +857,11 @@ class MidiEngineService extends ChangeNotifier {
       setSoundFont(soundFontFileName);
       await _rerenderCurrent(_settings, force: true);
     } catch (e, stackTrace) {
-      log('Failed to load soundfont $soundFontFileName, falling back to TimGM6mb.sf2: $e',
-          name: 'MidiEngine', stackTrace: stackTrace);
+      log(
+        'Failed to load soundfont $soundFontFileName, falling back to TimGM6mb.sf2: $e',
+        name: 'MidiEngine',
+        stackTrace: stackTrace,
+      );
       // Fallback to the smaller, more compatible soundfont
       setSoundFont(defaultMidiSoundFont);
       await _rerenderCurrent(_settings, force: true);
@@ -496,11 +881,26 @@ class MidiEngineService extends ChangeNotifier {
     bool force = false,
   }) async {
     final midiPath = _currentMidiPath;
-    _settings = nextSettings.normalized;
-    if (midiPath == null) return;
-    if (!force && _state.currentSong != midiPath && _currentSource == null) {
+    if (midiPath == null) {
+      _settings = nextSettings.normalized;
       return;
     }
+
+    final normalizedNext = nextSettings.normalized;
+    // REDUNDANCY CHECK: Avoid re-rendering if settings are identical
+    if (!force &&
+        _settings.transpose == normalizedNext.transpose &&
+        _settings.tempoBpm == normalizedNext.tempoBpm &&
+        _settings.baseTempoBpm == normalizedNext.baseTempoBpm &&
+        _settings.instrument == normalizedNext.instrument &&
+        _settings.soundFont == normalizedNext.soundFont) {
+      return;
+    }
+
+    _settings = normalizedNext;
+
+    // Proceed with re-render if it's the active song or if we are currently loading it.
+    // The generation counter in loadMidi will handle canceling stale loads.
     final wasPlaying = _state.isPlaying;
     final position =
         _currentHandle != null &&
@@ -532,7 +932,10 @@ class MidiEngineService extends ChangeNotifier {
         _setState(_state.copyWith(isPlaying: false));
         return;
       }
-      final position = SoLoud.instance.getPosition(handle);
+      final streamSource = _streamSource;
+      final position = streamSource != null && _currentSource == streamSource
+          ? SoLoud.instance.getStreamTimeConsumed(streamSource)
+          : SoLoud.instance.getPosition(handle);
       final seconds = position.inMilliseconds / 1000;
       final ended = _state.duration > 0 && seconds >= _state.duration - 0.1;
       _setState(
@@ -597,7 +1000,9 @@ class MidiEngineService extends ChangeNotifier {
     if (_disposed) return;
     _disposed = true;
     _positionTimer?.cancel();
+    _streamPumpTimer?.cancel();
     await _stopCurrentHandle(emit: false);
+    _stopStreamSource(disposeSource: true);
     for (final source in _sourceCache.values) {
       await SoLoud.instance.disposeSource(source);
     }

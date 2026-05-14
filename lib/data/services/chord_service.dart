@@ -227,44 +227,80 @@ class ChordService {
   }
 
   static String? detectFamilyChord(Map<int, List<ChordData>> chords) {
-    final allChords = <String>[];
+    String? rootOf(String chordText) {
+      final match = RegExp(
+        r'^([A-Ga-g1-7])([#♯b♭]?)(min|m(?!aj))?',
+      ).firstMatch(chordText.trim());
+      if (match == null) return null;
+
+      var root = match.group(1)!.toUpperCase();
+      var accidental = match.group(2) ?? '';
+      final isMinor = match.group(3) != null;
+
+      root = _numberToNote[root] ?? root;
+      if (accidental == '♭') accidental = 'b';
+      if (accidental == '♯') accidental = '#';
+
+      return '$root$accidental${isMinor ? 'm' : ''}';
+    }
+
     final sortedPages = chords.keys.toList()..sort();
+
+    // Mirror gyschordweb's detectNoteAlignedFamilyChord logic:
+    // Collect all chord texts (not the ChordData objects)
+    final allChordTexts = <String>[];
     for (final page in sortedPages) {
       final entries = List<ChordData>.from(chords[page] ?? [])
         ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
       for (final entry in entries) {
-        if (entry.chord.trim().isNotEmpty) allChords.add(entry.chord.trim());
+        if (entry.chord.trim().isNotEmpty) {
+          allChordTexts.add(entry.chord.trim());
+        }
       }
     }
-    if (allChords.isEmpty) return null;
 
-    String? rootOf(String chordText) {
-      final parsed = _parseChordToken(chordText);
-      if (parsed == null) return null;
-      final isMinor = RegExp(
-        r'^[A-Ga-g1-7][#♯b♭]?(min|m(?!aj))',
-      ).hasMatch(chordText);
-      return '${_notesSharp[parsed.semitone]}${isMinor ? 'm' : ''}';
-    }
+    if (allChordTexts.isEmpty) return null;
 
-    final roots = allChords.map(rootOf).whereType<String>().toList();
+    // Get roots from all chords
+    final roots = allChordTexts.map(rootOf).whereType<String>().toList();
     if (roots.isEmpty) return null;
+
+    // Priority: First and Last chord resolution (most reliable tonic check)
     final firstRoot = roots.first;
     final lastRoot = roots.last;
+
+    // If first and last are the same, that's our detected root
     if (firstRoot == lastRoot) return firstRoot;
 
+    // Otherwise, analyze frequency
     final counts = <String, int>{};
-    var mostFrequent = firstRoot;
-    var maxCount = 0;
-    for (final root in roots) {
-      final count = (counts[root] ?? 0) + 1;
-      counts[root] = count;
-      if (count > maxCount) {
-        maxCount = count;
-        mostFrequent = root;
+    var max = 0;
+    var mostFreq = firstRoot;
+
+    for (final r in roots) {
+      counts[r] = (counts[r] ?? 0) + 1;
+      if (counts[r]! > max) {
+        max = counts[r]!;
+        mostFreq = r;
       }
     }
-    return (counts[lastRoot] ?? 0) > 1 ? lastRoot : mostFrequent;
+
+    // If lastRoot appears more than once, prefer it (resolution tonic)
+    return (counts[lastRoot] ?? 0) > 1 ? lastRoot : mostFreq;
+  }
+
+  static String untransposeChord(
+    String chord,
+    int transposeStep, {
+    int baseTransposeOffset = 0,
+    String accidentalMode = accidentalSharp,
+  }) {
+    return transposeChord(
+      chord,
+      -(transposeStep + baseTransposeOffset),
+      baseTransposeOffset: 0,
+      accidentalMode: accidentalMode,
+    );
   }
 
   static int recommendedNaturalTranspose(
@@ -385,11 +421,25 @@ class ChordService {
   }
 
   static _ParsedBass _parseSlashBass(String suffix) {
-    final match = RegExp(r'^(.*)/([A-Ga-g])([#♯b♭]?)(.*)$').firstMatch(suffix);
+    // Match slash notation: anything/slash/bass note/optional accidental/after
+    // Handles German notation: Es=Eb, As=Ab, etc.
+    final match = RegExp(
+      r'^(.*)/([A-Ga-g1-7])([#♯b♭]?)(.*)$',
+      caseSensitive: false,
+    ).firstMatch(suffix);
     if (match == null) return _ParsedBass(suffixBefore: suffix);
 
-    final root = match.group(2)!.toUpperCase();
-    var semitone = _naturalNoteIndex[root];
+    var bassNote = match.group(2)!.toUpperCase();
+    // Handle German/Indonesian notation for bass notes
+    if (bassNote == 'E' && suffix.toLowerCase().startsWith('es')) {
+      bassNote = 'Eb'; // Es = Eb
+    } else if (bassNote == 'A' && suffix.toLowerCase().startsWith('as')) {
+      bassNote = 'Ab'; // As = Ab
+    } else if (bassNote == 'H') {
+      bassNote = 'B'; // H = B natural
+    }
+
+    var semitone = _naturalNoteIndex[bassNote];
     if (semitone == null) return _ParsedBass(suffixBefore: suffix);
 
     final accidentalRaw = match.group(3) ?? '';

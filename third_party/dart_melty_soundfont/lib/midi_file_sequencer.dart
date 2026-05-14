@@ -90,6 +90,30 @@ class MidiFileSequencer implements AudioRenderer {
     }
   }
 
+  /// <summary>
+  /// Seeks to the specified time.
+  /// </summary>
+  /// <param name="time">The time to seek to.</param>
+  void seek(Duration time) {
+    if (_midiFile == null) {
+      return;
+    }
+
+    if (time < _currentTime) {
+      // If seeking backwards, reset to the beginning and fast-forward.
+      _currentTime = Duration.zero;
+      _msgIndex = 0;
+      _loopIndex = 0;
+      synthesizer.reset();
+    }
+
+    _currentTime = time;
+    _processEvents();
+    
+    // Reset block tracking so the next render starts fresh after processing events.
+    _blockWrote = synthesizer.blockSize;
+  }
+
   void _processEvents() {
     if (_midiFile == null) {
       return;

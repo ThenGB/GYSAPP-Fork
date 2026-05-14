@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
@@ -64,6 +65,7 @@ class DraggableMidiControls extends StatefulWidget {
   final ValueChanged<int?> onInstrument;
   final ValueChanged<String> onSoundFont;
   final String nowPlayingTitle;
+  final String? runningFamilyChord;
 
   /// When provided the panel's expand/collapse state is controlled externally
   /// (e.g. by the Dashboard which needs the height for layout calculations).
@@ -105,6 +107,7 @@ class DraggableMidiControls extends StatefulWidget {
     required this.onInstrument,
     required this.onSoundFont,
     this.nowPlayingTitle = '',
+    this.runningFamilyChord,
     this.isExpanded,
     this.onExpandedChanged,
     this.onPreviousSong,
@@ -134,6 +137,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   double _sidebarButtonY = 200; // Initial vertical position
   bool _snapRight = true; // Snap to right or left side
   double _dragX = 0; // Horizontal drag offset
+
+  // Debounce timers for tempo and transpose to prevent spamming
+  Timer? _tempoDebounce;
+  Timer? _transposeDebounce;
 
   bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
 
@@ -171,6 +178,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   @override
   void dispose() {
+    _tempoDebounce?.cancel();
+    _transposeDebounce?.cancel();
     _animationController.dispose();
     _pulseController.dispose();
     super.dispose();
@@ -230,6 +239,118 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
+  void _adjustTempo(double newTempo) {
+    _tempoDebounce?.cancel();
+    // Debounce 300ms before applying to prevent rapid updates
+    _tempoDebounce = Timer(const Duration(milliseconds: 300), () {
+      widget.onTempo(newTempo);
+    });
+    // Still show immediate visual feedback
+    setState(() {});
+  }
+
+  void _adjustTranspose(int newTranspose) {
+    _transposeDebounce?.cancel();
+    // Debounce 300ms before applying to prevent rapid updates
+    _transposeDebounce = Timer(const Duration(milliseconds: 300), () {
+      widget.onTranspose(newTranspose.clamp(-12, 12));
+    });
+    // Still show immediate visual feedback
+    setState(() {});
+  }
+
+  void _showTempoEditDialog(BuildContext context) {
+    final controller = TextEditingController(
+      text: widget.tempoBpm.round().toString(),
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Tempo'),
+        content: TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          decoration: const InputDecoration(
+            labelText: 'BPM',
+            hintText: 'Enter tempo (30-300)',
+          ),
+          autofocus: true,
+          onSubmitted: (value) {
+            final tempo = double.tryParse(value);
+            if (tempo != null) {
+              widget.onTempo(tempo.clamp(30, 300));
+            }
+            Navigator.pop(context);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Batal'),
+          ),
+          TextButton(
+            onPressed: () {
+              final tempo = double.tryParse(controller.text);
+              if (tempo != null) {
+                widget.onTempo(tempo.clamp(30, 300));
+              }
+              Navigator.pop(context);
+            },
+            child: const Text('Simpan'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showKeySelector(BuildContext context) {
+    if (widget.availableKeys.isEmpty) return;
+
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Select Key',
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const Divider(height: 1),
+            Flexible(
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: widget.availableKeys.length,
+                itemBuilder: (context, index) {
+                  final key = widget.availableKeys[index];
+                  final isSelected = key == widget.currentKey;
+                  return ListTile(
+                    title: Text(key),
+                    trailing: isSelected
+                        ? Icon(
+                            Icons.check,
+                            color: Theme.of(context).colorScheme.primary,
+                          )
+                        : null,
+                    onTap: () {
+                      widget.onKeySelected(key);
+                      Navigator.pop(context);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   void _setExpanded(bool value) {
     if (widget.onExpandedChanged != null) {
       widget.onExpandedChanged!(value);
@@ -247,11 +368,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     final screenHeight = MediaQuery.sizeOf(context).height;
     final barHeight = kMidiSidebarBarHeight;
     final margin = kMidiSidebarButtonMargin;
-    
+
     setState(() {
       // Allow full screen vertical movement
       _sidebarButtonY = (_sidebarButtonY + details.delta.dy).clamp(
-        margin, 
+        margin,
         screenHeight - barHeight - margin,
       );
       // Update dragX for smooth horizontal movement feedback
@@ -261,7 +382,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   void _handleSidebarPanEnd(DragEndDetails details) {
     final screenWidth = MediaQuery.sizeOf(context).width;
-    
+
     setState(() {
       final currentPos = _snapRight ? screenWidth + _dragX : _dragX;
       _snapRight = currentPos > screenWidth / 2;
@@ -296,12 +417,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       );
 
       if (widget.usePositioned) {
-        return Positioned(
-          left: 0,
-          right: 0,
-          bottom: 0,
-          child: content,
-        );
+        return Positioned(left: 0, right: 0, bottom: 0, child: content);
       }
       return content;
     }
@@ -463,18 +579,43 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                             ),
                             const SizedBox(width: 8),
                             Expanded(
-                              child: Text(
-                                widget.nowPlayingTitle.trim().isEmpty
-                                    ? 'Now Playing'
-                                    : 'Now Playing: ${widget.nowPlayingTitle}',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: colors.onPrimary,
-                                      letterSpacing: 1.3,
-                                      fontWeight: FontWeight.w800,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    widget.nowPlayingTitle.trim().isEmpty
+                                        ? 'Now Playing'
+                                        : widget.nowPlayingTitle,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: colors.onPrimary,
+                                          letterSpacing: 1.3,
+                                          fontWeight: FontWeight.w800,
+                                        ),
+                                  ),
+                                  if (widget.runningFamilyChord != null &&
+                                      widget.runningFamilyChord!.isNotEmpty)
+                                    Text(
+                                      widget.runningFamilyChord!,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .labelSmall
+                                          ?.copyWith(
+                                            color: colors.onPrimary.withValues(
+                                              alpha: 0.8,
+                                            ),
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                          ),
                                     ),
+                                ],
                               ),
                             ),
                             AnimatedRotation(
@@ -604,26 +745,76 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                                     IconButton(
                                       constraints: iconConstraints,
                                       visualDensity: VisualDensity.compact,
-                                      onPressed: () => widget.onTranspose(
+                                      onPressed: () => _adjustTranspose(
                                         widget.transposeStep - 1,
                                       ),
                                       icon: const Icon(Icons.remove_rounded),
                                     ),
-                                    SizedBox(
-                                      width: compact ? 22 : 24,
-                                      child: Text(
-                                        '${widget.transposeStep}',
-                                        textAlign: TextAlign.center,
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium,
+                                    GestureDetector(
+                                      onTap: widget.availableKeys.isNotEmpty
+                                          ? () => _showKeySelector(context)
+                                          : null,
+                                      child: SizedBox(
+                                        width: compact ? 30 : 36,
+                                        child: Text(
+                                          '${widget.transposeStep}',
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                        ),
                                       ),
                                     ),
                                     IconButton(
                                       constraints: iconConstraints,
                                       visualDensity: VisualDensity.compact,
-                                      onPressed: () => widget.onTranspose(
+                                      onPressed: () => _adjustTranspose(
                                         widget.transposeStep + 1,
+                                      ),
+                                      icon: const Icon(Icons.add_rounded),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              Widget tempoControl = Container(
+                                decoration: BoxDecoration(
+                                  color: colors.surfaceContainerLowest,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: colors.outlineVariant,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      constraints: iconConstraints,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () => _adjustTempo(
+                                        (widget.tempoBpm - 1).clamp(30, 300),
+                                      ),
+                                      icon: const Icon(Icons.remove_rounded),
+                                    ),
+                                    GestureDetector(
+                                      onTap: () =>
+                                          _showTempoEditDialog(context),
+                                      child: SizedBox(
+                                        width: compact ? 34 : 48,
+                                        child: Text(
+                                          '${widget.tempoBpm.round()}',
+                                          textAlign: TextAlign.center,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.titleMedium,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      constraints: iconConstraints,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () => _adjustTempo(
+                                        (widget.tempoBpm + 1).clamp(30, 300),
                                       ),
                                       icon: const Icon(Icons.add_rounded),
                                     ),
@@ -665,24 +856,27 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                                 ],
                               );
 
+                              final labelStyle = Theme.of(context)
+                                  .textTheme
+                                  .labelSmall
+                                  ?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                    letterSpacing: 0.1,
+                                  );
+
                               if (compact) {
                                 return Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
                                       children: [
-                                        Text(
-                                          'Transpose',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: colors.onSurfaceVariant,
-                                                letterSpacing: 0.1,
-                                              ),
-                                        ),
+                                        Text('Transpose', style: labelStyle),
                                         const SizedBox(width: 8),
                                         transposeControl,
+                                        const Spacer(),
+                                        Text('Tempo', style: labelStyle),
+                                        const SizedBox(width: 8),
+                                        tempoControl,
                                       ],
                                     ),
                                     const SizedBox(height: 8),
@@ -694,21 +888,15 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                                 );
                               }
 
-                              return Row(
+                              return Wrap(
+                                spacing: 10,
+                                runSpacing: 8,
+                                crossAxisAlignment: WrapCrossAlignment.center,
                                 children: [
-                                  Text(
-                                    'Transpose',
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: colors.onSurfaceVariant,
-                                          letterSpacing: 0.1,
-                                        ),
-                                  ),
-                                  const SizedBox(width: 10),
+                                  Text('Transpose', style: labelStyle),
                                   transposeControl,
-                                  const Spacer(),
+                                  Text('Tempo', style: labelStyle),
+                                  tempoControl,
                                   iconActions,
                                 ],
                               );

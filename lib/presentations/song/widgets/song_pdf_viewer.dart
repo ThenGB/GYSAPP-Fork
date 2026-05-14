@@ -1,13 +1,15 @@
 import 'dart:async';
-import 'dart:developer';
 import 'dart:math' show max;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdfrx/pdfrx.dart' as pdfrx;
 import 'package:collection/collection.dart';
 
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/pdf_note_extractor.dart';
+import '../../../data/services/pdf_note_service.dart';
+import '../cubit/song_cubit.dart';
 import 'chord_badge_layout.dart';
 
 /// App-level controller for programmatic zoom on the active PDF viewer.
@@ -67,15 +69,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// pdfrx viewer controller used for zoom / page navigation.
   final _pdfCtrl = pdfrx.PdfViewerController();
 
-  /// Per-page note position caches loaded from the PDF text layer.
-  /// Key: absolute page number (1-based) within the PDF document.
-  final Map<int, Map<int, NotePosition>> _noteCache = {};
+  /// Global service for note extraction and caching.
+  final _noteService = PdfNoteService();
 
-  /// Per-page note info caches loaded from the PDF text layer (for edit mode).
-  /// Key: absolute page number (1-based) within the PDF document.
-  final Map<int, List<NoteInfo>> _noteInfoCache = {};
+  PdfDocumentRequest? _pdfRequest;
 
-  _PdfDocumentRequest? _pdfRequest;
+  /// Cached page layouts to avoid O(N) list creation in _buildLayout on every call.
+  pdfrx.PdfPageLayout? _cachedLayout;
+  String? _cachedLayoutKey;
 
   /// True while we are waiting for the first [onViewerReady] after a new PDF
   /// is requested. Reset to false once the initial fit-to-page has been done,
@@ -89,6 +90,10 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
   /// Incremented on every pdfPath change so stale fade completions are ignored.
   int _pathGeneration = 0;
+
+  /// True while the viewer is transitioning between PDFs (fading out/in).
+  /// Used to prevent rendering new chords on the old PDF document.
+  bool _isTransitioning = false;
 
   @override
   void initState() {
@@ -124,6 +129,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
         oldWidget.verticalScrolling != widget.verticalScrolling) {
       // Layout changed — PdfViewer is rebuilt via new key on assetPath,
       // but twoPageMode/verticalScrolling need a setState.
+      _needsInitialFit = true;
       setState(() {});
     }
     if (oldWidget.showChord != widget.showChord ||
@@ -139,7 +145,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       // the document key is unchanged, so the pageOverlaysBuilder closure change
       // is invisible to pdfrx. Force a redraw of the overlay layer explicitly.
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted && _pdfCtrl.isReady) _pdfCtrl.invalidate();
+        if (mounted) _invalidatePdfIfReady();
       });
     }
   }
@@ -155,51 +161,90 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   void _parsePdfPath() {
     final path = widget.pdfPath;
     if (path == null) {
+      _pathGeneration++;
+      _cachedLayout = null;
+      _cachedLayoutKey = null;
+      _needsInitialFit = false;
+      _isTransitioning = false;
+      _navFadeCtrl.value = 0;
       if (mounted) setState(() => _pdfRequest = null);
       return;
     }
-    final newRequest = _PdfDocumentRequest.parse(path);
-    if (_pdfRequest == null) {
-      // First load — show immediately with no transition.
-      _noteCache.clear();
-      _noteInfoCache.clear();
-      _needsInitialFit = true;
-      if (mounted) setState(() => _pdfRequest = newRequest);
+    final newRequest = PdfDocumentRequest.parse(path);
+    final oldRequest = _pdfRequest;
+    if (oldRequest != null && _samePdfRequest(oldRequest, newRequest)) {
       return;
     }
-    // Song navigation — fade out, swap PDF, then fade in (in onViewerReady).
-    final gen = ++_pathGeneration;
-    _navFadeCtrl.forward(from: _navFadeCtrl.value).whenComplete(() {
-      if (!mounted || gen != _pathGeneration) return;
-      _noteCache.clear();
-      _noteInfoCache.clear();
-      _needsInitialFit = true;
-      setState(() => _pdfRequest = newRequest);
-    });
+
+    _pathGeneration++;
+    _cachedLayout = null;
+    _cachedLayoutKey = null;
+    _needsInitialFit = true;
+    _isTransitioning = false;
+    _navFadeCtrl.value = 0;
+    if (mounted) setState(() => _pdfRequest = newRequest);
   }
 
-  void _onViewerReady(pdfrx.PdfDocument? document, pdfrx.PdfViewerController ctrl) {
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      if (!mounted) return;
-      
-      // Only fit-to-page on the FIRST ready event after a new PDF is
-      // loaded. Subsequent onViewerReady calls (e.g. from invalidate
-      // after chord/transpose changes) must NOT reset the user's zoom.
-      if (_needsInitialFit) {
-        _needsInitialFit = false;
-        
-        // Small delay to ensure layout is computed
-        await Future.delayed(const Duration(milliseconds: 50));
-        if (!mounted) return;
-        
-        _fitToPageInstant();
-        // Force an additional redraw of the current page
-        _pdfCtrl.invalidate();
+  bool _samePdfRequest(PdfDocumentRequest a, PdfDocumentRequest b) {
+    return a.assetPath == b.assetPath &&
+        a.startPage == b.startPage &&
+        a.pageCount == b.pageCount &&
+        a.isFile == b.isFile;
+  }
+
+  void _onViewerReady(
+    pdfrx.PdfDocument? document,
+    pdfrx.PdfViewerController ctrl,
+  ) {
+    if (document == null) return;
+
+    // Use a more robust way to wait for the viewer to have a valid size.
+    // Reopening the page often involves layout animations or multiple passes.
+    _waitForValidSizeAndFit(ctrl, _pathGeneration);
+  }
+
+  void _waitForValidSizeAndFit(
+    pdfrx.PdfViewerController ctrl,
+    int generation,
+  ) async {
+    int attempts = 0;
+    while (attempts < 30) {
+      if (!mounted || generation != _pathGeneration) return;
+
+      // Wait for controller to be ready AND for the render box to have a valid size.
+      // This is crucial because calcMatrixForFit needs the actual viewer dimensions.
+      final box = context.findRenderObject() as RenderBox?;
+      if (ctrl.isReady && box != null && box.hasSize && box.size.width > 0) {
+        break;
       }
-      
-      // Fade back in after the PDF is ready and positioned.
+
+      await Future.delayed(
+        const Duration(milliseconds: 16),
+      ); // Faster polling (1 frame)
+      attempts++;
+    }
+
+    if (!mounted || generation != _pathGeneration) return;
+
+    // Use a microtask to perform the fit immediately after size is available
+    // instead of a hard 100ms delay.
+    if (_needsInitialFit) {
+      _needsInitialFit = false;
+      _fitToPageInstant();
+
+      // Use a single frame delay instead of 60ms for the invalidate.
+      await Future.microtask(() {});
+      if (mounted && generation == _pathGeneration) {
+        _invalidatePdfIfReady();
+        setState(() {}); // Force overlay rebuild after fit
+      }
+    }
+
+    // Reveal the viewer immediately after fitting.
+    if (mounted && generation == _pathGeneration) {
+      setState(() => _isTransitioning = false);
       _navFadeCtrl.reverse();
-    });
+    }
   }
 
   void _zoomIn() {
@@ -225,61 +270,64 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// set the zoom/position.
   void _fitToPageInstant() {
     if (!_pdfCtrl.isReady) return;
-    final page = _pdfCtrl.pageNumber ?? _pdfRequest?.startPage ?? 1;
+    final page = _pdfRequest?.startPage ?? _pdfCtrl.pageNumber ?? 1;
     final matrix = _pdfCtrl.calcMatrixForFit(pageNumber: page);
     _pdfCtrl.goTo(matrix, duration: Duration.zero);
   }
 
-  /// Load and cache note positions for [page] from the PDF text layer.
-  Future<Map<int, NotePosition>> _loadNotePositions(pdfrx.PdfPage page) async {
-    final n = page.pageNumber;
-    if (_noteCache.containsKey(n)) return _noteCache[n]!;
+  void _invalidatePdfIfReady() {
     try {
-      final rawText = await page.loadText();
-      if (rawText == null) {
-        log(
-          'page=$n: loadText returned null',
-          name: 'SongPdfViewer.noteExtract',
-        );
-        return _noteCache[n] = {};
-      }
-      final positions = extractNotePositions(rawText, page.width, page.height);
-      log(
-        'page=$n: extracted ${positions.length} positions '
-        '(textLen=${rawText.fullText.length})',
-        name: 'SongPdfViewer.noteExtract',
-      );
-      return _noteCache[n] = positions;
-    } catch (e, st) {
-      log('page=$n: $e\n$st', name: 'SongPdfViewer.noteExtract');
-      return _noteCache[n] = {};
+      if (!_pdfCtrl.isReady) return;
+      _pdfCtrl.invalidate();
+    } on TypeError {
+      // pdfrx can detach the controller between isReady and invalidate while
+      // swapping documents. A later viewer-ready pass will redraw the overlay.
     }
   }
 
-  /// Load and cache note infos for [page] from the PDF text layer (for edit mode).
-  Future<List<NoteInfo>> _loadNoteInfos(pdfrx.PdfPage page) async {
-    final n = page.pageNumber;
-    if (_noteInfoCache.containsKey(n)) return _noteInfoCache[n]!;
-    try {
-      final rawText = await page.loadText();
-      if (rawText == null) {
-        log(
-          'page=$n: loadText returned null',
-          name: 'SongPdfViewer.noteExtract',
-        );
-        return _noteInfoCache[n] = [];
-      }
-      final infos = extractNoteInfos(rawText, page.width, page.height);
-      log(
-        'page=$n: extracted ${infos.length} note infos '
-        '(textLen=${rawText.fullText.length})',
-        name: 'SongPdfViewer.noteExtract',
+  /// Load and cache note positions AND infos for [page] from the PDF text layer.
+  /// This combines the extraction into a single call for better performance.
+  Future<
+    ({
+      Map<int, NotePosition> positions,
+      List<NoteInfo> infos,
+      String? detectedKey,
+      double? detectedTempo,
+    })
+  >
+  _loadNotePositionsAndInfos(pdfrx.PdfPage page) async {
+    final request = _pdfRequest;
+    if (request == null) {
+      return (
+        positions: <int, NotePosition>{},
+        infos: <NoteInfo>[],
+        detectedKey: null,
+        detectedTempo: null,
       );
-      return _noteInfoCache[n] = infos;
-    } catch (e, st) {
-      log('page=$n: $e\n$st', name: 'SongPdfViewer.noteExtract');
-      return _noteInfoCache[n] = [];
     }
+
+    final result = await _noteService.loadNotePositionsAndInfos(
+      page,
+      request.assetPath,
+    );
+
+    // Automatically update the PDF key and tempo if detected in the text layer
+    if (result.detectedKey != null || result.detectedTempo != null) {
+      // Use a post-frame callback to avoid state updates during build
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          final cubit = context.read<SongCubit>();
+          if (result.detectedKey != null) {
+            cubit.updatePdfKey(result.detectedKey);
+          }
+          if (result.detectedTempo != null) {
+            cubit.updatePdfTempo(result.detectedTempo!);
+          }
+        }
+      });
+    }
+
+    return result;
   }
 
   @override
@@ -310,11 +358,15 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       layoutPages: _buildLayout,
       onViewerReady: _onViewerReady,
       pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
+      // Use faster rendering settings
+      maxScale: 3.5,
     );
 
-    // Force recreation of the PdfViewer whenever the file path or start page
-    // changes so pdfrx definitely loads the new document / page.
-    final viewerKey = ValueKey('${request.assetPath}#p${request.startPage}');
+    // Force recreation when the requested range changes so pdfrx applies
+    // initialPageNumber and rebuilds the page layout against the right pages.
+    final viewerKey = ValueKey(
+      '${request.assetPath}#p${request.startPage}#n${request.pageCount}',
+    );
 
     final viewer = request.isFile
         ? pdfrx.PdfViewer.file(
@@ -336,10 +388,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       child: AnimatedBuilder(
         animation: _navFadeCtrl,
         child: viewer,
-        builder: (context, child) => Opacity(
-          opacity: _navOpacity.value,
-          child: child,
-        ),
+        builder: (context, child) =>
+            Opacity(opacity: _navOpacity.value, child: child),
       ),
     );
   }
@@ -354,15 +404,27 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     pdfrx.PdfViewerParams params,
   ) {
     final request = _pdfRequest;
+    if (request == null) {
+      return pdfrx.PdfPageLayout(pageLayouts: [], documentSize: Size.zero);
+    }
 
     // Determine which pages to show (1-based, inclusive start, exclusive end).
-    final int startPage = request?.startPage ?? 1;
-    final int endPage = request?.pageCount != null
-        ? startPage + request!.pageCount!
+    final int startPage = request.startPage;
+    final int endPage = request.pageCount != null
+        ? startPage + request.pageCount!
         : pages.length + 1;
 
+    // Cache key for the layout
+    final layoutKey =
+        '${request.assetPath}#s$startPage#e$endPage#v${widget.verticalScrolling}#t${widget.twoPageMode}#m${params.margin}';
+    if (_cachedLayout != null && _cachedLayoutKey == layoutKey) {
+      return _cachedLayout!;
+    }
+
     final visiblePages = pages
-        .where((p) => p.pageNumber >= startPage && p.pageNumber < endPage)
+        .where(
+          (page) => page.pageNumber >= startPage && page.pageNumber < endPage,
+        )
         .toList();
 
     final margin = params.margin;
@@ -390,12 +452,15 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       double maxHeight = 0.0;
       for (int i = 0; i < visiblePages.length; i += 2) {
         final left = visiblePages[i];
-        final right =
-            i + 1 < visiblePages.length ? visiblePages[i + 1] : null;
+        final right = i + 1 < visiblePages.length ? visiblePages[i + 1] : null;
         final pairWidth = left.width + (right?.width ?? left.width) + margin;
         final pairHeight = max(left.height, right?.height ?? 0.0);
-        visibleRects[left.pageNumber] =
-            Rect.fromLTWH(x, margin, left.width, left.height);
+        visibleRects[left.pageNumber] = Rect.fromLTWH(
+          x,
+          margin,
+          left.width,
+          left.height,
+        );
         if (right != null) {
           visibleRects[right.pageNumber] = Rect.fromLTWH(
             x + left.width + margin,
@@ -436,13 +501,21 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     final pageLayouts = [
       for (final page in pages)
         visibleRects[page.pageNumber] ??
-            Rect.fromLTWH(-page.width * 100, -page.height * 100, page.width, page.height),
+            Rect.fromLTWH(
+              -page.width * 100,
+              -page.height * 100,
+              page.width,
+              page.height,
+            ),
     ];
 
-    return pdfrx.PdfPageLayout(
+    _cachedLayout = pdfrx.PdfPageLayout(
       pageLayouts: pageLayouts,
       documentSize: documentSize,
     );
+    _cachedLayoutKey = layoutKey;
+
+    return _cachedLayout!;
   }
 
   List<Widget> _buildPageOverlays(
@@ -450,6 +523,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     Rect pageRectInViewer,
     pdfrx.PdfPage page,
   ) {
+    if (_isTransitioning) return [];
     final request = _pdfRequest;
     if (request == null) return [];
 
@@ -479,8 +553,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           pageRectInViewer: pageRectInViewer,
           isEditMode: widget.isEditMode,
           onChordEdited: widget.onChordsChanged,
-          loadNotePositions: _loadNotePositions,
-          loadNoteInfos: _loadNoteInfos,
+          loadNotePositionsAndInfos: _loadNotePositionsAndInfos,
         ),
       ),
     ];
@@ -506,9 +579,16 @@ class _ChordOverlay extends StatefulWidget {
   final Rect pageRectInViewer;
   final bool isEditMode;
   final Function(Map<int, List<ChordData>>)? onChordEdited;
-  final Future<Map<int, NotePosition>> Function(pdfrx.PdfPage)
-  loadNotePositions;
-  final Future<List<NoteInfo>> Function(pdfrx.PdfPage) loadNoteInfos;
+  final Future<
+    ({
+      Map<int, NotePosition> positions,
+      List<NoteInfo> infos,
+      String? detectedKey,
+      double? detectedTempo,
+    })
+  >
+  Function(pdfrx.PdfPage)
+  loadNotePositionsAndInfos;
 
   const _ChordOverlay({
     required this.page,
@@ -524,31 +604,46 @@ class _ChordOverlay extends StatefulWidget {
     required this.pageRectInViewer,
     this.isEditMode = false,
     this.onChordEdited,
-    required this.loadNotePositions,
-    required this.loadNoteInfos,
+    required this.loadNotePositionsAndInfos,
   });
 
   @override
   State<_ChordOverlay> createState() => _ChordOverlayState();
 }
 
+/// Data holder for combined note extraction results.
+class _NoteExtractionResult {
+  final Map<int, NotePosition> positions;
+  final List<NoteInfo> infos;
+
+  const _NoteExtractionResult({required this.positions, required this.infos});
+}
+
 class _ChordOverlayState extends State<_ChordOverlay> {
-  late Future<Map<int, NotePosition>> _future;
-  late Future<List<NoteInfo>> _noteInfosFuture;
+  late Future<_NoteExtractionResult> _extractionFuture;
 
   @override
   void initState() {
     super.initState();
-    _future = widget.loadNotePositions(widget.page);
-    _noteInfosFuture = widget.loadNoteInfos(widget.page);
+    _startExtraction();
+  }
+
+  void _startExtraction() {
+    _extractionFuture = widget
+        .loadNotePositionsAndInfos(widget.page)
+        .then(
+          (result) => _NoteExtractionResult(
+            positions: result.positions,
+            infos: result.infos,
+          ),
+        );
   }
 
   @override
   void didUpdateWidget(_ChordOverlay oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.page.pageNumber != widget.page.pageNumber) {
-      _future = widget.loadNotePositions(widget.page);
-      _noteInfosFuture = widget.loadNoteInfos(widget.page);
+      _startExtraction();
     }
   }
 
@@ -560,28 +655,35 @@ class _ChordOverlayState extends State<_ChordOverlay> {
   Widget build(BuildContext context) {
     return SizedBox.fromSize(
       size: widget.pageRectInViewer.size,
-      child: FutureBuilder<Map<int, NotePosition>>(
-        future: _future,
-        builder: (context, positionSnapshot) {
-          // Don't render anything until positions are fully resolved.
-          // Showing _fallbackPositions while loading causes wrong chord
-          // placement (evenly-spaced grid instead of note-aligned positions).
-          if (positionSnapshot.connectionState != ConnectionState.done) {
-            return const SizedBox.shrink();
+      child: FutureBuilder<_NoteExtractionResult>(
+        future: _extractionFuture,
+        builder: (context, snapshot) {
+          final positions = snapshot.data?.positions;
+          final infos = snapshot.data?.infos ?? [];
+
+          // Use fallback positions ONLY if note extraction definitively failed.
+          // In edit mode, we still show them as placeholders.
+          final effectivePositions = positions != null && positions.isNotEmpty
+              ? Map<int, NotePosition>.from(positions)
+              : (widget.isEditMode
+                    ? _fallbackPositions(widget.chords)
+                    : <int, NotePosition>{});
+
+          if (effectivePositions.isEmpty && widget.chords.isNotEmpty) {
+            return const Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            );
           }
-          final notePositions = positionSnapshot.data;
-          final effectivePositions =
-              notePositions != null && notePositions.isNotEmpty
-              ? Map<int, NotePosition>.from(notePositions)
-              : _fallbackPositions(widget.chords);
 
           // Resolve sentinel positions for intro/outro chords.
-          // NOTE_IDX_BEFORE (-1): just before the first note.
-          // NOTE_IDX_AFTER (99999): just after the last note.
-          if (notePositions != null && notePositions.isNotEmpty) {
-            final sortedKeys = notePositions.keys.toList()..sort();
-            final firstPos = notePositions[sortedKeys.first]!;
-            final lastPos = notePositions[sortedKeys.last]!;
+          if (positions != null && positions.isNotEmpty) {
+            final sortedKeys = positions.keys.toList()..sort();
+            final firstPos = positions[sortedKeys.first]!;
+            final lastPos = positions[sortedKeys.last]!;
             effectivePositions[_noteIdxBefore] = (
               xPct: (firstPos.xPct - 2.5).clamp(1.0, 99.0),
               yPct: firstPos.yPct,
@@ -603,22 +705,16 @@ class _ChordOverlayState extends State<_ChordOverlay> {
             }
           }
 
-          // In edit mode, also load and render note targets
+          // In edit mode, also render note targets using the same data
           if (widget.isEditMode) {
-            return FutureBuilder<List<NoteInfo>>(
-              future: _noteInfosFuture,
-              builder: (context, noteInfosSnapshot) {
-                final noteInfos = noteInfosSnapshot.data ?? [];
-                return Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    // Note targets (clickable in edit mode)
-                    ..._buildNoteTargets(noteInfos),
-                    // Chord badges
-                    ...chordBadges,
-                  ],
-                );
-              },
+            return Stack(
+              clipBehavior: Clip.none,
+              children: [
+                // Note targets (clickable in edit mode)
+                ..._buildNoteTargets(infos),
+                // Chord badges
+                ...chordBadges,
+              ],
             );
           }
 
@@ -804,6 +900,15 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     final currentPage = widget.songPage;
     final updatedChords = _copyAllChords();
 
+    // Mirror gyschordweb: Untranspose the user's input before saving to database.
+    // This ensures that state.currentChords always stays in the "Source Key" (Family Chord).
+    final untransposedChord = ChordService.untransposeChord(
+      chordText,
+      widget.transposeStep,
+      baseTransposeOffset: widget.baseTransposeOffset,
+      accidentalMode: widget.chordAccidentalMode,
+    );
+
     // Remove existing chord for this note if any
     updatedChords[currentPage] = (updatedChords[currentPage] ?? [])
         .where((c) => c.noteIdx != noteIdx)
@@ -811,7 +916,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 
     // Add the new chord
     updatedChords[currentPage]!.add(
-      ChordData(noteIdx: noteIdx, chord: chordText, page: currentPage),
+      ChordData(noteIdx: noteIdx, chord: untransposedChord, page: currentPage),
     );
     updatedChords[currentPage]!.sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
 
@@ -969,66 +1074,5 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 }
 
 // ---------------------------------------------------------------------------
-// Internal helpers
+// Internal helpers removed (moved to PdfNoteService)
 // ---------------------------------------------------------------------------
-
-/// Parsed PDF path with optional `#page=N&pages=M` fragment.
-///
-/// Example: `assets/data/pdf/kr/001.pdf#page=3&pages=2`
-class _PdfDocumentRequest {
-  const _PdfDocumentRequest({
-    required this.assetPath,
-    required this.startPage,
-    required this.pageCount,
-    required this.isFile,
-  });
-
-  final String assetPath;
-  final int startPage;
-  final int? pageCount;
-
-  /// Whether this path points to a file on disk (as opposed to a bundled asset).
-  final bool isFile;
-
-  static final _driveLetterPattern = RegExp(r'^[A-Za-z]:/');
-
-  static _PdfDocumentRequest parse(String value) {
-    final normalized = value.replaceAll('\\', '/');
-    final fragmentIndex = normalized.indexOf('#');
-
-    String assetPath;
-    String? fragment;
-    if (fragmentIndex < 0) {
-      assetPath = normalized;
-      fragment = null;
-    } else {
-      assetPath = normalized.substring(0, fragmentIndex);
-      fragment = normalized.substring(fragmentIndex + 1);
-    }
-
-    // File paths start with '/' (Unix/macOS) or a drive letter like 'C:/' (Windows).
-    // Asset paths never start with either.
-    final isFile = assetPath.startsWith('/') || _driveLetterPattern.hasMatch(assetPath);
-
-    if (fragment == null) {
-      return _PdfDocumentRequest(
-        assetPath: assetPath,
-        startPage: 1,
-        pageCount: null,
-        isFile: isFile,
-      );
-    }
-
-    // Supports query-style fragment: page=N&pages=M
-    final params = Uri.splitQueryString(fragment);
-    final startPage = int.tryParse(params['page'] ?? '') ?? 1;
-    final pageCount = int.tryParse(params['pages'] ?? '');
-
-    return _PdfDocumentRequest(
-      assetPath: assetPath,
-      startPage: startPage,
-      pageCount: pageCount,
-      isFile: isFile,
-    );
-  }
-}

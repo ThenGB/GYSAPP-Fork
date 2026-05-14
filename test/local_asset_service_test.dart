@@ -1,4 +1,5 @@
 import 'package:church/data/services/local_asset_service.dart';
+import 'package:church/data/services/pdf_chunk_service.dart';
 import 'package:church/data/services/local_bible_asset_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,7 +8,7 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   test('resolves indexed midi path to bundled asset path', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getMidiPath('KR', '011');
 
@@ -17,7 +18,7 @@ void main() {
   });
 
   test('resolves HYMNE midi path to KR midi file via cross-reference', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getMidiPath('HYMNE', '001');
 
@@ -27,7 +28,7 @@ void main() {
   });
 
   test('resolves MDR midi path to KR midi file via cross-reference', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getMidiPath('MDR', '001');
 
@@ -39,7 +40,7 @@ void main() {
   test(
     'resolves non KR pdf path even when index title encoding differs',
     () async {
-      final service = LocalAssetService();
+      final service = LocalAssetService(PdfChunkService());
 
       final path = await service.getPdfPath('MDR', '001');
 
@@ -52,7 +53,7 @@ void main() {
   );
 
   test('resolves KR pdf path to bundled native PDF asset', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('KR', '001');
 
@@ -62,7 +63,7 @@ void main() {
   });
 
   test('resolves HYMNE pdf path to master PDF with page range', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('HYMNE', '001');
 
@@ -74,7 +75,7 @@ void main() {
   });
 
   test('resolves KR chord path to bundled native overlay data', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getChordPath('KR', '001');
 
@@ -89,7 +90,7 @@ void main() {
   test(
     'falls back HYMNE chord path to matching KR native overlay data',
     () async {
-      final service = LocalAssetService();
+      final service = LocalAssetService(PdfChunkService());
 
       final path = await service.getChordPath('HYMNE', '001');
 
@@ -103,7 +104,7 @@ void main() {
   );
 
   test('resolves ASM pdf path to consolidated master range', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('ASM-I', '001');
 
@@ -127,7 +128,7 @@ void main() {
   );
 
   test('available soundfonts point to bundled sf2 assets', () async {
-    final service = LocalAssetService();
+    final service = LocalAssetService(PdfChunkService());
 
     final soundfonts = await service.getAvailableSoundFonts();
 

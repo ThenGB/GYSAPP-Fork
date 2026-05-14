@@ -34,6 +34,31 @@ void main() {
     expect(ChordService.detectFamilyChord(chords), 'C');
   });
 
+  test('detects minor roots without treating Em as Es-style notation', () {
+    const chords = {
+      1: [
+        ChordData(noteIdx: 0, chord: 'C', page: 1),
+        ChordData(noteIdx: 1, chord: 'Em', page: 1),
+        ChordData(noteIdx: 2, chord: 'G', page: 1),
+        ChordData(noteIdx: 3, chord: 'Em', page: 1),
+      ],
+    };
+
+    expect(ChordService.detectFamilyChord(chords), 'Em');
+  });
+
+  test('keeps slash bass in display-key coordinates like gyschordweb', () {
+    expect(
+      ChordService.transposeChord(
+        'C/G',
+        0,
+        baseTransposeOffset: 3,
+        accidentalMode: ChordService.accidentalFlat,
+      ),
+      'Eb/G',
+    );
+  });
+
   test('parses gyschordweb note-aligned json using page map keys', () {
     const json = '''
 {

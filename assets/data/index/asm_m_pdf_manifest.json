@@ -9,559 +9,762 @@
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 8,
       "pageCount": 1,
-      "source": "001_DENGAR_DENGAR_ANAK_MEMUJI.pdf"
+      "source": "001_DENGAR_DENGAR_ANAK_MEMUJI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 1
     },
     "002": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 9,
       "pageCount": 1,
-      "source": "002_KEBAKTIAN_ANAK-ANAK.pdf"
+      "source": "002_KEBAKTIAN_ANAK-ANAK.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 2
     },
     "003": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 10,
       "pageCount": 1,
-      "source": "003_HALELUYA_1.pdf"
+      "source": "003_HALELUYA_1.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 3
     },
     "004": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 11,
       "pageCount": 1,
-      "source": "004_HALELUYA_2.pdf"
+      "source": "004_HALELUYA_2.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 4
     },
     "005": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 12,
       "pageCount": 1,
-      "source": "005_MARI_PUJI_TUHAN.pdf"
+      "source": "005_MARI_PUJI_TUHAN.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 5
     },
     "006": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 13,
       "pageCount": 1,
-      "source": "006_MARI_MEMUJI.pdf"
+      "source": "006_MARI_MEMUJI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 6
     },
     "007": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 14,
       "pageCount": 1,
-      "source": "007_CERITA_ADAM.pdf"
+      "source": "007_CERITA_ADAM.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 7
     },
     "008": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 15,
       "pageCount": 1,
-      "source": "008_YESUS_SUNGGUH_AJAIB.pdf"
+      "source": "008_YESUS_SUNGGUH_AJAIB.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 8
     },
     "009": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 16,
       "pageCount": 1,
-      "source": "009_AJAIB_YESUS_AJAIB.pdf"
+      "source": "009_AJAIB_YESUS_AJAIB.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 9
     },
     "010": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 17,
       "pageCount": 1,
-      "source": "010_TUHAN_MENJAGAMU.pdf"
+      "source": "010_TUHAN_MENJAGAMU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 10
     },
     "011": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 18,
       "pageCount": 1,
-      "source": "011_BURUNG_KECIL_BERNYANYI.pdf"
+      "source": "011_BURUNG_KECIL_BERNYANYI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 11
     },
     "012": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 19,
       "pageCount": 1,
-      "source": "012_AKU_GIRANG.pdf"
+      "source": "012_AKU_GIRANG.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 12
     },
     "013": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 20,
       "pageCount": 1,
-      "source": "013_SURYA_NAN_HANGAT.pdf"
+      "source": "013_SURYA_NAN_HANGAT.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 13
     },
     "014": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 21,
       "pageCount": 1,
-      "source": "014_SEMUA_GUNUNG_RIANG_BERNYANYI.pdf"
+      "source": "014_SEMUA_GUNUNG_RIANG_BERNYANYI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 14
     },
     "015": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 22,
       "pageCount": 1,
-      "source": "015_SING_HALLELUJAH_TO_THE_LORD.pdf"
+      "source": "015_SING_HALLELUJAH_TO_THE_LORD.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 15
     },
     "016": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 23,
       "pageCount": 1,
-      "source": "016_BILA_ROH_KUDUS_DI_HATIKU.pdf"
+      "source": "016_BILA_ROH_KUDUS_DI_HATIKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 16
     },
     "017": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 24,
       "pageCount": 1,
-      "source": "017_YESUS_YESUS.pdf"
+      "source": "017_YESUS_YESUS.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 17
     },
     "018": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 25,
       "pageCount": 1,
-      "source": "018_SIAPA_YANG_CIPTA_PELANGI.pdf"
+      "source": "018_SIAPA_YANG_CIPTA_PELANGI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 18
     },
     "019": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 26,
       "pageCount": 1,
-      "source": "019_DEKAT_DENGAN_TUHANKU.pdf"
+      "source": "019_DEKAT_DENGAN_TUHANKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 19
     },
     "020": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 27,
       "pageCount": 1,
-      "source": "020_KU_MERINDUKAN_YESUS.pdf"
+      "source": "020_KU_MERINDUKAN_YESUS.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 20
     },
     "021": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 28,
       "pageCount": 1,
-      "source": "021_BULUH_YANG_TERKULAI.pdf"
+      "source": "021_BULUH_YANG_TERKULAI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 21
     },
     "022": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 29,
       "pageCount": 1,
-      "source": "022_KASIH_YANG_AJAIB.pdf"
+      "source": "022_KASIH_YANG_AJAIB.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 22
     },
     "023": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 30,
       "pageCount": 1,
-      "source": "023_AKU_MAU_LEBIH_CINTA_PADA_TUHAN_KU.pdf"
+      "source": "023_AKU_MAU_LEBIH_CINTA_PADA_TUHAN_KU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 23
     },
     "024": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 31,
       "pageCount": 1,
-      "source": "024_AKU_MAU_MENYANYI_BAGI_YEHOVA.pdf"
+      "source": "024_AKU_MAU_MENYANYI_BAGI_YEHOVA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 24
     },
     "025": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 32,
       "pageCount": 1,
-      "source": "025_DI_LUAR_MU.pdf"
+      "source": "025_DI_LUAR_MU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 25
     },
     "026": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 33,
       "pageCount": 1,
-      "source": "026_PERCAYA_DAN_TAAT.pdf"
+      "source": "026_PERCAYA_DAN_TAAT.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 26
     },
     "027": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 34,
       "pageCount": 2,
-      "source": "027_TUHAN_GEMBALAKU.pdf"
+      "source": "027_TUHAN_GEMBALAKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 27
     },
     "028": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 36,
       "pageCount": 2,
-      "source": "028_YESUS_DAN_ANAK-ANAK.pdf"
+      "source": "028_YESUS_DAN_ANAK-ANAK.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 29
     },
     "029": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 38,
       "pageCount": 1,
-      "source": "029_YESUS_BERDIRI_DI_LUAR_PINTU.pdf"
+      "source": "029_YESUS_BERDIRI_DI_LUAR_PINTU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 31
     },
     "030": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 39,
       "pageCount": 1,
-      "source": "030_LUAS_BAGAI_LAUTAN.pdf"
+      "source": "030_LUAS_BAGAI_LAUTAN.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 32
     },
     "031": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 40,
       "pageCount": 2,
-      "source": "031_HITUNGKAN_BERKATNYA.pdf"
+      "source": "031_HITUNGKAN_BERKATNYA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 33
     },
     "032": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 42,
       "pageCount": 1,
-      "source": "032_AKULAH_DOMBANYA.pdf"
+      "source": "032_AKULAH_DOMBANYA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 35
     },
     "033": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 43,
       "pageCount": 1,
-      "source": "033_ALKITAB_BERHARGA_DIBERIKAN_UNTUKKU.pdf"
+      "source": "033_ALKITAB_BERHARGA_DIBERIKAN_UNTUKKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 36
     },
     "034": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 44,
       "pageCount": 1,
-      "source": "034_PETRUS_MENYEMBUHKAN_ORANG_LUMPUH.pdf"
+      "source": "034_PETRUS_MENYEMBUHKAN_ORANG_LUMPUH.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 37
     },
     "035": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 45,
       "pageCount": 1,
-      "source": "035_DAMAINYA_BAGAI_SUNGAI.pdf"
+      "source": "035_DAMAINYA_BAGAI_SUNGAI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 38
     },
     "036": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 46,
       "pageCount": 1,
-      "source": "036_AKU_BERJALAN_BERSAMA_TUHAN.pdf"
+      "source": "036_AKU_BERJALAN_BERSAMA_TUHAN.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 39
     },
     "037": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 47,
       "pageCount": 1,
-      "source": "037_WAKTU_KAU_TAKUT.pdf"
+      "source": "037_WAKTU_KAU_TAKUT.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 40
     },
     "038": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 48,
       "pageCount": 1,
-      "source": "038_HIDUP_UNTUK_KRISTUS.pdf"
+      "source": "038_HIDUP_UNTUK_KRISTUS.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 41
     },
     "039": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 49,
       "pageCount": 1,
-      "source": "039_MASUKLAH_DALAM_HATIKU.pdf"
+      "source": "039_MASUKLAH_DALAM_HATIKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 42
     },
     "040": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 50,
       "pageCount": 1,
-      "source": "040_KALA_IBLIS_BUJUK.pdf"
+      "source": "040_KALA_IBLIS_BUJUK.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 43
     },
     "041": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 51,
       "pageCount": 1,
-      "source": "041_KITA_PASTILAH_MENANG.pdf"
+      "source": "041_KITA_PASTILAH_MENANG.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 44
     },
     "042": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 52,
       "pageCount": 1,
-      "source": "042_FIRMAN_TUHAN_KEKAL.pdf"
+      "source": "042_FIRMAN_TUHAN_KEKAL.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 45
     },
     "043": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 53,
       "pageCount": 1,
-      "source": "043_BERIKAN_HATIMU.pdf"
+      "source": "043_BERIKAN_HATIMU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 46
     },
     "044": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 54,
       "pageCount": 1,
-      "source": "044_KEKAL_TAK_DAHAGA.pdf"
+      "source": "044_KEKAL_TAK_DAHAGA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 47
     },
     "045": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 55,
       "pageCount": 1,
-      "source": "045_PERCAYALAH.pdf"
+      "source": "045_PERCAYALAH.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 48
     },
     "046": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 56,
       "pageCount": 1,
-      "source": "046_MENDAPAT_ORANG_BAGAI_IKAN.pdf"
+      "source": "046_MENDAPAT_ORANG_BAGAI_IKAN.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 49
     },
     "047": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 57,
       "pageCount": 1,
-      "source": "047_BANGUN_HAI_TENTARA.pdf"
+      "source": "047_BANGUN_HAI_TENTARA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 50
     },
     "048": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 58,
       "pageCount": 1,
-      "source": "048_TERIMA_INJIL_SELAMATLAH.pdf"
+      "source": "048_TERIMA_INJIL_SELAMATLAH.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 51
     },
     "049": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 59,
       "pageCount": 1,
-      "source": "049_CARILAH_DULU_KERAJAAN_ALLAH.pdf"
+      "source": "049_CARILAH_DULU_KERAJAAN_ALLAH.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 52
     },
     "050": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 60,
       "pageCount": 1,
-      "source": "050_KERETA_API_INJIL.pdf"
+      "source": "050_KERETA_API_INJIL.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 53
     },
     "051": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 61,
       "pageCount": 1,
-      "source": "051_O_TUHANKU.pdf"
+      "source": "051_O_TUHANKU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 54
     },
     "052": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 62,
       "pageCount": 1,
-      "source": "052_ROHANIKU_MAKIN_TINGGI.pdf"
+      "source": "052_ROHANIKU_MAKIN_TINGGI.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 55
     },
     "053": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 63,
       "pageCount": 1,
-      "source": "053_HAYATI_WAKTU_DOA.pdf"
+      "source": "053_HAYATI_WAKTU_DOA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 56
     },
     "054": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 64,
       "pageCount": 1,
-      "source": "054_JADI_ORANG_BARU.pdf"
+      "source": "054_JADI_ORANG_BARU.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 57
     },
     "055": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 65,
       "pageCount": 1,
-      "source": "055_TUHAN_SUDAH_BANGKIT.pdf"
+      "source": "055_TUHAN_SUDAH_BANGKIT.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 58
     },
     "056": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 66,
       "pageCount": 1,
-      "source": "056_HATIKU_GELAP_DAN_DOSA.pdf"
+      "source": "056_HATIKU_GELAP_DAN_DOSA.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 59
     },
     "057": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 67,
       "pageCount": 1,
-      "source": "057_BEBAN_BERAT_DOSAKU_TERLEPASLAH.pdf"
+      "source": "057_BEBAN_BERAT_DOSAKU_TERLEPASLAH.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 60
     },
     "058": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 68,
       "pageCount": 1,
-      "source": "058_BAYI_YESUS_LAHIR.pdf"
+      "source": "058_BAYI_YESUS_LAHIR.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 1
     },
     "059": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 69,
       "pageCount": 1,
-      "source": "059_DENGARLAH.pdf"
+      "source": "059_DENGARLAH.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 2
     },
     "060": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 70,
       "pageCount": 1,
-      "source": "060_PINTU_HANYA_SATU.pdf"
+      "source": "060_PINTU_HANYA_SATU.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 3
     },
     "061": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 71,
       "pageCount": 1,
-      "source": "061_MENGAPA_KAU_HERAN.pdf"
+      "source": "061_MENGAPA_KAU_HERAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 4
     },
     "062": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 72,
       "pageCount": 2,
-      "source": "062_KU_DIANGKAT_MAKIN_TINGGI.pdf"
+      "source": "062_KU_DIANGKAT_MAKIN_TINGGI.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 5
     },
     "063": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 74,
       "pageCount": 2,
-      "source": "063_UMAT_SUCI_DIANGKAT.pdf"
+      "source": "063_UMAT_SUCI_DIANGKAT.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 7
     },
     "064": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 76,
       "pageCount": 1,
-      "source": "064_AKU_DI_MUKA_DUA_JALAN.pdf"
+      "source": "064_AKU_DI_MUKA_DUA_JALAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 9
     },
     "065": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 77,
       "pageCount": 1,
-      "source": "065_PELIPUR_HATI_DUKA.pdf"
+      "source": "065_PELIPUR_HATI_DUKA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 10
     },
     "066": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 78,
       "pageCount": 2,
-      "source": "066_HAI_SAHABAT_HARUS_TAHU.pdf"
+      "source": "066_HAI_SAHABAT_HARUS_TAHU.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 11
     },
     "067": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 80,
       "pageCount": 1,
-      "source": "067_DENGARLAH_SUARA_GEMBALA.pdf"
+      "source": "067_DENGARLAH_SUARA_GEMBALA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 13
     },
     "068": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 81,
       "pageCount": 1,
-      "source": "068_DALAM_DARAH_YANG_BERHARGA.pdf"
+      "source": "068_DALAM_DARAH_YANG_BERHARGA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 14
     },
     "069": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 82,
       "pageCount": 1,
-      "source": "069_YESUS-LAH_JALAN.pdf"
+      "source": "069_YESUS-LAH_JALAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 15
     },
     "070": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 83,
       "pageCount": 1,
-      "source": "070_YESUS_ADALAH_JALAN_KEBENARAN_DAN_HIDUP.pdf"
+      "source": "070_YESUS_ADALAH_JALAN_KEBENARAN_DAN_HIDUP.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 16
     },
     "071": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 84,
       "pageCount": 2,
-      "source": "071_DIANKU_PERLU_MINYAK.pdf"
+      "source": "071_DIANKU_PERLU_MINYAK.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 17
     },
     "072": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 86,
       "pageCount": 1,
-      "source": "072_KERJA_UNTUK_YESUS.pdf"
+      "source": "072_KERJA_UNTUK_YESUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 19
     },
     "073": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 87,
       "pageCount": 1,
-      "source": "073_SUKACITA_DARI_ALLAH_IALAH_KEKUATANKU.pdf"
+      "source": "073_SUKACITA_DARI_ALLAH_IALAH_KEKUATANKU.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 20
     },
     "074": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 88,
       "pageCount": 1,
-      "source": "074_KU_TAK_MAU_MENJADI_YUNUS.pdf"
+      "source": "074_KU_TAK_MAU_MENJADI_YUNUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 21
     },
     "075": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 89,
       "pageCount": 1,
-      "source": "075_JANGAN_TAKUT.pdf"
+      "source": "075_JANGAN_TAKUT.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 22
     },
     "076": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 90,
       "pageCount": 1,
-      "source": "076_LEKAS_PERGI.pdf"
+      "source": "076_LEKAS_PERGI.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 23
     },
     "077": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 91,
       "pageCount": 1,
-      "source": "077_MEMBERIKAN_KEPADA_TUHAN.pdf"
+      "source": "077_MEMBERIKAN_KEPADA_TUHAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 24
     },
     "078": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 92,
       "pageCount": 1,
-      "source": "078_SEMUANYA_BUAT_TUHAN.pdf"
+      "source": "078_SEMUANYA_BUAT_TUHAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 25
     },
     "079": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 93,
       "pageCount": 1,
-      "source": "079_BATU_ZAMAN.pdf"
+      "source": "079_BATU_ZAMAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 26
     },
     "080": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 94,
       "pageCount": 1,
-      "source": "080_MENGIKUT_YESUS.pdf"
+      "source": "080_MENGIKUT_YESUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 27
     },
     "081": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 95,
       "pageCount": 1,
-      "source": "081_YESUS_GEMBALA_YANG_BAIK.pdf"
+      "source": "081_YESUS_GEMBALA_YANG_BAIK.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 28
     },
     "082": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 96,
       "pageCount": 1,
-      "source": "082_PERTANDINGAN_YANG_BAIK.pdf"
+      "source": "082_PERTANDINGAN_YANG_BAIK.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 29
     },
     "083": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 97,
       "pageCount": 1,
-      "source": "083_BERCAKAP_DENGAN_YESUS.pdf"
+      "source": "083_BERCAKAP_DENGAN_YESUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 30
     },
     "084": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 98,
       "pageCount": 1,
-      "source": "084_KITAB_PERJANJIAN_BARU.pdf"
+      "source": "084_KITAB_PERJANJIAN_BARU.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 31
     },
     "085": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 99,
       "pageCount": 1,
-      "source": "085_SATU_ORANG_BUTA.pdf"
+      "source": "085_SATU_ORANG_BUTA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 32
     },
     "086": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 100,
       "pageCount": 1,
-      "source": "086_ANUGERAH_PENEBUSAN_DOSA.pdf"
+      "source": "086_ANUGERAH_PENEBUSAN_DOSA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 33
     },
     "087": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 101,
       "pageCount": 1,
-      "source": "087_SENANG_PEGANG_HARI_KUDUS.pdf"
+      "source": "087_SENANG_PEGANG_HARI_KUDUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 34
     },
     "088": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 102,
       "pageCount": 1,
-      "source": "088_AKU_PUNYA_RUMAH_DI_SURGA.pdf"
+      "source": "088_AKU_PUNYA_RUMAH_DI_SURGA.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 35
     },
     "089": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 103,
       "pageCount": 1,
-      "source": "089_YESUS_PIMPIN.pdf"
+      "source": "089_YESUS_PIMPIN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 36
     },
     "090": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 104,
       "pageCount": 2,
-      "source": "090_KASIHNYA_CARIKU.pdf"
+      "source": "090_KASIHNYA_CARIKU.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 37
     },
     "091": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 106,
       "pageCount": 1,
-      "source": "091_DUNIA_HILANG_KU_MASIH_ADA_YESUS.pdf"
+      "source": "091_DUNIA_HILANG_KU_MASIH_ADA_YESUS.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 39
     },
     "092": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 107,
       "pageCount": 1,
-      "source": "092_LAGU_PENYAMBUTAN.pdf"
+      "source": "092_LAGU_PENYAMBUTAN.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 40
     },
     "093": {
       "path": "assets/data/pdf/asm_m/ASM-M.pdf",
       "startPage": 108,
       "pageCount": 1,
-      "source": "093_KEBAKTIAN_TELAH_USAI.pdf"
+      "source": "093_KEBAKTIAN_TELAH_USAI.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 41
     }
-  }
+  },
+  "chunkFile": "assets/data/pdf/asm_m/asm_m_chunks.bin",
+  "chunks": [
+    {
+      "index": 0,
+      "startPage": 8,
+      "endPage": 67,
+      "compressedSize": 108637,
+      "uncompressedSize": 141912
+    },
+    {
+      "index": 1,
+      "startPage": 68,
+      "endPage": 108,
+      "compressedSize": 87434,
+      "uncompressedSize": 111482
+    }
+  ]
 }

@@ -2,13 +2,19 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
+import 'pdf_chunk_service.dart';
 
 class LocalAssetService {
+  final PdfChunkService _chunkService;
+
+  LocalAssetService(this._chunkService);
+
   final Map<String, List<Map<String, dynamic>>> _indexCache = {};
   final Map<String, Map<String, Map<String, dynamic>>> _songLookupCache = {};
   Map<String, dynamic>? _assetManifest;
@@ -19,8 +25,14 @@ class LocalAssetService {
   /// Maps asset paths (e.g. `assets/data/pdf/mdr/mdr_master.pdf`) to temp file
   /// paths extracted on disk so pdfrx can open them with `PdfViewer.file`.
   final Map<String, String> _masterPdfTempPaths = {};
+  final Map<String, Future<String?>> _inflightExtractions = {};
 
   Future<void> initialize() async {}
+
+  /// Force extraction of a master PDF asset to a temp file for instant access later.
+  Future<void> preparePdfFile(String assetPath) async {
+    await _extractMasterPdfToTemp(assetPath);
+  }
 
   Future<List<Map<String, dynamic>>> _loadBookIndex(String code) async {
     if (_indexCache.containsKey(code)) {
@@ -140,6 +152,27 @@ class LocalAssetService {
       return null;
     }
 
+    // Check for optimized chunks first
+    final chunkFile = manifest['chunkFile'] as String?;
+    final chunkIndex = entry['chunkIndex'];
+    final relStart = entry['chunkRelativeStart'];
+    if (chunkFile != null && chunkIndex is int && relStart is int) {
+      try {
+        final chunkPath = await _chunkService.getChunkFile(
+          chunkFilePath: chunkFile,
+          chunkIndex: chunkIndex,
+          cacheKey: bookCode,
+        );
+        if (chunkPath != null) {
+          final pageCount = entry['pageCount'] as int? ?? 1;
+          final masterPath = manifest['masterPath'] as String? ?? chunkFile;
+          return '$chunkPath#page=$relStart&pages=$pageCount&master=$masterPath';
+        }
+      } catch (e) {
+        log('Failed to load chunk for $bookCode $number: $e', name: 'LocalAssetService');
+      }
+    }
+
     final path = entry['path'] as String? ?? manifest['masterPath'] as String?;
     final startPage = entry['startPage'];
     final pageCount = entry['pageCount'];
@@ -201,21 +234,59 @@ class LocalAssetService {
       _masterPdfTempPaths.remove(assetPath);
     }
 
+    final inflight = _inflightExtractions[assetPath];
+    if (inflight != null) return inflight;
+
+    final future = _extractMasterPdfToTempInternal(assetPath);
+    _inflightExtractions[assetPath] = future;
     try {
-      final tempDir = await getTemporaryDirectory();
+      return await future;
+    } finally {
+      if (identical(_inflightExtractions[assetPath], future)) {
+        _inflightExtractions.remove(assetPath);
+      }
+    }
+  }
+
+  Future<String?> _extractMasterPdfToTempInternal(String assetPath) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
       final fileName = p.basename(assetPath);
-      final tempFile = File(p.join(tempDir.path, 'master_pdfs', fileName));
-      if (await tempFile.exists()) {
-        _masterPdfTempPaths[assetPath] = tempFile.path;
-        return tempFile.path;
+      final pdfDir = Directory(p.join(appDir.path, 'master_pdfs'));
+      final targetFile = File(p.join(pdfDir.path, fileName));
+      
+      // If file exists and has content, reuse it permanently.
+      if (await targetFile.exists()) {
+        final length = await targetFile.length();
+        if (length > 0) {
+          _masterPdfTempPaths[assetPath] = targetFile.path;
+          return targetFile.path;
+        }
       }
 
+      await pdfDir.create(recursive: true);
+      
       final byteData = await rootBundle.load(assetPath);
-      await tempFile.parent.create(recursive: true);
-      await tempFile.writeAsBytes(byteData.buffer.asUint8List());
-      _masterPdfTempPaths[assetPath] = tempFile.path;
-      log('Extracted master PDF to ${tempFile.path}', name: 'LocalAssetService');
-      return tempFile.path;
+      
+      if (byteData.lengthInBytes > 1024 * 1024 * 1) { // > 1MB
+        await compute((args) {
+          final file = File(args['path'] as String);
+          final bytes = args['bytes'] as Uint8List;
+          file.writeAsBytesSync(bytes, flush: true);
+        }, {
+          'path': targetFile.path,
+          'bytes': byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+        });
+      } else {
+        await targetFile.writeAsBytes(
+          byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+          flush: true,
+        );
+      }
+      
+      _masterPdfTempPaths[assetPath] = targetFile.path;
+      log('Extracted master PDF permanently to ${targetFile.path}', name: 'LocalAssetService');
+      return targetFile.path;
     } catch (e) {
       log('Failed to extract master PDF $assetPath: $e', name: 'LocalAssetService');
       return null;

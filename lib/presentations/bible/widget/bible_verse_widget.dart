@@ -3,11 +3,11 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_animations/simple_animations.dart';
 
 import '../../../data/data.dart';
+import '../../../data/utilities/toast_utils.dart';
 import '../../../domain/domain.dart';
 import '../bible.dart';
 import 'bible_ref_dialog_widget.dart';
@@ -28,8 +28,12 @@ class VerseWidget extends StatefulWidget {
     required this.scrollFunction,
     required this.isSpeaking,
     required this.textScale,
+    required this.lockScroll,
+    required this.isSplit,
   });
   final double textScale;
+  final bool lockScroll;
+  final bool isSplit;
   final int index;
   final bool isSpeaking;
   final List<BibleNote> notes;
@@ -123,31 +127,33 @@ class VerseWidgetState extends State<VerseWidget>
                             children: [
                               WidgetSpan(
                                 child: InkWell(
-                                  onTap: () {
+                                  onTap: () async {
                                     var item = widget.pericopeParalels[index];
                                     var bcv = Bcvbc.fromBibleId(item.id1!);
-                                    Fluttertoast.cancel();
-                                    Fluttertoast.showToast(
+                                    safeToastCancel();
+                                    safeShowToast(
                                       msg:
                                           'Opening ${widget.pericopeParalels[index].t}'
                                               .tr(),
                                     );
-                                    context.read<BibleCubit>().getContent(
+                                    await context.read<BibleCubit>().getContent(
                                       Verse(
                                         id: item.id1!,
                                         bookId: int.tryParse(bcv.b!) ?? 1,
                                         chapterId: int.tryParse(bcv.c!) ?? 1,
                                         verseId: int.tryParse(bcv.v!) ?? 1,
                                       ),
+                                      mode: widget.lockScroll
+                                          ? VerseMode.both
+                                          : widget.isSplit
+                                          ? VerseMode.bottomOnly
+                                          : VerseMode.topOnly,
                                     );
-                                    Future.delayed(
-                                      Duration(milliseconds: 300),
-                                      () {
-                                        widget.scrollFunction(
-                                          (int.tryParse(bcv.v!) ?? 1) - 1,
-                                        );
-                                      },
-                                    );
+
+                                    // Scroll after content is loaded
+                                    final targetVerse =
+                                        int.tryParse(bcv.v!) ?? 1;
+                                    widget.scrollFunction(targetVerse - 1);
                                   },
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,

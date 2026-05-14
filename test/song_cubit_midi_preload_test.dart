@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:church/data/services/local_asset_service.dart';
 import 'package:church/data/services/midi_engine_service.dart';
+import 'package:church/data/services/pdf_chunk_service.dart';
 
 import 'package:church/data/utilities/variables/failure.dart';
 import 'package:church/domain/entity/song/song_entity.dart';
@@ -69,6 +70,25 @@ void main() {
     await cubit.close();
   });
 
+  test('loads the initial PDF after song data arrives', () async {
+    final assetService = _FakeAssetService(
+      pdfPath: 'assets/data/pdf/kr/001.pdf',
+    );
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      assetService,
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+    await _flushAsync();
+
+    expect(cubit.state.currentPdfPath, 'assets/data/pdf/kr/001.pdf');
+    expect(cubit.state.isPdfLoading, isFalse);
+    expect(assetService.pdfRequests, contains('KR:001'));
+
+    await cubit.close();
+  });
+
   test('loads HYMNE chord data through KR fallback asset path', () async {
     final assetService = _FakeAssetService(
       chordPath:
@@ -85,7 +105,7 @@ void main() {
       const Song(code: 'HYMNE', number: '001', title: 'Pujilah Allah'),
     );
 
-    expect(assetService.chordRequests, ['HYMNE:001']);
+    expect(assetService.chordRequests, contains('HYMNE:001'));
     expect(chords, isNotNull);
     expect(chords!.values.expand((page) => page), isNotEmpty);
 
@@ -107,10 +127,13 @@ void main() {
       engine.events.clear();
 
       await cubit.changePage(1, 0);
+      await _flushAsync();
 
       expect(
         engine.events,
-        contains('load:assets/data/midi/kr/002.mid:t0:tempo76.0:base76.0'),
+        contains(
+          'load:assets/data/midi/kr/002.mid:t0:tempo76.0:base76.0:start0',
+        ),
       );
       expect(engine.events, isNot(contains('setTranspose:0')));
       expect(engine.events, isNot(contains('setTempoBase:76.0')));
@@ -339,9 +362,17 @@ class _FakeSongRepository implements SongRepository {
 
 class _FakeAssetService extends LocalAssetService {
   final String? chordPath;
+  final String? pdfPath;
   final List<String> chordRequests = [];
+  final List<String> pdfRequests = [];
 
-  _FakeAssetService({this.chordPath});
+  _FakeAssetService({this.chordPath, this.pdfPath}) : super(PdfChunkService());
+
+  @override
+  Future<String?> getPdfPath(String bookCode, String number) async {
+    pdfRequests.add('$bookCode:$number');
+    return pdfPath ?? 'assets/data/pdf/${bookCode.toLowerCase()}/$number.pdf';
+  }
 
   @override
   Future<String?> getMidiPath(String bookCode, String number) async {
@@ -360,7 +391,8 @@ class _FakeMidiEngine extends MidiEngineService {
   final StreamController<MidiPlaybackState> _states =
       StreamController<MidiPlaybackState>.broadcast();
 
-  _FakeMidiEngine() : super(LocalAssetService(), cacheDir: 'unused');
+  _FakeMidiEngine()
+    : super(LocalAssetService(PdfChunkService()), cacheDir: 'unused');
 
   @override
   Stream<MidiPlaybackState> get stateStream => _states.stream;
@@ -392,9 +424,10 @@ class _FakeMidiEngine extends MidiEngineService {
     double? baseTempoBpm,
     int? instrument,
     bool autoplay = false,
+    Duration startAt = Duration.zero,
   }) async {
     events.add(
-      'load:$midiPath:t$transpose:tempo$tempoBpm:base${baseTempoBpm ?? 76}',
+      'load:$midiPath:t$transpose:tempo$tempoBpm:base${baseTempoBpm ?? 76}:start${startAt.inSeconds}',
     );
   }
 
@@ -469,6 +502,7 @@ class _BlockingMidiEngine extends _FakeMidiEngine {
     double? baseTempoBpm,
     int? instrument,
     bool autoplay = false,
+    Duration startAt = Duration.zero,
   }) async {
     await super.loadMidi(
       midiPath,
@@ -477,7 +511,12 @@ class _BlockingMidiEngine extends _FakeMidiEngine {
       baseTempoBpm: baseTempoBpm,
       instrument: instrument,
       autoplay: autoplay,
+      startAt: startAt,
     );
-    await blockedLoads[midiPath]?.future;
+    final key = '$midiPath:$transpose';
+    final completer = blockedLoads.remove(key) ?? blockedLoads.remove(midiPath);
+    if (completer != null) {
+      await completer.future;
+    }
   }
 }

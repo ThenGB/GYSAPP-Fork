@@ -9,3199 +9,4345 @@
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 5,
       "pageCount": 1,
-      "source": "001_Pujilah_Allah_Yang_Maha_Esa.pdf"
+      "source": "001_Pujilah_Allah_Yang_Maha_Esa.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 1
     },
     "002": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 6,
       "pageCount": 1,
-      "source": "002_Pujilah_Allah_Yang_Mahakudus.pdf"
+      "source": "002_Pujilah_Allah_Yang_Mahakudus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 2
     },
     "003": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 7,
       "pageCount": 1,
-      "source": "003_Pujilah_Allah_Yang_Benar.pdf"
+      "source": "003_Pujilah_Allah_Yang_Benar.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 3
     },
     "004": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 8,
       "pageCount": 1,
-      "source": "004_Pujilah_Bapa_Yang_di_Surga.pdf"
+      "source": "004_Pujilah_Bapa_Yang_di_Surga.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 4
     },
     "005": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 9,
       "pageCount": 1,
-      "source": "005_Segala_Sesuatu_Memuji_Allah.pdf"
+      "source": "005_Segala_Sesuatu_Memuji_Allah.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 5
     },
     "006": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 10,
       "pageCount": 1,
-      "source": "006_Pujilah_CiptaanNya.pdf"
+      "source": "006_Pujilah_CiptaanNya.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 6
     },
     "007": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 11,
       "pageCount": 1,
-      "source": "007_Segala_Sesuatu_Memuji_Tuhan.pdf"
+      "source": "007_Segala_Sesuatu_Memuji_Tuhan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 7
     },
     "008": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 12,
       "pageCount": 1,
-      "source": "008_Pujilah_Allah.pdf"
+      "source": "008_Pujilah_Allah.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 8
     },
     "009": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 13,
       "pageCount": 1,
-      "source": "009_Bersorak_Bagi_Tuhan.pdf"
+      "source": "009_Bersorak_Bagi_Tuhan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 9
     },
     "010": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 14,
       "pageCount": 1,
-      "source": "010_Muliakanlah_Yesus.pdf"
+      "source": "010_Muliakanlah_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 10
     },
     "011": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 15,
       "pageCount": 1,
-      "source": "011_Gembira_di_Dalam_Tuhan.pdf"
+      "source": "011_Gembira_di_Dalam_Tuhan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 11
     },
     "012": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 16,
       "pageCount": 1,
-      "source": "012_Mulia_Nama_Yesus.pdf"
+      "source": "012_Mulia_Nama_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 12
     },
     "013": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 17,
       "pageCount": 1,
-      "source": "013_Tiada_yang_Seperti_Yesus.pdf"
+      "source": "013_Tiada_yang_Seperti_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 13
     },
     "014": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 18,
       "pageCount": 1,
-      "source": "014_Kristus_Maharaja.pdf"
+      "source": "014_Kristus_Maharaja.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 14
     },
     "015": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 19,
       "pageCount": 1,
-      "source": "015_Pujilah_Yesus.pdf"
+      "source": "015_Pujilah_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 15
     },
     "016": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 20,
       "pageCount": 1,
-      "source": "016_Sembahlah_Tuhan_Langit_dan_Bumi.pdf"
+      "source": "016_Sembahlah_Tuhan_Langit_dan_Bumi.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 16
     },
     "017": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 21,
       "pageCount": 1,
-      "source": "017_Pujilah_Kasih_Tuhan.pdf"
+      "source": "017_Pujilah_Kasih_Tuhan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 17
     },
     "018": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 22,
       "pageCount": 2,
-      "source": "018_Pujilah_Anugerah_Tuhan.pdf"
+      "source": "018_Pujilah_Anugerah_Tuhan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 18
     },
     "019": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 24,
       "pageCount": 2,
-      "source": "019_Hosana.pdf"
+      "source": "019_Hosana.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 20
     },
     "020": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 26,
       "pageCount": 1,
-      "source": "020_Pujilah_Tuhan_Sang_Raja.pdf"
+      "source": "020_Pujilah_Tuhan_Sang_Raja.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 22
     },
     "021": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 27,
       "pageCount": 1,
-      "source": "021_Yesus_Terelok.pdf"
+      "source": "021_Yesus_Terelok.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 23
     },
     "022": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 28,
       "pageCount": 1,
-      "source": "022_Pujilah_Alkitab.pdf"
+      "source": "022_Pujilah_Alkitab.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 24
     },
     "023": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 29,
       "pageCount": 1,
-      "source": "023_Firman_Tuhan_Sungguh_Indah.pdf"
+      "source": "023_Firman_Tuhan_Sungguh_Indah.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 25
     },
     "024": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 30,
       "pageCount": 2,
-      "source": "024_Firman_Kehidupan.pdf"
+      "source": "024_Firman_Kehidupan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 26
     },
     "025": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 32,
       "pageCount": 1,
-      "source": "025_Firman_Allah_Murni.pdf"
+      "source": "025_Firman_Allah_Murni.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 28
     },
     "026": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 33,
       "pageCount": 1,
-      "source": "026_Tuhan_Berfirmanlah_Padaku.pdf"
+      "source": "026_Tuhan_Berfirmanlah_Padaku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 29
     },
     "027": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 34,
       "pageCount": 1,
-      "source": "027_Yesus_Cintaku.pdf"
+      "source": "027_Yesus_Cintaku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 30
     },
     "028": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 35,
       "pageCount": 1,
-      "source": "028_Yesus_Pengasih.pdf"
+      "source": "028_Yesus_Pengasih.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 31
     },
     "029": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 36,
       "pageCount": 2,
-      "source": "029_Tuhan_Mencari_Domba_yang_Hilang.pdf"
+      "source": "029_Tuhan_Mencari_Domba_yang_Hilang.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 32
     },
     "030": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 38,
       "pageCount": 2,
-      "source": "030_Kasih_Tuhan_Mencariku.pdf"
+      "source": "030_Kasih_Tuhan_Mencariku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 34
     },
     "031": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 40,
       "pageCount": 2,
-      "source": "031_Semuanya_Demiku.pdf"
+      "source": "031_Semuanya_Demiku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 36
     },
     "032": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 42,
       "pageCount": 2,
-      "source": "032_Yesus_Menerima_Orang_Berdosa.pdf"
+      "source": "032_Yesus_Menerima_Orang_Berdosa.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 38
     },
     "033": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 44,
       "pageCount": 1,
-      "source": "033_Ke_Yerusalem_Baru.pdf"
+      "source": "033_Ke_Yerusalem_Baru.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 40
     },
     "034": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 45,
       "pageCount": 1,
-      "source": "034_Yesus_Memanggilmu_.pdf"
+      "source": "034_Yesus_Memanggilmu_.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 41
     },
     "035": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 46,
       "pageCount": 1,
-      "source": "035_Hujan_Malam_Berlalu_Terbitlah_Terang.pdf"
+      "source": "035_Hujan_Malam_Berlalu_Terbitlah_Terang.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 42
     },
     "036": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 47,
       "pageCount": 1,
-      "source": "036_Suara_Pengharapan.pdf"
+      "source": "036_Suara_Pengharapan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 43
     },
     "037": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 48,
       "pageCount": 1,
-      "source": "037_Dosa_di_Putihkan_Seperti_Salju.pdf"
+      "source": "037_Dosa_di_Putihkan_Seperti_Salju.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 44
     },
     "038": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 49,
       "pageCount": 1,
-      "source": "038_Aku_Mendengar_Suara_Yesus.pdf"
+      "source": "038_Aku_Mendengar_Suara_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 45
     },
     "039": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 50,
       "pageCount": 1,
-      "source": "039_Hanya_DarahNya_Yang_Berkuasa.pdf"
+      "source": "039_Hanya_DarahNya_Yang_Berkuasa.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 46
     },
     "040": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 51,
       "pageCount": 1,
-      "source": "040_Darah_Yesus.pdf"
+      "source": "040_Darah_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 47
     },
     "041": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 52,
       "pageCount": 2,
-      "source": "041_Darah_Tuhan_Berkuasa.pdf"
+      "source": "041_Darah_Tuhan_Berkuasa.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 48
     },
     "042": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 54,
       "pageCount": 2,
-      "source": "042_Darah_Anak_Domba.pdf"
+      "source": "042_Darah_Anak_Domba.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 50
     },
     "043": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 56,
       "pageCount": 1,
-      "source": "043_DarahNya_Membersihkan.pdf"
+      "source": "043_DarahNya_Membersihkan.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 52
     },
     "044": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 57,
       "pageCount": 1,
-      "source": "044_Hanya_Tuhan_Penolongku.pdf"
+      "source": "044_Hanya_Tuhan_Penolongku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 53
     },
     "045": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 58,
       "pageCount": 1,
-      "source": "045_Menyelamatkan_Orang_Berdosa.pdf"
+      "source": "045_Menyelamatkan_Orang_Berdosa.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 54
     },
     "046": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 59,
       "pageCount": 1,
-      "source": "046_Tuhan_Buka_Mata_hatiku.pdf"
+      "source": "046_Tuhan_Buka_Mata_hatiku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 55
     },
     "047": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 60,
       "pageCount": 1,
-      "source": "047_Yesus_Telah_Tolongku.pdf"
+      "source": "047_Yesus_Telah_Tolongku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 56
     },
     "048": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 61,
       "pageCount": 1,
-      "source": "048_Anugerah_di_Atas_Salib_.pdf"
+      "source": "048_Anugerah_di_Atas_Salib_.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 57
     },
     "049": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 62,
       "pageCount": 1,
-      "source": "049_Tuhan_Selamatkanku.pdf"
+      "source": "049_Tuhan_Selamatkanku.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 58
     },
     "050": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 63,
       "pageCount": 1,
-      "source": "050_Hanya_Yesus.pdf"
+      "source": "050_Hanya_Yesus.pdf",
+      "chunkIndex": 0,
+      "chunkRelativeStart": 59
     },
     "051A": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 64,
       "pageCount": 2,
-      "source": "051A__Batu_Zaman.pdf"
+      "source": "051A__Batu_Zaman.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 1
     },
     "051B": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 66,
       "pageCount": 1,
-      "source": "051B__Batu_Zaman.pdf"
+      "source": "051B__Batu_Zaman.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 3
     },
     "052": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 67,
       "pageCount": 1,
-      "source": "052_Ku_Dengar_Suara_Yesus.pdf"
+      "source": "052_Ku_Dengar_Suara_Yesus.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 4
     },
     "053": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 68,
       "pageCount": 2,
-      "source": "053_Allah_Bapa_Pengasih.pdf"
+      "source": "053_Allah_Bapa_Pengasih.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 5
     },
     "054": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 70,
       "pageCount": 2,
-      "source": "054_Bebas_Dari_Gelap_Menuju_Terang.pdf"
+      "source": "054_Bebas_Dari_Gelap_Menuju_Terang.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 7
     },
     "055": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 72,
       "pageCount": 1,
-      "source": "055_Tuhan_Bebaskan.pdf"
+      "source": "055_Tuhan_Bebaskan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 9
     },
     "056": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 73,
       "pageCount": 1,
-      "source": "056_Tahun_Yobel_Sudah_Tiba.pdf"
+      "source": "056_Tahun_Yobel_Sudah_Tiba.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 10
     },
     "057": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 74,
       "pageCount": 1,
-      "source": "057_Dosaku_Amat_Berat.pdf"
+      "source": "057_Dosaku_Amat_Berat.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 11
     },
     "058": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 75,
       "pageCount": 1,
-      "source": "058_Yesus_Pimpin.pdf"
+      "source": "058_Yesus_Pimpin.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 12
     },
     "059": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 76,
       "pageCount": 1,
-      "source": "059_Mohon_Pimpinan_Tuhan.pdf"
+      "source": "059_Mohon_Pimpinan_Tuhan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 13
     },
     "060": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 77,
       "pageCount": 1,
-      "source": "060_Menempuh_Jalan_Surga.pdf"
+      "source": "060_Menempuh_Jalan_Surga.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 14
     },
     "061": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 78,
       "pageCount": 1,
-      "source": "061_Tuhan_Pimpin_Jalanku.pdf"
+      "source": "061_Tuhan_Pimpin_Jalanku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 15
     },
     "062": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 79,
       "pageCount": 1,
-      "source": "062_Semoga_Tuhan_Menyertai.pdf"
+      "source": "062_Semoga_Tuhan_Menyertai.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 16
     },
     "063": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 80,
       "pageCount": 1,
-      "source": "063_Semoga_Tuhan_Pimpin.pdf"
+      "source": "063_Semoga_Tuhan_Pimpin.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 17
     },
     "064": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 81,
       "pageCount": 1,
-      "source": "064_Terang_Tuhan_Memimpin.pdf"
+      "source": "064_Terang_Tuhan_Memimpin.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 18
     },
     "065": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 82,
       "pageCount": 1,
-      "source": "065_Dekat_Pada_Tuhan.pdf"
+      "source": "065_Dekat_Pada_Tuhan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 19
     },
     "066": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 83,
       "pageCount": 1,
-      "source": "066_Tuhan_Aku_Menantikan_Engkau.pdf"
+      "source": "066_Tuhan_Aku_Menantikan_Engkau.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 20
     },
     "067": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 84,
       "pageCount": 1,
-      "source": "067_Tuhan_Tuntunlah_Aku.pdf"
+      "source": "067_Tuhan_Tuntunlah_Aku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 21
     },
     "068": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 85,
       "pageCount": 1,
-      "source": "068_Tuhan_Pegangilah_Tanganku.pdf"
+      "source": "068_Tuhan_Pegangilah_Tanganku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 22
     },
     "069": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 86,
       "pageCount": 1,
-      "source": "069_Yesus_Jurumudiku.pdf"
+      "source": "069_Yesus_Jurumudiku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 23
     },
     "070": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 87,
       "pageCount": 1,
-      "source": "070_Tuhan_Sumber_Segala_Berkat.pdf"
+      "source": "070_Tuhan_Sumber_Segala_Berkat.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 24
     },
     "071": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 88,
       "pageCount": 1,
-      "source": "071_Yesus_Tuhanku.pdf"
+      "source": "071_Yesus_Tuhanku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 25
     },
     "072": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 89,
       "pageCount": 1,
-      "source": "072_Tuhan_Segala_Berkat.pdf"
+      "source": "072_Tuhan_Segala_Berkat.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 26
     },
     "073": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 90,
       "pageCount": 1,
-      "source": "073_Yesus_Pemberi_Berkat.pdf"
+      "source": "073_Yesus_Pemberi_Berkat.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 27
     },
     "074": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 91,
       "pageCount": 1,
-      "source": "074_Dosa_di_Putihkan_Seperti_Salju.pdf"
+      "source": "074_Dosa_di_Putihkan_Seperti_Salju.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 28
     },
     "075": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 92,
       "pageCount": 1,
-      "source": "075_Kristus_Lahir.pdf"
+      "source": "075_Kristus_Lahir.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 29
     },
     "076": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 93,
       "pageCount": 1,
-      "source": "076_Yesus_Disalib.pdf"
+      "source": "076_Yesus_Disalib.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 30
     },
     "077": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 94,
       "pageCount": 1,
-      "source": "077_Junjung_Tinggi_Salib_Tuhan.pdf"
+      "source": "077_Junjung_Tinggi_Salib_Tuhan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 31
     },
     "078": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 95,
       "pageCount": 1,
-      "source": "078_Tuhan_Bangkit.pdf"
+      "source": "078_Tuhan_Bangkit.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 32
     },
     "079": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 96,
       "pageCount": 1,
-      "source": "079_Puji_Kebangkitan_Yesus.pdf"
+      "source": "079_Puji_Kebangkitan_Yesus.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 33
     },
     "080": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 97,
       "pageCount": 1,
-      "source": "080_Tuhan_Telah_Kalahkan_Maut.pdf"
+      "source": "080_Tuhan_Telah_Kalahkan_Maut.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 34
     },
     "081": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 98,
       "pageCount": 1,
-      "source": "081_Yesus_Datang_Kembali.pdf"
+      "source": "081_Yesus_Datang_Kembali.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 35
     },
     "082": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 99,
       "pageCount": 1,
-      "source": "082_Bersiap_dan_Berjaga.pdf"
+      "source": "082_Bersiap_dan_Berjaga.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 36
     },
     "083": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 100,
       "pageCount": 2,
-      "source": "083_Ketika_Yesus_Datang.pdf"
+      "source": "083_Ketika_Yesus_Datang.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 37
     },
     "084": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 102,
       "pageCount": 2,
-      "source": "084_Menyambut_Rajaku.pdf"
+      "source": "084_Menyambut_Rajaku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 39
     },
     "085": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 104,
       "pageCount": 1,
-      "source": "085_Tuhan_Segera_Datang.pdf"
+      "source": "085_Tuhan_Segera_Datang.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 41
     },
     "086": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 105,
       "pageCount": 1,
-      "source": "086_Baik_dan_Jahat_Dibalas.pdf"
+      "source": "086_Baik_dan_Jahat_Dibalas.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 42
     },
     "087": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 106,
       "pageCount": 1,
-      "source": "087_Hari_Penghakiman.pdf"
+      "source": "087_Hari_Penghakiman.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 43
     },
     "088": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 107,
       "pageCount": 1,
-      "source": "088_Anugerah_Juruselamat.pdf"
+      "source": "088_Anugerah_Juruselamat.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 44
     },
     "089": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 108,
       "pageCount": 1,
-      "source": "089_AnugerahNya_Berlimpah.pdf"
+      "source": "089_AnugerahNya_Berlimpah.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 45
     },
     "090": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 109,
       "pageCount": 1,
-      "source": "090_Hitunglah_BerkatNya.pdf"
+      "source": "090_Hitunglah_BerkatNya.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 46
     },
     "091": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 110,
       "pageCount": 2,
-      "source": "091_Tuhan_Pimpin_Jalanku.pdf"
+      "source": "091_Tuhan_Pimpin_Jalanku.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 47
     },
     "092": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 112,
       "pageCount": 1,
-      "source": "092_Bersyukur_Atas_Kesembuhan.pdf"
+      "source": "092_Bersyukur_Atas_Kesembuhan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 49
     },
     "093": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 113,
       "pageCount": 1,
-      "source": "093_Bersyukur_Atas_Pembaharuan.pdf"
+      "source": "093_Bersyukur_Atas_Pembaharuan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 50
     },
     "094": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 114,
       "pageCount": 2,
-      "source": "094_Anugerah_Tuhan_Kekal.pdf"
+      "source": "094_Anugerah_Tuhan_Kekal.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 51
     },
     "095": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 116,
       "pageCount": 2,
-      "source": "095_Raja_yang_Diurapi.pdf"
+      "source": "095_Raja_yang_Diurapi.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 53
     },
     "096": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 118,
       "pageCount": 1,
-      "source": "096_Anugerah_yang_Mengherankan.pdf"
+      "source": "096_Anugerah_yang_Mengherankan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 55
     },
     "097": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 119,
       "pageCount": 1,
-      "source": "097_Tuhan_Tinggalkan_Maligai_Gading.pdf"
+      "source": "097_Tuhan_Tinggalkan_Maligai_Gading.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 56
     },
     "098": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 120,
       "pageCount": 1,
-      "source": "098_Kala_Kukenang_Salib.pdf"
+      "source": "098_Kala_Kukenang_Salib.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 57
     },
     "099": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 121,
       "pageCount": 1,
-      "source": "099_Mencintai_Tuhan_Lebih_Dalam.pdf"
+      "source": "099_Mencintai_Tuhan_Lebih_Dalam.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 58
     },
     "100": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 122,
       "pageCount": 1,
-      "source": "100_Berkorban_Untuk_Tuhan.pdf"
+      "source": "100_Berkorban_Untuk_Tuhan.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 59
     },
     "101": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 123,
       "pageCount": 1,
-      "source": "101_Hanya_Cinta_Yesus.pdf"
+      "source": "101_Hanya_Cinta_Yesus.pdf",
+      "chunkIndex": 1,
+      "chunkRelativeStart": 60
     },
     "102": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 124,
       "pageCount": 1,
-      "source": "102_Hidup_Untuk_Tuhan.pdf"
+      "source": "102_Hidup_Untuk_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 1
     },
     "103": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 125,
       "pageCount": 1,
-      "source": "103_Lebih_Baik_Ada_Yesus.pdf"
+      "source": "103_Lebih_Baik_Ada_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 2
     },
     "104": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 126,
       "pageCount": 1,
-      "source": "104_Aku_Amat_Cinta_Yesus.pdf"
+      "source": "104_Aku_Amat_Cinta_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 3
     },
     "105": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 127,
       "pageCount": 1,
-      "source": "105_Mati_Untuk_Tuhan.pdf"
+      "source": "105_Mati_Untuk_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 4
     },
     "106": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 128,
       "pageCount": 1,
-      "source": "106_Aku_Murid_Yesus.pdf"
+      "source": "106_Aku_Murid_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 5
     },
     "107": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 129,
       "pageCount": 1,
-      "source": "107_Ikut_Yesus.pdf"
+      "source": "107_Ikut_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 6
     },
     "108": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 130,
       "pageCount": 1,
-      "source": "108_Ikut_Almasih.pdf"
+      "source": "108_Ikut_Almasih.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 7
     },
     "109": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 131,
       "pageCount": 1,
-      "source": "109_Turut_Jejak_Tuhan.pdf"
+      "source": "109_Turut_Jejak_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 8
     },
     "110": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 132,
       "pageCount": 1,
-      "source": "110_Tinggalkan_Segalanya_Ikut_Tuhan.pdf"
+      "source": "110_Tinggalkan_Segalanya_Ikut_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 9
     },
     "111": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 133,
       "pageCount": 1,
-      "source": "111_Ikut_Juruselamat.pdf"
+      "source": "111_Ikut_Juruselamat.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 10
     },
     "112": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 134,
       "pageCount": 1,
-      "source": "112_Aku_Mau_Ikut_Tuhan.pdf"
+      "source": "112_Aku_Mau_Ikut_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 11
     },
     "113": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 135,
       "pageCount": 1,
-      "source": "113_Pentahbisan_Gedung_Gereja.pdf"
+      "source": "113_Pentahbisan_Gedung_Gereja.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 12
     },
     "114": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 136,
       "pageCount": 1,
-      "source": "114_Persembahan_Syukur.pdf"
+      "source": "114_Persembahan_Syukur.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 13
     },
     "115": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 137,
       "pageCount": 1,
-      "source": "115_Gedung_Gereja_Terbangun.pdf"
+      "source": "115_Gedung_Gereja_Terbangun.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 14
     },
     "116": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 138,
       "pageCount": 1,
-      "source": "116_Persembahkan_Jiwa_Raga.pdf"
+      "source": "116_Persembahkan_Jiwa_Raga.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 15
     },
     "117": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 139,
       "pageCount": 1,
-      "source": "117_Terimalah_Persembahanku.pdf"
+      "source": "117_Terimalah_Persembahanku.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 16
     },
     "118": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 140,
       "pageCount": 1,
-      "source": "118_Persembahkan_Seluruh_Hidupku.pdf"
+      "source": "118_Persembahkan_Seluruh_Hidupku.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 17
     },
     "119": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 141,
       "pageCount": 1,
-      "source": "119_Semuanya_Bagi_Yesus.pdf"
+      "source": "119_Semuanya_Bagi_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 18
     },
     "120": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 142,
       "pageCount": 1,
-      "source": "120_Mempersembahkan_Semua.pdf"
+      "source": "120_Mempersembahkan_Semua.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 19
     },
     "121": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 143,
       "pageCount": 1,
-      "source": "121_Apa_Yang_Kupersembahkan.pdf"
+      "source": "121_Apa_Yang_Kupersembahkan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 20
     },
     "122": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 144,
       "pageCount": 1,
-      "source": "122_Saling_Mengasihi.pdf"
+      "source": "122_Saling_Mengasihi.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 21
     },
     "123": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 145,
       "pageCount": 1,
-      "source": "123_Sampai_Bertemu_Lagi.pdf"
+      "source": "123_Sampai_Bertemu_Lagi.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 22
     },
     "124A": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 146,
       "pageCount": 1,
-      "source": "124A__Melaksanakan_Kasih.pdf"
+      "source": "124A__Melaksanakan_Kasih.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 23
     },
     "124B": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 147,
       "pageCount": 1,
-      "source": "124B__Melaksanakan_Kasih.pdf"
+      "source": "124B__Melaksanakan_Kasih.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 24
     },
     "125": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 148,
       "pageCount": 1,
-      "source": "125_Kidung_Perpisahan.pdf"
+      "source": "125_Kidung_Perpisahan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 25
     },
     "126": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 149,
       "pageCount": 1,
-      "source": "126_Mengasihi_Sesama_Saudara.pdf"
+      "source": "126_Mengasihi_Sesama_Saudara.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 26
     },
     "127": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 150,
       "pageCount": 1,
-      "source": "127_Saling_Mengasihi_Dengan_Sungguh.pdf"
+      "source": "127_Saling_Mengasihi_Dengan_Sungguh.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 27
     },
     "128": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 151,
       "pageCount": 1,
-      "source": "128_Hari_Kudus_Nan_Bahagia.pdf"
+      "source": "128_Hari_Kudus_Nan_Bahagia.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 28
     },
     "129": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 152,
       "pageCount": 1,
-      "source": "129_Peringati_Hari_Kudus.pdf"
+      "source": "129_Peringati_Hari_Kudus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 29
     },
     "130": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 153,
       "pageCount": 1,
-      "source": "130_Sabat_Kudus.pdf"
+      "source": "130_Sabat_Kudus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 30
     },
     "131": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 154,
       "pageCount": 1,
-      "source": "131_Girang_Berhari_Sabat.pdf"
+      "source": "131_Girang_Berhari_Sabat.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 31
     },
     "132A": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 155,
       "pageCount": 1,
-      "source": "132A__Mohon_Tuhan_Lindungi.pdf"
+      "source": "132A__Mohon_Tuhan_Lindungi.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 32
     },
     "132B": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 156,
       "pageCount": 2,
-      "source": "132B__Mohon_Tuhan_Lindungi.pdf"
+      "source": "132B__Mohon_Tuhan_Lindungi.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 33
     },
     "133": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 158,
       "pageCount": 2,
-      "source": "133_Yesus_Takkan_Berubah.pdf"
+      "source": "133_Yesus_Takkan_Berubah.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 35
     },
     "134": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 160,
       "pageCount": 1,
-      "source": "134_Pandanglah_Tuhan.pdf"
+      "source": "134_Pandanglah_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 37
     },
     "135": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 161,
       "pageCount": 1,
-      "source": "135_Mengapa_Sibuk_.pdf"
+      "source": "135_Mengapa_Sibuk_.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 38
     },
     "136": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 162,
       "pageCount": 1,
-      "source": "136_Aku_Tahu_Siapa_yang_Kupercaya.pdf"
+      "source": "136_Aku_Tahu_Siapa_yang_Kupercaya.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 39
     },
     "137": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 163,
       "pageCount": 1,
-      "source": "137_Yesus_Sahabatku.pdf"
+      "source": "137_Yesus_Sahabatku.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 40
     },
     "138": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 164,
       "pageCount": 1,
-      "source": "138_Bila_Menolak_Almasih.pdf"
+      "source": "138_Bila_Menolak_Almasih.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 41
     },
     "139": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 165,
       "pageCount": 1,
-      "source": "139_Mendengar_Yesus_Lewat.pdf"
+      "source": "139_Mendengar_Yesus_Lewat.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 42
     },
     "140": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 166,
       "pageCount": 1,
-      "source": "140_Almasih_Tahu_Dukamu.pdf"
+      "source": "140_Almasih_Tahu_Dukamu.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 43
     },
     "141": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 167,
       "pageCount": 1,
-      "source": "141_Bahagia_Kekal_atau_Sengsara_Kekal.pdf"
+      "source": "141_Bahagia_Kekal_atau_Sengsara_Kekal.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 44
     },
     "142": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 168,
       "pageCount": 1,
-      "source": "142_Sandar_Tuhan_Hapuskan_Duka.pdf"
+      "source": "142_Sandar_Tuhan_Hapuskan_Duka.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 45
     },
     "143": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 169,
       "pageCount": 1,
-      "source": "143_Aku_Mau_Sandar_Tuhan.pdf"
+      "source": "143_Aku_Mau_Sandar_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 46
     },
     "144": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 170,
       "pageCount": 1,
-      "source": "144_Percayalah_Tuhan_Dengan_Sungguh.pdf"
+      "source": "144_Percayalah_Tuhan_Dengan_Sungguh.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 47
     },
     "145": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 171,
       "pageCount": 1,
-      "source": "145_Bersandar_Pada_Yesus.pdf"
+      "source": "145_Bersandar_Pada_Yesus.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 48
     },
     "146": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 172,
       "pageCount": 1,
-      "source": "146_Sandar_Tuhan_Setiap_Waktu.pdf"
+      "source": "146_Sandar_Tuhan_Setiap_Waktu.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 49
     },
     "147": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 173,
       "pageCount": 1,
-      "source": "147_Carilah_Dahulu_Kerajaan_Allah.pdf"
+      "source": "147_Carilah_Dahulu_Kerajaan_Allah.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 50
     },
     "148": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 174,
       "pageCount": 1,
-      "source": "148_Yesus_Gembalaku.pdf"
+      "source": "148_Yesus_Gembalaku.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 51
     },
     "149": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 175,
       "pageCount": 1,
-      "source": "149_Tenteram_di_Bawah_Lengan_Tuhan.pdf"
+      "source": "149_Tenteram_di_Bawah_Lengan_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 52
     },
     "150": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 176,
       "pageCount": 1,
-      "source": "150_Gembala_yang_Baik_Menjaga.pdf"
+      "source": "150_Gembala_yang_Baik_Menjaga.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 53
     },
     "151": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 177,
       "pageCount": 1,
-      "source": "151_Tuhan_Menjagamu.pdf"
+      "source": "151_Tuhan_Menjagamu.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 54
     },
     "152": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 178,
       "pageCount": 1,
-      "source": "152_Tuhan_Menyediakan.pdf"
+      "source": "152_Tuhan_Menyediakan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 55
     },
     "153": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 179,
       "pageCount": 1,
-      "source": "153_Setiap_Waktu_Berserah_Pada_Tuhan.pdf"
+      "source": "153_Setiap_Waktu_Berserah_Pada_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 56
     },
     "154": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 180,
       "pageCount": 1,
-      "source": "154_Yesus_Bentengku_yang_Kokoh.pdf"
+      "source": "154_Yesus_Bentengku_yang_Kokoh.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 57
     },
     "155": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 181,
       "pageCount": 1,
-      "source": "155_Tuhan_Selalu_Menjagaku.pdf"
+      "source": "155_Tuhan_Selalu_Menjagaku.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 58
     },
     "156": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 182,
       "pageCount": 1,
-      "source": "156_Jalan_Bersama_Tuhan.pdf"
+      "source": "156_Jalan_Bersama_Tuhan.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 59
     },
     "157": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 183,
       "pageCount": 1,
-      "source": "157_Surga_di_Dalam_Hati.pdf"
+      "source": "157_Surga_di_Dalam_Hati.pdf",
+      "chunkIndex": 2,
+      "chunkRelativeStart": 60
     },
     "158": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 184,
       "pageCount": 1,
-      "source": "158_Berjalan_di_Jalan_Tuhan.pdf"
+      "source": "158_Berjalan_di_Jalan_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 1
     },
     "159": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 185,
       "pageCount": 1,
-      "source": "159_Tuhan_Beri_Sejahtera.pdf"
+      "source": "159_Tuhan_Beri_Sejahtera.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 2
     },
     "160": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 186,
       "pageCount": 1,
-      "source": "160_Terang_Sejati_di_Hati.pdf"
+      "source": "160_Terang_Sejati_di_Hati.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 3
     },
     "161": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 187,
       "pageCount": 1,
-      "source": "161_Di_Bawah_Naungan_Tuhan.pdf"
+      "source": "161_Di_Bawah_Naungan_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 4
     },
     "162": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 188,
       "pageCount": 1,
-      "source": "162_Tuhan_Pikul_Bebanku.pdf"
+      "source": "162_Tuhan_Pikul_Bebanku.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 5
     },
     "163": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 189,
       "pageCount": 1,
-      "source": "163_Giranglah_Jiwaku.pdf"
+      "source": "163_Giranglah_Jiwaku.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 6
     },
     "164": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 190,
       "pageCount": 2,
-      "source": "164_Cukuplah_Kasih_Karunia_Tuhan.pdf"
+      "source": "164_Cukuplah_Kasih_Karunia_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 7
     },
     "165": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 192,
       "pageCount": 2,
-      "source": "165_Yesus_Memeluk_Aku.pdf"
+      "source": "165_Yesus_Memeluk_Aku.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 9
     },
     "166": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 194,
       "pageCount": 1,
-      "source": "166_Di_Bawah_Naungan_Tuhan.pdf"
+      "source": "166_Di_Bawah_Naungan_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 11
     },
     "167": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 195,
       "pageCount": 1,
-      "source": "167_Laskar_Salib.pdf"
+      "source": "167_Laskar_Salib.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 12
     },
     "168": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 196,
       "pageCount": 1,
-      "source": "168_Laskar_Kristus_Maju.pdf"
+      "source": "168_Laskar_Kristus_Maju.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 13
     },
     "169": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 197,
       "pageCount": 1,
-      "source": "169_Baik_dan_Jahat_Berlawanan.pdf"
+      "source": "169_Baik_dan_Jahat_Berlawanan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 14
     },
     "170": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 198,
       "pageCount": 1,
-      "source": "170_Maju_Untuk_Tuhan.pdf"
+      "source": "170_Maju_Untuk_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 15
     },
     "171": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 199,
       "pageCount": 1,
-      "source": "171_Gereja_Yesus_Sejati.pdf"
+      "source": "171_Gereja_Yesus_Sejati.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 16
     },
     "172": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 200,
       "pageCount": 1,
-      "source": "172_Kau_Pasti_Menang.pdf"
+      "source": "172_Kau_Pasti_Menang.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 17
     },
     "173": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 201,
       "pageCount": 1,
-      "source": "173_Panji_Salib.pdf"
+      "source": "173_Panji_Salib.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 18
     },
     "174": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 202,
       "pageCount": 1,
-      "source": "174_GerejaNya_Pasti_Maju.pdf"
+      "source": "174_GerejaNya_Pasti_Maju.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 19
     },
     "175": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 203,
       "pageCount": 1,
-      "source": "175_Pantang_Mundur.pdf"
+      "source": "175_Pantang_Mundur.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 20
     },
     "176": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 204,
       "pageCount": 1,
-      "source": "176_Pastilah_Menang.pdf"
+      "source": "176_Pastilah_Menang.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 21
     },
     "177": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 205,
       "pageCount": 1,
-      "source": "177_Jangan_Turut_Bujukan.pdf"
+      "source": "177_Jangan_Turut_Bujukan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 22
     },
     "178": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 206,
       "pageCount": 2,
-      "source": "178_Menuju_Ke_Surga.pdf"
+      "source": "178_Menuju_Ke_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 23
     },
     "179": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 208,
       "pageCount": 1,
-      "source": "179_Bersiap_Masuk_Surga.pdf"
+      "source": "179_Bersiap_Masuk_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 25
     },
     "180": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 209,
       "pageCount": 1,
-      "source": "180_Jalan_Hidup_Kekal.pdf"
+      "source": "180_Jalan_Hidup_Kekal.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 26
     },
     "181": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 210,
       "pageCount": 1,
-      "source": "181_Ku_Harus_Maju.pdf"
+      "source": "181_Ku_Harus_Maju.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 27
     },
     "182": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 211,
       "pageCount": 1,
-      "source": "182_Maju_Terus.pdf"
+      "source": "182_Maju_Terus.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 28
     },
     "183": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 212,
       "pageCount": 1,
-      "source": "183_Maju_Tak_Gentar.pdf"
+      "source": "183_Maju_Tak_Gentar.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 29
     },
     "184": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 213,
       "pageCount": 1,
-      "source": "184_Berjalan_di_Atas_Jalan_Surgawi.pdf"
+      "source": "184_Berjalan_di_Atas_Jalan_Surgawi.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 30
     },
     "185": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 214,
       "pageCount": 2,
-      "source": "185_Rindu_Rumah_di_Surga.pdf"
+      "source": "185_Rindu_Rumah_di_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 31
     },
     "186": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 216,
       "pageCount": 2,
-      "source": "186_Surga_Rumahku.pdf"
+      "source": "186_Surga_Rumahku.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 33
     },
     "187": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 218,
       "pageCount": 1,
-      "source": "187_Datang_ke_Tempat_nan_Indah.pdf"
+      "source": "187_Datang_ke_Tempat_nan_Indah.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 35
     },
     "188": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 219,
       "pageCount": 1,
-      "source": "188_Kembali_ke_surga_Mulia.pdf"
+      "source": "188_Kembali_ke_surga_Mulia.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 36
     },
     "189": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 220,
       "pageCount": 1,
-      "source": "189_Surga_Indah.pdf"
+      "source": "189_Surga_Indah.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 37
     },
     "190": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 221,
       "pageCount": 1,
-      "source": "190_Umat_Surga.pdf"
+      "source": "190_Umat_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 38
     },
     "191": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 222,
       "pageCount": 1,
-      "source": "191_Rumahku_di_Surga.pdf"
+      "source": "191_Rumahku_di_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 39
     },
     "192": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 223,
       "pageCount": 1,
-      "source": "192_Salib_Pimpin_Jalanku.pdf"
+      "source": "192_Salib_Pimpin_Jalanku.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 40
     },
     "193": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 224,
       "pageCount": 2,
-      "source": "193_Surga_Yang_Mulia.pdf"
+      "source": "193_Surga_Yang_Mulia.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 41
     },
     "194": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 226,
       "pageCount": 1,
-      "source": "194_Perhentian_di_Surga.pdf"
+      "source": "194_Perhentian_di_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 43
     },
     "195": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 227,
       "pageCount": 1,
-      "source": "195_Rindu_Tempat_Bahagia.pdf"
+      "source": "195_Rindu_Tempat_Bahagia.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 44
     },
     "196": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 228,
       "pageCount": 2,
-      "source": "196_Surga_Indah.pdf"
+      "source": "196_Surga_Indah.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 45
     },
     "197": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 230,
       "pageCount": 2,
-      "source": "197_Pulang_ke_Rumah.pdf"
+      "source": "197_Pulang_ke_Rumah.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 47
     },
     "198": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 232,
       "pageCount": 1,
-      "source": "198_Sandar_Tuhan_ke_Surga.pdf"
+      "source": "198_Sandar_Tuhan_ke_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 49
     },
     "199": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 233,
       "pageCount": 1,
-      "source": "199_Rumahku_Yang_di_Surga.pdf"
+      "source": "199_Rumahku_Yang_di_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 50
     },
     "200": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 234,
       "pageCount": 1,
-      "source": "200_Merindukan_Rumah_di_Surga.pdf"
+      "source": "200_Merindukan_Rumah_di_Surga.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 51
     },
     "201": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 235,
       "pageCount": 1,
-      "source": "201_Kemuliaan_Kekal.pdf"
+      "source": "201_Kemuliaan_Kekal.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 52
     },
     "202": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 236,
       "pageCount": 1,
-      "source": "202_Surga_Tempat_Bahagia.pdf"
+      "source": "202_Surga_Tempat_Bahagia.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 53
     },
     "203": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 237,
       "pageCount": 1,
-      "source": "203_Bunga_Bakung.pdf"
+      "source": "203_Bunga_Bakung.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 54
     },
     "204": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 238,
       "pageCount": 1,
-      "source": "204_Berpengharapan_Karena_Iman.pdf"
+      "source": "204_Berpengharapan_Karena_Iman.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 55
     },
     "205": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 239,
       "pageCount": 1,
-      "source": "205_Di_Dalam_Kristus_Pasti_Bangkit.pdf"
+      "source": "205_Di_Dalam_Kristus_Pasti_Bangkit.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 56
     },
     "206": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 240,
       "pageCount": 1,
-      "source": "206_Aku_Pasti_Berjumpa_Dengan_Tuhan.pdf"
+      "source": "206_Aku_Pasti_Berjumpa_Dengan_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 57
     },
     "207": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 241,
       "pageCount": 1,
-      "source": "207_Merindukan_Kedatangan_Tuhan.pdf"
+      "source": "207_Merindukan_Kedatangan_Tuhan.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 58
     },
     "208": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 242,
       "pageCount": 2,
-      "source": "208_Umat_Kudus_Diangkat.pdf"
+      "source": "208_Umat_Kudus_Diangkat.pdf",
+      "chunkIndex": 3,
+      "chunkRelativeStart": 59
     },
     "209": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 244,
       "pageCount": 1,
-      "source": "209_Aku_Akan_Melihat_Tuhan.pdf"
+      "source": "209_Aku_Akan_Melihat_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 1
     },
     "210": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 245,
       "pageCount": 1,
-      "source": "210_Di_Kala_Hidup_Ini_Berakhir.pdf"
+      "source": "210_Di_Kala_Hidup_Ini_Berakhir.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 2
     },
     "211": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 246,
       "pageCount": 1,
-      "source": "211_Allah_Mengawasi.pdf"
+      "source": "211_Allah_Mengawasi.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 3
     },
     "212": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 247,
       "pageCount": 1,
-      "source": "212_Bersinar_Bagi_Tuhan.pdf"
+      "source": "212_Bersinar_Bagi_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 4
     },
     "213": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 248,
       "pageCount": 1,
-      "source": "213_Walau_Sedikit_Namun_Berarti.pdf"
+      "source": "213_Walau_Sedikit_Namun_Berarti.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 5
     },
     "214": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 249,
       "pageCount": 1,
-      "source": "214_Delapan_Kebahagiaan.pdf"
+      "source": "214_Delapan_Kebahagiaan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 6
     },
     "215": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 250,
       "pageCount": 1,
-      "source": "215_Akhlak_Gereja_Benar.pdf"
+      "source": "215_Akhlak_Gereja_Benar.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 7
     },
     "216": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 251,
       "pageCount": 1,
-      "source": "216_Budi_Pekerti_Umat_Suci.pdf"
+      "source": "216_Budi_Pekerti_Umat_Suci.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 8
     },
     "217": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 252,
       "pageCount": 1,
-      "source": "217_Melakukan_Firman_Tuhan.pdf"
+      "source": "217_Melakukan_Firman_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 9
     },
     "218": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 253,
       "pageCount": 1,
-      "source": "218_Buah_Roh_Kudus.pdf"
+      "source": "218_Buah_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 10
     },
     "219": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 254,
       "pageCount": 1,
-      "source": "219_Di_mana_Saja_Bersinar.pdf"
+      "source": "219_Di_mana_Saja_Bersinar.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 11
     },
     "220": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 255,
       "pageCount": 1,
-      "source": "220_Api_Pengujian.pdf"
+      "source": "220_Api_Pengujian.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 12
     },
     "221": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 256,
       "pageCount": 1,
-      "source": "221_Taklukkan_Keinginan_Daging.pdf"
+      "source": "221_Taklukkan_Keinginan_Daging.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 13
     },
     "222": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 257,
       "pageCount": 1,
-      "source": "222_Berbahagialah_Yang_Suci_Hatinya.pdf"
+      "source": "222_Berbahagialah_Yang_Suci_Hatinya.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 14
     },
     "223": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 258,
       "pageCount": 1,
-      "source": "223_Kidung_Umat_Pilihan.pdf"
+      "source": "223_Kidung_Umat_Pilihan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 15
     },
     "224": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 259,
       "pageCount": 1,
-      "source": "224_Mohon_Tuhan_Selidiki.pdf"
+      "source": "224_Mohon_Tuhan_Selidiki.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 16
     },
     "225": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 260,
       "pageCount": 1,
-      "source": "225_Turut_Roh_Kudus.pdf"
+      "source": "225_Turut_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 17
     },
     "226": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 261,
       "pageCount": 1,
-      "source": "226_Jadilah_Kehendak_Tuhan.pdf"
+      "source": "226_Jadilah_Kehendak_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 18
     },
     "227": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 262,
       "pageCount": 1,
-      "source": "227_Berbahagialah_Yang_Mendengar_PerintahNya.pdf"
+      "source": "227_Berbahagialah_Yang_Mendengar_PerintahNya.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 19
     },
     "228": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 263,
       "pageCount": 1,
-      "source": "228_Berbahagialah_Yang_Turut_PerintahNya.pdf"
+      "source": "228_Berbahagialah_Yang_Turut_PerintahNya.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 20
     },
     "229": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 264,
       "pageCount": 1,
-      "source": "229_Sepuluh_Perintah_Allah.pdf"
+      "source": "229_Sepuluh_Perintah_Allah.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 21
     },
     "230": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 265,
       "pageCount": 1,
-      "source": "230_Berbahagialah_Orang_yang_Benar.pdf"
+      "source": "230_Berbahagialah_Orang_yang_Benar.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 22
     },
     "231": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 266,
       "pageCount": 1,
-      "source": "231_Jadilah_Seperti_KehendakMu.pdf"
+      "source": "231_Jadilah_Seperti_KehendakMu.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 23
     },
     "232": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 267,
       "pageCount": 1,
-      "source": "232_Seperti_Yesus.pdf"
+      "source": "232_Seperti_Yesus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 24
     },
     "233": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 268,
       "pageCount": 1,
-      "source": "233_Milik_Yesus.pdf"
+      "source": "233_Milik_Yesus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 25
     },
     "234": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 269,
       "pageCount": 1,
-      "source": "234_Ingin_Lebih_Dekat_Tuhan.pdf"
+      "source": "234_Ingin_Lebih_Dekat_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 26
     },
     "235": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 270,
       "pageCount": 1,
-      "source": "235_Tuhan_dan_Aku_Satu_Tubuh.pdf"
+      "source": "235_Tuhan_dan_Aku_Satu_Tubuh.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 27
     },
     "236": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 271,
       "pageCount": 1,
-      "source": "236_Aku_Milik_Yesus.pdf"
+      "source": "236_Aku_Milik_Yesus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 28
     },
     "237": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 272,
       "pageCount": 1,
-      "source": "237_Sejak_Yesus_di_hatiku.pdf"
+      "source": "237_Sejak_Yesus_di_hatiku.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 29
     },
     "238": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 273,
       "pageCount": 1,
-      "source": "238_Yesus_Tinggallah_di_hatiku.pdf"
+      "source": "238_Yesus_Tinggallah_di_hatiku.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 30
     },
     "239": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 274,
       "pageCount": 1,
-      "source": "239_Tuhan_Tinggallah_Bersamaku.pdf"
+      "source": "239_Tuhan_Tinggallah_Bersamaku.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 31
     },
     "240": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 275,
       "pageCount": 1,
-      "source": "240_Girang_Bersama_Tuhan.pdf"
+      "source": "240_Girang_Bersama_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 32
     },
     "241": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 276,
       "pageCount": 1,
-      "source": "241_Raja_Jiwaku.pdf"
+      "source": "241_Raja_Jiwaku.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 33
     },
     "242": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 277,
       "pageCount": 1,
-      "source": "242_Tuhan_Menanti_di_Luar_Pintu.pdf"
+      "source": "242_Tuhan_Menanti_di_Luar_Pintu.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 34
     },
     "243": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 278,
       "pageCount": 1,
-      "source": "243_Dekatkanlah_Aku_PadaMu.pdf"
+      "source": "243_Dekatkanlah_Aku_PadaMu.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 35
     },
     "244": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 279,
       "pageCount": 1,
-      "source": "244_Tuhan_Aku_Mau_SepertiMu.pdf"
+      "source": "244_Tuhan_Aku_Mau_SepertiMu.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 36
     },
     "245": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 280,
       "pageCount": 1,
-      "source": "245_Tinggal_Bersama_Tuhan.pdf"
+      "source": "245_Tinggal_Bersama_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 37
     },
     "246": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 281,
       "pageCount": 1,
-      "source": "246_Memohon_Roh_Kudus.pdf"
+      "source": "246_Memohon_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 38
     },
     "247": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 282,
       "pageCount": 2,
-      "source": "247_Kuasa_Roh_Kudus.pdf"
+      "source": "247_Kuasa_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 39
     },
     "248": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 284,
       "pageCount": 1,
-      "source": "248_Mohon_Roh_Kudus.pdf"
+      "source": "248_Mohon_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 41
     },
     "249": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 285,
       "pageCount": 1,
-      "source": "249_Roh_Kudus_Baptis_Semua.pdf"
+      "source": "249_Roh_Kudus_Baptis_Semua.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 42
     },
     "250": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 286,
       "pageCount": 1,
-      "source": "250_Mendapat_Kekuatan_Baru.pdf"
+      "source": "250_Mendapat_Kekuatan_Baru.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 43
     },
     "251": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 287,
       "pageCount": 1,
-      "source": "251_Baptisan_Roh_Kudus.pdf"
+      "source": "251_Baptisan_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 44
     },
     "252": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 288,
       "pageCount": 1,
-      "source": "252_Rindu_Kepenuhan_Roh_Kudus.pdf"
+      "source": "252_Rindu_Kepenuhan_Roh_Kudus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 45
     },
     "253": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 289,
       "pageCount": 1,
-      "source": "253_Roh_Kudus_Telah_Datang.pdf"
+      "source": "253_Roh_Kudus_Telah_Datang.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 46
     },
     "254": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 290,
       "pageCount": 2,
-      "source": "254_Berbahasa_Roh_Sangat_Penting.pdf"
+      "source": "254_Berbahasa_Roh_Sangat_Penting.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 47
     },
     "255": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 292,
       "pageCount": 2,
-      "source": "255_Kebaktian_Kebangunan_Rohani.pdf"
+      "source": "255_Kebaktian_Kebangunan_Rohani.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 49
     },
     "256": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 294,
       "pageCount": 1,
-      "source": "256_Hujan_Yang_Membawa_Berkat.pdf"
+      "source": "256_Hujan_Yang_Membawa_Berkat.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 51
     },
     "257": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 295,
       "pageCount": 1,
-      "source": "257_Berjagajaga_dan_Berdoa.pdf"
+      "source": "257_Berjagajaga_dan_Berdoa.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 52
     },
     "258": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 296,
       "pageCount": 1,
-      "source": "258_Berdoa_dan_Berpuasa.pdf"
+      "source": "258_Berdoa_dan_Berpuasa.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 53
     },
     "259": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 297,
       "pageCount": 1,
-      "source": "259_Tekun_Berdoa.pdf"
+      "source": "259_Tekun_Berdoa.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 54
     },
     "260": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 298,
       "pageCount": 1,
-      "source": "260_Pujian_di_Pagi_Hari.pdf"
+      "source": "260_Pujian_di_Pagi_Hari.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 55
     },
     "261": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 299,
       "pageCount": 1,
-      "source": "261_Doa_di_Malam_Hari.pdf"
+      "source": "261_Doa_di_Malam_Hari.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 56
     },
     "262": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 300,
       "pageCount": 1,
-      "source": "262_Bersekutu_Dalam_Roh_Dengan_Tuhan.pdf"
+      "source": "262_Bersekutu_Dalam_Roh_Dengan_Tuhan.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 57
     },
     "263": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 301,
       "pageCount": 1,
-      "source": "263_Yesus_Sahabat_Yang_Baik.pdf"
+      "source": "263_Yesus_Sahabat_Yang_Baik.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 58
     },
     "264": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 302,
       "pageCount": 1,
-      "source": "264_Tuhan_Dengarlah_Doaku.pdf"
+      "source": "264_Tuhan_Dengarlah_Doaku.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 59
     },
     "265": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 303,
       "pageCount": 1,
-      "source": "265_Lekas_Beritahu_Yesus.pdf"
+      "source": "265_Lekas_Beritahu_Yesus.pdf",
+      "chunkIndex": 4,
+      "chunkRelativeStart": 60
     },
     "266": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 304,
       "pageCount": 1,
-      "source": "266_Memberitakan_Injil.pdf"
+      "source": "266_Memberitakan_Injil.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 1
     },
     "267": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 305,
       "pageCount": 1,
-      "source": "267_Menuruti_Pengutusan_Tuhan.pdf"
+      "source": "267_Menuruti_Pengutusan_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 2
     },
     "268": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 306,
       "pageCount": 1,
-      "source": "268_Turut_Panggilan_Tuhan.pdf"
+      "source": "268_Turut_Panggilan_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 3
     },
     "269": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 307,
       "pageCount": 1,
-      "source": "269_Dengar_Tuhan_Memanggilku.pdf"
+      "source": "269_Dengar_Tuhan_Memanggilku.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 4
     },
     "270": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 308,
       "pageCount": 1,
-      "source": "270_Ke_Tempat_Nan_Jauh.pdf"
+      "source": "270_Ke_Tempat_Nan_Jauh.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 5
     },
     "271": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 309,
       "pageCount": 1,
-      "source": "271_Jangan_Takut.pdf"
+      "source": "271_Jangan_Takut.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 6
     },
     "272": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 310,
       "pageCount": 2,
-      "source": "272_Roh_Penghibur_Datang.pdf"
+      "source": "272_Roh_Penghibur_Datang.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 7
     },
     "273": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 312,
       "pageCount": 2,
-      "source": "273_Kabar_Gembira.pdf"
+      "source": "273_Kabar_Gembira.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 9
     },
     "274": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 314,
       "pageCount": 1,
-      "source": "274_Hujan_Akhir_Turun.pdf"
+      "source": "274_Hujan_Akhir_Turun.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 11
     },
     "275": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 315,
       "pageCount": 1,
-      "source": "275_Bawa_Berkas_ke_Rumah.pdf"
+      "source": "275_Bawa_Berkas_ke_Rumah.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 12
     },
     "276": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 316,
       "pageCount": 2,
-      "source": "276_Dengarlah_InjilNya.pdf"
+      "source": "276_Dengarlah_InjilNya.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 13
     },
     "277": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 318,
       "pageCount": 2,
-      "source": "277_Girang_Memberitakan_Injil.pdf"
+      "source": "277_Girang_Memberitakan_Injil.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 15
     },
     "278": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 320,
       "pageCount": 1,
-      "source": "278_Tuhan_Tolong.pdf"
+      "source": "278_Tuhan_Tolong.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 17
     },
     "279": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 321,
       "pageCount": 1,
-      "source": "279_Pintu_Anugerah_Terbuka.pdf"
+      "source": "279_Pintu_Anugerah_Terbuka.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 18
     },
     "280": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 322,
       "pageCount": 1,
-      "source": "280_Beritakan_Injil.pdf"
+      "source": "280_Beritakan_Injil.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 19
     },
     "281": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 323,
       "pageCount": 1,
-      "source": "281_Keluhan_Jiwa.pdf"
+      "source": "281_Keluhan_Jiwa.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 20
     },
     "282": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 324,
       "pageCount": 1,
-      "source": "282_Giatlah_Bekerja.pdf"
+      "source": "282_Giatlah_Bekerja.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 21
     },
     "283": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 325,
       "pageCount": 1,
-      "source": "283_Menuai_Untuk_Tuhan.pdf"
+      "source": "283_Menuai_Untuk_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 22
     },
     "284": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 326,
       "pageCount": 1,
-      "source": "284_Bersinarkan_Terang_Injil.pdf"
+      "source": "284_Bersinarkan_Terang_Injil.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 23
     },
     "285": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 327,
       "pageCount": 1,
-      "source": "285_Bertolak_Ke_Lautan_Dalam.pdf"
+      "source": "285_Bertolak_Ke_Lautan_Dalam.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 24
     },
     "286": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 328,
       "pageCount": 2,
-      "source": "286_Beritakan_Anugerah_Keselamatan.pdf"
+      "source": "286_Beritakan_Anugerah_Keselamatan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 25
     },
     "287": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 330,
       "pageCount": 1,
-      "source": "287_Bekerja_Untuk_Yesus.pdf"
+      "source": "287_Bekerja_Untuk_Yesus.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 27
     },
     "288": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 331,
       "pageCount": 1,
-      "source": "288_Lekas_Bekerja.pdf"
+      "source": "288_Lekas_Bekerja.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 28
     },
     "289": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 332,
       "pageCount": 1,
-      "source": "289_Mengutus_Pekerja_Kudus.pdf"
+      "source": "289_Mengutus_Pekerja_Kudus.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 29
     },
     "290": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 333,
       "pageCount": 1,
-      "source": "290_Upacara_Pentahbisan.pdf"
+      "source": "290_Upacara_Pentahbisan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 30
     },
     "291": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 334,
       "pageCount": 1,
-      "source": "291_Sumber_Penghapus_Dosa.pdf"
+      "source": "291_Sumber_Penghapus_Dosa.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 31
     },
     "292": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 335,
       "pageCount": 1,
-      "source": "292_Anugerah_Penebusan_Dosa.pdf"
+      "source": "292_Anugerah_Penebusan_Dosa.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 32
     },
     "293": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 336,
       "pageCount": 1,
-      "source": "293_Dosa_Dibersihkan.pdf"
+      "source": "293_Dosa_Dibersihkan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 33
     },
     "294": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 337,
       "pageCount": 1,
-      "source": "294_Aku_Menghampiri_Mu.pdf"
+      "source": "294_Aku_Menghampiri_Mu.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 34
     },
     "295": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 338,
       "pageCount": 1,
-      "source": "295_Sakramen_Pembasuhan_Kaki.pdf"
+      "source": "295_Sakramen_Pembasuhan_Kaki.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 35
     },
     "296": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 339,
       "pageCount": 1,
-      "source": "296_Memperingati_Kematian_Tuhan.pdf"
+      "source": "296_Memperingati_Kematian_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 36
     },
     "297": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 340,
       "pageCount": 1,
-      "source": "297_Apakah_Tekadku_Untuk_Tuhan.pdf"
+      "source": "297_Apakah_Tekadku_Untuk_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 37
     },
     "298": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 341,
       "pageCount": 1,
-      "source": "298_Upacara_Pernikahan_Umat_Suci.pdf"
+      "source": "298_Upacara_Pernikahan_Umat_Suci.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 38
     },
     "299": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 342,
       "pageCount": 1,
-      "source": "299_Pemberkatan_Nikah.pdf"
+      "source": "299_Pemberkatan_Nikah.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 39
     },
     "300": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 343,
       "pageCount": 1,
-      "source": "300_Ucapan_Selamat_Berbahagia.pdf"
+      "source": "300_Ucapan_Selamat_Berbahagia.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 40
     },
     "301": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 344,
       "pageCount": 1,
-      "source": "301_Hidup_Manusia_Tidak_Lama.pdf"
+      "source": "301_Hidup_Manusia_Tidak_Lama.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 41
     },
     "302": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 345,
       "pageCount": 1,
-      "source": "302_Pemakaman.pdf"
+      "source": "302_Pemakaman.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 42
     },
     "303": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 346,
       "pageCount": 1,
-      "source": "303_Surga_Telah_Datang.pdf"
+      "source": "303_Surga_Telah_Datang.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 43
     },
     "304": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 347,
       "pageCount": 1,
-      "source": "304_Anak_Hilang_Telah_Kembali.pdf"
+      "source": "304_Anak_Hilang_Telah_Kembali.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 44
     },
     "305": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 348,
       "pageCount": 1,
-      "source": "305_Mawas_Diri.pdf"
+      "source": "305_Mawas_Diri.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 45
     },
     "306": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 349,
       "pageCount": 1,
-      "source": "306_Bertobat_dan_Lahir_Kembali.pdf"
+      "source": "306_Bertobat_dan_Lahir_Kembali.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 46
     },
     "307": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 350,
       "pageCount": 2,
-      "source": "307_Pulanglah_.pdf"
+      "source": "307_Pulanglah_.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 47
     },
     "308": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 352,
       "pageCount": 2,
-      "source": "308_Tuhan_Teman_Orang_Berdosa.pdf"
+      "source": "308_Tuhan_Teman_Orang_Berdosa.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 49
     },
     "309": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 354,
       "pageCount": 1,
-      "source": "309_Pengharapan_di_Tahun_Baru.pdf"
+      "source": "309_Pengharapan_di_Tahun_Baru.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 51
     },
     "310": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 355,
       "pageCount": 1,
-      "source": "310_Ucapan_Syukur_di_Akhir_Tahun.pdf"
+      "source": "310_Ucapan_Syukur_di_Akhir_Tahun.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 52
     },
     "311": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 356,
       "pageCount": 1,
-      "source": "311_Segala_Ciptaan_Tuhan.pdf"
+      "source": "311_Segala_Ciptaan_Tuhan.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 53
     },
     "312": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 357,
       "pageCount": 1,
-      "source": "312_Mari_Berkumpul_MenyembahNya.pdf"
+      "source": "312_Mari_Berkumpul_MenyembahNya.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 54
     },
     "313": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 358,
       "pageCount": 1,
-      "source": "313_Besar_KesetiaanMu.pdf"
+      "source": "313_Besar_KesetiaanMu.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 55
     },
     "314": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 359,
       "pageCount": 1,
-      "source": "314_Sungguh_Besar_Allahku.pdf"
+      "source": "314_Sungguh_Besar_Allahku.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 56
     },
     "315": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 360,
       "pageCount": 1,
-      "source": "315_Allah_yang_Esa_Kekal_dan_tak_Nampak.pdf"
+      "source": "315_Allah_yang_Esa_Kekal_dan_tak_Nampak.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 57
     },
     "316": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 361,
       "pageCount": 1,
-      "source": "316_Sembahlah_Sang_Raja.pdf"
+      "source": "316_Sembahlah_Sang_Raja.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 58
     },
     "317": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 362,
       "pageCount": 2,
-      "source": "317_Tuhan_Telah_Datang.pdf"
+      "source": "317_Tuhan_Telah_Datang.pdf",
+      "chunkIndex": 5,
+      "chunkRelativeStart": 59
     },
     "318": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 364,
       "pageCount": 1,
-      "source": "318_Pelabuhan_Jiwa.pdf"
+      "source": "318_Pelabuhan_Jiwa.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 1
     },
     "319": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 365,
       "pageCount": 1,
-      "source": "319_Malaikat_dari_Tempat_Mulia.pdf"
+      "source": "319_Malaikat_dari_Tempat_Mulia.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 2
     },
     "320": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 366,
       "pageCount": 1,
-      "source": "320_Kemuliaan_Bagi_Allah.pdf"
+      "source": "320_Kemuliaan_Bagi_Allah.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 3
     },
     "321": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 367,
       "pageCount": 1,
-      "source": "321_Marilah_Memuji.pdf"
+      "source": "321_Marilah_Memuji.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 4
     },
     "322": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 368,
       "pageCount": 1,
-      "source": "322_Kemuliaan_Untuk_Tuhan.pdf"
+      "source": "322_Kemuliaan_Untuk_Tuhan.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 5
     },
     "323": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 369,
       "pageCount": 1,
-      "source": "323_Muliakanlah_Yesus.pdf"
+      "source": "323_Muliakanlah_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 6
     },
     "324": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 370,
       "pageCount": 1,
-      "source": "324_Mulialah_NamaMu.pdf"
+      "source": "324_Mulialah_NamaMu.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 7
     },
     "325": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 371,
       "pageCount": 1,
-      "source": "325_Yesus_Amatlah_Berharga.pdf"
+      "source": "325_Yesus_Amatlah_Berharga.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 8
     },
     "326": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 372,
       "pageCount": 1,
-      "source": "326_Dia_Membuat_Ku_Selalu_Bernyanyi.pdf"
+      "source": "326_Dia_Membuat_Ku_Selalu_Bernyanyi.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 9
     },
     "327": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 373,
       "pageCount": 1,
-      "source": "327_Lebih_Mengenal_Yesus.pdf"
+      "source": "327_Lebih_Mengenal_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 10
     },
     "328": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 374,
       "pageCount": 1,
-      "source": "328_Puji_Tuhan_Yang_MahaKuasa.pdf"
+      "source": "328_Puji_Tuhan_Yang_MahaKuasa.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 11
     },
     "329": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 375,
       "pageCount": 1,
-      "source": "329_Allah_Abraham_Ishak_dan_Yakub.pdf"
+      "source": "329_Allah_Abraham_Ishak_dan_Yakub.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 12
     },
     "330": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 376,
       "pageCount": 2,
-      "source": "330_Damai_Anugerah_Tuhan.pdf"
+      "source": "330_Damai_Anugerah_Tuhan.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 13
     },
     "331": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 378,
       "pageCount": 2,
-      "source": "331_Kasih_Setia_dan_Rahmat.pdf"
+      "source": "331_Kasih_Setia_dan_Rahmat.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 15
     },
     "332": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 380,
       "pageCount": 2,
-      "source": "332_Kasih_Allah.pdf"
+      "source": "332_Kasih_Allah.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 17
     },
     "333": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 382,
       "pageCount": 1,
-      "source": "333_Tiap_Minggu_DijagaNya.pdf"
+      "source": "333_Tiap_Minggu_DijagaNya.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 19
     },
     "334": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 383,
       "pageCount": 1,
-      "source": "334_Yesus_Mawar_Saron.pdf"
+      "source": "334_Yesus_Mawar_Saron.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 20
     },
     "335": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 384,
       "pageCount": 1,
-      "source": "335_Yesus_Datang.pdf"
+      "source": "335_Yesus_Datang.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 21
     },
     "336": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 385,
       "pageCount": 1,
-      "source": "336_Apakah_Yesus_Memperhatikan.pdf"
+      "source": "336_Apakah_Yesus_Memperhatikan.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 22
     },
     "337": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 386,
       "pageCount": 2,
-      "source": "337_Sebab_Dia_Hidup.pdf"
+      "source": "337_Sebab_Dia_Hidup.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 23
     },
     "338": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 388,
       "pageCount": 1,
-      "source": "338_Dia_Mengangkatku.pdf"
+      "source": "338_Dia_Mengangkatku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 25
     },
     "339": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 389,
       "pageCount": 1,
-      "source": "339_Yesus_Segalanya_Bagiku.pdf"
+      "source": "339_Yesus_Segalanya_Bagiku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 26
     },
     "340": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 390,
       "pageCount": 1,
-      "source": "340_Juruselamat_Kita_Yang_Agung.pdf"
+      "source": "340_Juruselamat_Kita_Yang_Agung.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 27
     },
     "341": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 391,
       "pageCount": 1,
-      "source": "341_Undanglah_Yesus_ke_Hatimu.pdf"
+      "source": "341_Undanglah_Yesus_ke_Hatimu.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 28
     },
     "342": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 392,
       "pageCount": 2,
-      "source": "342_Pelita_Kecil_Berkobarlah.pdf"
+      "source": "342_Pelita_Kecil_Berkobarlah.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 29
     },
     "343": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 394,
       "pageCount": 2,
-      "source": "343_KasihNya_Mengangkatku.pdf"
+      "source": "343_KasihNya_Mengangkatku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 31
     },
     "344": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 396,
       "pageCount": 1,
-      "source": "344_Betapa_Dia_Mengasihi_Kau_dan_Aku.pdf"
+      "source": "344_Betapa_Dia_Mengasihi_Kau_dan_Aku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 33
     },
     "345": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 397,
       "pageCount": 1,
-      "source": "345_Sungguh_Dalam_Kasih_Yesus.pdf"
+      "source": "345_Sungguh_Dalam_Kasih_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 34
     },
     "346": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 398,
       "pageCount": 1,
-      "source": "346_Lemah_Lembut_PanggilanNya.pdf"
+      "source": "346_Lemah_Lembut_PanggilanNya.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 35
     },
     "347": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 399,
       "pageCount": 1,
-      "source": "347_Batu_Karang_yang_Kokoh.pdf"
+      "source": "347_Batu_Karang_yang_Kokoh.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 36
     },
     "348": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 400,
       "pageCount": 2,
-      "source": "348_Anugerah_Yesus_yang_Ajaib.pdf"
+      "source": "348_Anugerah_Yesus_yang_Ajaib.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 37
     },
     "349": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 402,
       "pageCount": 1,
-      "source": "349_Ajaib_Ajaiblah_Yesus.pdf"
+      "source": "349_Ajaib_Ajaiblah_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 39
     },
     "350": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 403,
       "pageCount": 1,
-      "source": "350_Hadirkah_Kau.pdf"
+      "source": "350_Hadirkah_Kau.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 40
     },
     "351": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 404,
       "pageCount": 2,
-      "source": "351_Dia_Hidup.pdf"
+      "source": "351_Dia_Hidup.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 41
     },
     "352": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 406,
       "pageCount": 2,
-      "source": "352_Dia_Menaungi_Jiwaku.pdf"
+      "source": "352_Dia_Menaungi_Jiwaku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 43
     },
     "353": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 408,
       "pageCount": 2,
-      "source": "353_Di_bawah_Salib_Yesus.pdf"
+      "source": "353_Di_bawah_Salib_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 45
     },
     "354": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 410,
       "pageCount": 2,
-      "source": "354_Kemenangan_Dalam_Yesus.pdf"
+      "source": "354_Kemenangan_Dalam_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 47
     },
     "355": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 412,
       "pageCount": 2,
-      "source": "355_Kekal_di_hatiku.pdf"
+      "source": "355_Kekal_di_hatiku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 49
     },
     "356": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 414,
       "pageCount": 2,
-      "source": "356_Imanlah_Kemenangan.pdf"
+      "source": "356_Imanlah_Kemenangan.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 51
     },
     "357": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 416,
       "pageCount": 1,
-      "source": "357_Tuhan_adalah_Gembalaku.pdf"
+      "source": "357_Tuhan_adalah_Gembalaku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 53
     },
     "358": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 417,
       "pageCount": 1,
-      "source": "358_Roh_Kudus_Penuhilah_Aku.pdf"
+      "source": "358_Roh_Kudus_Penuhilah_Aku.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 54
     },
     "359": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 418,
       "pageCount": 2,
-      "source": "359_Kita_Berjalan_ke_Sion.pdf"
+      "source": "359_Kita_Berjalan_ke_Sion.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 55
     },
     "360": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 420,
       "pageCount": 1,
-      "source": "360_Adakah_Tempat_Bagi_Yesus.pdf"
+      "source": "360_Adakah_Tempat_Bagi_Yesus.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 57
     },
     "361": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 421,
       "pageCount": 1,
-      "source": "361_Haruskah_Yesus_Memikul_Salib_Sendiri.pdf"
+      "source": "361_Haruskah_Yesus_Memikul_Salib_Sendiri.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 58
     },
     "362": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 422,
       "pageCount": 1,
-      "source": "362_Tuhan_Roti_Hidup.pdf"
+      "source": "362_Tuhan_Roti_Hidup.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 59
     },
     "363": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 423,
       "pageCount": 1,
-      "source": "363_Berpegang_Pada_JanjiNya.pdf"
+      "source": "363_Berpegang_Pada_JanjiNya.pdf",
+      "chunkIndex": 6,
+      "chunkRelativeStart": 60
     },
     "364": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 424,
       "pageCount": 1,
-      "source": "364_Hatiku_Simpan_FirmanMu.pdf"
+      "source": "364_Hatiku_Simpan_FirmanMu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 1
     },
     "365": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 425,
       "pageCount": 1,
-      "source": "365_Kepala_Tuhan_Kini_Terluka.pdf"
+      "source": "365_Kepala_Tuhan_Kini_Terluka.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 2
     },
     "366": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 426,
       "pageCount": 2,
-      "source": "366_Berimanlah_Kepada_Tuhan.pdf"
+      "source": "366_Berimanlah_Kepada_Tuhan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 3
     },
     "367": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 428,
       "pageCount": 2,
-      "source": "367_Burung_Pipit_Dia_Jaga.pdf"
+      "source": "367_Burung_Pipit_Dia_Jaga.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 5
     },
     "368": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 430,
       "pageCount": 2,
-      "source": "368_Ku_Tahu_Siapa_Pegang_Hari_Esok.pdf"
+      "source": "368_Ku_Tahu_Siapa_Pegang_Hari_Esok.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 7
     },
     "369": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 432,
       "pageCount": 1,
-      "source": "369_Perlu_Yesus.pdf"
+      "source": "369_Perlu_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 9
     },
     "370": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 433,
       "pageCount": 1,
-      "source": "370_Bila_Tuhan_Beserta_Kita.pdf"
+      "source": "370_Bila_Tuhan_Beserta_Kita.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 10
     },
     "371": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 434,
       "pageCount": 1,
-      "source": "371_Dalam_Pencobaan.pdf"
+      "source": "371_Dalam_Pencobaan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 11
     },
     "372": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 435,
       "pageCount": 1,
-      "source": "372_Saat_Ini.pdf"
+      "source": "372_Saat_Ini.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 12
     },
     "373": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 436,
       "pageCount": 1,
-      "source": "373_Percayalah.pdf"
+      "source": "373_Percayalah.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 13
     },
     "374": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 437,
       "pageCount": 1,
-      "source": "374_Raja_kekal_Pimpinlah.pdf"
+      "source": "374_Raja_kekal_Pimpinlah.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 14
     },
     "375": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 438,
       "pageCount": 1,
-      "source": "375_Bekas_Paku_di_TanganNya.pdf"
+      "source": "375_Bekas_Paku_di_TanganNya.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 15
     },
     "376": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 439,
       "pageCount": 1,
-      "source": "376_Batu_Karang.pdf"
+      "source": "376_Batu_Karang.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 16
     },
     "377": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 440,
       "pageCount": 1,
-      "source": "377_Tuhan_Kau_Mengingatku.pdf"
+      "source": "377_Tuhan_Kau_Mengingatku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 17
     },
     "378": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 441,
       "pageCount": 1,
-      "source": "378_Percaya_dan_Taat.pdf"
+      "source": "378_Percaya_dan_Taat.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 18
     },
     "379": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 442,
       "pageCount": 1,
-      "source": "379_Pandanglah_Pada_Yesus.pdf"
+      "source": "379_Pandanglah_Pada_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 19
     },
     "380": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 443,
       "pageCount": 1,
-      "source": "380_Yesus_Segalanya_Bagiku.pdf"
+      "source": "380_Yesus_Segalanya_Bagiku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 20
     },
     "381": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 444,
       "pageCount": 1,
-      "source": "381_Betapa_Aku_Mengasihi_Yesus.pdf"
+      "source": "381_Betapa_Aku_Mengasihi_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 21
     },
     "382": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 445,
       "pageCount": 1,
-      "source": "382_Di_hatiku_Ada_Melodi_Kasih.pdf"
+      "source": "382_Di_hatiku_Ada_Melodi_Kasih.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 22
     },
     "383": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 446,
       "pageCount": 1,
-      "source": "383_Suatu_Hari_Nanti.pdf"
+      "source": "383_Suatu_Hari_Nanti.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 23
     },
     "384": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 447,
       "pageCount": 1,
-      "source": "384_Cepat_Atau_Lambat.pdf"
+      "source": "384_Cepat_Atau_Lambat.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 24
     },
     "385": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 448,
       "pageCount": 1,
-      "source": "385_Di_Tepi_Yordan.pdf"
+      "source": "385_Di_Tepi_Yordan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 25
     },
     "386": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 449,
       "pageCount": 1,
-      "source": "386_Aku_Menemukan_Sobat_Setia.pdf"
+      "source": "386_Aku_Menemukan_Sobat_Setia.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 26
     },
     "387": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 450,
       "pageCount": 1,
-      "source": "387_Tuhan_Bersabdalah_Padaku.pdf"
+      "source": "387_Tuhan_Bersabdalah_Padaku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 27
     },
     "388": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 451,
       "pageCount": 1,
-      "source": "388_Dekat_Dengan_Tuhan_ku.pdf"
+      "source": "388_Dekat_Dengan_Tuhan_ku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 28
     },
     "389": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 452,
       "pageCount": 1,
-      "source": "389_Lebih_Dekat_Kepada_Tuhan.pdf"
+      "source": "389_Lebih_Dekat_Kepada_Tuhan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 29
     },
     "390": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 453,
       "pageCount": 1,
-      "source": "390_Lebih_Dekat_PadaMu.pdf"
+      "source": "390_Lebih_Dekat_PadaMu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 30
     },
     "391": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 454,
       "pageCount": 2,
-      "source": "391_Ku_Tak_Akan_Pernah_Sendiri.pdf"
+      "source": "391_Ku_Tak_Akan_Pernah_Sendiri.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 31
     },
     "392": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 456,
       "pageCount": 2,
-      "source": "392_Aku_Akan_Pergi_ke_Mana_Engkau_Mengutusku.pdf"
+      "source": "392_Aku_Akan_Pergi_ke_Mana_Engkau_Mengutusku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 33
     },
     "393": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 458,
       "pageCount": 1,
-      "source": "393_Terima_Kasih_Tuhan.pdf"
+      "source": "393_Terima_Kasih_Tuhan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 35
     },
     "394": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 459,
       "pageCount": 1,
-      "source": "394_Terima_Kasih_Pada_Tuhan.pdf"
+      "source": "394_Terima_Kasih_Pada_Tuhan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 36
     },
     "395": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 460,
       "pageCount": 1,
-      "source": "395_Di_Tempat_yang_Lebih_Tinggi.pdf"
+      "source": "395_Di_Tempat_yang_Lebih_Tinggi.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 37
     },
     "396": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 461,
       "pageCount": 1,
-      "source": "396_Aku_Akan_Setia.pdf"
+      "source": "396_Aku_Akan_Setia.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 38
     },
     "397": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 462,
       "pageCount": 1,
-      "source": "397_Nyatakan_Yesus_Dalammu.pdf"
+      "source": "397_Nyatakan_Yesus_Dalammu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 39
     },
     "398": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 463,
       "pageCount": 1,
-      "source": "398_Hidup_Untuk_Yesus.pdf"
+      "source": "398_Hidup_Untuk_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 40
     },
     "399": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 464,
       "pageCount": 1,
-      "source": "399_Tuhan_Ku_Mau_Menjadi_Kristen.pdf"
+      "source": "399_Tuhan_Ku_Mau_Menjadi_Kristen.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 41
     },
     "400": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 465,
       "pageCount": 1,
-      "source": "400_Aku_Mau_Seperti_Yesus.pdf"
+      "source": "400_Aku_Mau_Seperti_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 42
     },
     "401": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 466,
       "pageCount": 1,
-      "source": "401_Kuduskan_Dirimu.pdf"
+      "source": "401_Kuduskan_Dirimu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 43
     },
     "402": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 467,
       "pageCount": 1,
-      "source": "402_Jalan_Tuhan.pdf"
+      "source": "402_Jalan_Tuhan.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 44
     },
     "403": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 468,
       "pageCount": 1,
-      "source": "403_Tuhan_Jadilah_KehendakMu.pdf"
+      "source": "403_Tuhan_Jadilah_KehendakMu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 45
     },
     "404": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 469,
       "pageCount": 1,
-      "source": "404_Tuhan_Memberkatimu.pdf"
+      "source": "404_Tuhan_Memberkatimu.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 46
     },
     "405": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 470,
       "pageCount": 2,
-      "source": "405_Berdoakah_Engkau.pdf"
+      "source": "405_Berdoakah_Engkau.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 47
     },
     "406": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 472,
       "pageCount": 1,
-      "source": "406_Aku_Harus_Memberitahu_Yesus.pdf"
+      "source": "406_Aku_Harus_Memberitahu_Yesus.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 49
     },
     "407": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 473,
       "pageCount": 1,
-      "source": "407_Dalam_Taman.pdf"
+      "source": "407_Dalam_Taman.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 50
     },
     "408": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 474,
       "pageCount": 2,
-      "source": "408_Masuklah_Dalam_hatiku.pdf"
+      "source": "408_Masuklah_Dalam_hatiku.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 51
     },
     "409": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 476,
       "pageCount": 2,
-      "source": "409_Jadikan_Aku_Saluran_Berkat.pdf"
+      "source": "409_Jadikan_Aku_Saluran_Berkat.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 53
     },
     "410": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 478,
       "pageCount": 1,
-      "source": "410_Ajarlah_Aku_Berdoa.pdf"
+      "source": "410_Ajarlah_Aku_Berdoa.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 55
     },
     "411": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 479,
       "pageCount": 1,
-      "source": "411_Taman_Doa_Nan_indah.pdf"
+      "source": "411_Taman_Doa_Nan_indah.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 56
     },
     "412": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 480,
       "pageCount": 2,
-      "source": "412_Indahnya_Saat_Berdoa.pdf"
+      "source": "412_Indahnya_Saat_Berdoa.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 57
     },
     "413": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 482,
       "pageCount": 2,
-      "source": "413_Layanilah_Tuhan_Dengan_Suka_cita.pdf"
+      "source": "413_Layanilah_Tuhan_Dengan_Suka_cita.pdf",
+      "chunkIndex": 7,
+      "chunkRelativeStart": 59
     },
     "414": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 484,
       "pageCount": 2,
-      "source": "414_Bila_Aku_Semakin_Melayani_Dia.pdf"
+      "source": "414_Bila_Aku_Semakin_Melayani_Dia.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 1
     },
     "415": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 486,
       "pageCount": 2,
-      "source": "415_Serahkan_Yang_Terbaik_padaNya.pdf"
+      "source": "415_Serahkan_Yang_Terbaik_padaNya.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 3
     },
     "416": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 488,
       "pageCount": 2,
-      "source": "416_Kau_Sanggupkah_Tanya_Yesus.pdf"
+      "source": "416_Kau_Sanggupkah_Tanya_Yesus.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 5
     },
     "417": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 490,
       "pageCount": 1,
-      "source": "417_Mengikut_Yesus.pdf"
+      "source": "417_Mengikut_Yesus.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 7
     },
     "418": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 491,
       "pageCount": 1,
-      "source": "418_Sudahkah_Kau_Persembahkan_Semua.pdf"
+      "source": "418_Sudahkah_Kau_Persembahkan_Semua.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 8
     },
     "419": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 492,
       "pageCount": 1,
-      "source": "419_Jadikan_Aku_Saluran_Berkat.pdf"
+      "source": "419_Jadikan_Aku_Saluran_Berkat.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 9
     },
     "420": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 493,
       "pageCount": 1,
-      "source": "420_Persembahan_Bagi_Tuhan.pdf"
+      "source": "420_Persembahan_Bagi_Tuhan.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 10
     },
     "421": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 494,
       "pageCount": 1,
-      "source": "421_Datanglah_ke_PestaNya.pdf"
+      "source": "421_Datanglah_ke_PestaNya.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 11
     },
     "422": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 495,
       "pageCount": 1,
-      "source": "422_Beritakan_KasihNya.pdf"
+      "source": "422_Beritakan_KasihNya.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 12
     },
     "423": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 496,
       "pageCount": 1,
-      "source": "423_Ceritakanlah_Tentang_Yesus.pdf"
+      "source": "423_Ceritakanlah_Tentang_Yesus.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 13
     },
     "424": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 497,
       "pageCount": 1,
-      "source": "424_Perintah_Raja.pdf"
+      "source": "424_Perintah_Raja.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 14
     },
     "425": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 498,
       "pageCount": 1,
-      "source": "425_Ulurkan_Tali_Keselamatan.pdf"
+      "source": "425_Ulurkan_Tali_Keselamatan.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 15
     },
     "426": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 499,
       "pageCount": 1,
-      "source": "426_Juruselamat_Yang_Ajaib.pdf"
+      "source": "426_Juruselamat_Yang_Ajaib.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 16
     },
     "427": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 500,
       "pageCount": 1,
-      "source": "427_Ceritakan_Pada_Bangsa_Bangsa.pdf"
+      "source": "427_Ceritakan_Pada_Bangsa_Bangsa.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 17
     },
     "428": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 501,
       "pageCount": 1,
-      "source": "428_Orang_Yang_Penuh_Kesengsaraan.pdf"
+      "source": "428_Orang_Yang_Penuh_Kesengsaraan.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 18
     },
     "429": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 502,
       "pageCount": 1,
-      "source": "429_Aku_Telah_Melihat_KemuliaanNya.pdf"
+      "source": "429_Aku_Telah_Melihat_KemuliaanNya.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 19
     },
     "430": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 503,
       "pageCount": 1,
-      "source": "430_Berhimpunkah_di_Surga_Kehidupan.pdf"
+      "source": "430_Berhimpunkah_di_Surga_Kehidupan.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 20
     },
     "431": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 504,
       "pageCount": 1,
-      "source": "431_Kasih_Sempurna.pdf"
+      "source": "431_Kasih_Sempurna.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 21
     },
     "432": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 505,
       "pageCount": 1,
-      "source": "432_Pengertian_Yang_Mendalam.pdf"
+      "source": "432_Pengertian_Yang_Mendalam.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 22
     },
     "433": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 506,
       "pageCount": 1,
-      "source": "433_Damai_Nan_Ajaib.pdf"
+      "source": "433_Damai_Nan_Ajaib.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 23
     },
     "434": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 507,
       "pageCount": 1,
-      "source": "434_Di_Suatu_Negeri_Yang_Mulia.pdf"
+      "source": "434_Di_Suatu_Negeri_Yang_Mulia.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 24
     },
     "435": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 508,
       "pageCount": 2,
-      "source": "435_Dia_Mengampuni_Semua_Dosaku.pdf"
+      "source": "435_Dia_Mengampuni_Semua_Dosaku.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 25
     },
     "436": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 510,
       "pageCount": 2,
-      "source": "436_Sepanjang_Jalan_Tuhan_Memimpinku.pdf"
+      "source": "436_Sepanjang_Jalan_Tuhan_Memimpinku.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 27
     },
     "437": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 512,
       "pageCount": 1,
-      "source": "437_Tuhan_Buatlah_Hatiku_Bersemi.pdf"
+      "source": "437_Tuhan_Buatlah_Hatiku_Bersemi.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 29
     },
     "438": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 513,
       "pageCount": 1,
-      "source": "438_Untuk_Keindahan_Bumi.pdf"
+      "source": "438_Untuk_Keindahan_Bumi.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 30
     },
     "439": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 514,
       "pageCount": 2,
-      "source": "439_Setiap_Saat.pdf"
+      "source": "439_Setiap_Saat.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 31
     },
     "440": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 516,
       "pageCount": 2,
-      "source": "440_Biarlah_Semua_Makhluk.pdf"
+      "source": "440_Biarlah_Semua_Makhluk.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 33
     },
     "441": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 518,
       "pageCount": 1,
-      "source": "441_Bersuka_citalah.pdf"
+      "source": "441_Bersuka_citalah.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 35
     },
     "442": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 519,
       "pageCount": 1,
-      "source": "442_Tuhan_Memimpin_Kita.pdf"
+      "source": "442_Tuhan_Memimpin_Kita.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 36
     },
     "443": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 520,
       "pageCount": 1,
-      "source": "443_Iman_UmatUmat_Kudus.pdf"
+      "source": "443_Iman_UmatUmat_Kudus.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 37
     },
     "444": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 521,
       "pageCount": 1,
-      "source": "444_Yesuslah_Nama_Yang_Terindah.pdf"
+      "source": "444_Yesuslah_Nama_Yang_Terindah.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 38
     },
     "445": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 522,
       "pageCount": 1,
-      "source": "445_Anugerah_Lebih_Besar_dari_Dosa.pdf"
+      "source": "445_Anugerah_Lebih_Besar_dari_Dosa.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 39
     },
     "446": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 523,
       "pageCount": 1,
-      "source": "446_Terpujilah_Nama_Tuhan.pdf"
+      "source": "446_Terpujilah_Nama_Tuhan.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 40
     },
     "447": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 524,
       "pageCount": 1,
-      "source": "447_Imanku_Menemukan_Tempat_Perhentian.pdf"
+      "source": "447_Imanku_Menemukan_Tempat_Perhentian.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 41
     },
     "448": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 525,
       "pageCount": 1,
-      "source": "448_Bersuka_citalah_Tuhan_Itu_Raja.pdf"
+      "source": "448_Bersuka_citalah_Tuhan_Itu_Raja.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 42
     },
     "449": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 526,
       "pageCount": 2,
-      "source": "449_Mungkinkah.pdf"
+      "source": "449_Mungkinkah.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 43
     },
     "450": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 528,
       "pageCount": 1,
-      "source": "450_Serukanlah_Perang.pdf"
+      "source": "450_Serukanlah_Perang.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 45
     },
     "451": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 529,
       "pageCount": 1,
-      "source": "451_Serukanlah_Dari_Puncak_Gunung.pdf"
+      "source": "451_Serukanlah_Dari_Puncak_Gunung.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 46
     },
     "452": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 530,
       "pageCount": 1,
-      "source": "452_Jadilah_Visiku.pdf"
+      "source": "452_Jadilah_Visiku.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 47
     },
     "453": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 531,
       "pageCount": 1,
-      "source": "453_Anak_Raja.pdf"
+      "source": "453_Anak_Raja.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 48
     },
     "454": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 532,
       "pageCount": 1,
-      "source": "454_Oh_Datanglah_Imanuel.pdf"
+      "source": "454_Oh_Datanglah_Imanuel.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 49
     },
     "455": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 533,
       "pageCount": 1,
-      "source": "455_Nama_Yang_Indah.pdf"
+      "source": "455_Nama_Yang_Indah.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 50
     },
     "456": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 534,
       "pageCount": 1,
-      "source": "456_Yesuslah_Terang_Dunia.pdf"
+      "source": "456_Yesuslah_Terang_Dunia.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 51
     },
     "457": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 535,
       "pageCount": 1,
-      "source": "457_Hanyalah_JamahanMu.pdf"
+      "source": "457_Hanyalah_JamahanMu.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 52
     },
     "458": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 536,
       "pageCount": 1,
-      "source": "458_Janganlah_Pergi_Tanpa_Yesus.pdf"
+      "source": "458_Janganlah_Pergi_Tanpa_Yesus.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 53
     },
     "459": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 537,
       "pageCount": 1,
-      "source": "459_Yesuslah_Terang_Dunia.pdf"
+      "source": "459_Yesuslah_Terang_Dunia.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 54
     },
     "460": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 538,
       "pageCount": 1,
-      "source": "460_Yesus_Paling_Mengenalmu.pdf"
+      "source": "460_Yesus_Paling_Mengenalmu.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 55
     },
     "461": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 539,
       "pageCount": 1,
-      "source": "461_Semua_Karena_Bukit_Golgota.pdf"
+      "source": "461_Semua_Karena_Bukit_Golgota.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 56
     },
     "462": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 540,
       "pageCount": 1,
-      "source": "462_Penebus_Agung.pdf"
+      "source": "462_Penebus_Agung.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 57
     },
     "463": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 541,
       "pageCount": 1,
-      "source": "463_Roh_Kudus_Penolongku.pdf"
+      "source": "463_Roh_Kudus_Penolongku.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 58
     },
     "464": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 542,
       "pageCount": 1,
-      "source": "464_Tertegun_di_HadapanNya.pdf"
+      "source": "464_Tertegun_di_HadapanNya.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 59
     },
     "465": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 543,
       "pageCount": 1,
-      "source": "465_Yesus_Perlindunganku_Yang_Teguh.pdf"
+      "source": "465_Yesus_Perlindunganku_Yang_Teguh.pdf",
+      "chunkIndex": 8,
+      "chunkRelativeStart": 60
     },
     "466": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 544,
       "pageCount": 1,
-      "source": "466_Tiap_Hari_Tiap_Waktu.pdf"
+      "source": "466_Tiap_Hari_Tiap_Waktu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 1
     },
     "467": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 545,
       "pageCount": 1,
-      "source": "467_Percayalah_Pada_Yesus.pdf"
+      "source": "467_Percayalah_Pada_Yesus.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 2
     },
     "468": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 546,
       "pageCount": 1,
-      "source": "468_Kristus_Hidup_di_Dalam_Ku.pdf"
+      "source": "468_Kristus_Hidup_di_Dalam_Ku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 3
     },
     "469": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 547,
       "pageCount": 1,
-      "source": "469_Dia_Menuntunmu.pdf"
+      "source": "469_Dia_Menuntunmu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 4
     },
     "470": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 548,
       "pageCount": 1,
-      "source": "470_Hai_Sion_Bersegeralah.pdf"
+      "source": "470_Hai_Sion_Bersegeralah.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 5
     },
     "471": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 549,
       "pageCount": 1,
-      "source": "471_Di_Kalvari.pdf"
+      "source": "471_Di_Kalvari.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 6
     },
     "472": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 550,
       "pageCount": 1,
-      "source": "472_Dengarlah_Doa_Kami_Ya_Tuhan.pdf"
+      "source": "472_Dengarlah_Doa_Kami_Ya_Tuhan.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 7
     },
     "473": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 551,
       "pageCount": 1,
-      "source": "473_Tuhan_Pakailah_Daku.pdf"
+      "source": "473_Tuhan_Pakailah_Daku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 8
     },
     "474": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 552,
       "pageCount": 1,
-      "source": "474_Datanglah_dengan_Hati_yang_Hancur.pdf"
+      "source": "474_Datanglah_dengan_Hati_yang_Hancur.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 9
     },
     "475": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 553,
       "pageCount": 1,
-      "source": "475_Juruselamat_Menantimu.pdf"
+      "source": "475_Juruselamat_Menantimu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 10
     },
     "476": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 554,
       "pageCount": 2,
-      "source": "476_Diamlah_Jiwaku.pdf"
+      "source": "476_Diamlah_Jiwaku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 11
     },
     "477": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 556,
       "pageCount": 1,
-      "source": "477_Dunia_Berlalu.pdf"
+      "source": "477_Dunia_Berlalu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 13
     },
     "478": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 557,
       "pageCount": 1,
-      "source": "478_Ku_Mau_Seperti_Yesus.pdf"
+      "source": "478_Ku_Mau_Seperti_Yesus.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 14
     },
     "479": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 558,
       "pageCount": 1,
-      "source": "479_Bawalah_Mereka.pdf"
+      "source": "479_Bawalah_Mereka.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 15
     },
     "480": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 559,
       "pageCount": 1,
-      "source": "480_Mengapa_Tidak_Sekarang.pdf"
+      "source": "480_Mengapa_Tidak_Sekarang.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 16
     },
     "481": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 560,
       "pageCount": 2,
-      "source": "481_Pujilah_Dia.pdf"
+      "source": "481_Pujilah_Dia.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 17
     },
     "482": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 562,
       "pageCount": 2,
-      "source": "482_Surga_Datang.pdf"
+      "source": "482_Surga_Datang.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 19
     },
     "483": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 564,
       "pageCount": 2,
-      "source": "483_Hanya_Satu_Rencana.pdf"
+      "source": "483_Hanya_Satu_Rencana.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 21
     },
     "484": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 566,
       "pageCount": 2,
-      "source": "484_Sang_Raja_Telah_Datang.pdf"
+      "source": "484_Sang_Raja_Telah_Datang.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 23
     },
     "485": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 568,
       "pageCount": 1,
-      "source": "485_Sumber_Air_Kehidupan.pdf"
+      "source": "485_Sumber_Air_Kehidupan.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 25
     },
     "486": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 569,
       "pageCount": 1,
-      "source": "486_Tentara_Salibkah_Aku.pdf"
+      "source": "486_Tentara_Salibkah_Aku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 26
     },
     "487": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 570,
       "pageCount": 1,
-      "source": "487_Sampai_ke_Seluruh_Dunia.pdf"
+      "source": "487_Sampai_ke_Seluruh_Dunia.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 27
     },
     "488": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 571,
       "pageCount": 1,
-      "source": "488_Bawalah_Daku_ya_Bapa.pdf"
+      "source": "488_Bawalah_Daku_ya_Bapa.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 28
     },
     "489": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 572,
       "pageCount": 1,
-      "source": "489_Bukan_Perak_atau_Emas.pdf"
+      "source": "489_Bukan_Perak_atau_Emas.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 29
     },
     "490": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 573,
       "pageCount": 1,
-      "source": "490_Saat_Fajar_Tiba.pdf"
+      "source": "490_Saat_Fajar_Tiba.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 30
     },
     "491": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 574,
       "pageCount": 1,
-      "source": "491_Aku_Memuji_Penebusku.pdf"
+      "source": "491_Aku_Memuji_Penebusku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 31
     },
     "492": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 575,
       "pageCount": 1,
-      "source": "492_Allahku_Yang_Ajaib.pdf"
+      "source": "492_Allahku_Yang_Ajaib.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 32
     },
     "493": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 576,
       "pageCount": 1,
-      "source": "493_Kita_Berkumpul_Bersama.pdf"
+      "source": "493_Kita_Berkumpul_Bersama.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 33
     },
     "494": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 577,
       "pageCount": 1,
-      "source": "494_Bersama_Mu.pdf"
+      "source": "494_Bersama_Mu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 34
     },
     "495": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 578,
       "pageCount": 1,
-      "source": "495_Datanglah.pdf"
+      "source": "495_Datanglah.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 35
     },
     "496": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 579,
       "pageCount": 1,
-      "source": "496_Yesus_Menjamahku.pdf"
+      "source": "496_Yesus_Menjamahku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 36
     },
     "497": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 580,
       "pageCount": 1,
-      "source": "497_Janji_Tuhan_Bagiku.pdf"
+      "source": "497_Janji_Tuhan_Bagiku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 37
     },
     "498": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 581,
       "pageCount": 1,
-      "source": "498_Yesus_Pimpin_Kita_Pulang.pdf"
+      "source": "498_Yesus_Pimpin_Kita_Pulang.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 38
     },
     "499": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 582,
       "pageCount": 1,
-      "source": "499_Jamahan_Tangan_Tuhan.pdf"
+      "source": "499_Jamahan_Tangan_Tuhan.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 39
     },
     "500": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 583,
       "pageCount": 1,
-      "source": "500_Siapa_di_Muka_Pintuku.pdf"
+      "source": "500_Siapa_di_Muka_Pintuku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 40
     },
     "501": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 584,
       "pageCount": 2,
-      "source": "501_Dia_Menerimaku.pdf"
+      "source": "501_Dia_Menerimaku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 41
     },
     "502": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 586,
       "pageCount": 1,
-      "source": "502_Yesus_Juruselamatku_Yang_Ajaib.pdf"
+      "source": "502_Yesus_Juruselamatku_Yang_Ajaib.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 43
     },
     "503": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 587,
       "pageCount": 1,
-      "source": "503_Penebus_yang_Terindah.pdf"
+      "source": "503_Penebus_yang_Terindah.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 44
     },
     "504": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 588,
       "pageCount": 1,
-      "source": "504_Pimpin_ke_Kalvari.pdf"
+      "source": "504_Pimpin_ke_Kalvari.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 45
     },
     "505": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 589,
       "pageCount": 1,
-      "source": "505_Yang_Hampir_yakin_Percayalah.pdf"
+      "source": "505_Yang_Hampir_yakin_Percayalah.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 46
     },
     "506": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 590,
       "pageCount": 1,
-      "source": "506_Ku_Senang_Beritakan_Penebusan.pdf"
+      "source": "506_Ku_Senang_Beritakan_Penebusan.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 47
     },
     "507": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 591,
       "pageCount": 1,
-      "source": "507_Beban_Terangkat_di_Kalvari.pdf"
+      "source": "507_Beban_Terangkat_di_Kalvari.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 48
     },
     "508": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 592,
       "pageCount": 1,
-      "source": "508_Sauh_Jiwa_Kita.pdf"
+      "source": "508_Sauh_Jiwa_Kita.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 49
     },
     "509": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 593,
       "pageCount": 1,
-      "source": "509_Aku_Milik_Raja.pdf"
+      "source": "509_Aku_Milik_Raja.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 50
     },
     "510": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 594,
       "pageCount": 1,
-      "source": "510_Yesus_Berjalan_Denganku.pdf"
+      "source": "510_Yesus_Berjalan_Denganku.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 51
     },
     "511": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 595,
       "pageCount": 1,
-      "source": "511_Sekarang_Aku_Milik_Yesus.pdf"
+      "source": "511_Sekarang_Aku_Milik_Yesus.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 52
     },
     "512": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 596,
       "pageCount": 1,
-      "source": "512_Tuhan_Biarkan_Ku_Berjalan_Dengan_Mu.pdf"
+      "source": "512_Tuhan_Biarkan_Ku_Berjalan_Dengan_Mu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 53
     },
     "513": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 597,
       "pageCount": 1,
-      "source": "513_Yesus_Hembuskan_Berkat_Mu.pdf"
+      "source": "513_Yesus_Hembuskan_Berkat_Mu.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 54
     },
     "514": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 598,
       "pageCount": 1,
-      "source": "514_Dalam_Kristus_Tiada_Timur_atau_Barat.pdf"
+      "source": "514_Dalam_Kristus_Tiada_Timur_atau_Barat.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 55
     },
     "515": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 599,
       "pageCount": 1,
-      "source": "515_Kenangan_Indah.pdf"
+      "source": "515_Kenangan_Indah.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 56
     },
     "516": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 600,
       "pageCount": 1,
-      "source": "516_Aku_Bertekad.pdf"
+      "source": "516_Aku_Bertekad.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 57
     },
     "517": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 601,
       "pageCount": 1,
-      "source": "517_Allah_Abraham.pdf"
+      "source": "517_Allah_Abraham.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 58
     },
     "518": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 602,
       "pageCount": 2,
-      "source": "518_Kemuliaan_Selamanya_Bagi_Yesus.pdf"
+      "source": "518_Kemuliaan_Selamanya_Bagi_Yesus.pdf",
+      "chunkIndex": 9,
+      "chunkRelativeStart": 59
     },
     "519": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 604,
       "pageCount": 2,
-      "source": "519_Berlindung_Pada_Batu_Karang.pdf"
+      "source": "519_Berlindung_Pada_Batu_Karang.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 1
     },
     "520": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 606,
       "pageCount": 2,
-      "source": "520_Menabur_Dengan_Air_Mata.pdf"
+      "source": "520_Menabur_Dengan_Air_Mata.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 3
     },
     "521": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 608,
       "pageCount": 1,
-      "source": "521_Akulah_DombaNya.pdf"
+      "source": "521_Akulah_DombaNya.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 5
     },
     "522": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 609,
       "pageCount": 1,
-      "source": "522_Dengan_Darah_Yesus.pdf"
+      "source": "522_Dengan_Darah_Yesus.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 6
     },
     "523": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 610,
       "pageCount": 2,
-      "source": "523_Betapa_Mulianya_Hari_Itu.pdf"
+      "source": "523_Betapa_Mulianya_Hari_Itu.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 7
     },
     "524": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 612,
       "pageCount": 2,
-      "source": "524_Bagaimana_Bila_Sekarang.pdf"
+      "source": "524_Bagaimana_Bila_Sekarang.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 9
     },
     "525": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 614,
       "pageCount": 1,
-      "source": "525_Biarlah_Jiwamu_Bergembira.pdf"
+      "source": "525_Biarlah_Jiwamu_Bergembira.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 11
     },
     "526": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 615,
       "pageCount": 1,
-      "source": "526_Hosana.pdf"
+      "source": "526_Hosana.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 12
     },
     "527": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 616,
       "pageCount": 2,
-      "source": "527_Gerbang_Surga_Terbuka_Lebar.pdf"
+      "source": "527_Gerbang_Surga_Terbuka_Lebar.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 13
     },
     "528": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 618,
       "pageCount": 2,
-      "source": "528_Dia_Segalanya_Bagiku.pdf"
+      "source": "528_Dia_Segalanya_Bagiku.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 15
     },
     "529": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 620,
       "pageCount": 2,
-      "source": "529_Datanglah_Pada_Yesus.pdf"
+      "source": "529_Datanglah_Pada_Yesus.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 17
     },
     "530": {
       "path": "assets/data/pdf/kr/KR.pdf",
       "startPage": 622,
       "pageCount": 2,
-      "source": "530_Doa_Bapa_Kami.pdf"
+      "source": "530_Doa_Bapa_Kami.pdf",
+      "chunkIndex": 10,
+      "chunkRelativeStart": 19
     }
-  }
+  },
+  "chunkFile": "assets/data/pdf/kr/kr_chunks.bin",
+  "chunks": [
+    {
+      "index": 0,
+      "startPage": 5,
+      "endPage": 63,
+      "compressedSize": 397190,
+      "uncompressedSize": 420278
+    },
+    {
+      "index": 1,
+      "startPage": 64,
+      "endPage": 123,
+      "compressedSize": 421496,
+      "uncompressedSize": 446181
+    },
+    {
+      "index": 2,
+      "startPage": 124,
+      "endPage": 183,
+      "compressedSize": 417550,
+      "uncompressedSize": 442277
+    },
+    {
+      "index": 3,
+      "startPage": 184,
+      "endPage": 243,
+      "compressedSize": 412329,
+      "uncompressedSize": 436755
+    },
+    {
+      "index": 4,
+      "startPage": 244,
+      "endPage": 303,
+      "compressedSize": 401871,
+      "uncompressedSize": 425202
+    },
+    {
+      "index": 5,
+      "startPage": 304,
+      "endPage": 363,
+      "compressedSize": 345640,
+      "uncompressedSize": 371646
+    },
+    {
+      "index": 6,
+      "startPage": 364,
+      "endPage": 423,
+      "compressedSize": 433676,
+      "uncompressedSize": 460184
+    },
+    {
+      "index": 7,
+      "startPage": 424,
+      "endPage": 483,
+      "compressedSize": 448944,
+      "uncompressedSize": 478511
+    },
+    {
+      "index": 8,
+      "startPage": 484,
+      "endPage": 543,
+      "compressedSize": 422570,
+      "uncompressedSize": 449962
+    },
+    {
+      "index": 9,
+      "startPage": 544,
+      "endPage": 603,
+      "compressedSize": 438511,
+      "uncompressedSize": 465950
+    },
+    {
+      "index": 10,
+      "startPage": 604,
+      "endPage": 623,
+      "compressedSize": 129878,
+      "uncompressedSize": 142776
+    }
+  ]
 }
