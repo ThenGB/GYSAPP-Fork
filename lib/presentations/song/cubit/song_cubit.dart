@@ -567,10 +567,8 @@ class SongCubit extends HydratedCubit<SongState> {
       'changePage: ${song.code} ${song.number} (index=$index, wasPlaying=$wasPlaying)',
       name: 'SongCubit',
     );
-    final reset = await _resolvePreloadDefaultsForSong(song);
-
-    // Check if we already have the chords parsed from the resolution phase
-    final preloadedChords = _resolvedChordsCache;
+    _resolvedChordsCache = null;
+    final reset = _currentPlaybackDefaults().resetForSong();
 
     emit(
       state.copyWith(
@@ -580,8 +578,7 @@ class SongCubit extends HydratedCubit<SongState> {
         isPdfLoading: true,
         // Don't clear currentPdfPath yet, let it stay for smooth transition
         // currentPdfPath: null,
-        currentChords:
-            preloadedChords ?? {}, // USE PRELOADED CHORDS IMMEDIATELY
+        currentChords: {},
         transposeStep: reset.transposeStep,
         tempoBpm: reset.tempoBpm,
         defaultTempoBpm: reset.defaultTempoBpm,
@@ -594,14 +591,39 @@ class SongCubit extends HydratedCubit<SongState> {
     unawaited(
       _loadResourcesForSong(song, autoplay: wasPlaying, forceMidi: true),
     );
+    unawaited(_resolveChordBaselineForCurrentSong(song));
+  }
 
-    // Only trigger internal load if we don't have the chords yet
-    if (preloadedChords == null) {
-      unawaited(_loadChordDataInternal(song));
-    } else {
-      // Clear cache after use
-      _resolvedChordsCache = null;
+  Future<void> _resolveChordBaselineForCurrentSong(Song song) async {
+    final reset = await _resolvePreloadDefaultsForSong(song);
+    final preloadedChords = _resolvedChordsCache;
+    _resolvedChordsCache = null;
+    if (isClosed || !_isCurrentSong(song)) return;
+
+    if (preloadedChords != null) {
+      emit(
+        state.copyWith(
+          currentChords: preloadedChords,
+          transposeStep: reset.transposeStep,
+          tempoBpm: reset.tempoBpm,
+          defaultTempoBpm: reset.defaultTempoBpm,
+          originalPdfKey: reset.originalPdfKey,
+          originalFamilyChord: reset.originalFamilyChord,
+          baseTransposeOffset: reset.baseTransposeOffset,
+        ),
+      );
+      return;
     }
+
+    unawaited(_loadChordDataInternal(song));
+  }
+
+  bool _isCurrentSong(Song song) {
+    if (isClosed) return false;
+    if (state.songs.isEmpty) return false;
+    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final currentSong = state.songs[currentIdx];
+    return currentSong.code == song.code && currentSong.number == song.number;
   }
 
   Future<void> goToPreviousSong() async {

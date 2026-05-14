@@ -148,7 +148,10 @@ class LocalAssetService {
 
     final entry = songs[number] ?? songs[number.padLeft(3, '0')];
     if (entry is! Map<String, dynamic>) {
-      log('Song $number not found in $bookCode manifest', name: 'LocalAssetService');
+      log(
+        'Song $number not found in $bookCode manifest',
+        name: 'LocalAssetService',
+      );
       return null;
     }
 
@@ -166,10 +169,14 @@ class LocalAssetService {
         if (chunkPath != null) {
           final pageCount = entry['pageCount'] as int? ?? 1;
           final masterPath = manifest['masterPath'] as String? ?? chunkFile;
-          return '$chunkPath#page=$relStart&pages=$pageCount&master=$masterPath';
+          final version = await _fileVersion(chunkPath);
+          return '$chunkPath#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath, version: version)}';
         }
       } catch (e) {
-        log('Failed to load chunk for $bookCode $number: $e', name: 'LocalAssetService');
+        log(
+          'Failed to load chunk for $bookCode $number: $e',
+          name: 'LocalAssetService',
+        );
       }
     }
 
@@ -187,11 +194,35 @@ class LocalAssetService {
     if (path.startsWith('assets/')) {
       final tempPath = await _extractMasterPdfToTemp(path);
       if (tempPath != null) {
-        return '$tempPath#page=$startPage&pages=$pageCount';
+        final version = await _fileVersion(tempPath);
+        return '$tempPath#${_pdfRangeFragment(page: startPage, pages: pageCount, version: version)}';
       }
     }
 
-    return '$path#page=$startPage&pages=$pageCount';
+    return '$path#${_pdfRangeFragment(page: startPage, pages: pageCount)}';
+  }
+
+  Future<String?> _fileVersion(String path) async {
+    try {
+      final file = File(path);
+      if (!await file.exists()) return null;
+      return (await file.lastModified()).millisecondsSinceEpoch.toString();
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _pdfRangeFragment({
+    required int page,
+    int? pages,
+    String? master,
+    String? version,
+  }) {
+    final parts = <String>['page=$page'];
+    if (pages != null) parts.add('pages=$pages');
+    if (master != null) parts.add('master=$master');
+    if (version != null) parts.add('v=$version');
+    return parts.join('&');
   }
 
   Future<Map<String, dynamic>> _loadPdfManifest(String bookCode) async {
@@ -230,7 +261,9 @@ class LocalAssetService {
   Future<String?> _extractMasterPdfToTemp(String assetPath) async {
     if (_masterPdfTempPaths.containsKey(assetPath)) {
       final cached = _masterPdfTempPaths[assetPath]!;
-      if (await File(cached).exists()) return cached;
+      final cachedFile = File(cached);
+      if (await _isCompletePdf(cachedFile)) return cached;
+      await cachedFile.delete().catchError((_) => cachedFile);
       _masterPdfTempPaths.remove(assetPath);
     }
 
@@ -254,43 +287,135 @@ class LocalAssetService {
       final fileName = p.basename(assetPath);
       final pdfDir = Directory(p.join(appDir.path, 'master_pdfs'));
       final targetFile = File(p.join(pdfDir.path, fileName));
-      
-      // If file exists and has content, reuse it permanently.
+
+      // If file exists and is complete, reuse it permanently.
       if (await targetFile.exists()) {
-        final length = await targetFile.length();
-        if (length > 0) {
+        if (await _isCompletePdf(targetFile)) {
           _masterPdfTempPaths[assetPath] = targetFile.path;
           return targetFile.path;
         }
+        await targetFile.delete().catchError((_) => targetFile);
       }
 
       await pdfDir.create(recursive: true);
-      
+
       final byteData = await rootBundle.load(assetPath);
-      
-      if (byteData.lengthInBytes > 1024 * 1024 * 1) { // > 1MB
-        await compute((args) {
-          final file = File(args['path'] as String);
-          final bytes = args['bytes'] as Uint8List;
-          file.writeAsBytesSync(bytes, flush: true);
-        }, {
-          'path': targetFile.path,
-          'bytes': byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
-        });
+      final tempFile = File(
+        '${targetFile.path}.${DateTime.now().microsecondsSinceEpoch}.$pid.tmp',
+      );
+
+      if (byteData.lengthInBytes > 1024 * 1024 * 1) {
+        // > 1MB
+        await compute(
+          (args) {
+            final file = File(args['path'] as String);
+            final bytes = args['bytes'] as Uint8List;
+            file.writeAsBytesSync(bytes, flush: true);
+          },
+          {
+            'path': tempFile.path,
+            'bytes': byteData.buffer.asUint8List(
+              byteData.offsetInBytes,
+              byteData.lengthInBytes,
+            ),
+          },
+        );
       } else {
-        await targetFile.writeAsBytes(
-          byteData.buffer.asUint8List(byteData.offsetInBytes, byteData.lengthInBytes),
+        await tempFile.writeAsBytes(
+          byteData.buffer.asUint8List(
+            byteData.offsetInBytes,
+            byteData.lengthInBytes,
+          ),
           flush: true,
         );
       }
-      
+      if (!await _isCompletePdf(tempFile)) {
+        await tempFile.delete().catchError((_) => tempFile);
+        return null;
+      }
+
+      if (await targetFile.exists()) {
+        if (await _isCompletePdf(targetFile)) {
+          await tempFile.delete().catchError((_) => tempFile);
+          _masterPdfTempPaths[assetPath] = targetFile.path;
+          return targetFile.path;
+        }
+        await targetFile.delete().catchError((_) => targetFile);
+      }
+
+      try {
+        await tempFile.rename(targetFile.path);
+      } on FileSystemException {
+        if (await _isCompletePdf(targetFile)) {
+          await tempFile.delete().catchError((_) => tempFile);
+          _masterPdfTempPaths[assetPath] = targetFile.path;
+          return targetFile.path;
+        }
+        await tempFile.delete().catchError((_) => tempFile);
+        return null;
+      }
+
       _masterPdfTempPaths[assetPath] = targetFile.path;
-      log('Extracted master PDF permanently to ${targetFile.path}', name: 'LocalAssetService');
+      log(
+        'Extracted master PDF permanently to ${targetFile.path}',
+        name: 'LocalAssetService',
+      );
       return targetFile.path;
     } catch (e) {
-      log('Failed to extract master PDF $assetPath: $e', name: 'LocalAssetService');
+      log(
+        'Failed to extract master PDF $assetPath: $e',
+        name: 'LocalAssetService',
+      );
       return null;
     }
+  }
+
+  static Future<bool> _isCompletePdf(File file) async {
+    try {
+      if (!await file.exists()) return false;
+      final length = await file.length();
+      if (length < 8) return false;
+
+      final raf = await file.open();
+      try {
+        final header = await raf.read(5);
+        if (!_matchesBytes(header, const [0x25, 0x50, 0x44, 0x46, 0x2D])) {
+          return false;
+        }
+
+        final tailLength = length < 2048 ? length : 2048;
+        await raf.setPosition(length - tailLength);
+        final tail = await raf.read(tailLength);
+        return _containsBytes(tail, const [0x25, 0x25, 0x45, 0x4F, 0x46]);
+      } finally {
+        await raf.close();
+      }
+    } catch (_) {
+      return false;
+    }
+  }
+
+  static bool _matchesBytes(List<int> bytes, List<int> pattern) {
+    if (bytes.length < pattern.length) return false;
+    for (var i = 0; i < pattern.length; i++) {
+      if (bytes[i] != pattern[i]) return false;
+    }
+    return true;
+  }
+
+  static bool _containsBytes(List<int> bytes, List<int> pattern) {
+    if (bytes.length < pattern.length) return false;
+    for (var i = 0; i <= bytes.length - pattern.length; i++) {
+      var found = true;
+      for (var j = 0; j < pattern.length; j++) {
+        if (bytes[i + j] != pattern[j]) {
+          found = false;
+          break;
+        }
+      }
+      if (found) return true;
+    }
+    return false;
   }
 
   String? _pdfFolderForBookCode(String bookCode) {
@@ -440,8 +565,13 @@ class LocalAssetService {
   Future<List<String>> getAvailableSoundFonts() async {
     final manifest = await _loadAssetManifest();
     return manifest.keys
-        .where((k) => k.startsWith('assets/data/soundfont/') && k.toLowerCase().endsWith('.sf2'))
+        .where(
+          (k) =>
+              k.startsWith('assets/data/soundfont/') &&
+              k.toLowerCase().endsWith('.sf2'),
+        )
         .map((k) => k.split('/').last)
-        .toList()..sort();
+        .toList()
+      ..sort();
   }
 }

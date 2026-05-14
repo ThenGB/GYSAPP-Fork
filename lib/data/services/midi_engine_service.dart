@@ -196,6 +196,7 @@ class MidiEngineService extends ChangeNotifier {
   AudioSource? _currentSource;
   AudioSource? _streamSource;
   SoundHandle? _currentHandle;
+  double _currentSourceStartOffsetSeconds = 0;
   double _volume = 1;
   bool _streamEnded = false;
 
@@ -213,6 +214,40 @@ class MidiEngineService extends ChangeNotifier {
 
   MidiEngineService(this._assetService, {required String cacheDir})
     : _cacheDir = cacheDir;
+
+  @visibleForTesting
+  static double absoluteSourcePositionSecondsForTest({
+    required Duration sourcePosition,
+    required double sourceStartOffsetSeconds,
+  }) =>
+      _absoluteSourcePositionSeconds(sourcePosition, sourceStartOffsetSeconds);
+
+  @visibleForTesting
+  static Duration relativeSourcePositionForTest({
+    required double absoluteSeconds,
+    required double sourceStartOffsetSeconds,
+  }) => _relativeSourcePosition(absoluteSeconds, sourceStartOffsetSeconds);
+
+  static double _absoluteSourcePositionSeconds(
+    Duration sourcePosition,
+    double sourceStartOffsetSeconds,
+  ) {
+    return sourceStartOffsetSeconds + sourcePosition.inMilliseconds / 1000;
+  }
+
+  static Duration _relativeSourcePosition(
+    double absoluteSeconds,
+    double sourceStartOffsetSeconds,
+  ) {
+    final relativeSeconds = absoluteSeconds - sourceStartOffsetSeconds;
+    if (relativeSeconds <= 0) return Duration.zero;
+    return Duration(milliseconds: (relativeSeconds * 1000).round());
+  }
+
+  void _setCurrentSource(AudioSource? source, {double startOffsetSeconds = 0}) {
+    _currentSource = source;
+    _currentSourceStartOffsetSeconds = source == null ? 0 : startOffsetSeconds;
+  }
 
   void setCacheMax(int max) {
     _maxCachedSources = max.clamp(4, 32);
@@ -392,7 +427,7 @@ class MidiEngineService extends ChangeNotifier {
       if (startAt == Duration.zero) {
         final cachedSource = _sourceCache[cacheKey];
         if (cachedSource != null) {
-          _currentSource = cachedSource;
+          _setCurrentSource(cachedSource);
           final duration =
               SoLoud.instance.getLength(cachedSource).inMilliseconds / 1000;
           _setState(
@@ -445,7 +480,10 @@ class MidiEngineService extends ChangeNotifier {
         format: BufferType.f32le,
       );
       _streamSource = streamSource;
-      _currentSource = streamSource;
+      _setCurrentSource(
+        streamSource,
+        startOffsetSeconds: startAt.inMilliseconds / 1000,
+      );
       _streamEnded = false;
       _instruments = streamInfo.instruments;
 
@@ -476,22 +514,22 @@ class MidiEngineService extends ChangeNotifier {
       // Render to WAV for caching only when the stream is primed but not
       // currently playing. The stream pump uses the same worker, so a full
       // render during playback would starve later chunks.
-      final renderedFuture = NativeMidiRenderer.render(
-        midiBytes: midiBytes,
-        soundFontBytes: soundFontBytes,
-        settings: _settings,
-        startAt: startAt,
-      );
+      if (startAt == Duration.zero) {
+        final renderedFuture = NativeMidiRenderer.render(
+          midiBytes: midiBytes,
+          soundFontBytes: soundFontBytes,
+          settings: _settings,
+        );
 
-      unawaited(
-        _finishBackgroundRender(
-          renderedFuture: renderedFuture,
-          cacheKey: cacheKey,
-          streamSource: streamSource,
-          generation: generation,
-          startAt: startAt,
-        ),
-      );
+        unawaited(
+          _finishBackgroundRender(
+            renderedFuture: renderedFuture,
+            cacheKey: cacheKey,
+            streamSource: streamSource,
+            generation: generation,
+          ),
+        );
+      }
     } catch (e, st) {
       log('Load MIDI failed: $e', name: 'MidiEngine', stackTrace: st);
       if (!_disposed && generation == _renderGeneration) {
@@ -505,7 +543,6 @@ class MidiEngineService extends ChangeNotifier {
     required String cacheKey,
     required AudioSource streamSource,
     required int generation,
-    required Duration startAt,
   }) async {
     try {
       final rendered = await renderedFuture;
@@ -528,16 +565,17 @@ class MidiEngineService extends ChangeNotifier {
           _currentSource == streamSource && _state.isPlaying;
       if (!keepCurrentStream && _currentSource == streamSource) {
         _stopStreamSource(disposeSource: true);
-        _currentSource = renderedSource;
+        _setCurrentSource(renderedSource);
       }
 
       final totalDuration = rendered.duration.inMilliseconds / 1000;
+      final position = _state.position.clamp(0, totalDuration).toDouble();
       _setState(
         _state.copyWith(
           isLoading: false,
           loadProgress: 1,
-          duration: startAt.inSeconds > 0 ? _state.duration : totalDuration,
-          position: startAt.inMilliseconds / 1000,
+          duration: totalDuration,
+          position: position,
         ),
       );
     } catch (e, st) {
@@ -606,7 +644,7 @@ class MidiEngineService extends ChangeNotifier {
         // The stream may already be ended or disposed.
       }
       if (_currentSource == source) {
-        _currentSource = null;
+        _setCurrentSource(null);
       }
       if (disposeSource) {
         unawaited(SoLoud.instance.disposeSource(source));
@@ -681,7 +719,7 @@ class MidiEngineService extends ChangeNotifier {
 
       final cachedSource = _sourceCache[cacheKey];
       if (cachedSource != null) {
-        _currentSource = cachedSource;
+        _setCurrentSource(cachedSource);
         await _startPlaybackFromSource(startAt);
         return;
       }
@@ -689,7 +727,7 @@ class MidiEngineService extends ChangeNotifier {
       // Try to load from disk cache first (faster than re-rendering)
       _loadFromDiskCache(_currentMidiPath!, _settings).then((source) async {
         if (source != null && !_disposed) {
-          _currentSource = source;
+          _setCurrentSource(source);
           await _startPlaybackFromSource(Duration.zero);
         }
       });
@@ -720,13 +758,15 @@ class MidiEngineService extends ChangeNotifier {
       volume: _volume,
       paused: true,
     );
-    if (startAt > Duration.zero) {
-      SoLoud.instance.seek(_currentHandle!, startAt);
-    } else if (_state.position > 0) {
-      SoLoud.instance.seek(
-        _currentHandle!,
-        Duration(milliseconds: (_state.position * 1000).round()),
-      );
+    final absoluteStartSeconds = startAt > Duration.zero
+        ? startAt.inMilliseconds / 1000
+        : _state.position;
+    final relativeStart = _relativeSourcePosition(
+      absoluteStartSeconds,
+      _currentSourceStartOffsetSeconds,
+    );
+    if (relativeStart > Duration.zero) {
+      SoLoud.instance.seek(_currentHandle!, relativeStart);
     }
     SoLoud.instance.setPause(_currentHandle!, false);
     _startPositionTimer();
@@ -788,6 +828,9 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   Future<void> seek(double seconds) async {
+    final midiPath = _currentMidiPath;
+    if (midiPath == null) return;
+
     final clamped = seconds.clamp(0, _state.duration).toDouble();
 
     // If the song is already loaded in memory, use standard seek
@@ -799,7 +842,7 @@ class MidiEngineService extends ChangeNotifier {
       if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
         SoLoud.instance.seek(
           handle,
-          Duration(milliseconds: (clamped * 1000).round()),
+          _relativeSourcePosition(clamped, _currentSourceStartOffsetSeconds),
         );
         _setState(_state.copyWith(position: clamped));
         return;
@@ -814,7 +857,7 @@ class MidiEngineService extends ChangeNotifier {
     _setState(_state.copyWith(isLoading: true, position: clamped));
 
     await loadMidi(
-      _currentMidiPath!,
+      midiPath,
       transpose: _settings.transpose,
       tempoBpm: _settings.tempoBpm,
       baseTempoBpm: _settings.baseTempoBpm,
@@ -902,10 +945,23 @@ class MidiEngineService extends ChangeNotifier {
     // Proceed with re-render if it's the active song or if we are currently loading it.
     // The generation counter in loadMidi will handle canceling stale loads.
     final wasPlaying = _state.isPlaying;
+    final handle = _currentHandle;
+    final streamSource = _streamSource;
     final position =
-        _currentHandle != null &&
-            SoLoud.instance.getIsValidVoiceHandle(_currentHandle!)
-        ? SoLoud.instance.getPosition(_currentHandle!)
+        handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)
+        ? Duration(
+            milliseconds:
+                (_absoluteSourcePositionSeconds(
+                          streamSource != null && _currentSource == streamSource
+                              ? SoLoud.instance.getStreamTimeConsumed(
+                                  streamSource,
+                                )
+                              : SoLoud.instance.getPosition(handle),
+                          _currentSourceStartOffsetSeconds,
+                        ) *
+                        1000)
+                    .round(),
+          )
         : Duration(milliseconds: (_state.position * 1000).round());
     await _stopCurrentHandle(emit: false);
     await loadMidi(
@@ -933,10 +989,14 @@ class MidiEngineService extends ChangeNotifier {
         return;
       }
       final streamSource = _streamSource;
-      final position = streamSource != null && _currentSource == streamSource
+      final sourcePosition =
+          streamSource != null && _currentSource == streamSource
           ? SoLoud.instance.getStreamTimeConsumed(streamSource)
           : SoLoud.instance.getPosition(handle);
-      final seconds = position.inMilliseconds / 1000;
+      final seconds = _absoluteSourcePositionSeconds(
+        sourcePosition,
+        _currentSourceStartOffsetSeconds,
+      );
       final ended = _state.duration > 0 && seconds >= _state.duration - 0.1;
       _setState(
         _state.copyWith(

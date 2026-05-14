@@ -72,7 +72,7 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
       const {},
   transposeStep: (json['transposeStep'] as num?)?.toInt() ?? 0,
   chordAccidentalMode: json['chordAccidentalMode'] as String? ?? 'sharp',
-  preferNaturalChords: json['preferNaturalChords'] as bool? ?? false,
+  preferNaturalChords: json['preferNaturalChords'] as bool? ?? true,
   originalFamilyChord: json['originalFamilyChord'] as String?,
   originalPdfKey: json['originalPdfKey'] as String?,
   baseTransposeOffset: (json['baseTransposeOffset'] as num?)?.toInt() ?? 0,

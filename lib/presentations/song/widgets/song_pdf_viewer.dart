@@ -187,6 +187,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
   bool _samePdfRequest(PdfDocumentRequest a, PdfDocumentRequest b) {
     return a.assetPath == b.assetPath &&
+        a.sourceId == b.sourceId &&
         a.startPage == b.startPage &&
         a.pageCount == b.pageCount &&
         a.isFile == b.isFile;
@@ -365,7 +366,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     // Force recreation when the requested range changes so pdfrx applies
     // initialPageNumber and rebuilds the page layout against the right pages.
     final viewerKey = ValueKey(
-      '${request.assetPath}#p${request.startPage}#n${request.pageCount}',
+      '${request.sourceId}#p${request.startPage}#n${request.pageCount}',
     );
 
     final viewer = request.isFile
@@ -373,6 +374,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
             request.assetPath,
             key: viewerKey,
             controller: _pdfCtrl,
+            useProgressiveLoading: false,
             initialPageNumber: request.startPage,
             params: params,
           )
@@ -380,6 +382,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
             request.assetPath,
             key: viewerKey,
             controller: _pdfCtrl,
+            useProgressiveLoading: false,
             initialPageNumber: request.startPage,
             params: params,
           );
@@ -415,8 +418,11 @@ class _SongPdfViewerState extends State<SongPdfViewer>
         : pages.length + 1;
 
     // Cache key for the layout
+    final pageSignature = pages
+        .map((page) => '${page.pageNumber}:${page.width}x${page.height}')
+        .join(',');
     final layoutKey =
-        '${request.assetPath}#s$startPage#e$endPage#v${widget.verticalScrolling}#t${widget.twoPageMode}#m${params.margin}';
+        '${request.sourceId}#s$startPage#e$endPage#v${widget.verticalScrolling}#t${widget.twoPageMode}#m${params.margin}#pages$pageSignature';
     if (_cachedLayout != null && _cachedLayoutKey == layoutKey) {
       return _cachedLayout!;
     }

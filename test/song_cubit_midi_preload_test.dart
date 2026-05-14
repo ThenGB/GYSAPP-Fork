@@ -89,6 +89,36 @@ void main() {
     await cubit.close();
   });
 
+  test(
+    'page change starts PDF loading before slow chord preload finishes',
+    () async {
+      final assetService = _FakeAssetService(
+        pdfPath: 'assets/data/pdf/kr/002.pdf',
+        chordPath:
+            'assets/data/chord/kr/001_Pujilah Allah Yang Maha Esa.chord.json',
+      );
+      assetService.blockChordPathFor = 'KR:002';
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        assetService,
+        _FakeMidiEngine(),
+      );
+      await _flushAsync();
+      await _flushAsync();
+
+      final changeFuture = cubit.changePage(1, 0);
+      await _flushAsync();
+
+      expect(assetService.pdfRequests, contains('KR:002'));
+      expect(cubit.state.pageIndex, 1);
+      expect(cubit.state.currentPdfPath, 'assets/data/pdf/kr/002.pdf');
+
+      assetService.releaseChordPath('KR:002');
+      await changeFuture;
+      await cubit.close();
+    },
+  );
+
   test('loads HYMNE chord data through KR fallback asset path', () async {
     final assetService = _FakeAssetService(
       chordPath:
@@ -365,8 +395,17 @@ class _FakeAssetService extends LocalAssetService {
   final String? pdfPath;
   final List<String> chordRequests = [];
   final List<String> pdfRequests = [];
+  final Map<String, Completer<void>> _blockedChordPaths = {};
 
   _FakeAssetService({this.chordPath, this.pdfPath}) : super(PdfChunkService());
+
+  set blockChordPathFor(String key) {
+    _blockedChordPaths[key] = Completer<void>();
+  }
+
+  void releaseChordPath(String key) {
+    _blockedChordPaths.remove(key)?.complete();
+  }
 
   @override
   Future<String?> getPdfPath(String bookCode, String number) async {
@@ -381,7 +420,12 @@ class _FakeAssetService extends LocalAssetService {
 
   @override
   Future<String?> getChordPath(String bookCode, String number) async {
-    chordRequests.add('$bookCode:$number');
+    final key = '$bookCode:$number';
+    chordRequests.add(key);
+    final blocker = _blockedChordPaths[key];
+    if (blocker != null) {
+      await blocker.future;
+    }
     return chordPath;
   }
 }
