@@ -1,3 +1,5 @@
+import 'dart:developer';
+import 'package:flutter/foundation.dart';
 import 'package:pdfrx/pdfrx.dart';
 
 /// Position of a note on a PDF page, as percentage of page dimensions.
@@ -24,6 +26,49 @@ class NoteInfo {
     required this.isDot,
     required this.isRest,
   });
+
+  Map<String, dynamic> toJson() => {
+    'idx': idx,
+    'xPct': xPct,
+    'yPct': yPct,
+    'rowY': rowY,
+    'str': str,
+    'isNote': isNote,
+    'isDot': isDot,
+    'isRest': isRest,
+  };
+
+  factory NoteInfo.fromJson(Map<String, dynamic> json) => NoteInfo(
+    idx: json['idx'],
+    xPct: (json['xPct'] as num).toDouble(),
+    yPct: (json['yPct'] as num).toDouble(),
+    rowY: (json['rowY'] as num).toDouble(),
+    str: json['str'],
+    isNote: json['isNote'],
+    isDot: json['isDot'],
+    isRest: json['isRest'],
+  );
+}
+
+/// Result of PDF text extraction including notes, detected key, and tempo.
+class PdfExtractionResult {
+  final List<NoteInfo> notes;
+  final String? detectedKey;
+  final double? detectedTempo;
+
+  PdfExtractionResult({required this.notes, this.detectedKey, this.detectedTempo});
+
+  Map<String, dynamic> toJson() => {
+    'notes': notes.map((n) => n.toJson()).toList(),
+    'detectedKey': detectedKey,
+    'detectedTempo': detectedTempo,
+  };
+
+  factory PdfExtractionResult.fromJson(Map<String, dynamic> json) => PdfExtractionResult(
+    notes: (json['notes'] as List).map((n) => NoteInfo.fromJson(n)).toList(),
+    detectedKey: json['detectedKey'],
+    detectedTempo: (json['detectedTempo'] as num?)?.toDouble(),
+  );
 }
 
 /// Extracts note positions from a PDF page's raw text.
@@ -38,29 +83,160 @@ class NoteInfo {
 /// IMPORTANT: yPct is the raw Y position of the note character (% from top of
 /// page). The chord-badge renderer applies the visual offset above the note
 /// no offset is applied here.
+Future<Map<int, NotePosition>> extractNotePositionsAsync(
+  PdfPageRawText rawText,
+  double pageWidth,
+  double pageHeight,
+) async {
+  return compute((args) {
+    final result = extractPdfContent(
+      args['rawText'] as PdfPageRawText,
+      args['pageWidth'] as double,
+      args['pageHeight'] as double,
+    );
+    return {
+      for (final info in result.notes) info.idx: (xPct: info.xPct, yPct: info.yPct),
+    };
+  }, {
+    'rawText': rawText,
+    'pageWidth': pageWidth,
+    'pageHeight': pageHeight,
+  });
+}
+
 Map<int, NotePosition> extractNotePositions(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
 ) {
-  final noteInfos = extractNoteInfos(rawText, pageWidth, pageHeight);
+  final result = extractPdfContent(rawText, pageWidth, pageHeight);
   return {
-    for (final info in noteInfos) info.idx: (xPct: info.xPct, yPct: info.yPct),
+    for (final info in result.notes) info.idx: (xPct: info.xPct, yPct: info.yPct),
   };
 }
 
-/// Extracts detailed note information from a PDF page's raw text.
-///
-/// Returns a list of NoteInfo with position, label, and type information.
-/// This is used for rendering note targets in edit mode.
-List<NoteInfo> extractNoteInfos(
+/// Extracts detailed content from a PDF page's raw text.
+Future<PdfExtractionResult> extractPdfContentAsync(
+  PdfPageRawText rawText,
+  double pageWidth,
+  double pageHeight,
+) async {
+  return compute((args) {
+    return extractPdfContent(
+      args['rawText'] as PdfPageRawText,
+      args['pageWidth'] as double,
+      args['pageHeight'] as double,
+    );
+  }, {
+    'rawText': rawText,
+    'pageWidth': pageWidth,
+    'pageHeight': pageHeight,
+  });
+}
+
+PdfExtractionResult extractPdfContent(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
 ) {
   final text = rawText.fullText;
   final rects = rawText.charRects;
-  if (text.isEmpty || rects.length != text.length) return [];
+  if (text.isEmpty || rects.length != text.length) {
+    return PdfExtractionResult(notes: []);
+  }
+
+  // Step 0: Detect Key (e.g., "1 = C" or "Do = F" or "1=Bes")
+  // Mirror gyschordweb detection logic: scan the first part of the text layer.
+  String? detectedKey;
+  final keyRegex = RegExp(
+    r'(?:1|Do|do)\s*[=:]\s*([A-G](?:[#♯b♭]|is|es)?)',
+    caseSensitive: false,
+  );
+  
+  // Search the entire text layer but prioritize the beginning
+  final keyMatch = keyRegex.firstMatch(text);
+  if (keyMatch != null) {
+    var rawKey = keyMatch.group(1)?.toLowerCase() ?? '';
+    // Normalize notation to standard symbols
+    rawKey = rawKey
+        .replaceAll('♯', '#')
+        .replaceAll('♭', 'b')
+        .replaceAll('is', '#')
+        .replaceAll('es', 'b');
+
+    // Special case for 'bes' (Bb) and 'as' (Ab) handled by is/es above
+    // but ensuring uppercase root
+    if (rawKey.length > 1) {
+      detectedKey = rawKey[0].toUpperCase() + rawKey.substring(1);
+    } else {
+      detectedKey = rawKey.toUpperCase();
+    }
+
+    log('Detected PDF Key: $detectedKey from text: "${keyMatch.group(0)}"', name: 'PdfNoteExtractor');
+  }
+
+  // Step 0.1: Detect Tempo (e.g., "MM = 76" or "♩ = 120" or "M.M. 76")
+  // Mirror gyschordweb detection logic with added robustness for PDF text artifacts.
+  double? detectedTempo;
+
+  // Normalize text to handle multiple spaces and trim
+  final normalized = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+
+  // Pattern 1: Musical symbols (J, j, Q, q, ♩, ♪) with optional = or :
+  // Mirror: /(?:^|[\s(])(?:J|j|Q|q|♩|♪|𝅘𝅥|𝅘𝅥𝅮)\s*[:=]\s*(\d{2,3})(?=\D|$)/
+  final symbolRegex = RegExp(
+    r'(?:^|[\s(])(?:J|j|Q|q|♩|♪)\s*[:=]\s*(\d{2,3})(?=\D|$)',
+    caseSensitive: false,
+  );
+  final symbolMatch = symbolRegex.firstMatch(normalized);
+  if (symbolMatch != null) {
+    detectedTempo = double.tryParse(symbolMatch.group(1) ?? '');
+    if (detectedTempo != null) {
+      log('Detected PDF Tempo (symbol): $detectedTempo from "${symbolMatch.group(0)}"', name: 'PdfNoteExtractor');
+    }
+  }
+
+  // Pattern 2: BPM label (tempo, tempi, bpm)
+  // Mirror: /(?:tempo|tempi|bpm)\s*[:=]?\s*(\d{2,3})\b/
+  if (detectedTempo == null) {
+    final bpmRegex = RegExp(
+      r'(?:tempo|tempi|bpm)\s*[:=]?\s*(\d{2,3})\b',
+      caseSensitive: false,
+    );
+    final bpmMatch = bpmRegex.firstMatch(normalized);
+    if (bpmMatch != null) {
+      detectedTempo = double.tryParse(bpmMatch.group(1) ?? '');
+      if (detectedTempo != null) {
+        log('Detected PDF Tempo (BPM): $detectedTempo from "${bpmMatch.group(0)}"', name: 'PdfNoteExtractor');
+      }
+    }
+  }
+
+  // Pattern 3: Loose match (standalone = followed by number)
+  // Mirror: /(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b/
+  if (detectedTempo == null) {
+    final looseRegex = RegExp(r'(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b');
+    final looseMatch = looseRegex.firstMatch(normalized);
+    if (looseMatch != null) {
+      detectedTempo = double.tryParse(looseMatch.group(1) ?? '');
+      if (detectedTempo != null) {
+        log('Detected PDF Tempo (loose): $detectedTempo from "${looseMatch.group(0)}"', name: 'PdfNoteExtractor');
+      }
+    }
+  }
+
+  // Pattern 4: MM/M.M. style (fallback)
+  // Mirror: /(?:MM|M\.M\.|♩)\s+(\d{2,3})/
+  if (detectedTempo == null) {
+    final mmRegex = RegExp(r'(?:MM|M\.M\.|♩)\s+(\d{2,3})', caseSensitive: false);
+    final mmMatch = mmRegex.firstMatch(normalized);
+    if (mmMatch != null) {
+      detectedTempo = double.tryParse(mmMatch.group(1) ?? '');
+      if (detectedTempo != null) {
+        log('Detected PDF Tempo (MM): $detectedTempo from "${mmMatch.group(0)}"', name: 'PdfNoteExtractor');
+      }
+    }
+  }
 
   // Step 1: Build note-like visual rows.
   // pdf.js ignores mixed text items such as "4/4 Es = 1 (3 mol)" because the
@@ -126,14 +302,14 @@ List<NoteInfo> extractNoteInfos(
       ),
     );
   }
-  if (items.isEmpty) return [];
+  if (items.isEmpty) return PdfExtractionResult(notes: [], detectedKey: detectedKey);
 
   // Step 2: Find the dominant font size among notation candidates.
   final candidateItems = items
       .where((item) => _multiNotePattern.hasMatch(item.str))
       .where((item) => _containsDigitNotePattern.hasMatch(item.str))
       .toList();
-  if (candidateItems.isEmpty) return [];
+  if (candidateItems.isEmpty) return PdfExtractionResult(notes: [], detectedKey: detectedKey);
 
   final dominantFontSize = _dominantRoundedFontSize(
     candidateItems.map((item) => item.fontSize),
@@ -231,7 +407,11 @@ List<NoteInfo> extractNoteInfos(
       noteIdx++;
     }
   }
-  return noteInfos;
+  return PdfExtractionResult(
+    notes: noteInfos,
+    detectedKey: detectedKey,
+    detectedTempo: detectedTempo,
+  );
 }
 
 final _singleNotePattern = RegExp(r'^[0-7.]$');

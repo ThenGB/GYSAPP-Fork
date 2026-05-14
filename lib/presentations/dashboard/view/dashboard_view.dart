@@ -282,92 +282,100 @@ class _DashboardViewState extends State<DashboardView> {
                 return true;
               },
               child: BlocBuilder<SongCubit, SongState>(
-              builder: (context, songState) => Stack(
-                children: [
-                  AutoTabsScaffold(
-                    scaffoldKey: dashboardScaffoldKey,
-                    backgroundColor: context.colorScheme.surface,
-                    extendBody: false, 
-                    drawer: const _DashboardDrawer(),
-                    routes: pages.map((e) => e.page).toList(),
-                    transitionBuilder: (context, child, animation) {
-                      return FadeTransition(opacity: animation, child: child);
-                    },
-                    bottomNavigationBuilder: (context, tabsRouter) {
-                      tabRouter = tabsRouter;
-                      return _HymnalBottomNav(
+                builder: (context, songState) => AutoTabsRouter(
+                  routes: pages.map((e) => e.page).toList(),
+                  transitionBuilder: (context, child, animation) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  builder: (context, child) {
+                    final tabsRouter = AutoTabsRouter.of(context);
+                    tabRouter = tabsRouter;
+                    
+                    return Scaffold(
+                      key: dashboardScaffoldKey,
+                      backgroundColor: context.colorScheme.surface,
+                      extendBody: false,
+                      drawer: const _DashboardDrawer(),
+                      body: Stack(
+                        children: [
+                          child,
+                          // Global MIDI Player as an Overlay
+                          if (songState.showAudio)
+                            AnimatedBuilder(
+                              animation: context.read<SongCubit>().midiEngine,
+                              builder: (context, _) {
+                                final cubit = context.read<SongCubit>();
+                                final songState = cubit.state;
+                                final midiState = cubit.midiEngine.state;
+
+                                return DraggableMidiControls(
+                                  key: const ValueKey('global-midi-player'),
+                                  isExpanded: _globalMidiExpanded,
+                                  onExpandedChanged: (value) {
+                                    if (_globalMidiExpanded == value) return;
+                                    setState(() => _globalMidiExpanded = value);
+                                  },
+                                  onPreviousSong: cubit.goToPreviousSong,
+                                  onNextSong: cubit.goToNextSong,
+                                  usePositioned: true,
+                                  isPlaying: midiState.isPlaying,
+                                  isLoading: midiState.isLoading,
+                                  position: midiState.position,
+                                  duration: midiState.duration,
+                                  transposeStep: songState.transposeStep,
+                                  currentKey: songState.activeKeyLabel,
+                                  availableKeys: songState.transposeKeyOptions,
+                                  tempoBpm: songState.tempoBpm,
+                                  midiInstrument: songState.midiInstrument,
+                                  soundFont: songState.soundFont,
+                                  availableSoundFonts: const [
+                                    'GeneralUser-GS.sf2',
+                                    'TimGM6mb.sf2',
+                                  ],
+                                  availableInstruments:
+                                      cubit.midiEngine.instruments,
+                                  autoNextMode: songState.playlistAutoNextMode,
+                                  onPlayPause: cubit.togglePlayPause,
+                                  onLoopModeCycle: cubit.cycleLoopMode,
+                                  onSeek: (seconds) => cubit.seek(
+                                    Duration(seconds: seconds.toInt()),
+                                  ),
+                                  onTranspose: cubit.setTranspose,
+                                  onKeySelected: cubit.setTransposeKey,
+                                  onTempo: cubit.setTempo,
+                                  onInstrument: cubit.setMidiInstrument,
+                                  onSoundFont: cubit.setSoundFont,
+                                  nowPlayingTitle: songState.getSongTitleAt(
+                                    songState.pageIndex,
+                                  ),
+                                  runningFamilyChord: songState.originalFamilyChord != null
+                                      ? ChordService.formatChordForDisplay(
+                                          songState.originalFamilyChord!,
+                                          accidentalMode: songState.chordAccidentalMode,
+                                          baseTransposeOffset: songState.baseTransposeOffset,
+                                        )
+                                      : null,
+                                  // sit above the navbar
+                                  // since we're in the body and extendBody: false,
+                                  // the body ends above the navbar, so bottom: 0 is just above the navbar.
+                                  bottomOffset: kDashboardMiniPlayerNavGap,
+                                );
+                              },
+                            ),
+                        ],
+                      ),
+                      bottomNavigationBar: _HymnalBottomNav(
                         destinations: pages,
                         activeIndex: tabsRouter.activeIndex,
                         onTap: (value) {
                           context.read<BibleCubit>().stopSpeaking();
                           tabsRouter.setActiveIndex(value);
                         },
-                      );
-                    },
-                  ),
-
-                  // Global MIDI Player as an Overlay
-                  if (songState.showAudio)
-                    AnimatedBuilder(
-                      animation: context.read<SongCubit>().midiEngine,
-                      builder: (context, _) {
-                        final cubit = context.read<SongCubit>();
-                        final songState = cubit.state;
-                        final midiState = cubit.midiEngine.state;
-                        
-                        final isLandscape =
-                            MediaQuery.orientationOf(context) == Orientation.landscape;
-                        final navHeight = isLandscape
-                            ? kDashboardLandscapeBottomNavHeight
-                            : kDashboardPortraitBottomNavHeight;
-
-                        return DraggableMidiControls(
-                          key: const ValueKey('global-midi-player'),
-                          isExpanded: _globalMidiExpanded,
-                          onExpandedChanged: (value) {
-                            if (_globalMidiExpanded == value) return;
-                            setState(() => _globalMidiExpanded = value);
-                          },
-                          onPreviousSong: cubit.goToPreviousSong,
-                          onNextSong: cubit.goToNextSong,
-                          usePositioned: true, 
-                          isPlaying: midiState.isPlaying,
-                          isLoading: midiState.isLoading,
-                          position: midiState.position,
-                          duration: midiState.duration,
-                          transposeStep: songState.transposeStep,
-                          currentKey: songState.activeKeyLabel,
-                          availableKeys: songState.transposeKeyOptions,
-                          tempoBpm: songState.tempoBpm,
-                          midiInstrument: songState.midiInstrument,
-                          soundFont: songState.soundFont,
-                          availableSoundFonts: const [
-                            'GeneralUser-GS.sf2',
-                            'TimGM6mb.sf2',
-                          ],
-                          availableInstruments: cubit.midiEngine.instruments,
-                          autoNextMode: songState.playlistAutoNextMode,
-                          onPlayPause: cubit.togglePlayPause,
-                          onLoopModeCycle: cubit.cycleLoopMode,
-                          onSeek: (seconds) => cubit.seek(
-                            Duration(seconds: seconds.toInt()),
-                          ),
-                          onTranspose: cubit.setTranspose,
-                          onKeySelected: cubit.setTransposeKey,
-                          onTempo: cubit.setTempo,
-                          onInstrument: cubit.setMidiInstrument,
-                          onSoundFont: cubit.setSoundFont,
-                          nowPlayingTitle: songState.getSongTitleAt(
-                            songState.pageIndex,
-                          ),
-                          // sit above the navbar
-                          bottomOffset: navHeight + kDashboardMiniPlayerNavGap,
-                        );
-                      },
-                    ),
-                ],
+                      ),
+                    );
+                  },
+                ),
               ),
-            ),
             ),
           );
         },

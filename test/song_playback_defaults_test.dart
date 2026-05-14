@@ -1,5 +1,6 @@
 import 'package:church/data/services/chord_service.dart';
 import 'package:church/presentations/song/cubit/song_playback_defaults.dart';
+import 'package:church/presentations/song/cubit/song_state.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -24,7 +25,7 @@ void main() {
       expect(reset.baseTransposeOffset, 0);
     });
 
-    test('applies prefer-natural transpose from family chord and PDF key', () {
+    test('keeps PDF key as the viewer baseline like gyschordweb', () {
       const reset = SongPlaybackDefaults(
         transposeStep: 0,
         tempoBpm: 76,
@@ -33,12 +34,12 @@ void main() {
 
       final resolved = reset.resolveChordBaseline(
         familyChord: 'C',
-        pdfKey: 'Fis',
+        pdfKey: 'Es',
         preferNaturalChords: true,
       );
 
-      expect(resolved.baseTransposeOffset, 6);
-      expect(resolved.transposeStep, -1);
+      expect(resolved.baseTransposeOffset, 3);
+      expect(resolved.transposeStep, 0);
       expect(
         ChordService.transposeChord(
           'C',
@@ -46,7 +47,11 @@ void main() {
           baseTransposeOffset: resolved.baseTransposeOffset,
           accidentalMode: ChordService.accidentalFlat,
         ),
-        'F',
+        'Eb',
+      );
+      expect(
+        resolved.activeKeyLabel(accidentalMode: ChordService.accidentalFlat),
+        'Eb',
       );
     });
 
@@ -75,6 +80,10 @@ void main() {
             .activeKeyLabel(accidentalMode: ChordService.accidentalFlat),
         'Cm',
       );
+    });
+
+    test('state defaults keep automatic chord baseline detection enabled', () {
+      expect(const SongState().preferNaturalChords, isTrue);
     });
   });
 }

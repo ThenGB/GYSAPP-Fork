@@ -1,5 +1,6 @@
 export 'synthesizer.dart';
 export 'synthesizer_settings.dart';
+export 'soundfont.dart';
 export 'midi_file.dart';
 export 'midi_file_sequencer.dart';
 export 'preset.dart';

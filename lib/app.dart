@@ -57,6 +57,7 @@ Future initApplication() async {
   initLog('localization ready');
   await setupInjection(appConfig);
   initLog('dependency injection ready');
+
   if (isNotificationConfiguredForCurrentPlatform) {
     unawaited(
       _setupNotification()

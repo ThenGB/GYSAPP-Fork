@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:church/data/services/midi_engine_service.dart';
 import 'package:church/data/services/native_midi/midi_render_settings.dart';
 import 'package:church/data/services/native_midi/midi_tempo_detector.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -109,6 +110,69 @@ void main() {
           '';
 
       expect(pruneBody, isNot(contains('.delete()')));
+    });
+
+    test(
+      'loadMidi starts buffer-stream autoplay before full render completes',
+      () {
+        final source = File(
+          'lib/data/services/midi_engine_service.dart',
+        ).readAsStringSync();
+        final loadBody =
+            RegExp(
+              r'Future<void> loadMidi\([\s\S]*?\n  String _wavCachePath',
+            ).firstMatch(source)?.group(0) ??
+            '';
+
+        expect(loadBody, contains('setBufferStream'));
+        expect(loadBody, contains('addAudioDataStream'));
+        final streamIndex = loadBody.indexOf('setBufferStream');
+        final awaitRenderIndex = loadBody.indexOf('await renderedFuture');
+        final streamAutoplayIndex = loadBody.indexOf(
+          'if (autoplay)',
+          streamIndex,
+        );
+        expect(streamIndex, lessThan(awaitRenderIndex));
+        expect(streamAutoplayIndex, lessThan(awaitRenderIndex));
+      },
+    );
+
+    test('seeked stream positions are reported as absolute song positions', () {
+      expect(
+        MidiEngineService.absoluteSourcePositionSecondsForTest(
+          sourcePosition: const Duration(seconds: 7),
+          sourceStartOffsetSeconds: 120,
+        ),
+        127,
+      );
+      expect(
+        MidiEngineService.relativeSourcePositionForTest(
+          absoluteSeconds: 127,
+          sourceStartOffsetSeconds: 120,
+        ),
+        const Duration(seconds: 7),
+      );
+      expect(
+        MidiEngineService.relativeSourcePositionForTest(
+          absoluteSeconds: 100,
+          sourceStartOffsetSeconds: 120,
+        ),
+        Duration.zero,
+      );
+    });
+
+    test('seeked streams are not rendered into the full-song cache key', () {
+      final source = File(
+        'lib/data/services/midi_engine_service.dart',
+      ).readAsStringSync();
+      final loadBody =
+          RegExp(
+            r'Future<void> loadMidi\([\s\S]*?\n  Future<void> _finishBackgroundRender',
+          ).firstMatch(source)?.group(0) ??
+          '';
+
+      expect(loadBody, contains('if (startAt == Duration.zero)'));
+      expect(loadBody, isNot(contains('startAt: startAt,')));
     });
   });
 }

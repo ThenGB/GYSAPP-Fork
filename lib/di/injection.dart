@@ -22,10 +22,10 @@ var di = GetIt.I;
 AppConfig get config => di<AppConfig>();
 
 Future<void> setupInjection(AppConfig config) async {
-  _blocs();
   await _utils(config);
   _repositories();
   _services();
+  _blocs();
 }
 
 void _blocs() {
@@ -37,7 +37,7 @@ void _blocs() {
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
-  di.registerFactory(() => SongCubit(di(), di(), di()));
+  di.registerSingleton(SongCubit(di(), di(), di()));
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AuthCubit(di()));
@@ -76,10 +76,10 @@ Future<void> _utils(AppConfig appConfig) async {
 
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
-  di.registerLazySingleton(() => LocalAssetService());
-  
-  di.registerLazySingleton(
-    () => MidiEngineService(
+  di.registerLazySingleton(() => PdfChunkService());
+  di.registerLazySingleton(() => LocalAssetService(di()));
+
+  di.registerLazySingleton(    () => MidiEngineService(
       di(),
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
