@@ -163,31 +163,9 @@ class LocalAssetService {
       return null;
     }
 
-    // Check for per-song packed entries first (fast random access).
-    final packFile = manifest['packFile'] as String?;
-    final packIndex = entry['packIndex'];
-    if (packFile != null && packIndex is int) {
-      try {
-        final packedSongPath = await _songPackService.getSongFile(
-          packFilePath: packFile,
-          songIndex: packIndex,
-          cacheKey: '${bookCode}_pack',
-        );
-        if (packedSongPath != null) {
-          final pageCount = entry['pageCount'] as int? ?? 1;
-          final masterPath = manifest['masterPath'] as String? ?? packFile;
-          final version = await _fileVersion(packedSongPath);
-          return '$packedSongPath#${_pdfRangeFragment(page: 1, pages: pageCount, master: masterPath, version: version)}';
-        }
-      } catch (e) {
-        log(
-          'Failed to load song pack entry for $bookCode $number: $e',
-          name: 'LocalAssetService',
-        );
-      }
-    }
-
-    // Fallback to chunked master extraction.
+    // Hybrid mode: prefer chunked master-range loading.
+    // This keeps asset footprint near merged-master size and still gives
+    // fast random song access by loading only the referenced chunk/pages.
     final chunkFile = manifest['chunkFile'] as String?;
     final chunkIndex = entry['chunkIndex'];
     final relStart = entry['chunkRelativeStart'];
@@ -207,6 +185,31 @@ class LocalAssetService {
       } catch (e) {
         log(
           'Failed to load chunk for $bookCode $number: $e',
+          name: 'LocalAssetService',
+        );
+      }
+    }
+
+    // Fallback: if chunk metadata is unavailable, use per-song packed entry.
+    final packFile = _resolveSongPackFile(manifest, entry);
+    final packIndex =
+        entry['packIndexInFile'] as int? ?? entry['packIndex'] as int?;
+    if (packFile != null && packIndex != null) {
+      try {
+        final packedSongPath = await _songPackService.getSongFile(
+          packFilePath: packFile,
+          songIndex: packIndex,
+          cacheKey: '${bookCode}_pack',
+        );
+        if (packedSongPath != null) {
+          final pageCount = entry['pageCount'] as int? ?? 1;
+          final masterPath = manifest['masterPath'] as String? ?? packFile;
+          final version = await _fileVersion(packedSongPath);
+          return '$packedSongPath#${_pdfRangeFragment(page: 1, pages: pageCount, master: masterPath, version: version)}';
+        }
+      } catch (e) {
+        log(
+          'Failed to load song pack entry for $bookCode $number: $e',
           name: 'LocalAssetService',
         );
       }
@@ -232,6 +235,34 @@ class LocalAssetService {
     }
 
     return '$path#${_pdfRangeFragment(page: startPage, pages: pageCount)}';
+  }
+
+  String? _resolveSongPackFile(
+    Map<String, dynamic> manifest,
+    Map<String, dynamic> entry,
+  ) {
+    final entryPackFile = entry['packFile'];
+    if (entryPackFile is String && entryPackFile.isNotEmpty) {
+      return entryPackFile;
+    }
+
+    final packFiles = manifest['packFiles'];
+    final packFileIndex = entry['packFileIndex'];
+    if (packFiles is List && packFileIndex is int) {
+      if (packFileIndex >= 0 && packFileIndex < packFiles.length) {
+        final candidate = packFiles[packFileIndex];
+        if (candidate is String && candidate.isNotEmpty) {
+          return candidate;
+        }
+      }
+    }
+
+    final manifestPackFile = manifest['packFile'];
+    if (manifestPackFile is String && manifestPackFile.isNotEmpty) {
+      return manifestPackFile;
+    }
+
+    return null;
   }
 
   Future<String?> _fileVersion(String path) async {

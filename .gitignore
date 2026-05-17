@@ -29,5 +29,3 @@ doc/api/
 # FVM Version Cache
 .fvm/
 
-# Windows reserved-name artifact
-nulassets/data/pdf/mdr/mdr_song_pack.bin
