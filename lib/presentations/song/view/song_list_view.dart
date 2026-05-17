@@ -12,6 +12,9 @@ import '../../../data/data.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../presentations.dart';
 
+const double _songListMaxContentWidth = 1080;
+const double _songPlaylistMaxContentWidth = 980;
+
 @RoutePage()
 class SongListView extends StatefulWidget {
   final Function() onBack;
@@ -122,11 +125,15 @@ class _SongListViewState extends State<SongListView>
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colorScheme;
     return Scaffold(
-      backgroundColor: context.colorScheme.surface,
+      backgroundColor: colors.surfaceContainerLowest,
       appBar: AppBar(
+        backgroundColor: colors.surfaceContainerLowest,
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.outlineVariant),
+          bottom: BorderSide(
+            color: context.colorScheme.outlineVariant.withValues(alpha: 0.68),
+          ),
         ),
         leadingWidth: 56,
         titleSpacing: 0,
@@ -147,7 +154,11 @@ class _SongListViewState extends State<SongListView>
           ],
         ],
         title: Container(
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(100)),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(100),
+            color: colors.surfaceContainerLow,
+            border: Border.all(color: colors.outlineVariant),
+          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -175,295 +186,362 @@ class _SongListViewState extends State<SongListView>
         controller: tabController,
         children: [
           Container(
-            color: context.colorScheme.surface,
-            child: Column(
-              children: [
-                const Divider(height: 1),
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 20,
-                    vertical: 12,
-                  ),
-                  child: Stack(
-                    children: [
-                      TextFormField(
-                        controller: searchController,
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: context.colorScheme.surfaceContainerLowest,
-                          isDense: true,
-                          prefixIcon: Icon(
-                            Icons.search_rounded,
-                            color: context.colorScheme.primary,
-                          ),
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 8,
-                          ).add(const EdgeInsets.only(right: 100 + 48)),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: context.colorScheme.outlineVariant,
-                            ),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: context.colorScheme.outlineVariant,
-                            ),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: context.colorScheme.primary,
-                              width: 1.2,
-                            ),
-                          ),
-                          hintText: 'Search number or keyword'.tr(),
-                        ),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [colors.surfaceContainerLowest, colors.surface],
+              ),
+            ),
+            child: Align(
+              alignment: Alignment.topCenter,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: _songListMaxContentWidth,
+                ),
+                child: Column(
+                  children: [
+                    const Divider(height: 1),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
                       ),
-                      Positioned.fill(
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: PopupMenuButton(
-                            offset: Offset(0, 48),
-                            onSelected: (value) async {
-                              await widget.onChangeBookCode(value);
-                              await Future.delayed(
-                                const Duration(milliseconds: 100),
-                              );
-                              setState(() {
-                                forceRefresh++;
-                              });
-                            },
-                            initialValue: widget.currentBook().code,
-                            itemBuilder: (context) {
-                              return widget
-                                  .books()
-                                  .map(
-                                    (e) => PopupMenuItem(
-                                      value: e.code,
-                                      child: Text(e.code ?? ''),
-                                    ),
-                                  )
-                                  .toList();
-                            },
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                      child: Container(
+                        padding: const EdgeInsets.all(6),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              colors.surfaceContainerLowest,
+                              colors.surfaceContainerLow,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: colors.outlineVariant.withValues(alpha: 0.7),
+                          ),
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final compactSearch = constraints.maxWidth < 420;
+                            final codeWidth = compactSearch ? 82.0 : 100.0;
+                            final trailingReserved = codeWidth + 58.0;
+                            return Stack(
                               children: [
-                                AnimatedBuilder(
-                                  animation: searchController,
-                                  builder: (context, child) =>
-                                      searchController.text.isEmpty
-                                      ? SizedBox.shrink()
-                                      : CloseButton(
-                                          onPressed: () {
-                                            searchController.clear();
-                                          },
+                                TextFormField(
+                                  controller: searchController,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: colors.surfaceContainerLowest,
+                                    isDense: true,
+                                    prefixIcon: Icon(
+                                      Icons.search_rounded,
+                                      color: colors.primary,
+                                    ),
+                                    contentPadding:
+                                        EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                          vertical: compactSearch ? 10 : 8,
+                                        ).add(
+                                          EdgeInsets.only(
+                                            right: trailingReserved,
+                                          ),
                                         ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: colors.outlineVariant,
+                                      ),
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: colors.outlineVariant,
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: colors.primary,
+                                        width: 1.2,
+                                      ),
+                                    ),
+                                    hintText: 'Search number or keyword'.tr(),
+                                  ),
                                 ),
-                                Container(
-                                  width: 100,
-                                  alignment: Alignment.center,
-                                  margin: const EdgeInsets.all(2),
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: const BorderRadius.horizontal(
-                                      right: Radius.circular(13),
-                                    ),
-                                    color:
-                                        context.colorScheme.secondaryContainer,
-                                    border: Border.all(
-                                      color: context.colorScheme.secondary,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    widget.currentBook().code ?? '',
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: context
-                                          .colorScheme
-                                          .onSecondaryContainer,
+                                Positioned.fill(
+                                  child: Align(
+                                    alignment: Alignment.centerRight,
+                                    child: PopupMenuButton(
+                                      offset: Offset(0, 48),
+                                      onSelected: (value) async {
+                                        await widget.onChangeBookCode(value);
+                                        await Future.delayed(
+                                          const Duration(milliseconds: 100),
+                                        );
+                                        setState(() {
+                                          forceRefresh++;
+                                        });
+                                      },
+                                      initialValue: widget.currentBook().code,
+                                      itemBuilder: (context) {
+                                        return widget
+                                            .books()
+                                            .map(
+                                              (e) => PopupMenuItem(
+                                                value: e.code,
+                                                child: Text(e.code ?? ''),
+                                              ),
+                                            )
+                                            .toList();
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          AnimatedBuilder(
+                                            animation: searchController,
+                                            builder: (context, child) =>
+                                                searchController.text.isEmpty
+                                                ? const SizedBox.shrink()
+                                                : CloseButton(
+                                                    onPressed: () {
+                                                      searchController.clear();
+                                                    },
+                                                  ),
+                                          ),
+                                          Container(
+                                            width: codeWidth,
+                                            alignment: Alignment.center,
+                                            margin: const EdgeInsets.all(2),
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 12,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  const BorderRadius.horizontal(
+                                                    right: Radius.circular(8),
+                                                  ),
+                                              color: colors.primaryContainer
+                                                  .withValues(alpha: 0.65),
+                                              border: Border.all(
+                                                color: colors.primary,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              widget.currentBook().code ?? '',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: compactSearch
+                                                    ? 13
+                                                    : 14,
+                                                color:
+                                                    colors.onPrimaryContainer,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ),
                               ],
-                            ),
-                          ),
+                            );
+                          },
                         ),
                       ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-                BlocBuilder<SongCubit, SongState>(
-                  buildWhen: (prev, cur) =>
-                      prev.histories != cur.histories ||
-                      prev.songBook != cur.songBook,
-                  builder: (context, state) {
-                    final last = state.lastOpenedSong;
-                    if (last == null || searchController.text.isNotEmpty) {
-                      return const SizedBox.shrink();
-                    }
-                    return Material(
-                      color: context.colorScheme.secondaryContainer
-                          .withValues(alpha: 0.45),
-                      child: InkWell(
-                        onTap: () => widget.onOpenSong(last),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 10,
-                          ),
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.history_rounded,
-                                size: 18,
-                                color: context.colorScheme.secondary,
-                              ),
-                              const SizedBox(width: 10),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      'Terakhir dibuka',
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: context
-                                                .colorScheme.onSecondaryContainer
-                                                .withValues(alpha: 0.7),
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
-                                          ),
-                                    ),
-                                    const SizedBox(height: 1),
-                                    Text(
-                                      '${last.number ?? ''} — ${last.title ?? ''}',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleSmall
-                                          ?.copyWith(
-                                            color: context.colorScheme
-                                                .onSecondaryContainer,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              FilledButton.tonal(
-                                style: FilledButton.styleFrom(
-                                  visualDensity: VisualDensity.compact,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 0,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                ),
-                                onPressed: () => widget.onOpenSong(last),
-                                child: const Text('Buka'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: getFilteredItems(
-                      widget.currentBook().songs,
-                    ).length,
-                    itemBuilder: (context, index) {
-                      var item = getFilteredItems(
-                        widget.currentBook().songs,
-                      )[index];
-                      return Column(
-                        children: [
-                          Material(
-                            color: context.colorScheme.surfaceContainerLowest,
-                            child: ListTile(
-                              contentPadding: const EdgeInsets.symmetric(
+                    ),
+                    const Divider(height: 1),
+                    BlocBuilder<SongCubit, SongState>(
+                      buildWhen: (prev, cur) =>
+                          prev.histories != cur.histories ||
+                          prev.songBook != cur.songBook,
+                      builder: (context, state) {
+                        final last = state.lastOpenedSong;
+                        if (last == null || searchController.text.isNotEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Material(
+                          color: context.colorScheme.secondaryContainer
+                              .withValues(alpha: 0.45),
+                          child: InkWell(
+                            onTap: () => widget.onOpenSong(last),
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
-                                vertical: 2,
+                                vertical: 10,
                               ),
-                              onTap: () {
-                                FocusManager.instance.primaryFocus?.unfocus();
-                                widget.onSearchTermsChanged(
-                                  searchController.text,
-                                );
-                                widget.onTapPageNumber(item.number!);
-                              },
-                              leading: SizedBox(
-                                width: 36,
-                                child: Text(
-                                  item.number ?? '',
-                                  style: TextStyle(
-                                    fontFamily: 'EB Garamond',
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                    color: context.colorScheme.primary,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    Icons.history_rounded,
+                                    size: 18,
+                                    color: context.colorScheme.secondary,
                                   ),
-                                ),
-                              ),
-                              trailing: SizedBox(
-                                width: 48,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                      tooltip: 'Tambah ke playlist',
+                                  const SizedBox(width: 10),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Terakhir dibuka',
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .labelSmall
+                                              ?.copyWith(
+                                                color: context
+                                                    .colorScheme
+                                                    .onSecondaryContainer
+                                                    .withValues(alpha: 0.7),
+                                                fontWeight: FontWeight.w600,
+                                                letterSpacing: 0.5,
+                                              ),
+                                        ),
+                                        const SizedBox(height: 1),
+                                        Text(
+                                          '${last.number ?? ''} — ${last.title ?? ''}',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: Theme.of(context)
+                                              .textTheme
+                                              .titleSmall
+                                              ?.copyWith(
+                                                color: context
+                                                    .colorScheme
+                                                    .onSecondaryContainer,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  FilledButton.tonal(
+                                    style: FilledButton.styleFrom(
                                       visualDensity: VisualDensity.compact,
-                                      onPressed: () {
-                                        context
-                                            .read<SongCubit>()
-                                            .addSongToActivePlaylist(item);
-                                        Fluttertoast.showToast(
-                                          msg: 'Ditambahkan ke playlist',
-                                        );
-                                      },
-                                      icon: const Icon(
-                                        Icons.playlist_add_rounded,
-                                        size: 20,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 0,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
                                     ),
-                                  ],
+                                    onPressed: () => widget.onOpenSong(last),
+                                    child: const Text('Buka'),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    Expanded(
+                      child: ListView.builder(
+                        itemCount: getFilteredItems(
+                          widget.currentBook().songs,
+                        ).length,
+                        itemBuilder: (context, index) {
+                          var item = getFilteredItems(
+                            widget.currentBook().songs,
+                          )[index];
+                          final compactList =
+                              MediaQuery.sizeOf(context).width < 420;
+                          return Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.fromLTRB(10, 6, 10, 2),
+                                decoration: BoxDecoration(
+                                  color: context
+                                      .colorScheme
+                                      .surfaceContainerLowest,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: context.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.38),
+                                  ),
+                                ),
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.symmetric(
+                                    horizontal: compactList ? 14 : 20,
+                                    vertical: 2,
+                                  ),
+                                  onTap: () {
+                                    FocusManager.instance.primaryFocus
+                                        ?.unfocus();
+                                    widget.onSearchTermsChanged(
+                                      searchController.text,
+                                    );
+                                    widget.onTapPageNumber(item.number!);
+                                  },
+                                  leading: SizedBox(
+                                    width: compactList ? 30 : 36,
+                                    child: Text(
+                                      item.number ?? '',
+                                      style: TextStyle(
+                                        fontFamily: 'EB Garamond',
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 18,
+                                        color: context.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  trailing: SizedBox(
+                                    width: compactList ? 40 : 48,
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Tambah ke playlist',
+                                          visualDensity: VisualDensity.compact,
+                                          padding: EdgeInsets.zero,
+                                          onPressed: () {
+                                            context
+                                                .read<SongCubit>()
+                                                .addSongToActivePlaylist(item);
+                                            Fluttertoast.showToast(
+                                              msg: 'Ditambahkan ke playlist',
+                                            );
+                                          },
+                                          icon: const Icon(
+                                            Icons.playlist_add_rounded,
+                                            size: 20,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  title: Text(
+                                    (item.title ?? '').capitalizeEachWord(),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
                                 ),
                               ),
-                              title: Text(
-                                (item.title ?? '').capitalizeEachWord(),
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 72,
+                                  right: 20,
+                                ),
+                                child: Divider(
+                                  height: 1,
+                                  color: context.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.35),
+                                ),
                               ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.only(left: 72, right: 20),
-                            child: Divider(
-                              height: 1,
-                              color: context.colorScheme.outlineVariant
-                                  .withValues(alpha: 0.35),
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
+                            ],
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
           _PlaylistTab(
@@ -524,24 +602,25 @@ class _SongListTabButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final compact = MediaQuery.sizeOf(context).width < 430;
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        fixedSize: const Size(90, 34),
+        minimumSize: Size(compact ? 76 : 88, 34),
         backgroundColor: selected
-            ? context.colorScheme.secondaryContainer
+            ? context.colorScheme.primaryContainer.withValues(alpha: 0.6)
             : Colors.transparent,
         side: BorderSide(
           strokeAlign: BorderSide.strokeAlignCenter,
           width: 1,
           color: selected
-              ? context.colorScheme.secondary
+              ? context.colorScheme.primary
               : context.colorScheme.outlineVariant,
         ),
         shape: RoundedRectangleBorder(borderRadius: borderRadius),
         foregroundColor: selected
             ? context.colorScheme.primary
             : context.colorScheme.onSurfaceVariant,
-        padding: EdgeInsets.zero,
+        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12),
       ),
       onPressed: onPressed,
       child: Text(
@@ -573,37 +652,61 @@ class _PlaylistTab extends StatelessWidget {
       builder: (context, state) {
         final cubit = context.read<SongCubit>();
         if (state.playlists.isEmpty) {
-          return NoDataFound(
-            title: 'Belum ada playlist',
-            description: 'Buat playlist lalu tambahkan lagu dari tab Lists.',
-            action: FilledButton.icon(
-              onPressed: onCreatePlaylist,
-              icon: const Icon(Icons.playlist_add_rounded),
-              label: const Text('Buat Playlist'),
+          return Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: _songPlaylistMaxContentWidth,
+              ),
+              child: NoDataFound(
+                title: 'Belum ada playlist',
+                description:
+                    'Buat playlist lalu tambahkan lagu dari tab Lists.',
+                action: FilledButton.icon(
+                  onPressed: onCreatePlaylist,
+                  icon: const Icon(Icons.playlist_add_rounded),
+                  label: const Text('Buat Playlist'),
+                ),
+              ),
             ),
           );
         }
 
+        Widget frame(Widget child) => Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: _songPlaylistMaxContentWidth,
+            ),
+            child: child,
+          ),
+        );
+
         return ListView(
+          physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           children: [
-            _AutoNextModeSelector(
-              selectedMode: state.playlistAutoNextMode,
-              onSelected: cubit.setPlaylistAutoNextMode,
+            frame(
+              _AutoNextModeSelector(
+                selectedMode: state.playlistAutoNextMode,
+                onSelected: cubit.setPlaylistAutoNextMode,
+              ),
             ),
             const SizedBox(height: 12),
             ...state.playlists.map(
-              (playlist) => _PlaylistCard(
-                playlist: playlist,
-                active:
-                    state.isPlaylistLoopModeActive &&
-                    playlist.id == state.activePlaylistId,
-                books: books,
-                onActivate: () => cubit.setActivePlaylist(playlist.id),
-                onDelete: () => cubit.deletePlaylist(playlist.id),
-                onRemoveSong: (index) =>
-                    cubit.removeSongFromPlaylist(playlist.id, index),
-                onOpenSong: onOpenSong,
+              (playlist) => frame(
+                _PlaylistCard(
+                  playlist: playlist,
+                  active:
+                      state.isPlaylistLoopModeActive &&
+                      playlist.id == state.activePlaylistId,
+                  books: books,
+                  onActivate: () => cubit.setActivePlaylist(playlist.id),
+                  onDelete: () => cubit.deletePlaylist(playlist.id),
+                  onRemoveSong: (index) =>
+                      cubit.removeSongFromPlaylist(playlist.id, index),
+                  onOpenSong: onOpenSong,
+                ),
               ),
             ),
           ],
@@ -641,6 +744,15 @@ class _AutoNextModeSelector extends StatelessWidget {
             (entry) => ChoiceChip(
               label: Text(entry.value),
               selected: selectedMode == entry.key,
+              showCheckmark: false,
+              selectedColor: context.colorScheme.primaryContainer.withValues(
+                alpha: 0.65,
+              ),
+              side: BorderSide(
+                color: context.colorScheme.outlineVariant.withValues(
+                  alpha: 0.68,
+                ),
+              ),
               onSelected: (_) => onSelected(entry.key),
             ),
           )
@@ -675,8 +787,22 @@ class _PlaylistCard extends StatelessWidget {
         .whereType<Song>()
         .toList();
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            context.colorScheme.surfaceContainerLowest,
+            context.colorScheme.surfaceContainerLow,
+          ],
+        ),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: context.colorScheme.outlineVariant.withValues(alpha: 0.6),
+        ),
+      ),
       child: Column(
         children: [
           ListTile(

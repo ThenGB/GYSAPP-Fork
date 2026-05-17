@@ -59,6 +59,26 @@ void main() {
     );
   });
 
+  test(
+    'normalizes chord extension accidentals for display like gyschordweb',
+    () {
+      expect(
+        ChordService.formatChordForDisplay(
+          'C7b9',
+          accidentalMode: ChordService.accidentalFlat,
+        ),
+        'C7♭9',
+      );
+      expect(
+        ChordService.formatChordForDisplay(
+          'C7#11',
+          accidentalMode: ChordService.accidentalSharp,
+        ),
+        'C7♯11',
+      );
+    },
+  );
+
   test('parses gyschordweb note-aligned json using page map keys', () {
     const json = '''
 {
@@ -114,6 +134,24 @@ void main() {
         accidentalMode: ChordService.accidentalFlat,
       ),
       'F',
+    );
+  });
+
+  test('infers accidental mode from PDF key notation', () {
+    expect(
+      ChordService.preferredAccidentalModeForKey('Bes'),
+      ChordService.accidentalFlat,
+    );
+    expect(
+      ChordService.preferredAccidentalModeForKey('Fis'),
+      ChordService.accidentalSharp,
+    );
+    expect(
+      ChordService.preferredAccidentalModeForKey(
+        'B',
+        fallback: ChordService.accidentalSharp,
+      ),
+      ChordService.accidentalSharp,
     );
   });
 }

@@ -57,13 +57,25 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  ListTile(
-                    contentPadding: EdgeInsets.only(left: 16),
-                    title: Text(
-                      'Bookmarks'.tr(),
-                      style: TextStyle(fontWeight: FontWeight.bold),
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          context.colorScheme.surfaceContainerLowest,
+                          context.colorScheme.surfaceContainerLow,
+                        ],
+                      ),
                     ),
-                    trailing: CloseButton(),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.only(left: 16),
+                      title: Text(
+                        'Bookmarks'.tr(),
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      trailing: CloseButton(),
+                    ),
                   ),
                   Divider(height: 1),
                   Flexible(
@@ -80,32 +92,54 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
                                             .getBibleTitle([
                                               e.verse,
                                             ], withVerse: !e.isBookmarkAll),
-                                        builder: (context, snapshot) => ListTile(
-                                          contentPadding: EdgeInsets.only(
-                                            left: 16,
+                                        builder: (context, snapshot) => Container(
+                                          margin: const EdgeInsets.fromLTRB(
+                                            10,
+                                            6,
+                                            10,
+                                            2,
                                           ),
-                                          trailing: IconButton(
-                                            onPressed: () {
-                                              if (modifiedBookmarks.contains(
-                                                e,
-                                              )) {
-                                                modifiedBookmarks.remove(e);
-                                              } else {
-                                                modifiedBookmarks.add(e);
-                                              }
-                                              setState(() {});
-                                            },
-                                            icon: Icon(
-                                              modifiedBookmarks.contains(e)
-                                                  ? Icons.bookmark
-                                                  : Icons
-                                                        .bookmark_outline_rounded,
+                                          decoration: BoxDecoration(
+                                            color: context
+                                                .colorScheme
+                                                .surfaceContainerLow,
+                                            borderRadius: BorderRadius.circular(
+                                              8,
+                                            ),
+                                            border: Border.all(
+                                              color: context
+                                                  .colorScheme
+                                                  .outlineVariant
+                                                  .withValues(alpha: 0.45),
                                             ),
                                           ),
-                                          onTap: () async {
-                                            widget.onTap(e.verse);
-                                          },
-                                          title: Text(snapshot.data ?? ''),
+                                          child: ListTile(
+                                            contentPadding: EdgeInsets.only(
+                                              left: 16,
+                                            ),
+                                            trailing: IconButton(
+                                              onPressed: () {
+                                                if (modifiedBookmarks.contains(
+                                                  e,
+                                                )) {
+                                                  modifiedBookmarks.remove(e);
+                                                } else {
+                                                  modifiedBookmarks.add(e);
+                                                }
+                                                setState(() {});
+                                              },
+                                              icon: Icon(
+                                                modifiedBookmarks.contains(e)
+                                                    ? Icons.bookmark
+                                                    : Icons
+                                                          .bookmark_outline_rounded,
+                                              ),
+                                            ),
+                                            onTap: () async {
+                                              widget.onTap(e.verse);
+                                            },
+                                            title: Text(snapshot.data ?? ''),
+                                          ),
                                         ),
                                       ),
                                     )

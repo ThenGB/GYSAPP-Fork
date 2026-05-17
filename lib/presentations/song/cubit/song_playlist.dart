@@ -243,22 +243,9 @@ class SongPlaybackQueue {
       if (seen.add(key)) preload.add(song);
     }
 
-    // In playlist or shuffle modes we only preload forward because
-    // the user is moving through a curated / randomised queue.
-    // In normal / loop modes we preload neighbours in both directions
-    // so manual prev/next is also instant.
-    final forwardOnly = switch (autoNextMode) {
-      SongPlaylistAutoNextMode.playlist ||
-      SongPlaylistAutoNextMode.shuffleAll ||
-      SongPlaylistAutoNextMode.shufflePlaylist => true,
-      _ => false,
-    };
-
     for (var step = 1; step <= count; step++) {
       addSong(songs[(currentQueueIndex + step) % songs.length]);
-      if (!forwardOnly) {
-        addSong(songs[(currentQueueIndex - step) % songs.length]);
-      }
+      addSong(songs[(currentQueueIndex - step) % songs.length]);
     }
     return List.unmodifiable(preload);
   }

@@ -38,11 +38,14 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
             FocusManager.instance.primaryFocus?.unfocus();
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.surface,
+            backgroundColor: context.colorScheme.surfaceContainerLowest,
             appBar: AppBar(
+              backgroundColor: context.colorScheme.surfaceContainerLowest,
               shape: Border(
                 bottom: BorderSide(
-                  color: context.colorScheme.secondaryContainer,
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
               title: Column(
@@ -182,32 +185,51 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-                    child: TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: context.colorScheme.surfaceContainerLowest,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outlineVariant,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            context.colorScheme.surfaceContainerLowest,
+                            context.colorScheme.surfaceContainerLow,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.62,
                           ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outlineVariant,
+                      ),
+                      child: TextFormField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: context.colorScheme.surfaceContainerLowest,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.primary,
-                            width: 1.2,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.primary,
+                              width: 1.2,
+                            ),
+                          ),
+                          isDense: true,
+                          hintText: 'Search notes'.tr(),
                         ),
-                        isDense: true,
-                        hintText: 'Search notes'.tr(),
                       ),
                     ),
                   ),
@@ -228,6 +250,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                             );
                           }
                           return ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 12),
                             itemCount: snapshot.data?.length ?? 0,
                             itemBuilder: (context, index) {
                               var item = snapshot.data![index];
@@ -253,27 +276,36 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                       ),
                                     );
                                   },
-                                  child: Card(
-                                    color: context
-                                        .colorScheme
-                                        .surfaceContainerLowest,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      side: BorderSide(
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          context
+                                              .colorScheme
+                                              .surfaceContainerLowest,
+                                          context
+                                              .colorScheme
+                                              .surfaceContainerLow,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
                                         color: context
                                             .colorScheme
                                             .outlineVariant
                                             .withValues(alpha: 0.55),
                                       ),
                                     ),
-                                    margin: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4,
-                                    ),
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 16,
-                                        vertical: 8,
+                                        vertical: 10,
                                       ),
                                       child: Column(
                                         crossAxisAlignment:
@@ -349,26 +381,46 @@ class NoDataFound extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.max,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          SizedBox(height: 100),
-          Image.asset(Assets.assetsImagesEmpty, width: 180),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              context.colorScheme.surfaceContainerLowest,
+              context.colorScheme.surfaceContainerLow,
+            ],
           ),
-          Text(
-            description,
-            textAlign: TextAlign.center,
-            style: context.textTheme.bodyMedium?.copyWith(
-              color: context.textTheme.bodyMedium?.color?.withValues(alpha: .5),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: context.colorScheme.outlineVariant.withValues(alpha: 0.56),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Image.asset(Assets.assetsImagesEmpty, width: 180),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
-          ),
-          if (action != null) ...[SizedBox(height: 24), action!],
-        ],
+            const SizedBox(height: 4),
+            Text(
+              description,
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.textTheme.bodyMedium?.color?.withValues(
+                  alpha: .58,
+                ),
+              ),
+            ),
+            if (action != null) ...[SizedBox(height: 24), action!],
+          ],
+        ),
       ),
     );
   }

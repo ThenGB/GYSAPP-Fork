@@ -9,7 +9,7 @@ import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, kReleaseMode;
 import 'package:flutter/material.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,9 +41,22 @@ Future initApplication() async {
     baseUrlApi: 'https://e.gys.or.id/api/v1',
   );
   final isFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');
-  final widgetsBinding = kDebugMode && !isFlutterTest
-      ? MarionetteBinding.ensureInitialized()
-      : WidgetsFlutterBinding.ensureInitialized();
+
+  // Only initialize MarionetteBinding on native platforms in debug mode
+  // Web platforms don't fully support MarionetteBinding
+  WidgetsBinding widgetsBinding;
+  if (kDebugMode && !isFlutterTest && !kIsWeb) {
+    try {
+      MarionetteBinding.ensureInitialized();
+      widgetsBinding = MarionetteBinding.instance;
+    } catch (e) {
+      // Fallback if Marionette fails
+      log('MarionetteBinding init failed, using default: $e', name: 'App');
+      widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+    }
+  } else {
+    widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  }
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   _initializePdfRuntime();
   initLog('flutter binding ready');

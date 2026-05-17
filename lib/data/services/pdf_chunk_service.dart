@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io';
 import 'dart:typed_data';
@@ -10,6 +11,11 @@ import 'package:path_provider/path_provider.dart';
 class PdfChunkService {
   static const int headerSize = 32;
   static const int indexEntrySize = 40;
+  static const int _maxChunkBinaryCacheEntries = 2;
+
+  static final Map<String, Uint8List> _chunkBinaryCache = {};
+  static final Map<String, Future<Uint8List>> _inflightChunkBinaryLoads = {};
+  static final Map<String, Future<String?>> _inflightChunkExtractions = {};
 
   /// Extract a specific chunk from a master chunk binary file and return the path to the decompressed PDF.
   Future<String?> getChunkFile({
@@ -17,8 +23,32 @@ class PdfChunkService {
     required int chunkIndex,
     required String cacheKey,
   }) async {
+    final extractionKey = '$chunkFilePath#$chunkIndex#$cacheKey';
+    final inflight = _inflightChunkExtractions[extractionKey];
+    if (inflight != null) return inflight;
+
+    final extractionFuture = _getChunkFileInternal(
+      chunkFilePath: chunkFilePath,
+      chunkIndex: chunkIndex,
+      cacheKey: cacheKey,
+    );
+    _inflightChunkExtractions[extractionKey] = extractionFuture;
     try {
-      final tempDir = await getTemporaryDirectory();
+      return await extractionFuture;
+    } finally {
+      if (identical(_inflightChunkExtractions[extractionKey], extractionFuture)) {
+        _inflightChunkExtractions.remove(extractionKey);
+      }
+    }
+  }
+
+  Future<String?> _getChunkFileInternal({
+    required String chunkFilePath,
+    required int chunkIndex,
+    required String cacheKey,
+  }) async {
+    try {
+      final tempDir = await getApplicationSupportDirectory();
       final targetPath = p.join(
         tempDir.path,
         'pdf_chunks',
@@ -35,12 +65,8 @@ class PdfChunkService {
 
       await targetFile.parent.create(recursive: true);
 
-      // Read the master chunk file from assets
-      final byteData = await rootBundle.load(chunkFilePath);
-      final bytes = byteData.buffer.asUint8List(
-        byteData.offsetInBytes,
-        byteData.lengthInBytes,
-      );
+      // Read the master chunk file from memory cache (or load once from assets).
+      final bytes = await _loadChunkBinary(chunkFilePath);
 
       if (bytes.length < headerSize) return null;
 
@@ -106,6 +132,37 @@ class PdfChunkService {
     } catch (e) {
       log('PdfChunkService Error: $e');
       return null;
+    }
+  }
+
+  Future<Uint8List> _loadChunkBinary(String chunkFilePath) async {
+    final cached = _chunkBinaryCache[chunkFilePath];
+    if (cached != null) return cached;
+
+    final inflight = _inflightChunkBinaryLoads[chunkFilePath];
+    if (inflight != null) return inflight;
+
+    final future = () async {
+      final byteData = await rootBundle.load(chunkFilePath);
+      final bytes = byteData.buffer.asUint8List(
+        byteData.offsetInBytes,
+        byteData.lengthInBytes,
+      );
+
+      if (_chunkBinaryCache.length >= _maxChunkBinaryCacheEntries) {
+        _chunkBinaryCache.remove(_chunkBinaryCache.keys.first);
+      }
+      _chunkBinaryCache[chunkFilePath] = bytes;
+      return bytes;
+    }();
+
+    _inflightChunkBinaryLoads[chunkFilePath] = future;
+    try {
+      return await future;
+    } finally {
+      if (identical(_inflightChunkBinaryLoads[chunkFilePath], future)) {
+        _inflightChunkBinaryLoads.remove(chunkFilePath);
+      }
     }
   }
 

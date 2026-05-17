@@ -85,11 +85,14 @@ class _BibleNoteViewState extends State<BibleNoteView> {
             return true;
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.surface,
+            backgroundColor: context.colorScheme.surfaceContainerLowest,
             appBar: AppBar(
+              backgroundColor: context.colorScheme.surfaceContainerLowest,
               shape: Border(
                 bottom: BorderSide(
-                  color: context.colorScheme.secondaryContainer,
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
               title: FutureBuilder(
@@ -159,8 +162,15 @@ class _BibleNoteViewState extends State<BibleNoteView> {
               padding: const EdgeInsets.all(16),
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: context.colorScheme.surfaceContainerLowest,
-                  borderRadius: BorderRadius.circular(16),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      context.colorScheme.surfaceContainerLowest,
+                      context.colorScheme.surfaceContainerLow,
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(8),
                   border: Border.all(
                     color: context.colorScheme.outlineVariant.withValues(
                       alpha: 0.55,
@@ -202,8 +212,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                         context.mediaQuery.viewInsets,
                     child: quill.QuillSimpleToolbar(
                       controller: controller,
-                      config:
-                          const quill.QuillSimpleToolbarConfig(),
+                      config: const quill.QuillSimpleToolbarConfig(),
                     ),
                   ),
           ),

@@ -9,11 +9,14 @@ import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
 import 'pdf_chunk_service.dart';
+import 'pdf_song_pack_service.dart';
 
 class LocalAssetService {
   final PdfChunkService _chunkService;
+  final PdfSongPackService _songPackService;
 
-  LocalAssetService(this._chunkService);
+  LocalAssetService(this._chunkService, [PdfSongPackService? songPackService])
+    : _songPackService = songPackService ?? PdfSongPackService();
 
   final Map<String, List<Map<String, dynamic>>> _indexCache = {};
   final Map<String, Map<String, Map<String, dynamic>>> _songLookupCache = {};
@@ -94,12 +97,17 @@ class LocalAssetService {
   }
 
   Future<String?> getChordPath(String bookCode, String number) async {
-    if (bookCode == 'HYMNE') return getChordPath('KR', number);
-    if (bookCode != 'KR') return null;
     final song = await _findSong(bookCode, number);
     if (song.isEmpty) return null;
-    if (song['hasChord'] != true) return null;
-    return _resolveAssetPath(song['chordFile'] as String?);
+
+    // Native chord file only. Do not cross-map chords across books because
+    // numbering/title mappings can differ per book.
+    if (song['hasChord'] == true) {
+      final nativePath = await _resolveAssetPath(song['chordFile'] as String?);
+      if (nativePath != null) return nativePath;
+    }
+
+    return null;
   }
 
   Future<String?> getPdfPath(String bookCode, String number) async {
@@ -155,7 +163,31 @@ class LocalAssetService {
       return null;
     }
 
-    // Check for optimized chunks first
+    // Check for per-song packed entries first (fast random access).
+    final packFile = manifest['packFile'] as String?;
+    final packIndex = entry['packIndex'];
+    if (packFile != null && packIndex is int) {
+      try {
+        final packedSongPath = await _songPackService.getSongFile(
+          packFilePath: packFile,
+          songIndex: packIndex,
+          cacheKey: '${bookCode}_pack',
+        );
+        if (packedSongPath != null) {
+          final pageCount = entry['pageCount'] as int? ?? 1;
+          final masterPath = manifest['masterPath'] as String? ?? packFile;
+          final version = await _fileVersion(packedSongPath);
+          return '$packedSongPath#${_pdfRangeFragment(page: 1, pages: pageCount, master: masterPath, version: version)}';
+        }
+      } catch (e) {
+        log(
+          'Failed to load song pack entry for $bookCode $number: $e',
+          name: 'LocalAssetService',
+        );
+      }
+    }
+
+    // Fallback to chunked master extraction.
     final chunkFile = manifest['chunkFile'] as String?;
     final chunkIndex = entry['chunkIndex'];
     final relStart = entry['chunkRelativeStart'];
@@ -464,7 +496,6 @@ class LocalAssetService {
   }
 
   Future<bool> hasChord(String bookCode, String number) async {
-    if (bookCode != 'KR') return false;
     final path = await getChordPath(bookCode, number);
     if (path == null) return false;
     try {

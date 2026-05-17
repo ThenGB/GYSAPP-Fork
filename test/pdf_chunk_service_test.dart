@@ -17,6 +17,7 @@ void main() {
         .setMockMethodCallHandler(pathProviderChannel, (call) async {
           return switch (call.method) {
             'getTemporaryDirectory' => tempDir.path,
+            'getApplicationSupportDirectory' => tempDir.path,
             'getApplicationDocumentsDirectory' => tempDir.path,
             _ => null,
           };
@@ -46,5 +47,15 @@ void main() {
     final bytes = await cachedChunk.openRead(0, 5).first;
     expect(String.fromCharCodes(bytes), '%PDF-');
     expect(await cachedChunk.length(), greaterThan(1000));
+  });
+
+  test('stores extracted chunks in persistent app support cache', () async {
+    final chunkPath = await PdfChunkService().getChunkFile(
+      chunkFilePath: 'assets/data/pdf/kr/kr_chunks.bin',
+      chunkIndex: 0,
+      cacheKey: 'KR',
+    );
+
+    expect(chunkPath, p.join(tempDir.path, 'pdf_chunks', 'KR_0.pdf'));
   });
 }

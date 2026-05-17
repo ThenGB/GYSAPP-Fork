@@ -77,11 +77,21 @@ class PdfDocumentRequest {
   }
 }
 
+class PdfWarmupMetadata {
+  const PdfWarmupMetadata({this.detectedKey, this.detectedTempo});
+
+  final String? detectedKey;
+  final double? detectedTempo;
+
+  bool get hasData => detectedKey != null || detectedTempo != null;
+}
+
 /// Global service for caching and pre-extracting note positions from PDF sheet music.
 ///
 /// This improves performance by allowing background warmup and avoiding redundant
 /// extraction when switching between songs or reopening the viewer.
 class PdfNoteService {
+  static const int _extractorCacheVersion = 15;
   static final PdfNoteService _instance = PdfNoteService._internal();
   factory PdfNoteService() => _instance;
   PdfNoteService._internal();
@@ -112,12 +122,54 @@ class PdfNoteService {
   }
 
   String _getDiskCachePath(String assetPath, int pageNumber) {
-    final fileName = '${assetPath.hashCode}_$pageNumber.json';
+    final profile = _profileForAsset(assetPath);
+    final profileSuffix = switch (profile) {
+      ExtractionProfile.mdr => 'mdr',
+      ExtractionProfile.krLegacy => 'kr',
+      ExtractionProfile.standard => 'std',
+    };
+    final fileName =
+        '${assetPath.hashCode}_$pageNumber.$profileSuffix.v$_extractorCacheVersion.json';
     return p.join(_cacheDir!.path, fileName);
   }
 
+  String _getMemoryCacheKey(String assetPath, int pageNumber) {
+    final profile = _profileForAsset(assetPath);
+    final profileSuffix = switch (profile) {
+      ExtractionProfile.mdr => 'mdr',
+      ExtractionProfile.krLegacy => 'kr',
+      ExtractionProfile.standard => 'std',
+    };
+    return '$assetPath#$pageNumber.$profileSuffix.v$_extractorCacheVersion';
+  }
+
+  ExtractionProfile _profileForAsset(String assetPath) =>
+      _isMdrAsset(assetPath)
+          ? ExtractionProfile.mdr
+          : (_isKrAsset(assetPath)
+              ? ExtractionProfile.krLegacy
+              : ExtractionProfile.standard);
+
+  bool _isMdrAsset(String assetPath) {
+    final normalized = assetPath.replaceAll('\\', '/').toLowerCase();
+    if (normalized.contains('/mdr/')) return true;
+    final fileName = p.basename(normalized);
+    if (fileName == 'mdr.pdf') return true;
+    if (fileName.startsWith('mdr_') && fileName.endsWith('.pdf')) return true;
+    return false;
+  }
+
+  bool _isKrAsset(String assetPath) {
+    final normalized = assetPath.replaceAll('\\', '/').toLowerCase();
+    if (normalized.contains('/kr/')) return true;
+    final fileName = p.basename(normalized);
+    if (fileName == 'kr.pdf') return true;
+    if (fileName.startsWith('kr_') && fileName.endsWith('.pdf')) return true;
+    return false;
+  }
+
   /// Pre-extract notes for a PDF document. Used by the warmup engine.
-  Future<void> warmup(
+  Future<PdfWarmupMetadata?> warmup(
     String pdfPath, {
     int startPage = 1,
     int? pageCount,
@@ -125,22 +177,47 @@ class PdfNoteService {
     try {
       final cleanPath = pdfPath.split('#').first;
       final doc = await _getOrOpenDocument(cleanPath);
+      String? firstDetectedKey;
+      double? firstDetectedTempo;
 
       try {
-        final actualStart = startPage;
-        final actualEnd = pageCount != null
-            ? actualStart + pageCount
-            : doc.pages.length + 1;
+        final docPageCount = doc.pages.length;
+        if (docPageCount <= 0) return const PdfWarmupMetadata();
 
-        for (int i = actualStart; i < actualEnd && i <= doc.pages.length; i++) {
+        // Normalize range against the opened document so warmup still works
+        // for split/chunked files whose internal page numbers start at 1.
+        final normalizedStart = startPage.clamp(1, docPageCount);
+        final requestedEndExclusive = pageCount != null
+            ? (normalizedStart + pageCount)
+            : (docPageCount + 1);
+        final normalizedEndExclusive = requestedEndExclusive.clamp(
+          normalizedStart + 1,
+          docPageCount + 1,
+        );
+
+        for (
+          int i = normalizedStart;
+          i < normalizedEndExclusive && i <= docPageCount;
+          i++
+        ) {
           final page = doc.pages[i - 1];
-          await loadNotePositions(page, cleanPath);
+          final result = await loadNotePositions(page, cleanPath, useCompute: false);
+          firstDetectedKey ??= result.detectedKey;
+          firstDetectedTempo ??= result.detectedTempo;
         }
+        if (firstDetectedKey != null || firstDetectedTempo != null) {
+          return PdfWarmupMetadata(
+            detectedKey: firstDetectedKey,
+            detectedTempo: firstDetectedTempo,
+          );
+        }
+        return const PdfWarmupMetadata();
       } finally {
         // Don't dispose here, let _docCache manage it or periodic cleanup
       }
     } catch (e) {
       log('PdfNoteService: Warmup failed for $pdfPath: $e');
+      return null;
     }
   }
 
@@ -173,7 +250,7 @@ class PdfNoteService {
     })
   >
   loadNotePositionsAndInfos(PdfPage page, String assetPath) async {
-    final key = '$assetPath#${page.pageNumber}';
+    final key = _getMemoryCacheKey(assetPath, page.pageNumber);
     if (_resultCache.containsKey(key)) {
       final result = _resultCache[key]!;
       return (
@@ -221,10 +298,11 @@ class PdfNoteService {
         );
       }
 
-      final result = await extractPdfContentAsync(
+      final result = extractPdfContent(
         rawText,
         page.width,
         page.height,
+        profile: _profileForAsset(assetPath),
       );
       _resultCache[key] = result;
 
@@ -258,9 +336,10 @@ class PdfNoteService {
 
   Future<PdfExtractionResult> loadNotePositions(
     PdfPage page,
-    String assetPath,
-  ) async {
-    final key = '$assetPath#${page.pageNumber}';
+    String assetPath, {
+    bool useCompute = true,
+  }) async {
+    final key = _getMemoryCacheKey(assetPath, page.pageNumber);
     if (_resultCache.containsKey(key)) return _resultCache[key]!;
 
     await _ensureCacheDir();
@@ -282,11 +361,19 @@ class PdfNoteService {
       final rawText = await page.loadText();
       if (rawText == null) return PdfExtractionResult(notes: []);
 
-      final result = await extractPdfContentAsync(
-        rawText,
-        page.width,
-        page.height,
-      );
+      final result = useCompute
+          ? await extractPdfContentAsync(
+              rawText,
+              page.width,
+              page.height,
+              profile: _profileForAsset(assetPath),
+            )
+          : extractPdfContent(
+              rawText,
+              page.width,
+              page.height,
+              profile: _profileForAsset(assetPath),
+            );
       _resultCache[key] = result;
 
       // Save to disk cache for instant subsequent loads
@@ -305,17 +392,18 @@ class PdfNoteService {
   }
 
   Future<List<NoteInfo>> loadNoteInfos(PdfPage page, String assetPath) async {
-    final key = '$assetPath#${page.pageNumber}';
+    final key = _getMemoryCacheKey(assetPath, page.pageNumber);
     if (_infoCache.containsKey(key)) return _infoCache[key]!;
 
     try {
       final rawText = await page.loadText();
       if (rawText == null) return _infoCache[key] = [];
 
-      final result = await extractPdfContentAsync(
+      final result = extractPdfContent(
         rawText,
         page.width,
         page.height,
+        profile: _profileForAsset(assetPath),
       );
       final infos = result.notes;
       return _infoCache[key] = infos;

@@ -41,11 +41,14 @@ class _SongNotesListViewState extends State<SongNotesListView> {
             FocusManager.instance.primaryFocus?.unfocus();
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.surface,
+            backgroundColor: context.colorScheme.surfaceContainerLowest,
             appBar: AppBar(
+              backgroundColor: context.colorScheme.surfaceContainerLowest,
               shape: Border(
                 bottom: BorderSide(
-                  color: context.colorScheme.secondaryContainer,
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
               title: Column(
@@ -184,13 +187,36 @@ class _SongNotesListViewState extends State<SongNotesListView> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        hintText: 'Search notes'.tr(),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            context.colorScheme.surfaceContainerLowest,
+                            context.colorScheme.surfaceContainerLow,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.62,
+                          ),
+                        ),
+                      ),
+                      child: TextFormField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: context.colorScheme.surfaceContainerLowest,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          isDense: true,
+                          hintText: 'Search notes'.tr(),
+                        ),
                       ),
                     ),
                   ),
@@ -211,6 +237,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                             );
                           }
                           return ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 12),
                             itemCount: snapshot.data?.length ?? 0,
                             itemBuilder: (context, index) {
                               var item = snapshot.data![index];
@@ -232,27 +259,36 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                       ),
                                     );
                                   },
-                                  child: Card(
-                                    color: context
-                                        .colorScheme
-                                        .surfaceContainerLowest,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                      side: BorderSide(
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          context
+                                              .colorScheme
+                                              .surfaceContainerLowest,
+                                          context
+                                              .colorScheme
+                                              .surfaceContainerLow,
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
                                         color: context
                                             .colorScheme
                                             .outlineVariant
                                             .withValues(alpha: 0.55),
                                       ),
                                     ),
-                                    margin: EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      vertical: 4,
-                                    ),
                                     child: Padding(
                                       padding: EdgeInsets.symmetric(
                                         horizontal: 16,
-                                        vertical: 8,
+                                        vertical: 10,
                                       ),
                                       child: Column(
                                         crossAxisAlignment:

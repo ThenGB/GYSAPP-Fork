@@ -41,11 +41,14 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
             FocusManager.instance.primaryFocus?.unfocus();
           },
           child: Scaffold(
-            backgroundColor: context.colorScheme.surface,
+            backgroundColor: context.colorScheme.surfaceContainerLowest,
             appBar: AppBar(
+              backgroundColor: context.colorScheme.surfaceContainerLowest,
               shape: Border(
                 bottom: BorderSide(
-                  color: context.colorScheme.secondaryContainer,
+                  color: context.colorScheme.outlineVariant.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
               title: Column(
@@ -185,32 +188,51 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 6),
-                    child: TextFormField(
-                      controller: searchController,
-                      decoration: InputDecoration(
-                        filled: true,
-                        fillColor: context.colorScheme.surfaceContainerLowest,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outlineVariant,
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            context.colorScheme.surfaceContainerLowest,
+                            context.colorScheme.surfaceContainerLow,
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: context.colorScheme.outlineVariant.withValues(
+                            alpha: 0.62,
                           ),
                         ),
-                        enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.outlineVariant,
+                      ),
+                      child: TextFormField(
+                        controller: searchController,
+                        decoration: InputDecoration(
+                          filled: true,
+                          fillColor: context.colorScheme.surfaceContainerLowest,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          borderSide: BorderSide(
-                            color: context.colorScheme.primary,
-                            width: 1.2,
+                          enabledBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.outlineVariant,
+                            ),
                           ),
+                          focusedBorder: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            borderSide: BorderSide(
+                              color: context.colorScheme.primary,
+                              width: 1.2,
+                            ),
+                          ),
+                          isDense: true,
+                          hintText: 'Search notes'.tr(),
                         ),
-                        isDense: true,
-                        hintText: 'Search notes'.tr(),
                       ),
                     ),
                   ),
@@ -237,6 +259,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                             );
                           }
                           return ListView.builder(
+                            padding: const EdgeInsets.only(bottom: 12),
                             itemCount: snapshot.data?.length ?? 0,
                             itemBuilder: (context, index) {
                               var item = snapshot.data![index];
@@ -262,27 +285,36 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                       item.verses,
                                       withVerse: true,
                                     ),
-                                    builder: (context, snapshot) => Card(
-                                      color: context
-                                          .colorScheme
-                                          .surfaceContainerLowest,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
-                                        side: BorderSide(
+                                    builder: (context, snapshot) => Container(
+                                      margin: EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topCenter,
+                                          end: Alignment.bottomCenter,
+                                          colors: [
+                                            context
+                                                .colorScheme
+                                                .surfaceContainerLowest,
+                                            context
+                                                .colorScheme
+                                                .surfaceContainerLow,
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
                                           color: context
                                               .colorScheme
                                               .outlineVariant
                                               .withValues(alpha: 0.55),
                                         ),
                                       ),
-                                      margin: EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 4,
-                                      ),
                                       child: Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 16,
-                                          vertical: 8,
+                                          vertical: 10,
                                         ),
                                         child: Column(
                                           crossAxisAlignment:

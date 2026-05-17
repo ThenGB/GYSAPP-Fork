@@ -103,87 +103,96 @@ class _BibleViewerState extends State<BibleViewer> {
                 color: widget.isSplit
                     ? context.colorScheme.surfaceContainerLow
                     : context.colorScheme.surface,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    ...verses.asMap().entries.map((e) {
-                      var index = e.key;
-
-                      return VisibilityDetector(
-                        key: ValueKey('${widget.isSplit}_$index'),
-                        onVisibilityChanged: (info) {
-                          widget.onVerseVisibility(
-                            index,
-                            info.size,
-                            info.visibleFraction,
-                          );
-                        },
-                        child: VerseWidget(
-                          lockScroll: widget.lockScroll,
-                          isSplit: widget.isSplit,
-                          textScale: widget.textScale,
-                          isSpeaking:
-                              state.isSpeaking && state.currentBible == e.value,
-                          verse: e.value,
-                          scrollFunction: widget.scrollFunction,
-                          onTapNote: (note) async {
-                            router.push(
-                              BibleNoteListRoute(
-                                // ignore: use_build_context_synchronously
-                                cubit: context.read(),
-                                initialSearch: await context
-                                    .read<BibleCubit>()
-                                    .getBibleTitle([note.first.verses.first]),
-                              ),
-                            );
-                          },
-                          notes: state.notes
-                              .where(
-                                (element) =>
-                                    element.verses.firstWhereOrNull(
-                                      (element) => element.id == e.value.id,
-                                    ) !=
-                                    null,
-                              )
-                              .toList(),
-                          references: state.references.getById(
-                            verses[index].id,
-                          ),
-                          hightlightedVerse: state.hightlightedVerse,
-                          selectedVerse: state.selectedVerse,
-                          key: widget.isSplit
-                              ? ValueKey('split_verse_${e.value.id}')
-                              : (index > (widget.verseKeys.length - 1)
-                                  ? GlobalKey()
-                                  : widget.verseKeys[index]),
-                          index: index,
-                          hasBookmark:
-                              state.bookmarks.firstWhereOrNull(
-                                (element) =>
-                                    element.verse.id == verses[index].id &&
-                                    !element.isBookmarkAll,
-                              ) !=
-                              null,
-                          pericope: pericopes.getById(verses[index].id),
-                          pericopeParalels: pericopeParalels.getById(
-                            verses[index].id,
-                          ),
-                        ),
-                      );
-                    }),
-                    FutureBuilder(
-                      future: widget.selectedVerseMenuHeight,
-                      builder: (context, snapshot) {
-                        double height =
-                            ((state.selectedVerse.isNotEmpty
-                                        ? (snapshot.data ?? 0)
-                                        : 0) -
-                                    80.0)
-                                .clamp(0, 1000);
-                        return SizedBox(height: height == 0 ? 60 : height);
-                      },
+                child: Align(
+                  alignment: Alignment.topCenter,
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      maxWidth: widget.isSplit ? 980 : 860,
                     ),
-                  ],
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        ...verses.asMap().entries.map((e) {
+                          var index = e.key;
+
+                          return VisibilityDetector(
+                            key: ValueKey('${widget.isSplit}_$index'),
+                            onVisibilityChanged: (info) {
+                              widget.onVerseVisibility(
+                                index,
+                                info.size,
+                                info.visibleFraction,
+                              );
+                            },
+                            child: VerseWidget(
+                              lockScroll: widget.lockScroll,
+                              isSplit: widget.isSplit,
+                              textScale: widget.textScale,
+                              isSpeaking:
+                                  state.isSpeaking &&
+                                  state.currentBible == e.value,
+                              verse: e.value,
+                              scrollFunction: widget.scrollFunction,
+                              onTapNote: (note) async {
+                                router.push(
+                                  BibleNoteListRoute(
+                                    // ignore: use_build_context_synchronously
+                                    cubit: context.read(),
+                                    initialSearch: await context
+                                        .read<BibleCubit>()
+                                        .getBibleTitle([
+                                          note.first.verses.first,
+                                        ]),
+                                  ),
+                                );
+                              },
+                              notes: state.notes
+                                  .where(
+                                    (element) =>
+                                        element.verses.firstWhereOrNull(
+                                          (element) => element.id == e.value.id,
+                                        ) !=
+                                        null,
+                                  )
+                                  .toList(),
+                              references: state.references.getById(
+                                verses[index].id,
+                              ),
+                              hightlightedVerse: state.hightlightedVerse,
+                              selectedVerse: state.selectedVerse,
+                              key: index > (widget.verseKeys.length - 1)
+                                  ? GlobalKey()
+                                  : widget.verseKeys[index],
+                              index: index,
+                              hasBookmark:
+                                  state.bookmarks.firstWhereOrNull(
+                                    (element) =>
+                                        element.verse.id == verses[index].id &&
+                                        !element.isBookmarkAll,
+                                  ) !=
+                                  null,
+                              pericope: pericopes.getById(verses[index].id),
+                              pericopeParalels: pericopeParalels.getById(
+                                verses[index].id,
+                              ),
+                            ),
+                          );
+                        }),
+                        FutureBuilder(
+                          future: widget.selectedVerseMenuHeight,
+                          builder: (context, snapshot) {
+                            double height =
+                                ((state.selectedVerse.isNotEmpty
+                                            ? (snapshot.data ?? 0)
+                                            : 0) -
+                                        80.0)
+                                    .clamp(0, 1000);
+                            return SizedBox(height: height == 0 ? 60 : height);
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),

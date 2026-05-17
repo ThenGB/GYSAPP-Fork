@@ -199,6 +199,8 @@ class MidiEngineService extends ChangeNotifier {
   double _currentSourceStartOffsetSeconds = 0;
   double _volume = 1;
   bool _streamEnded = false;
+  int _playbackIntentGeneration = 0;
+  bool _wantsPlayback = false;
 
   MidiPlaybackState _state = const MidiPlaybackState();
 
@@ -247,6 +249,22 @@ class MidiEngineService extends ChangeNotifier {
   void _setCurrentSource(AudioSource? source, {double startOffsetSeconds = 0}) {
     _currentSource = source;
     _currentSourceStartOffsetSeconds = source == null ? 0 : startOffsetSeconds;
+  }
+
+  int _registerPlaybackIntent() {
+    _wantsPlayback = true;
+    return ++_playbackIntentGeneration;
+  }
+
+  void _cancelPlaybackIntent() {
+    _wantsPlayback = false;
+    _playbackIntentGeneration++;
+  }
+
+  bool _canHonorPlayIntent(int generation) {
+    return !_disposed &&
+        _wantsPlayback &&
+        generation == _playbackIntentGeneration;
   }
 
   void setCacheMax(int max) {
@@ -390,6 +408,13 @@ class MidiEngineService extends ChangeNotifier {
   }) async {
     await initialize();
     final generation = ++_renderGeneration;
+    final startSeconds = startAt.inMilliseconds / 1000;
+    final previousDuration = _state.currentSong == midiPath
+        ? _state.duration
+        : 0.0;
+    final autoplayIntentGeneration = autoplay
+        ? _registerPlaybackIntent()
+        : _playbackIntentGeneration;
 
     _currentMidiPath = midiPath;
     _settings = MidiRenderSettings(
@@ -406,7 +431,8 @@ class MidiEngineService extends ChangeNotifier {
         isLoading: true,
         loadProgress: 0.05,
         currentSong: midiPath,
-        duration: _state.duration > 0 ? _state.duration : 0,
+        position: startSeconds,
+        duration: previousDuration,
       ),
     );
 
@@ -480,10 +506,7 @@ class MidiEngineService extends ChangeNotifier {
         format: BufferType.f32le,
       );
       _streamSource = streamSource;
-      _setCurrentSource(
-        streamSource,
-        startOffsetSeconds: startAt.inMilliseconds / 1000,
-      );
+      _setCurrentSource(streamSource, startOffsetSeconds: startSeconds);
       _streamEnded = false;
       _instruments = streamInfo.instruments;
 
@@ -507,7 +530,9 @@ class MidiEngineService extends ChangeNotifier {
       _startStreamPump(streamSource, generation);
 
       if (autoplay) {
-        await play(startAt: Duration.zero);
+        if (_canHonorPlayIntent(autoplayIntentGeneration)) {
+          await play(startAt: Duration.zero);
+        }
         return;
       }
 
@@ -698,6 +723,7 @@ class MidiEngineService extends ChangeNotifier {
 
   Future<void> play({Duration startAt = Duration.zero}) async {
     await initialize();
+    final playIntentGeneration = _registerPlaybackIntent();
 
     // FAST PATH: If we have a source, play immediately
     if (_currentSource != null) {
@@ -726,7 +752,7 @@ class MidiEngineService extends ChangeNotifier {
 
       // Try to load from disk cache first (faster than re-rendering)
       _loadFromDiskCache(_currentMidiPath!, _settings).then((source) async {
-        if (source != null && !_disposed) {
+        if (source != null && _canHonorPlayIntent(playIntentGeneration)) {
           _setCurrentSource(source);
           await _startPlaybackFromSource(Duration.zero);
         }
@@ -758,16 +784,43 @@ class MidiEngineService extends ChangeNotifier {
       volume: _volume,
       paused: true,
     );
-    final absoluteStartSeconds = startAt > Duration.zero
-        ? startAt.inMilliseconds / 1000
-        : _state.position;
-    final relativeStart = _relativeSourcePosition(
-      absoluteStartSeconds,
-      _currentSourceStartOffsetSeconds,
-    );
-    if (relativeStart > Duration.zero) {
-      SoLoud.instance.seek(_currentHandle!, relativeStart);
+
+    // Handle stream sources differently - cannot seek on buffer streams
+    final isStreamSource = source == _streamSource;
+
+    if (isStreamSource) {
+      // Stream sources cannot be seeked. If startAt > 0, we need to re-load
+      // from that point. Otherwise just play from current position.
+      if (startAt > Duration.zero) {
+        // Re-render from seek point for stream sources
+        SoLoud.instance.stop(_currentHandle!);
+        _currentHandle = null;
+        final seconds = startAt.inMilliseconds / 1000;
+        await _seekViaRerender(seconds.clamp(0, _state.duration));
+        return;
+      }
+      // For stream sources without seek, just play
+    } else {
+      // Non-stream sources (pre-rendered WAV) can be seeked
+      final absoluteStartSeconds = startAt > Duration.zero
+          ? startAt.inMilliseconds / 1000
+          : _state.position;
+      final relativeStart = _relativeSourcePosition(
+        absoluteStartSeconds,
+        _currentSourceStartOffsetSeconds,
+      );
+      if (relativeStart > Duration.zero) {
+        try {
+          SoLoud.instance.seek(_currentHandle!, relativeStart);
+        } catch (e) {
+          log(
+            'Seek in _startPlaybackFromSource failed: $e',
+            name: 'MidiEngine',
+          );
+        }
+      }
     }
+
     SoLoud.instance.setPause(_currentHandle!, false);
     _startPositionTimer();
     _setState(_state.copyWith(isPlaying: true, isLoading: false));
@@ -805,6 +858,7 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   Future<void> pause() async {
+    _cancelPlaybackIntent();
     final handle = _currentHandle;
     if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
       SoLoud.instance.setPause(handle, true);
@@ -814,15 +868,19 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   Future<void> stop() async {
+    _cancelPlaybackIntent();
     await _stopCurrentHandle(emit: false);
     _stopStreamSource(disposeSource: true);
     _positionTimer?.cancel();
+    // Clear currentMidiPath to prevent play() from restarting after stop
+    final stoppedMidiPath = _currentMidiPath;
+    _currentMidiPath = null;
     _setState(
       _state.copyWith(
         isPlaying: false,
         position: 0,
         isLoading: false,
-        currentSong: _currentMidiPath,
+        currentSong: stoppedMidiPath, // Keep track of what was stopped
       ),
     );
   }
@@ -833,28 +891,65 @@ class MidiEngineService extends ChangeNotifier {
 
     final clamped = seconds.clamp(0, _state.duration).toDouble();
 
-    // If the song is already loaded in memory, use standard seek
-    final currentSource = _currentSource;
-    if (currentSource != null &&
-        currentSource != _streamSource &&
+    // CRITICAL: Buffer streams with BufferingType.released CANNOT be seeked
+    // via SoLoud.seek(). This causes SoLoudBufferStreamWithReleasedBufferTypeCannotBeSeekedCppException.
+    // Always use re-render approach for stream sources.
+    if (_currentSource != null &&
+        _currentSource == _streamSource &&
         _state.duration > 0) {
+      // For stream sources, re-render from the seek point
+      await _seekViaRerender(clamped);
+      return;
+    }
+
+    // For non-stream sources (pre-rendered WAV in memory), standard seek works
+    if (_currentSource != null && _state.duration > 0) {
       final handle = _currentHandle;
       if (handle != null && SoLoud.instance.getIsValidVoiceHandle(handle)) {
-        SoLoud.instance.seek(
-          handle,
-          _relativeSourcePosition(clamped, _currentSourceStartOffsetSeconds),
-        );
-        _setState(_state.copyWith(position: clamped));
-        return;
+        try {
+          SoLoud.instance.seek(
+            handle,
+            _relativeSourcePosition(clamped, _currentSourceStartOffsetSeconds),
+          );
+          _setState(_state.copyWith(position: clamped));
+          return;
+        } catch (e) {
+          // Fall back to re-render if seek fails
+          log('Standard seek failed, trying re-render: $e', name: 'MidiEngine');
+          await _seekViaRerender(clamped);
+          return;
+        }
       }
     }
 
-    // NEW ROBUST SEEK: Re-render from the seek point if streaming/loading is slow.
-    // This provides "Instant render playback" feel.
-    final wasPlaying = _state.isPlaying;
-    await stop();
+    // No loaded source - re-render from the seek point
+    await _seekViaRerender(clamped);
+  }
 
-    _setState(_state.copyWith(isLoading: true, position: clamped));
+  /// Re-render from a specific seek point. This is the fallback method for
+  /// buffer streams which cannot be seeked via SoLoud.seek().
+  Future<void> _seekViaRerender(double seconds) async {
+    final midiPath = _currentMidiPath;
+    if (midiPath == null) return;
+
+    final clamped = seconds.clamp(0, _state.duration).toDouble();
+    final wasPlaying = _state.isPlaying;
+
+    // Stop current playback and reset position to 0 first
+    await _stopCurrentHandle(emit: false);
+    _stopStreamSource(disposeSource: true);
+    _positionTimer?.cancel();
+
+    // Set loading state with position reset to 0 (will be updated after load)
+    _setState(
+      _state.copyWith(
+        isPlaying: false,
+        position: clamped,
+        isLoading: true,
+        loadProgress: 0.05,
+        currentSong: midiPath,
+      ),
+    );
 
     await loadMidi(
       midiPath,

@@ -217,7 +217,10 @@ class ChordService {
     final notes = accidentalMode == accidentalFlat ? _notesFlat : _notesSharp;
     final root =
         notes[_wrapSemitone(parsed.semitone + transpose + baseTransposeOffset)];
-    final suffix = parsed.suffix.replaceAll('♯', '#').replaceAll('♭', 'b');
+    final suffix = _formatSuffixForDisplay(
+      parsed.suffix,
+      accidentalMode: accidentalMode,
+    );
     final bass = parsed.bassSemitone == null
         ? ''
         : '/${notes[_wrapSemitone(parsed.bassSemitone! + transpose)]}'
@@ -312,6 +315,46 @@ class ChordService {
     if (parsed == null) return 0;
     final finalBaseSemi = _wrapSemitone(parsed.semitone + baseTransposeOffset);
     return {1, 3, 6, 8, 10}.contains(finalBaseSemi) ? -1 : 0;
+  }
+
+  static int recommendedNaturalTransposeForPdfKey(String? pdfKey) {
+    final pdfSemi = parsePdfKeyToSemitone(pdfKey);
+    if (pdfSemi == null) return 0;
+    return {1, 3, 6, 8, 10}.contains(pdfSemi) ? -1 : 0;
+  }
+
+  static String preferredAccidentalModeForKey(
+    String? key, {
+    String fallback = accidentalSharp,
+  }) {
+    if (key == null || key.trim().isEmpty) return fallback;
+    final normalized = key.trim().toLowerCase().replaceFirst(RegExp(r'm$'), '');
+    const flatAliases = {
+      'des',
+      'es',
+      'ges',
+      'as',
+      'bes',
+      'db',
+      'eb',
+      'gb',
+      'ab',
+      'bb',
+      'cb',
+      'fb',
+    };
+    const sharpAliases = {'cis', 'dis', 'fis', 'gis', 'ais', 'c#', 'd#', 'f#', 'g#', 'a#', 'e#', 'b#'};
+
+    if (flatAliases.contains(normalized) || normalized.contains('♭')) {
+      return accidentalFlat;
+    }
+    if (sharpAliases.contains(normalized) ||
+        normalized.contains('#') ||
+        normalized.contains('♯')) {
+      return accidentalSharp;
+    }
+
+    return fallback;
   }
 
   static int? parsePdfKeyToSemitone(String? key) {
@@ -418,6 +461,25 @@ class ChordService {
       bassSemitone: bass.bassSemitone,
       suffixAfter: bass.suffixAfter,
     );
+  }
+
+  static String _formatSuffixForDisplay(
+    String suffix, {
+    required String accidentalMode,
+  }) {
+    var displaySuffix = suffix;
+    if (accidentalMode == accidentalFlat) {
+      displaySuffix = displaySuffix.replaceAllMapped(
+        RegExp(r'b(\d+)'),
+        (match) => '♭${match.group(1)}',
+      );
+    } else {
+      displaySuffix = displaySuffix.replaceAllMapped(
+        RegExp(r'#(\d+)'),
+        (match) => '♯${match.group(1)}',
+      );
+    }
+    return displaySuffix.replaceAll('#', '♯');
   }
 
   static _ParsedBass _parseSlashBass(String suffix) {
