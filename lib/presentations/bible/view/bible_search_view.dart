@@ -34,12 +34,17 @@ class _BibleSearchViewState extends State<BibleSearchView> {
       value: widget.cubit,
       child: BlocBuilder<BibleCubit, BibleState>(
         builder: (context, state) => Scaffold(
-          backgroundColor: context.colorScheme.surface,
+          backgroundColor: context.colorScheme.surfaceContainerLowest,
           appBar: AppBar(
+            backgroundColor: context.colorScheme.surfaceContainerLowest,
             shape: Border(
-              bottom: BorderSide(color: context.colorScheme.outlineVariant),
+              bottom: BorderSide(
+                color: context.colorScheme.outlineVariant.withValues(
+                  alpha: 0.7,
+                ),
+              ),
             ),
-            title: const Text('Kidung Rohani'),
+            title: const Text('Bible Search'),
             centerTitle: true,
           ),
           body: MediaQuery(
@@ -53,43 +58,62 @@ class _BibleSearchViewState extends State<BibleSearchView> {
               children: [
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: TextFormField(
-                    controller: searchController,
-                    decoration: InputDecoration(
-                      prefixIcon: Icon(
-                        CupertinoIcons.doc_text_search,
-                        color: context.colorScheme.primary,
+                  child: Container(
+                    padding: const EdgeInsets.all(6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          context.colorScheme.surfaceContainerLowest,
+                          context.colorScheme.surfaceContainerLow,
+                        ],
                       ),
-                      suffixIcon: IconButton(
-                        tooltip: 'Clear',
-                        icon: const Icon(Icons.close_rounded),
-                        onPressed: () {
-                          searchController.clear();
-                        },
-                      ),
-                      filled: true,
-                      fillColor: context.colorScheme.surfaceContainerLowest,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: context.colorScheme.outlineVariant,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: context.colorScheme.outlineVariant.withValues(
+                          alpha: 0.62,
                         ),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
-                          color: context.colorScheme.outlineVariant,
-                        ),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        borderSide: BorderSide(
+                    ),
+                    child: TextFormField(
+                      controller: searchController,
+                      decoration: InputDecoration(
+                        prefixIcon: Icon(
+                          CupertinoIcons.doc_text_search,
                           color: context.colorScheme.primary,
-                          width: 1.2,
                         ),
+                        suffixIcon: IconButton(
+                          tooltip: 'Clear',
+                          icon: const Icon(Icons.close_rounded),
+                          onPressed: () {
+                            searchController.clear();
+                          },
+                        ),
+                        filled: true,
+                        fillColor: context.colorScheme.surfaceContainerLowest,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.primary,
+                            width: 1.2,
+                          ),
+                        ),
+                        isDense: true,
+                        hintText: 'Search verses'.tr(),
                       ),
-                      isDense: true,
-                      hintText: 'Search verses'.tr(),
                     ),
                   ),
                 ),
@@ -217,105 +241,112 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                             .tr(),
                                   )
                           : ListView.builder(
+                              padding: const EdgeInsets.fromLTRB(12, 6, 12, 18),
                               itemCount: snapshot.data!.length,
                               itemBuilder: (context, index) {
                                 var item = snapshot.data![index];
-                                return Column(
-                                  children: [
-                                    Divider(height: 1),
-                                    ListTile(
-                                      onTap: () {
-                                        widget.onTap(item);
-                                      },
-                                      title: FutureBuilder(
-                                        future: widget.cubit.getBibleTitle([
-                                          item,
-                                        ], withVerse: true),
-                                        builder: (context, snapshot) => Builder(
-                                          builder: (context) {
-                                            var sentence = (item.verse ?? '')
-                                                .replaceAll('  ', ' ');
-                                            sentence = removeTextBetweenTags(
-                                              sentence,
-                                              'f',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '<pb/>',
-                                              '    ',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '<t>',
-                                              '',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '</t>',
-                                              '',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '<i>',
-                                              '',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '</i>',
-                                              '',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '<J>',
-                                              '',
-                                            );
-                                            sentence = sentence.replaceAll(
-                                              '</J>',
-                                              '',
-                                            );
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 8),
+                                  decoration: BoxDecoration(
+                                    color:
+                                        context.colorScheme.surfaceContainerLow,
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: context.colorScheme.outlineVariant
+                                          .withValues(alpha: 0.48),
+                                    ),
+                                  ),
+                                  child: ListTile(
+                                    onTap: () {
+                                      widget.onTap(item);
+                                    },
+                                    title: FutureBuilder(
+                                      future: widget.cubit.getBibleTitle([
+                                        item,
+                                      ], withVerse: true),
+                                      builder: (context, snapshot) => Builder(
+                                        builder: (context) {
+                                          var sentence = (item.verse ?? '')
+                                              .replaceAll('  ', ' ');
+                                          sentence = removeTextBetweenTags(
+                                            sentence,
+                                            'f',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '<pb/>',
+                                            '    ',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '<t>',
+                                            '',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '</t>',
+                                            '',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '<i>',
+                                            '',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '</i>',
+                                            '',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '<J>',
+                                            '',
+                                          );
+                                          sentence = sentence.replaceAll(
+                                            '</J>',
+                                            '',
+                                          );
 
-                                            return Text.rich(
-                                              style: TextStyle(fontSize: 12),
-                                              TextSpan(
-                                                children: [
-                                                  TextSpan(
-                                                    text:
-                                                        snapshot.data ??
-                                                        'Loading...'.tr(),
-                                                    style: TextStyle(
-                                                      fontWeight:
-                                                          FontWeight.w600,
-                                                    ),
+                                          return Text.rich(
+                                            style: TextStyle(fontSize: 12),
+                                            TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text:
+                                                      snapshot.data ??
+                                                      'Loading...'.tr(),
+                                                  style: TextStyle(
+                                                    fontWeight: FontWeight.w600,
                                                   ),
-                                                  TextSpan(text: ' : '),
-                                                  buildHighlightedText(
-                                                    isUnderline: true,
-                                                    style: TextStyle(
-                                                      fontSize: 12,
-                                                    ),
-                                                    sentence,
-                                                    () {
-                                                      var list =
-                                                          RegExp(r'"([^"]+)"')
-                                                              .allMatches(
-                                                                searchController
-                                                                    .text,
-                                                              )
-                                                              .map(
-                                                                (e) =>
-                                                                    e.group(1)!,
-                                                              )
-                                                              .toList();
-                                                      list.addAll(
-                                                        searchController.text
-                                                            .split(' '),
-                                                      );
-                                                      return list;
-                                                    }(),
-                                                    context,
+                                                ),
+                                                TextSpan(text: ' : '),
+                                                buildHighlightedText(
+                                                  isUnderline: true,
+                                                  style: TextStyle(
+                                                    fontSize: 12,
                                                   ),
-                                                ],
-                                              ),
-                                            );
-                                          },
-                                        ),
+                                                  sentence,
+                                                  () {
+                                                    var list =
+                                                        RegExp(r'"([^"]+)"')
+                                                            .allMatches(
+                                                              searchController
+                                                                  .text,
+                                                            )
+                                                            .map(
+                                                              (e) =>
+                                                                  e.group(1)!,
+                                                            )
+                                                            .toList();
+                                                    list.addAll(
+                                                      searchController.text
+                                                          .split(' '),
+                                                    );
+                                                    return list;
+                                                  }(),
+                                                  context,
+                                                ),
+                                              ],
+                                            ),
+                                          );
+                                        },
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 );
                               },
                             ),

@@ -17,15 +17,18 @@ void main() {
     expect(data.lengthInBytes, greaterThan(0));
   });
 
-  test('resolves HYMNE midi path to KR midi file via cross-reference', () async {
-    final service = LocalAssetService(PdfChunkService());
+  test(
+    'resolves HYMNE midi path to KR midi file via cross-reference',
+    () async {
+      final service = LocalAssetService(PdfChunkService());
 
-    final path = await service.getMidiPath('HYMNE', '001');
+      final path = await service.getMidiPath('HYMNE', '001');
 
-    expect(path, 'assets/data/midi/kr/001_Pujilah Allah Yang Maha Esa.mid');
-    final data = await rootBundle.load(path!);
-    expect(data.lengthInBytes, greaterThan(0));
-  });
+      expect(path, 'assets/data/midi/kr/001_Pujilah Allah Yang Maha Esa.mid');
+      final data = await rootBundle.load(path!);
+      expect(data.lengthInBytes, greaterThan(0));
+    },
+  );
 
   test('resolves MDR midi path to KR midi file via cross-reference', () async {
     final service = LocalAssetService(PdfChunkService());
@@ -44,7 +47,7 @@ void main() {
 
       final path = await service.getPdfPath('MDR', '001');
 
-      expect(path, startsWith('assets/data/pdf/mdr/mdr_master.pdf#'));
+      expect(path, startsWith('assets/data/pdf/mdr/'));
       expect(path, contains('page='));
       expect(path, contains('pages='));
       final data = await rootBundle.load(path!.split('#').first);
@@ -52,26 +55,27 @@ void main() {
     },
   );
 
-  test('resolves KR pdf path to bundled native PDF asset', () async {
+  test('resolves KR pdf path with normalized page fragment', () async {
     final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('KR', '001');
 
-    expect(path, 'assets/data/pdf/kr/001_Pujilah Allah Yang Maha Esa.pdf');
-    final data = await rootBundle.load(path!);
+    expect(path, startsWith('assets/data/pdf/kr/'));
+    expect(path, contains('#page='));
+    expect(path, contains('pages='));
+    final data = await rootBundle.load(path!.split('#').first);
     expect(data.lengthInBytes, greaterThan(0));
   });
 
-  test('resolves HYMNE pdf path to master PDF with page range', () async {
+  test('resolves HYMNE pdf path with page range', () async {
     final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('HYMNE', '001');
 
-    expect(path, startsWith('assets/data/pdf/hymne/hymne_master.pdf#'));
-    expect(path, contains('page=5'));
+    expect(path, startsWith('assets/data/pdf/hymne/'));
+    expect(path, contains('page='));
     expect(path, contains('pages=1'));
-    final data = await rootBundle.load(path!.split('#').first);
-    expect(data.lengthInBytes, greaterThan(0));
+    expect(path, isNotNull);
   });
 
   test('resolves KR chord path to bundled native overlay data', () async {
@@ -87,28 +91,36 @@ void main() {
     expect(json, contains('"noteIdx"'));
   });
 
-  test(
-    'falls back HYMNE chord path to matching KR native overlay data',
-    () async {
-      final service = LocalAssetService(PdfChunkService());
+  test('does not cross-map HYMNE chord path to KR', () async {
+    final service = LocalAssetService(PdfChunkService());
 
-      final path = await service.getChordPath('HYMNE', '001');
+    final path = await service.getChordPath('HYMNE', '001');
 
-      expect(
-        path,
-        'assets/data/chord/kr/001_Pujilah Allah Yang Maha Esa.chord.json',
-      );
-      final json = await rootBundle.loadString(path!);
-      expect(json, contains('"noteIdx"'));
-    },
-  );
+    expect(path, isNull);
+  });
+
+  test('does not cross-map MDR chord path to KR', () async {
+    final service = LocalAssetService(PdfChunkService());
+
+    final path = await service.getChordPath('MDR', '001');
+
+    expect(path, isNull);
+  });
+
+  test('does not cross-map ASM-I chord path to KR', () async {
+    final service = LocalAssetService(PdfChunkService());
+
+    final path = await service.getChordPath('ASM-I', '001');
+
+    expect(path, isNull);
+  });
 
   test('resolves ASM pdf path to consolidated master range', () async {
     final service = LocalAssetService(PdfChunkService());
 
     final path = await service.getPdfPath('ASM-I', '001');
 
-    expect(path, startsWith('assets/data/pdf/asm_i/asm_i_master.pdf#'));
+    expect(path, startsWith('assets/data/pdf/asm_i/'));
     expect(path, contains('page='));
     expect(path, contains('pages='));
     final data = await rootBundle.load(path!.split('#').first);

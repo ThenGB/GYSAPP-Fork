@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:church/data/services/chord_service.dart';
 import 'package:church/data/services/local_asset_service.dart';
 import 'package:church/data/services/midi_engine_service.dart';
 import 'package:church/data/services/pdf_chunk_service.dart';
@@ -119,11 +120,8 @@ void main() {
     },
   );
 
-  test('loads HYMNE chord data through KR fallback asset path', () async {
-    final assetService = _FakeAssetService(
-      chordPath:
-          'assets/data/chord/kr/001_Pujilah Allah Yang Maha Esa.chord.json',
-    );
+  test('requests chord data using the active book code', () async {
+    final assetService = _FakeAssetService(chordPath: null);
     final cubit = SongCubit(
       _FakeSongRepository(),
       assetService,
@@ -136,8 +134,7 @@ void main() {
     );
 
     expect(assetService.chordRequests, contains('HYMNE:001'));
-    expect(chords, isNotNull);
-    expect(chords!.values.expand((page) => page), isNotEmpty);
+    expect(chords, isNull);
 
     await cubit.close();
   });
@@ -171,6 +168,41 @@ void main() {
       await cubit.close();
     },
   );
+
+  test('HYMNE PDF metadata warmup does not request KR fallback path', () async {
+    final assetService = _FakeAssetService();
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      assetService,
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+    assetService.pdfRequests.clear();
+
+    cubit.sync(
+      const SongState(
+        bookCode: 'HYMNE',
+        songBook: [
+          SongBook(
+            code: 'HYMNE',
+            songs: [Song(code: 'HYMNE', number: '001', title: 'Pujilah Allah')],
+          ),
+        ],
+      ),
+    );
+
+    await cubit.changePage(0, 0);
+    await _flushAsync();
+
+    expect(assetService.pdfRequests, isNotEmpty);
+    expect(assetService.pdfRequests.any((it) => it.startsWith('KR:')), isFalse);
+    expect(
+      assetService.pdfRequests.any((it) => it.startsWith('HYMNE:')),
+      isTrue,
+    );
+
+    await cubit.close();
+  });
 
   test(
     'cycleLoopMode follows gyschordweb order without playlist fallback',
@@ -301,6 +333,62 @@ void main() {
   );
 
   test(
+    'updatePdfKey applies natural transpose even before family chord loads',
+    () async {
+      final engine = _FakeMidiEngine();
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        _FakeAssetService(),
+        engine,
+      );
+      await _flushAsync();
+      engine.events.clear();
+
+      cubit.updatePdfKey('Fis');
+
+      expect(cubit.state.originalFamilyChord, isNull);
+      expect(cubit.state.originalPdfKey, 'Fis');
+      expect(cubit.state.transposeStep, -1);
+      expect(cubit.state.baseTransposeOffset, 0);
+      expect(engine.events, contains('setTranspose:-1'));
+
+      await cubit.close();
+    },
+  );
+
+  test('toggleChord is disabled for HYMNE book', () async {
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      _FakeAssetService(),
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+
+    cubit.sync(const SongState(bookCode: 'HYMNE', showChord: true));
+    cubit.toggleChord();
+
+    expect(cubit.state.showChord, isFalse);
+    await cubit.close();
+  });
+
+  test('updatePdfKey infers accidental style from detected PDF key', () async {
+    final cubit = SongCubit(
+      _FakeSongRepository(),
+      _FakeAssetService(),
+      _FakeMidiEngine(),
+    );
+    await _flushAsync();
+
+    cubit.updatePdfKey('Bes');
+    expect(cubit.state.chordAccidentalMode, ChordService.accidentalFlat);
+
+    cubit.updatePdfKey('Fis');
+    expect(cubit.state.chordAccidentalMode, ChordService.accidentalSharp);
+
+    await cubit.close();
+  });
+
+  test(
     'stale page load completion does not clear newer loading state',
     () async {
       final engine = _BlockingMidiEngine();
@@ -341,6 +429,30 @@ void main() {
       await _flushAsync();
 
       expect(cubit.state.isAudioLoading, isFalse);
+
+      await cubit.close();
+    },
+  );
+
+  test(
+    'tempo debounce from previous song is canceled on page change',
+    () async {
+      final engine = _FakeMidiEngine();
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        _FakeAssetService(),
+        engine,
+      );
+      await _flushAsync();
+      engine.events.clear();
+
+      cubit.updatePdfTempo(120);
+      await cubit.changePage(1, 0);
+      await Future<void>.delayed(const Duration(milliseconds: 180));
+
+      expect(engine.events, isNot(contains('setTempoBase:120.0')));
+      expect(cubit.state.pageIndex, 1);
+      expect(cubit.state.defaultTempoBpm, 76);
 
       await cubit.close();
     },

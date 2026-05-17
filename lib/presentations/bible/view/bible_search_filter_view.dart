@@ -44,6 +44,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: context.colorScheme.surfaceContainerLowest,
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
@@ -51,7 +52,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
             style: ElevatedButton.styleFrom(
               minimumSize: Size.fromHeight(56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(8),
               ),
             ),
             onPressed:
@@ -66,10 +67,13 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
         ),
       ),
       appBar: AppBar(
+        backgroundColor: context.colorScheme.surfaceContainerLowest,
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.outlineVariant),
+          bottom: BorderSide(
+            color: context.colorScheme.outlineVariant.withValues(alpha: 0.68),
+          ),
         ),
-        title: const Text('Kidung Rohani'),
+        title: const Text('Bible Filters'),
         centerTitle: true,
         actions: [
           AnimatedSize(
@@ -99,7 +103,16 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
               child: child,
             ),
         child: Container(
-          color: context.colorScheme.surface,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                context.colorScheme.surfaceContainerLowest,
+                context.colorScheme.surface,
+              ],
+            ),
+          ),
           child: FutureBuilder(
             future: FirebaseUtils.jsonConfig('bible_name'),
             builder: (context, snapshot) => ListView(
@@ -146,9 +159,11 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
                   widget.textScale,
               child: Material(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(8),
                 color: values.contains(e.value)
-                    ? context.colorScheme.secondaryContainer
+                    ? context.colorScheme.primaryContainer.withValues(
+                        alpha: 0.6,
+                      )
                     : context.colorScheme.surfaceContainerLow,
                 child: InkWell(
                   onTap: () {
@@ -156,10 +171,10 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                       border: values.contains(e.value)
                           ? Border.all(
-                              color: context.colorScheme.secondary,
+                              color: context.colorScheme.primary,
                               strokeAlign: BorderSide.strokeAlignInside,
                             )
                           : Border.all(

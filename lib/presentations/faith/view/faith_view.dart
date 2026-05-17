@@ -20,6 +20,8 @@ import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
+const double _faithMaxContentWidth = 1040;
+
 @RoutePage()
 class FaithView extends StatefulWidget {
   const FaithView({super.key});
@@ -98,15 +100,14 @@ class _FaithViewState extends State<FaithView> {
         backgroundColor: context.colorScheme.surface,
 
         appBar: AppBar(
-          title: const Text('Kidung Rohani'),
+          backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
+          title: const Text('Beliefs'),
           automaticallyImplyLeading: false,
-          shape: Border(
-            bottom: BorderSide(color: context.colorScheme.outlineVariant),
-          ),
+          toolbarHeight: 74,
           leading: IconButton(
             tooltip: 'Menu',
             onPressed: openDashboardDrawer,
-            icon: const Icon(Icons.menu_rounded),
+            icon: const Icon(Icons.auto_stories_rounded),
           ),
           actions: [
             IconButton(
@@ -208,123 +209,156 @@ class _FaithViewState extends State<FaithView> {
         // ),
         body: !isInitialized
             ? const Center(child: CircularProgressIndicator())
-            : Column(
-                children: [
-                  Expanded(
-                    child: Listener(
-                      onPointerUp: (event) {
-                        touches.remove(event.pointer);
-                        if (touches.length <= 1) {
-                          if (onScaling) {
-                            setState(() {
-                              onScaling = false;
-                            });
+            : DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      context.colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.22,
+                      ),
+                      context.colorScheme.surfaceContainerLow.withValues(
+                        alpha: 0.38,
+                      ),
+                      context.colorScheme.surface,
+                    ],
+                  ),
+                ),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: Listener(
+                        onPointerUp: (event) {
+                          touches.remove(event.pointer);
+                          if (touches.length <= 1) {
+                            if (onScaling) {
+                              setState(() {
+                                onScaling = false;
+                              });
+                            }
                           }
-                        }
-                      },
-                      onPointerDown: (event) {
-                        touches.add(event.pointer);
-                        if (touches.length > 1) {
-                          if (!onScaling) {
-                            setState(() {
-                              onScaling = true;
-                            });
-                          }
-                        }
-                      },
-                      onPointerCancel: (event) {
-                        touches.remove(event.pointer);
-                        if (touches.length <= 1) {
-                          if (onScaling) {
-                            setState(() {
-                              onScaling = false;
-                            });
-                          }
-                        }
-                      },
-                      child: GestureDetector(
-                        onScaleStart: (ScaleStartDetails details) {
-                          _baseScale = _currentScale;
                         },
-                        onScaleUpdate: (ScaleUpdateDetails details) {
-                          setState(() {
-                            _currentScale = (_baseScale * details.scale).clamp(
-                              .8,
-                              2,
+                        onPointerDown: (event) {
+                          touches.add(event.pointer);
+                          if (touches.length > 1) {
+                            if (!onScaling) {
+                              setState(() {
+                                onScaling = true;
+                              });
+                            }
+                          }
+                        },
+                        onPointerCancel: (event) {
+                          touches.remove(event.pointer);
+                          if (touches.length <= 1) {
+                            if (onScaling) {
+                              setState(() {
+                                onScaling = false;
+                              });
+                            }
+                          }
+                        },
+                        child: GestureDetector(
+                          onScaleStart: (ScaleStartDetails details) {
+                            _baseScale = _currentScale;
+                          },
+                          onScaleUpdate: (ScaleUpdateDetails details) {
+                            setState(() {
+                              _currentScale = (_baseScale * details.scale)
+                                  .clamp(.8, 2);
+                            });
+                          },
+                          onScaleEnd: (details) {
+                            context.read<FaithCubit>().changeTextScale(
+                              _currentScale,
                             );
-                          });
-                        },
-                        onScaleEnd: (details) {
-                          context.read<FaithCubit>().changeTextScale(
-                            _currentScale,
-                          );
-                        },
-                        child: Container(
-                          color: context.colorScheme.surface,
-                          child: IgnorePointer(
-                            ignoring: onScaling,
-                            child: ListView.builder(
-                              itemCount: currentData.length + 1,
-                              physics: onScaling
-                                  ? NeverScrollableScrollPhysics()
-                                  : AlwaysScrollableScrollPhysics(),
-                              itemBuilder: (context, index) {
-                                if (index == 0) {
-                                  return _FaithHeader(title: currentTitle);
-                                }
-                                final faithIndex = index - 1;
-                                var item = currentData[faithIndex];
-                                return DefaultTextStyle.merge(
-                                  style: TextStyle(
-                                    fontWeight:
-                                        context
-                                            .read<FaithCubit>()
-                                            .state
-                                            .locale
-                                            .languageCode
-                                            .contains('zh')
-                                        ? FontWeight.w700
-                                        : null,
-                                  ),
-                                  child: FaithWidget(
-                                    fontHeight: state.defaultTextHeight,
-                                    index: faithIndex,
-                                    item: item,
-                                    scale: scale,
-                                  ),
-                                );
-                              },
+                          },
+                          child: Container(
+                            color: Colors.transparent,
+                            child: IgnorePointer(
+                              ignoring: onScaling,
+                              child: ListView.builder(
+                                itemCount: currentData.length + 1,
+                                physics: onScaling
+                                    ? NeverScrollableScrollPhysics()
+                                    : AlwaysScrollableScrollPhysics(),
+                                itemBuilder: (context, index) {
+                                  if (index == 0) {
+                                    return Align(
+                                      alignment: Alignment.topCenter,
+                                      child: ConstrainedBox(
+                                        constraints: const BoxConstraints(
+                                          maxWidth: _faithMaxContentWidth,
+                                        ),
+                                        child: _FaithHeader(
+                                          title: currentTitle,
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  final faithIndex = index - 1;
+                                  var item = currentData[faithIndex];
+                                  return Align(
+                                    alignment: Alignment.topCenter,
+                                    child: ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        maxWidth: _faithMaxContentWidth,
+                                      ),
+                                      child: DefaultTextStyle.merge(
+                                        style: TextStyle(
+                                          fontWeight:
+                                              context
+                                                  .read<FaithCubit>()
+                                                  .state
+                                                  .locale
+                                                  .languageCode
+                                                  .contains('zh')
+                                              ? FontWeight.w700
+                                              : null,
+                                        ),
+                                        child: FaithWidget(
+                                          fontHeight: state.defaultTextHeight,
+                                          index: faithIndex,
+                                          item: item,
+                                          scale: scale,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                  AnimatedSize(
-                    curve: Curves.easeOut,
-                    alignment: Alignment.bottomCenter,
-                    duration: kThemeAnimationDuration,
-                    child: state.selectedFaith.isEmpty
-                        ? const SizedBox.shrink()
-                        : PlayAnimationBuilder(
-                            curve: Curves.easeOut,
-                            delay: kThemeAnimationDuration,
-                            duration: kThemeAnimationDuration,
-                            tween: Tween<double>(begin: 0, end: 1),
-                            builder: (c, value, child) => Opacity(
-                              opacity: value,
-                              child: SelectedFaithMenu(
-                                key: selectedFaithMenuKey,
-                                title: currentTitle,
-                                indexes: state.selectedFaith,
-                                currentData: currentData,
-                                viewPadding:
-                                    context.mediaQuery.viewPadding.vertical,
+                    AnimatedSize(
+                      curve: Curves.easeOut,
+                      alignment: Alignment.bottomCenter,
+                      duration: kThemeAnimationDuration,
+                      child: state.selectedFaith.isEmpty
+                          ? const SizedBox.shrink()
+                          : PlayAnimationBuilder(
+                              curve: Curves.easeOut,
+                              delay: kThemeAnimationDuration,
+                              duration: kThemeAnimationDuration,
+                              tween: Tween<double>(begin: 0, end: 1),
+                              builder: (c, value, child) => Opacity(
+                                opacity: value,
+                                child: SelectedFaithMenu(
+                                  key: selectedFaithMenuKey,
+                                  title: currentTitle,
+                                  indexes: state.selectedFaith,
+                                  currentData: currentData,
+                                  viewPadding:
+                                      context.mediaQuery.viewPadding.vertical,
+                                ),
                               ),
                             ),
-                          ),
-                  ),
-                ],
+                    ),
+                  ],
+                ),
               ),
       ),
     );
@@ -364,121 +398,155 @@ class FaithWidget extends StatelessWidget {
             );
           }
         },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOut,
-          margin: const EdgeInsets.fromLTRB(14, 7, 14, 7),
-          clipBehavior: Clip.antiAlias,
-          decoration: BoxDecoration(
-            color: state.selectedFaith.contains(index)
-                ? context.colorScheme.surfaceContainerHigh
-                : context.colorScheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: state.selectedFaith.contains(index)
-                  ? context.colorScheme.primary
-                  : context.colorScheme.outlineVariant.withValues(alpha: 0.30),
-            ),
-            boxShadow: state.selectedFaith.contains(index)
-                ? [
-                    BoxShadow(
-                      color: context.colorScheme.primary.withValues(
-                        alpha: 0.16,
-                      ),
-                      blurRadius: 8,
-                      offset: const Offset(0, 1),
-                    ),
-                  ]
-                : null,
-          ),
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-          child: Stack(
-            children: [
-              AnimatedPositioned(
-                duration: const Duration(milliseconds: 250),
-                right: -16,
-                bottom: -24,
-                child: AnimatedDefaultTextStyle(
-                  duration: const Duration(milliseconds: 250),
-                  style: (context.textTheme.headlineLarge ?? const TextStyle())
-                      .copyWith(
-                        fontSize: 140,
-                        fontWeight: FontWeight.w900,
-                        color: context.colorScheme.primary.withValues(
-                          alpha: state.selectedFaith.contains(index)
-                              ? 0.20
-                              : 0.10,
-                        ),
-                        height: 1,
-                      ),
-                  child: Text(_romanNumeral(index + 1)),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final compact = constraints.maxWidth < 430;
+            final cardPadding = compact ? 18.0 : 24.0;
+            final markerSize = compact ? 104.0 : 140.0;
+            final numberGap = compact ? 12.0 : 16.0;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOut,
+              margin: const EdgeInsets.fromLTRB(14, 7, 14, 7),
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: state.selectedFaith.contains(index)
+                      ? [
+                          context.colorScheme.primaryContainer.withValues(
+                            alpha: 0.56,
+                          ),
+                          context.colorScheme.surfaceContainerHigh.withValues(
+                            alpha: 0.8,
+                          ),
+                        ]
+                      : [
+                          context.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.76),
+                          context.colorScheme.surfaceContainerLow.withValues(
+                            alpha: 0.78,
+                          ),
+                        ],
                 ),
+                borderRadius: BorderRadius.circular(compact ? 14 : 18),
+                border: Border.all(
+                  color: state.selectedFaith.contains(index)
+                      ? context.colorScheme.primary
+                      : context.colorScheme.outlineVariant.withValues(
+                          alpha: 0.30,
+                        ),
+                ),
+                boxShadow: state.selectedFaith.contains(index)
+                    ? [
+                        BoxShadow(
+                          color: context.colorScheme.primary.withValues(
+                            alpha: 0.16,
+                          ),
+                          blurRadius: 8,
+                          offset: const Offset(0, 1),
+                        ),
+                      ]
+                    : null,
               ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              padding: EdgeInsets.fromLTRB(
+                cardPadding,
+                cardPadding,
+                cardPadding,
+                cardPadding,
+              ),
+              child: Stack(
                 children: [
-                  Text(
-                    '${item['number']}',
-                    style: context.textTheme.headlineLarge?.copyWith(
-                      color: context.colorScheme.primary,
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 250),
+                    right: -16,
+                    bottom: compact ? -14 : -24,
+                    child: AnimatedDefaultTextStyle(
+                      duration: const Duration(milliseconds: 250),
+                      style:
+                          (context.textTheme.headlineLarge ?? const TextStyle())
+                              .copyWith(
+                                fontSize: markerSize,
+                                fontWeight: FontWeight.w900,
+                                color: context.colorScheme.primary.withValues(
+                                  alpha: state.selectedFaith.contains(index)
+                                      ? 0.20
+                                      : 0.10,
+                                ),
+                                height: 1,
+                              ),
+                      child: Text(_romanNumeral(index + 1)),
                     ),
                   ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text.rich(
-                          TextSpan(text: item['text'].toString()),
-                          textScaler: TextScaler.linear(scale),
-                          style: state.defaultTextTheme.bodyMedium?.copyWith(
-                            height: fontHeight,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 16,
-                          ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${item['number']}',
+                        style: context.textTheme.headlineLarge?.copyWith(
+                          color: context.colorScheme.primary,
                         ),
-                        const SizedBox(height: 12),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
+                      ),
+                      SizedBox(width: numberGap),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              'LIHAT PENJELASAN LENGKAP',
-                              style: context.textTheme.labelSmall?.copyWith(
-                                color: context.colorScheme.secondary,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.1,
-                              ),
+                            Text.rich(
+                              TextSpan(text: item['text'].toString()),
+                              textScaler: TextScaler.linear(scale),
+                              style: state.defaultTextTheme.bodyMedium
+                                  ?.copyWith(
+                                    height: fontHeight,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16,
+                                  ),
                             ),
-                            Icon(
-                              Icons.keyboard_arrow_down_rounded,
-                              size: 16,
-                              color: context.colorScheme.secondary,
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'LIHAT PENJELASAN LENGKAP',
+                                  style: context.textTheme.labelSmall?.copyWith(
+                                    color: context.colorScheme.secondary,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.1,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.keyboard_arrow_down_rounded,
+                                  size: 16,
+                                  color: context.colorScheme.secondary,
+                                ),
+                              ],
+                            ),
+                            FutureBuilder<String?>(
+                              future: context.read<FaithCubit>().getPdfName(
+                                index + 1,
+                              ),
+                              builder: (context, snapshot) {
+                                final pdfName = snapshot.data;
+                                if (pdfName == null) return SizedBox.shrink();
+                                return Padding(
+                                  padding: const EdgeInsets.only(top: 12),
+                                  child: _FaithPdfPill(
+                                    index: index + 1,
+                                    pdfName: pdfName,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
-                        FutureBuilder<String?>(
-                          future: context.read<FaithCubit>().getPdfName(
-                            index + 1,
-                          ),
-                          builder: (context, snapshot) {
-                            final pdfName = snapshot.data;
-                            if (pdfName == null) return SizedBox.shrink();
-                            return Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: _FaithPdfPill(
-                                index: index + 1,
-                                pdfName: pdfName,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );
@@ -493,36 +561,47 @@ class _FaithHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
-      child: Column(
-        children: [
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: context.textTheme.headlineLarge?.copyWith(
-              fontWeight: FontWeight.w600,
-              color: context.colorScheme.primary,
-            ),
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.colorScheme.primaryContainer.withValues(alpha: 0.4),
+              context.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.86,
+              ),
+            ],
           ),
-          const SizedBox(height: 10),
-          Container(
-            width: 48,
-            height: 4,
-            decoration: BoxDecoration(
-              color: context.colorScheme.outlineVariant,
-              borderRadius: BorderRadius.circular(999),
-            ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: context.colorScheme.primary.withValues(alpha: 0.24),
           ),
-          const SizedBox(height: 16),
-          Text(
-            'Sepuluh pilar iman yang menjadi pondasi kerohanian Gereja Yesus Sejati.',
-            textAlign: TextAlign.center,
-            style: context.textTheme.bodyLarge?.copyWith(
-              color: context.colorScheme.onSurfaceVariant,
-              height: 1.55,
+        ),
+        child: Column(
+          children: [
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: context.textTheme.headlineLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: context.colorScheme.primary,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 10),
+            Text(
+              'Sepuluh pilar iman yang menjadi pondasi kerohanian Gereja Yesus Sejati.',
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.colorScheme.onSurfaceVariant,
+                height: 1.45,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -637,124 +716,133 @@ class SelectedFaithMenu extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      clipBehavior: Clip.antiAlias,
-      padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        border: Border.all(color: context.colorScheme.outlineVariant),
-        boxShadow: [
-          BoxShadow(blurRadius: 160, color: Colors.black.withValues(alpha: .2)),
-        ],
-        color: context.colorScheme.surface,
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text.rich(
-                  TextSpan(
-                    text:
-                        '${(indexes.map((e) => e + 1)).toList().joinToString()}  ',
-                    children: const [],
-                  ),
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-              IconButton(
-                icon: Icon(Icons.close),
-                visualDensity: VisualDensity.compact,
-                onPressed: context.read<FaithCubit>().removeSelection,
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 920),
+        child: Container(
+          clipBehavior: Clip.antiAlias,
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+            border: Border.all(color: context.colorScheme.outlineVariant),
+            boxShadow: [
+              BoxShadow(
+                blurRadius: 160,
+                color: Colors.black.withValues(alpha: .2),
               ),
             ],
+            color: context.colorScheme.surface,
           ),
-          SizedBox(height: 12),
-          Row(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              if (indexes.length == 1) ...[
-                TextButton(
-                  style: TextButton.styleFrom(
-                    backgroundColor: context.colorScheme.outlineVariant,
-                    foregroundColor: context.colorScheme.onSecondaryContainer,
-                  ),
-                  onPressed: () {
-                    router.push(
-                      FaithNoteRoute(
-                        initialData: FaithNote.empty(
-                          context.read<FaithCubit>().state.selectedFaith,
-                        ),
-                        cubit: context.read<FaithCubit>(),
-                        mode: NoteMode.write,
-                        onSave: (data) {
-                          context.read<FaithCubit>().saveNote(data);
-                          router.maybePop();
-                          router.push(
-                            FaithNoteListRoute(cubit: context.read()),
-                          );
-                        },
+              Row(
+                children: [
+                  Expanded(
+                    child: Text.rich(
+                      TextSpan(
+                        text:
+                            '${(indexes.map((e) => e + 1)).toList().joinToString()}  ',
+                        children: const [],
                       ),
-                    );
-                  },
-                  child: Text('Note'.tr()),
-                ),
-                SizedBox(width: 8),
-              ],
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: context.colorScheme.outlineVariant,
-                  foregroundColor: context.colorScheme.onSecondaryContainer,
-                ),
-                onPressed: () async {
-                  String text = '';
-                  var verses = indexes.sorted((a, b) => a.compareTo(b));
-                  var json = await FirebaseUtils.jsonConfig(
-                    'footer_copied_text',
-                  );
-                  var footer = json[context.locale.languageCode];
-                  text = title;
-                  for (var index in verses) {
-                    var verse = currentData[index]['text'];
-                    var number = index + 1;
-                    text += '\n$number. $verse';
-                  }
-                  text += '\n\n$footer';
-                  SharePlus.instance.share(ShareParams(text: text));
-                },
-                child: Text('Share'.tr()),
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.close),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: context.read<FaithCubit>().removeSelection,
+                  ),
+                ],
               ),
-              SizedBox(width: 8),
-              TextButton(
-                style: TextButton.styleFrom(
-                  backgroundColor: context.colorScheme.outlineVariant,
-                  foregroundColor: context.colorScheme.onSecondaryContainer,
-                ),
-                onPressed: () async {
-                  String text = '';
-                  var verses = indexes.sorted((a, b) => a.compareTo(b));
-                  var json = await FirebaseUtils.jsonConfig(
-                    'footer_copied_text',
-                  );
-                  var footer = json[context.locale.languageCode];
-                  text = title;
-                  for (var index in verses) {
-                    var verse = currentData[index]['text'];
-                    var number = index + 1;
-                    text += '\n$number. $verse';
-                  }
-                  text += '\n\n$footer';
-                  await Clipboard.setData(ClipboardData(text: text));
-                  Fluttertoast.cancel();
-                  Fluttertoast.showToast(msg: 'Copied!'.tr());
-                },
-                child: Text('Copy'.tr()),
+              SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  if (indexes.length == 1)
+                    TextButton(
+                      style: TextButton.styleFrom(
+                        backgroundColor: context.colorScheme.outlineVariant,
+                        foregroundColor:
+                            context.colorScheme.onSecondaryContainer,
+                      ),
+                      onPressed: () {
+                        router.push(
+                          FaithNoteRoute(
+                            initialData: FaithNote.empty(
+                              context.read<FaithCubit>().state.selectedFaith,
+                            ),
+                            cubit: context.read<FaithCubit>(),
+                            mode: NoteMode.write,
+                            onSave: (data) {
+                              context.read<FaithCubit>().saveNote(data);
+                              router.maybePop();
+                              router.push(
+                                FaithNoteListRoute(cubit: context.read()),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                      child: Text('Note'.tr()),
+                    ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: context.colorScheme.outlineVariant,
+                      foregroundColor: context.colorScheme.onSecondaryContainer,
+                    ),
+                    onPressed: () async {
+                      String text = '';
+                      var verses = indexes.sorted((a, b) => a.compareTo(b));
+                      var json = await FirebaseUtils.jsonConfig(
+                        'footer_copied_text',
+                      );
+                      var footer = json[context.locale.languageCode];
+                      text = title;
+                      for (var index in verses) {
+                        var verse = currentData[index]['text'];
+                        var number = index + 1;
+                        text += '\n$number. $verse';
+                      }
+                      text += '\n\n$footer';
+                      SharePlus.instance.share(ShareParams(text: text));
+                    },
+                    child: Text('Share'.tr()),
+                  ),
+                  TextButton(
+                    style: TextButton.styleFrom(
+                      backgroundColor: context.colorScheme.outlineVariant,
+                      foregroundColor: context.colorScheme.onSecondaryContainer,
+                    ),
+                    onPressed: () async {
+                      String text = '';
+                      var verses = indexes.sorted((a, b) => a.compareTo(b));
+                      var json = await FirebaseUtils.jsonConfig(
+                        'footer_copied_text',
+                      );
+                      var footer = json[context.locale.languageCode];
+                      text = title;
+                      for (var index in verses) {
+                        var verse = currentData[index]['text'];
+                        var number = index + 1;
+                        text += '\n$number. $verse';
+                      }
+                      text += '\n\n$footer';
+                      await Clipboard.setData(ClipboardData(text: text));
+                      Fluttertoast.cancel();
+                      Fluttertoast.showToast(msg: 'Copied!'.tr());
+                    },
+                    child: Text('Copy'.tr()),
+                  ),
+                ],
               ),
+              SizedBox(height: 8 + 16 + viewPadding),
             ],
           ),
-          SizedBox(height: 8 + 16 + viewPadding),
-        ],
+        ),
       ),
     );
   }

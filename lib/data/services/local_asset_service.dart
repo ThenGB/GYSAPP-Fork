@@ -20,7 +20,6 @@ class LocalAssetService {
   Map<String, dynamic>? _assetManifest;
   final Map<String, Map<String, dynamic>> _pdfManifestCache = {};
   Map<String, String>? _normalizedAssetPathMap;
-  Map<String, Map<String, String>>? _pdfPathByBookAndNumber;
 
   /// Maps asset paths (e.g. `assets/data/pdf/mdr/mdr_master.pdf`) to temp file
   /// paths extracted on disk so pdfrx can open them with `PdfViewer.file`.
@@ -94,43 +93,26 @@ class LocalAssetService {
   }
 
   Future<String?> getChordPath(String bookCode, String number) async {
-    if (bookCode == 'HYMNE') return getChordPath('KR', number);
-    if (bookCode != 'KR') return null;
     final song = await _findSong(bookCode, number);
     if (song.isEmpty) return null;
-    if (song['hasChord'] != true) return null;
-    return _resolveAssetPath(song['chordFile'] as String?);
+
+    // Native chord file only. Do not cross-map chords across books because
+    // numbering/title mappings can differ per book.
+    if (song['hasChord'] == true) {
+      final nativePath = await _resolveAssetPath(song['chordFile'] as String?);
+      if (nativePath != null) return nativePath;
+    }
+
+    return null;
   }
 
   Future<String?> getPdfPath(String bookCode, String number) async {
-    final song = await _findSong(bookCode, number);
-    if (song.isEmpty) return null;
-
-    final masterPath = await _resolveMasterPdfPath(bookCode, number);
-    if (masterPath != null) return masterPath;
-
-    final indexedPath = await _resolveAssetPath(song['pdfFile'] as String?);
-    if (indexedPath != null) return indexedPath;
-    final numberedPath = await _resolvePdfByNumber(bookCode, number);
-    if (numberedPath != null) return numberedPath;
-
-    return null;
+    return _resolveMasterPdfPath(bookCode, number);
   }
 
   Future<Map<String, dynamic>> _findSong(String bookCode, String number) async {
     await _loadBookIndex(bookCode);
     return _songLookupCache[bookCode]?[number] ?? {};
-  }
-
-  Future<String?> _resolvePdfByNumber(String bookCode, String number) async {
-    final pdfIndex = await _loadPdfPathIndex();
-    final bookIndex = pdfIndex[bookCode];
-    final resolved = bookIndex?[number] ?? bookIndex?[number.padLeft(3, '0')];
-    if (resolved != null) return resolved;
-
-    // No PDF for this song — not an error, many songs legitimately have
-    // no sheet-music PDF (e.g. MDR songs 003, 103, etc.).
-    return null;
   }
 
   Future<String?> _resolveMasterPdfPath(String bookCode, String number) async {
@@ -155,11 +137,15 @@ class LocalAssetService {
       return null;
     }
 
-    // Check for optimized chunks first
+    // Hybrid mode: prefer chunked master-range loading.
+    // This keeps asset footprint near merged-master size and still gives
+    // fast random song access by loading only the referenced chunk/pages.
     final chunkFile = manifest['chunkFile'] as String?;
     final chunkIndex = entry['chunkIndex'];
     final relStart = entry['chunkRelativeStart'];
     if (chunkFile != null && chunkIndex is int && relStart is int) {
+      final pageCount = entry['pageCount'] as int? ?? 1;
+      final masterPath = manifest['masterPath'] as String? ?? chunkFile;
       try {
         final chunkPath = await _chunkService.getChunkFile(
           chunkFilePath: chunkFile,
@@ -167,39 +153,26 @@ class LocalAssetService {
           cacheKey: bookCode,
         );
         if (chunkPath != null) {
-          final pageCount = entry['pageCount'] as int? ?? 1;
-          final masterPath = manifest['masterPath'] as String? ?? chunkFile;
           final version = await _fileVersion(chunkPath);
           return '$chunkPath#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath, version: version)}';
         }
+        // Same chunk-based strategy, but without extracted temp chunk file.
+        return '$chunkFile#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath)}';
       } catch (e) {
         log(
           'Failed to load chunk for $bookCode $number: $e',
           name: 'LocalAssetService',
         );
+        // Keep strict chunk mode: fall back to the raw chunk asset path only.
+        return '$chunkFile#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath)}';
       }
     }
 
-    final path = entry['path'] as String? ?? manifest['masterPath'] as String?;
-    final startPage = entry['startPage'];
-    final pageCount = entry['pageCount'];
-    if (path == null || startPage is! int || pageCount is! int) {
-      log('Incomplete entry for $bookCode $number', name: 'LocalAssetService');
-      return null;
-    }
-
-    // Extract large master PDFs to temp files so pdfrx opens them via
-    // PdfViewer.file() instead of PdfViewer.asset().  This avoids flaky
-    // asset-loading on Windows desktop with multi-ten-megabyte files.
-    if (path.startsWith('assets/')) {
-      final tempPath = await _extractMasterPdfToTemp(path);
-      if (tempPath != null) {
-        final version = await _fileVersion(tempPath);
-        return '$tempPath#${_pdfRangeFragment(page: startPage, pages: pageCount, version: version)}';
-      }
-    }
-
-    return '$path#${_pdfRangeFragment(page: startPage, pages: pageCount)}';
+    log(
+      'Chunk metadata missing for $bookCode $number (strict chunk mode)',
+      name: 'LocalAssetService',
+    );
+    return null;
   }
 
   Future<String?> _fileVersion(String path) async {
@@ -430,41 +403,7 @@ class LocalAssetService {
     };
   }
 
-  Future<Map<String, Map<String, String>>> _loadPdfPathIndex() async {
-    if (_pdfPathByBookAndNumber != null) return _pdfPathByBookAndNumber!;
-
-    final manifest = await _loadAssetManifest();
-    final index = <String, Map<String, String>>{};
-    const folderToCode = {
-      'kr': 'KR',
-      'hymne': 'HYMNE',
-      'mdr': 'MDR',
-      'asm_i': 'ASM-I',
-      'asm_m': 'ASM-M',
-      'asm_p': 'ASM-P',
-    };
-    final numberPattern = RegExp(r'^([0-9]+[A-Za-z]?)');
-
-    for (final key in manifest.keys) {
-      final normalized = key.replaceAll('\\', '/');
-      if (!normalized.toLowerCase().endsWith('.pdf')) continue;
-      final parts = normalized.split('/');
-      if (parts.length < 5 || parts[0] != 'assets' || parts[2] != 'pdf') {
-        continue;
-      }
-      final code = folderToCode[parts[3].toLowerCase()];
-      if (code == null) continue;
-      final match = numberPattern.firstMatch(parts.last);
-      if (match == null) continue;
-      index.putIfAbsent(code, () => {})[match.group(1)!] = key;
-    }
-
-    _pdfPathByBookAndNumber = index;
-    return index;
-  }
-
   Future<bool> hasChord(String bookCode, String number) async {
-    if (bookCode != 'KR') return false;
     final path = await getChordPath(bookCode, number);
     if (path == null) return false;
     try {

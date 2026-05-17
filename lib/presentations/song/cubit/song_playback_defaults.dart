@@ -68,7 +68,19 @@ class SongPlaybackDefaults {
       pdfKey: pdfKey,
       familyChord: familyChord,
     );
-    final transpose = preferNaturalChords ? 0 : transposeStep;
+    final hasPdfAnchoredFamily =
+        (familyChord?.trim().isNotEmpty ?? false) &&
+        (pdfKey?.trim().isNotEmpty ?? false);
+    final transpose = hasPdfAnchoredFamily
+        ? 0
+        : preferNaturalChords
+        ? (familyChord?.trim().isNotEmpty ?? false)
+              ? ChordService.recommendedNaturalTranspose(
+                  familyChord,
+                  baseTransposeOffset: offset,
+                )
+              : ChordService.recommendedNaturalTransposeForPdfKey(pdfKey)
+        : transposeStep;
     return copyWith(
       transposeStep: transpose,
       originalFamilyChord: familyChord,

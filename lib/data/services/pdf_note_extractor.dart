@@ -5,6 +5,8 @@ import 'package:pdfrx/pdfrx.dart';
 /// Position of a note on a PDF page, as percentage of page dimensions.
 typedef NotePosition = ({double xPct, double yPct});
 
+enum ExtractionProfile { standard, mdr, krLegacy }
+
 /// Detailed note information including position and label.
 class NoteInfo {
   final int idx;
@@ -56,7 +58,11 @@ class PdfExtractionResult {
   final String? detectedKey;
   final double? detectedTempo;
 
-  PdfExtractionResult({required this.notes, this.detectedKey, this.detectedTempo});
+  PdfExtractionResult({
+    required this.notes,
+    this.detectedKey,
+    this.detectedTempo,
+  });
 
   Map<String, dynamic> toJson() => {
     'notes': notes.map((n) => n.toJson()).toList(),
@@ -64,11 +70,14 @@ class PdfExtractionResult {
     'detectedTempo': detectedTempo,
   };
 
-  factory PdfExtractionResult.fromJson(Map<String, dynamic> json) => PdfExtractionResult(
-    notes: (json['notes'] as List).map((n) => NoteInfo.fromJson(n)).toList(),
-    detectedKey: json['detectedKey'],
-    detectedTempo: (json['detectedTempo'] as num?)?.toDouble(),
-  );
+  factory PdfExtractionResult.fromJson(Map<String, dynamic> json) =>
+      PdfExtractionResult(
+        notes: (json['notes'] as List)
+            .map((n) => NoteInfo.fromJson(n))
+            .toList(),
+        detectedKey: json['detectedKey'],
+        detectedTempo: (json['detectedTempo'] as num?)?.toDouble(),
+      );
 }
 
 /// Extracts note positions from a PDF page's raw text.
@@ -87,20 +96,25 @@ Future<Map<int, NotePosition>> extractNotePositionsAsync(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
+  {ExtractionProfile profile = ExtractionProfile.standard}
 ) async {
   return compute((args) {
+    final profileIndex = args['profileIndex'] as int;
     final result = extractPdfContent(
       args['rawText'] as PdfPageRawText,
       args['pageWidth'] as double,
       args['pageHeight'] as double,
+      profile: ExtractionProfile.values[profileIndex],
     );
     return {
-      for (final info in result.notes) info.idx: (xPct: info.xPct, yPct: info.yPct),
+      for (final info in result.notes)
+        info.idx: (xPct: info.xPct, yPct: info.yPct),
     };
   }, {
     'rawText': rawText,
     'pageWidth': pageWidth,
     'pageHeight': pageHeight,
+    'profileIndex': profile.index,
   });
 }
 
@@ -108,10 +122,12 @@ Map<int, NotePosition> extractNotePositions(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
+  {ExtractionProfile profile = ExtractionProfile.standard}
 ) {
-  final result = extractPdfContent(rawText, pageWidth, pageHeight);
+  final result = extractPdfContent(rawText, pageWidth, pageHeight, profile: profile);
   return {
-    for (final info in result.notes) info.idx: (xPct: info.xPct, yPct: info.yPct),
+    for (final info in result.notes)
+      info.idx: (xPct: info.xPct, yPct: info.yPct),
   };
 }
 
@@ -120,17 +136,21 @@ Future<PdfExtractionResult> extractPdfContentAsync(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
+  {ExtractionProfile profile = ExtractionProfile.standard}
 ) async {
   return compute((args) {
+    final profileIndex = args['profileIndex'] as int;
     return extractPdfContent(
       args['rawText'] as PdfPageRawText,
       args['pageWidth'] as double,
       args['pageHeight'] as double,
+      profile: ExtractionProfile.values[profileIndex],
     );
   }, {
     'rawText': rawText,
     'pageWidth': pageWidth,
     'pageHeight': pageHeight,
+    'profileIndex': profile.index,
   });
 }
 
@@ -138,7 +158,29 @@ PdfExtractionResult extractPdfContent(
   PdfPageRawText rawText,
   double pageWidth,
   double pageHeight,
+  {ExtractionProfile profile = ExtractionProfile.standard}
 ) {
+  bool isHoldSymbol(String char) => _isHoldSymbol(char, profile: profile);
+  bool isHoldOrRestSymbol(String char) =>
+      isHoldSymbol(char) || char == '0' || _isMdrHoldChar(char);
+  bool isNoteSymbol(String char) => _digitNotePattern.hasMatch(char);
+  bool isDetachedHoldRowSymbol(String char) {
+    if (profile == ExtractionProfile.mdr) {
+      return isHoldSymbol(char) || char == '0' || _isMdrHoldChar(char);
+    }
+    // Standard books: detached rows can also be dash holds.
+    return _standardDetachedHoldPattern.hasMatch(char) || char == '0';
+  }
+  final holdRowMaxDistance =
+      profile == ExtractionProfile.mdr ? _mdrHoldRowMaxDistance : _standardHoldRowMaxDistance;
+  bool isNotationChar(String char) {
+    if (char.isEmpty) return false;
+    if (_digitZeroToSevenPattern.hasMatch(char)) return true;
+    if (isHoldSymbol(char)) return true;
+    if (_isMdrHoldChar(char)) return true;
+    return false;
+  }
+
   final text = rawText.fullText;
   final rects = rawText.charRects;
   if (text.isEmpty || rects.length != text.length) {
@@ -148,21 +190,21 @@ PdfExtractionResult extractPdfContent(
   // Step 0: Detect Key (e.g., "1 = C" or "Do = F" or "1=Bes")
   // Mirror gyschordweb detection logic: scan the first part of the text layer.
   String? detectedKey;
-  final keyRegex = RegExp(
-    r'(?:1|Do|do)\s*[=:]\s*([A-G](?:[#♯b♭]|is|es)?)',
-    caseSensitive: false,
-  );
-  
   // Search the entire text layer but prioritize the beginning
-  final keyMatch = keyRegex.firstMatch(text);
+  final keyMatch = _keyRegex.firstMatch(text);
   if (keyMatch != null) {
-    var rawKey = keyMatch.group(1)?.toLowerCase() ?? '';
-    // Normalize notation to standard symbols
-    rawKey = rawKey
-        .replaceAll('♯', '#')
-        .replaceAll('♭', 'b')
-        .replaceAll('is', '#')
-        .replaceAll('es', 'b');
+    var rawKey = (keyMatch.group(1) ?? keyMatch.group(2) ?? '').toLowerCase();
+    // Normalize notation to standard symbols.
+    rawKey = rawKey.replaceAll('♯', '#').replaceAll('♭', 'b');
+    if (rawKey.length >= 2) {
+      final root = rawKey[0];
+      final suffix = rawKey.substring(1);
+      if (suffix == 'is') {
+        rawKey = '$root#';
+      } else if (suffix == 'es' || suffix == 's' || suffix == 'b') {
+        rawKey = '${root}b';
+      }
+    }
 
     // Special case for 'bes' (Bb) and 'as' (Ab) handled by is/es above
     // but ensuring uppercase root
@@ -172,7 +214,10 @@ PdfExtractionResult extractPdfContent(
       detectedKey = rawKey.toUpperCase();
     }
 
-    log('Detected PDF Key: $detectedKey from text: "${keyMatch.group(0)}"', name: 'PdfNoteExtractor');
+    log(
+      'Detected PDF Key: $detectedKey from text: "${keyMatch.group(0)}"',
+      name: 'PdfNoteExtractor',
+    );
   }
 
   // Step 0.1: Detect Tempo (e.g., "MM = 76" or "♩ = 120" or "M.M. 76")
@@ -180,34 +225,32 @@ PdfExtractionResult extractPdfContent(
   double? detectedTempo;
 
   // Normalize text to handle multiple spaces and trim
-  final normalized = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  final normalized = text.replaceAll(_whitespaceRegex, ' ').trim();
 
   // Pattern 1: Musical symbols (J, j, Q, q, ♩, ♪) with optional = or :
   // Mirror: /(?:^|[\s(])(?:J|j|Q|q|♩|♪|𝅘𝅥|𝅘𝅥𝅮)\s*[:=]\s*(\d{2,3})(?=\D|$)/
-  final symbolRegex = RegExp(
-    r'(?:^|[\s(])(?:J|j|Q|q|♩|♪)\s*[:=]\s*(\d{2,3})(?=\D|$)',
-    caseSensitive: false,
-  );
-  final symbolMatch = symbolRegex.firstMatch(normalized);
+  final symbolMatch = _tempoSymbolRegex.firstMatch(normalized);
   if (symbolMatch != null) {
     detectedTempo = double.tryParse(symbolMatch.group(1) ?? '');
     if (detectedTempo != null) {
-      log('Detected PDF Tempo (symbol): $detectedTempo from "${symbolMatch.group(0)}"', name: 'PdfNoteExtractor');
+      log(
+        'Detected PDF Tempo (symbol): $detectedTempo from "${symbolMatch.group(0)}"',
+        name: 'PdfNoteExtractor',
+      );
     }
   }
 
   // Pattern 2: BPM label (tempo, tempi, bpm)
   // Mirror: /(?:tempo|tempi|bpm)\s*[:=]?\s*(\d{2,3})\b/
   if (detectedTempo == null) {
-    final bpmRegex = RegExp(
-      r'(?:tempo|tempi|bpm)\s*[:=]?\s*(\d{2,3})\b',
-      caseSensitive: false,
-    );
-    final bpmMatch = bpmRegex.firstMatch(normalized);
+    final bpmMatch = _tempoBpmRegex.firstMatch(normalized);
     if (bpmMatch != null) {
       detectedTempo = double.tryParse(bpmMatch.group(1) ?? '');
       if (detectedTempo != null) {
-        log('Detected PDF Tempo (BPM): $detectedTempo from "${bpmMatch.group(0)}"', name: 'PdfNoteExtractor');
+        log(
+          'Detected PDF Tempo (BPM): $detectedTempo from "${bpmMatch.group(0)}"',
+          name: 'PdfNoteExtractor',
+        );
       }
     }
   }
@@ -215,12 +258,14 @@ PdfExtractionResult extractPdfContent(
   // Pattern 3: Loose match (standalone = followed by number)
   // Mirror: /(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b/
   if (detectedTempo == null) {
-    final looseRegex = RegExp(r'(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b');
-    final looseMatch = looseRegex.firstMatch(normalized);
+    final looseMatch = _tempoLooseRegex.firstMatch(normalized);
     if (looseMatch != null) {
       detectedTempo = double.tryParse(looseMatch.group(1) ?? '');
       if (detectedTempo != null) {
-        log('Detected PDF Tempo (loose): $detectedTempo from "${looseMatch.group(0)}"', name: 'PdfNoteExtractor');
+        log(
+          'Detected PDF Tempo (loose): $detectedTempo from "${looseMatch.group(0)}"',
+          name: 'PdfNoteExtractor',
+        );
       }
     }
   }
@@ -228,14 +273,26 @@ PdfExtractionResult extractPdfContent(
   // Pattern 4: MM/M.M. style (fallback)
   // Mirror: /(?:MM|M\.M\.|♩)\s+(\d{2,3})/
   if (detectedTempo == null) {
-    final mmRegex = RegExp(r'(?:MM|M\.M\.|♩)\s+(\d{2,3})', caseSensitive: false);
-    final mmMatch = mmRegex.firstMatch(normalized);
+    final mmMatch = _tempoMmRegex.firstMatch(normalized);
     if (mmMatch != null) {
       detectedTempo = double.tryParse(mmMatch.group(1) ?? '');
       if (detectedTempo != null) {
-        log('Detected PDF Tempo (MM): $detectedTempo from "${mmMatch.group(0)}"', name: 'PdfNoteExtractor');
+        log(
+          'Detected PDF Tempo (MM): $detectedTempo from "${mmMatch.group(0)}"',
+          name: 'PdfNoteExtractor',
+        );
       }
     }
+  }
+
+  if (profile == ExtractionProfile.krLegacy) {
+    return _extractPdfContentStandardLegacy(
+      rawText: rawText,
+      pageWidth: pageWidth,
+      pageHeight: pageHeight,
+      detectedKey: detectedKey,
+      detectedTempo: detectedTempo,
+    );
   }
 
   // Step 1: Build note-like visual rows.
@@ -244,6 +301,7 @@ PdfExtractionResult extractPdfContent(
   // rectangles, so we recreate that behavior by grouping characters into visual
   // rows and accepting only rows whose visible text is 0-7, dots, and spaces.
   final rawRows = <_RawRow>[];
+  final rawRowsByBucket = <int, List<_RawRow>>{};
   for (var i = 0; i < text.length; i++) {
     final ch = text[i];
     if (ch == '\n' || ch == '\r') continue;
@@ -255,13 +313,13 @@ PdfExtractionResult extractPdfContent(
       bottom: rect.bottom,
       fontSize: rect.top - rect.bottom,
     );
-    final row = rawRows
-        .where((r) => (r.y - rect.bottom).abs() < 2.0)
-        .firstOrNull;
+    final row = _findRawRow(rawRowsByBucket: rawRowsByBucket, y: rect.bottom);
     if (row != null) {
       row.chars.add(rawChar);
     } else {
-      rawRows.add(_RawRow(y: rect.bottom, chars: [rawChar]));
+      final newRow = _RawRow(y: rect.bottom, chars: [rawChar]);
+      rawRows.add(newRow);
+      _addRawRow(rawRowsByBucket: rawRowsByBucket, row: newRow);
     }
   }
 
@@ -269,14 +327,12 @@ PdfExtractionResult extractPdfContent(
   for (final row in rawRows) {
     row.chars.sort((a, b) => a.left.compareTo(b.left));
     final rowText = row.chars.map((c) => c.str).join().trim();
-    if (rowText.isEmpty ||
-        !_multiNotePattern.hasMatch(rowText) ||
-        !_containsDigitNotePattern.hasMatch(rowText)) {
+    if (rowText.isEmpty) {
       continue;
     }
 
     final chars = row.chars
-        .where((c) => _singleNotePattern.hasMatch(c.str))
+        .where((c) => isNotationChar(c.str))
         .map(
           (c) => _CharItem(
             str: c.str,
@@ -289,38 +345,84 @@ PdfExtractionResult extractPdfContent(
         .toList();
     if (chars.isEmpty) continue;
 
-    final digitChars = chars.where((c) => _digitNotePattern.hasMatch(c.str));
-    final fontSizeSource = digitChars.isNotEmpty ? digitChars : chars;
+    final noteChars = chars.where((c) => isNoteSymbol(c.str));
+    final holdChars = chars.where((c) => isHoldOrRestSymbol(c.str));
+
+    // Include row if it has any notation (digits 1-7 or holds)
+    // This ensures rows with only holds (no digits) are still tracked
+    if (noteChars.isEmpty && holdChars.isEmpty) {
+      continue;
+    }
+
+    // For font size calculation, prefer note chars if available
+    final fontSizeSource = noteChars.isNotEmpty ? noteChars : holdChars;
+    final notationText = chars.map((c) => c.str).join();
     items.add(
       _TextItem(
-        str: rowText,
+        str: notationText,
         bottom: _median(fontSizeSource.map((c) => c.bottom).toList()),
         fontSize: _dominantRoundedFontSize(
           fontSizeSource.map((c) => c.fontSize),
         ),
         chars: chars,
+        rawCharCount: row.chars.length,
       ),
     );
   }
-  if (items.isEmpty) return PdfExtractionResult(notes: [], detectedKey: detectedKey);
+  if (items.isEmpty) {
+    return PdfExtractionResult(notes: [], detectedKey: detectedKey);
+  }
 
   // Step 2: Find the dominant font size among notation candidates.
   final candidateItems = items
-      .where((item) => _multiNotePattern.hasMatch(item.str))
-      .where((item) => _containsDigitNotePattern.hasMatch(item.str))
+      .where((item) => item.chars.any((c) => isNoteSymbol(c.str)))
       .toList();
-  if (candidateItems.isEmpty) return PdfExtractionResult(notes: [], detectedKey: detectedKey);
+  if (candidateItems.isEmpty) {
+    return PdfExtractionResult(notes: [], detectedKey: detectedKey);
+  }
 
   final dominantFontSize = _dominantRoundedFontSize(
-    candidateItems.map((item) => item.fontSize),
+    candidateItems.map((item) => item.fontSize ?? item.chars.first.fontSize),
   );
-  const fontSizeTolerance = 1.5;
+  final fontSizeTolerance = profile == ExtractionProfile.mdr ? 1.5 : 1.0;
 
   // Step 3: Keep only note-like items at the dominant notation font size.
+  // Items containing digit notes (1-7) must match the dominant font size.
+  // Items with ONLY hold/rest symbols (no digits) are kept regardless of font size -
+  // they may render on a slightly different baseline/font size in ASM/MDR PDFs.
+  // Mixed items (digits + holds) are kept if the dominant digit font size matches.
   final filtered = items
-      .where((item) => _multiNotePattern.hasMatch(item.str))
       .where(
-        (item) => (item.fontSize - dominantFontSize).abs() < fontSizeTolerance,
+        (item) {
+          final hasNote = item.chars.any((c) => _isNoteSymbol(c.str));
+          final hasHoldOrRest = item.chars.any((c) => isHoldOrRestSymbol(c.str));
+          if (!hasNote && !hasHoldOrRest) return false;
+
+          // Keep hold-only rows regardless of font size. They can be rendered
+          // in a different font size/baseline from note glyphs in MDR/ASM PDFs.
+          if (!hasNote) {
+            if (profile == ExtractionProfile.mdr) {
+              final density = item.rawCharCount <= 0
+                  ? 0.0
+                  : item.chars.length / item.rawCharCount;
+              // MDR pages contain dense staff-symbol rows; keep only hold rows
+              // that are mostly notation glyphs.
+              return density >= 0.45;
+            }
+            return true;
+          }
+
+          // For rows with note anchors, check font size of note chars only.
+          final noteChars = item.chars.where((c) => isNoteSymbol(c.str)).toList();
+          if (noteChars.isNotEmpty) {
+            if (item.fontSize == null) {
+              return noteChars.every(
+                  (c) => (c.fontSize - dominantFontSize).abs() < fontSizeTolerance);
+            }
+            return (item.fontSize! - dominantFontSize).abs() < fontSizeTolerance;
+          }
+          return false;
+        },
       )
       .toList();
 
@@ -332,7 +434,7 @@ PdfExtractionResult extractPdfContent(
         _TextItem(
           str: ch.str,
           bottom: item.bottom,
-          fontSize: item.fontSize,
+          fontSize: item.fontSize ?? ch.fontSize,
           chars: [ch],
         ),
       );
@@ -343,27 +445,89 @@ PdfExtractionResult extractPdfContent(
   // In PDF coords, higher bottom = visually higher on page → sort descending.
   // This matches gyschordweb's yTolerance = 2.0.
   final rows = <_Row>[];
+  final rowsByBucket = <int, List<_Row>>{};
   final sorted = noteItems..sort((a, b) => b.bottom.compareTo(a.bottom));
   for (final item in sorted) {
-    final row = rows.where((r) => (r.y - item.bottom).abs() < 2.0).firstOrNull;
+    final row = _findNoteRow(rowsByBucket: rowsByBucket, y: item.bottom);
     if (row != null) {
       row.items.add(item);
+      if (isNoteSymbol(item.str)) {
+        row.digitCount++;
+      }
     } else {
-      rows.add(_Row(y: item.bottom, items: [item]));
+      final newRow = _Row(
+        y: item.bottom,
+        items: [item],
+        digitCount: isNoteSymbol(item.str) ? 1 : 0,
+      );
+      rows.add(newRow);
+      _addNoteRow(rowsByBucket: rowsByBucket, row: newRow);
     }
   }
 
-  // Step 6: Keep only rows with at least 2 digit notes (1-7).
-  // This avoids stray numbers such as verse labels and page numbers.
-  final musicRows = rows
-      .where(
-        (r) =>
-            r.items
-                .where((item) => _digitNotePattern.hasMatch(item.str))
-                .length >=
-            2,
-      )
-      .toList();
+  // Step 6: Keep only dense numeric rows.
+  // Dynamic threshold reduces accidental capture of header/tempo rows
+  // that contain a few digits but are not notation lines.
+  final maxDigitCount = rows.fold<int>(
+    0,
+    (max, row) => row.digitCount > max ? row.digitCount : max,
+  );
+  final minDigitRowCount = maxDigitCount >= 8
+      ? (profile == ExtractionProfile.mdr ? 4 : 2)
+      : (maxDigitCount >= 5 ? 3 : 2);
+  final musicRows = rows.where((r) => r.digitCount >= minDigitRowCount).toList();
+  if (profile == ExtractionProfile.standard) {
+    // Suppress top-header metadata rows (tempo/key/scripture refs) that
+    // often contain a handful of digits but are not notation lines.
+    musicRows.removeWhere((row) {
+      final yPct = (1.0 - row.y / pageHeight) * 100;
+      if (maxDigitCount < 8) return false;
+      if (yPct < 12.0) return true;
+      return yPct < 15.0 && row.digitCount < 8;
+    });
+  }
+  final numericRows = List<_Row>.from(musicRows);
+
+  // ASM/MDR sometimes render hold markers on a slightly different baseline
+  // from digits. Re-attach hold/rest-only rows to the nearest music row.
+  // Also include MDR private-use characters in the check.
+  final detachedHoldRows = rows.where((row) {
+    if (row.digitCount > 0) return false;
+    if (row.items.isEmpty) return false;
+    if (!_isNearAnyRow(row.y, numericRows, holdRowMaxDistance)) {
+      return false;
+    }
+    return row.items.any((item) => isDetachedHoldRowSymbol(item.str));
+  }).toList();
+
+  // Collect attachment operations to avoid concurrent modification
+  final attachments = <({_Row target, List<_TextItem> items})>[];
+  for (final detached in detachedHoldRows) {
+    _Row? nearestRow;
+    double nearestDistance = double.infinity;
+    for (final musicRow in numericRows) {
+      final distance = (musicRow.y - detached.y).abs();
+      if (distance <= _holdRowAttachTolerance && distance < nearestDistance) {
+        nearestDistance = distance;
+        nearestRow = musicRow;
+      }
+    }
+    if (nearestRow != null) {
+      final holdItems = detached.items
+          .where((item) => isDetachedHoldRowSymbol(item.str))
+          .toList();
+      if (holdItems.isNotEmpty) {
+        attachments.add((target: nearestRow, items: List<_TextItem>.from(holdItems)));
+      }
+    }
+  }
+
+  // Apply attachments after iteration
+  for (final attachment in attachments) {
+    for (final item in attachment.items) {
+      attachment.target.items.add(item);
+    }
+  }
 
   // Step 7: Build noteIdx-to-position and NoteInfo list.
   // xPct: center of char horizontally, using left edge + half width for better accuracy.
@@ -374,11 +538,12 @@ PdfExtractionResult extractPdfContent(
   //   yPct = ((1 - item.y / pageHeight) * 100)   [item.y = baseline]
   final noteInfos = <NoteInfo>[];
   int noteIdx = 0;
-  for (final row in musicRows) {
-    for (final item
-        in row.items..sort(
-          (a, b) => a.chars.single.left.compareTo(b.chars.single.left),
-        )) {
+  // Iterate over a snapshot to avoid concurrent modification
+  final musicRowsSnapshot = List<_Row>.from(musicRows);
+  for (final row in musicRowsSnapshot) {
+    final sortedItems = List<_TextItem>.from(row.items)
+      ..sort((a, b) => a.chars.single.left.compareTo(b.chars.single.left));
+    for (final item in sortedItems) {
       final char = item.chars.single;
       final charWidth = char.right - char.left;
       final centerX = char.left + (charWidth / 2);
@@ -389,16 +554,19 @@ PdfExtractionResult extractPdfContent(
 
       final clampedXPct = xPct.clamp(1.0, 99.0);
       final clampedYPct = yPct.clamp(1.0, 99.0);
-      final isNote = _digitNotePattern.hasMatch(item.str);
-      final isDot = item.str == '.';
+      final isNote = isNoteSymbol(item.str);
+      final isDot = isHoldSymbol(item.str) || _isMdrHoldChar(item.str);
+      // MDR private-use dash glyphs (e.g. U+F00E) are hold markers, not rests.
+      // Keep rest semantics strictly for numeric 0.
       final isRest = item.str == '0';
+      final normalizedStr = _normalizeNotationChar(item.str, profile: profile);
       noteInfos.add(
         NoteInfo(
           idx: noteIdx,
           xPct: clampedXPct,
           yPct: clampedYPct,
           rowY: row.y,
-          str: item.str,
+          str: normalizedStr,
           isNote: isNote,
           isDot: isDot,
           isRest: isRest,
@@ -414,23 +582,136 @@ PdfExtractionResult extractPdfContent(
   );
 }
 
-final _singleNotePattern = RegExp(r'^[0-7.]$');
-final _multiNotePattern = RegExp(r'^[0-7.\s]+$');
+const _holdSymbols = '-‐‑‒–—―−\uF00B\uF00E';
+const double _holdRowAttachTolerance = 6.0;
+const double _mdrHoldRowMaxDistance = 4.5;
+const double _standardHoldRowMaxDistance = 7.0;
+
+bool _isHoldSymbol(String char, {ExtractionProfile profile = ExtractionProfile.standard}) {
+  if (char == '.') return true;
+  if (_holdSymbols.contains(char)) return true;
+  return false;
+}
+
+bool _isNoteSymbol(String char) =>
+    _digitNotePattern.hasMatch(char);
+
+/// Check if character is an MDR-style hold/rest marker (U+F00B).
+bool _isMdrHoldChar(String char) {
+  if (char.isEmpty || char.length != 1) return false;
+  final code = char.codeUnitAt(0);
+  // MDR books use multiple private-use hold/rest glyphs.
+  return code == 0xF00B || code == 0xF00E;
+}
+
+String _normalizeNotationChar(String char, {ExtractionProfile profile = ExtractionProfile.standard}) {
+  if (_isHoldSymbol(char, profile: profile)) {
+    return char == '.' ? '.' : '-';
+  }
+  // Handle MDR private-use characters
+  if (_isMdrHoldChar(char)) {
+    return '-';
+  }
+  return char;
+}
+
+final _digitZeroToSevenPattern = RegExp(r'^[0-7]$');
 final _digitNotePattern = RegExp(r'^[1-7]$');
 final _containsDigitNotePattern = RegExp(r'[1-7]');
+final _legacyStandardSingleNotePattern = RegExp(r'^[0-7.\-‐‑‒–—―−]$');
+final _legacyStandardMultiNotePattern = RegExp(r'^[0-7.\-‐‑‒–—―−\s]+$');
+final _legacyStandardHoldPattern = RegExp(r'^[.\-‐‑‒–—―−]$');
+final _standardDetachedHoldPattern = RegExp(r'^[.\-‐‑‒–—―−]$');
+final _whitespaceRegex = RegExp(r'\s+');
+final _keyRegex = RegExp(
+  r'(?:\b(?:1|Do|do)\s*[=:]\s*([A-G](?:[#♯b♭]|is|es|s)?))|(?:\b([A-G](?:[#♯b♭]|is|es|s)?)\s*[=:]\s*(?:1|Do|do)\b)',
+  caseSensitive: false,
+);
+final _tempoSymbolRegex = RegExp(
+  r'(?:^|[\s(])(?:J|j|Q|q|♩|♪)\s*[:=]\s*(\d{2,3})(?=\D|$)',
+  caseSensitive: false,
+);
+final _tempoBpmRegex = RegExp(
+  r'(?:tempo|tempi|bpm)\s*[:=]?\s*(\d{2,3})\b',
+  caseSensitive: false,
+);
+final _tempoLooseRegex = RegExp(r'(?:^|[^0-9A-Za-z])=\s*(\d{2,3})\b');
+final _tempoMmRegex = RegExp(
+  r'(?:MM|M\.M\.|♩)\s+(\d{2,3})',
+  caseSensitive: false,
+);
+const double _rowTolerance = 2.0;
+const double _rowBucketSize = 2.0;
+
+int _rowBucket(double y) => (y / _rowBucketSize).round();
+
+_RawRow? _findRawRow({
+  required Map<int, List<_RawRow>> rawRowsByBucket,
+  required double y,
+}) {
+  final bucket = _rowBucket(y);
+  for (final b in [bucket - 1, bucket, bucket + 1]) {
+    final rows = rawRowsByBucket[b];
+    if (rows == null) continue;
+    for (final row in rows) {
+      if ((row.y - y).abs() < _rowTolerance) return row;
+    }
+  }
+  return null;
+}
+
+void _addRawRow({
+  required Map<int, List<_RawRow>> rawRowsByBucket,
+  required _RawRow row,
+}) {
+  final bucket = _rowBucket(row.y);
+  rawRowsByBucket.putIfAbsent(bucket, () => <_RawRow>[]).add(row);
+}
+
+_Row? _findNoteRow({
+  required Map<int, List<_Row>> rowsByBucket,
+  required double y,
+}) {
+  final bucket = _rowBucket(y);
+  for (final b in [bucket - 1, bucket, bucket + 1]) {
+    final rows = rowsByBucket[b];
+    if (rows == null) continue;
+    for (final row in rows) {
+      if ((row.y - y).abs() < _rowTolerance) return row;
+    }
+  }
+  return null;
+}
+
+void _addNoteRow({
+  required Map<int, List<_Row>> rowsByBucket,
+  required _Row row,
+}) {
+  final bucket = _rowBucket(row.y);
+  rowsByBucket.putIfAbsent(bucket, () => <_Row>[]).add(row);
+}
 
 class _TextItem {
   final String str;
   final double bottom;
-  final double fontSize;
+  final double? fontSize; // null means use chars' fontSize
   final List<_CharItem> chars;
+  final int rawCharCount;
 
   _TextItem({
     required this.str,
     required this.bottom,
-    required this.fontSize,
+    this.fontSize,
     required this.chars,
+    this.rawCharCount = 0,
   });
+}
+
+bool _isNearAnyRow(double y, Iterable<_Row> rows, double tolerance) {
+  for (final row in rows) {
+    if ((row.y - y).abs() <= tolerance) return true;
+  }
+  return false;
 }
 
 class _CharItem {
@@ -474,7 +755,191 @@ class _RawRow {
 class _Row {
   final double y;
   final List<_TextItem> items;
-  _Row({required this.y, required this.items});
+  int digitCount;
+  _Row({required this.y, required this.items, this.digitCount = 0});
+}
+
+PdfExtractionResult _extractPdfContentStandardLegacy({
+  required PdfPageRawText rawText,
+  required double pageWidth,
+  required double pageHeight,
+  required String? detectedKey,
+  required double? detectedTempo,
+}) {
+  final text = rawText.fullText;
+  final rects = rawText.charRects;
+  if (text.isEmpty || rects.length != text.length) {
+    return PdfExtractionResult(notes: [], detectedKey: detectedKey, detectedTempo: detectedTempo);
+  }
+
+  bool isNotationCharStd(String char) {
+    return _legacyStandardSingleNotePattern.hasMatch(char);
+  }
+
+  final rawRows = <_RawRow>[];
+  final rawRowsByBucket = <int, List<_RawRow>>{};
+  for (var i = 0; i < text.length; i++) {
+    final ch = text[i];
+    if (ch == '\n' || ch == '\r') continue;
+    final rect = rects[i];
+    final rawChar = _RawChar(
+      str: ch,
+      left: rect.left,
+      right: rect.right,
+      bottom: rect.bottom,
+      fontSize: rect.top - rect.bottom,
+    );
+    final row = _findRawRow(rawRowsByBucket: rawRowsByBucket, y: rect.bottom);
+    if (row != null) {
+      row.chars.add(rawChar);
+    } else {
+      final newRow = _RawRow(y: rect.bottom, chars: [rawChar]);
+      rawRows.add(newRow);
+      _addRawRow(rawRowsByBucket: rawRowsByBucket, row: newRow);
+    }
+  }
+
+  final items = <_TextItem>[];
+  for (final row in rawRows) {
+    row.chars.sort((a, b) => a.left.compareTo(b.left));
+    final rowText = row.chars.map((c) => c.str).join().trim();
+    if (rowText.isEmpty ||
+        !_legacyStandardMultiNotePattern.hasMatch(rowText) ||
+        !_containsDigitNotePattern.hasMatch(rowText)) {
+      continue;
+    }
+
+    final chars = row.chars
+        .where((c) => isNotationCharStd(c.str))
+        .map(
+          (c) => _CharItem(
+            str: c.str,
+            left: c.left,
+            right: c.right,
+            bottom: c.bottom,
+            fontSize: c.fontSize,
+          ),
+        )
+        .toList();
+    if (chars.isEmpty) continue;
+
+    final digitChars = chars.where((c) => _digitNotePattern.hasMatch(c.str));
+    final fontSizeSource = digitChars.isNotEmpty ? digitChars : chars;
+    items.add(
+      _TextItem(
+        str: rowText,
+        bottom: _median(fontSizeSource.map((c) => c.bottom).toList()),
+        fontSize: _dominantRoundedFontSize(fontSizeSource.map((c) => c.fontSize)),
+        chars: chars,
+      ),
+    );
+  }
+  if (items.isEmpty) {
+    return PdfExtractionResult(notes: [], detectedKey: detectedKey, detectedTempo: detectedTempo);
+  }
+
+  final candidateItems = items
+      .where((item) => _legacyStandardMultiNotePattern.hasMatch(item.str))
+      .where((item) => _containsDigitNotePattern.hasMatch(item.str))
+      .toList();
+  if (candidateItems.isEmpty) {
+    return PdfExtractionResult(notes: [], detectedKey: detectedKey, detectedTempo: detectedTempo);
+  }
+
+  final dominantFontSize = _dominantRoundedFontSize(
+    candidateItems.map((item) => item.fontSize ?? item.chars.first.fontSize),
+  );
+  const fontSizeTolerance = 1.5;
+  final filtered = items
+      .where((item) => _legacyStandardMultiNotePattern.hasMatch(item.str))
+      .where((item) => ((item.fontSize ?? item.chars.first.fontSize) - dominantFontSize).abs() < fontSizeTolerance)
+      .toList();
+
+  final noteItems = <_TextItem>[];
+  for (final item in filtered) {
+    for (final ch in item.chars) {
+      noteItems.add(
+        _TextItem(
+          str: ch.str,
+          bottom: item.bottom,
+          fontSize: item.fontSize ?? ch.fontSize,
+          chars: [ch],
+        ),
+      );
+    }
+  }
+
+  final rows = <_Row>[];
+  final sorted = noteItems..sort((a, b) => b.bottom.compareTo(a.bottom));
+  for (final item in sorted) {
+    _Row? row;
+    for (final candidate in rows) {
+      if ((candidate.y - item.bottom).abs() < 2.0) {
+        row = candidate;
+        break;
+      }
+    }
+    if (row != null) {
+      row.items.add(item);
+      if (_digitNotePattern.hasMatch(item.str)) {
+        row.digitCount++;
+      }
+    } else {
+      final newRow = _Row(
+        y: item.bottom,
+        items: [item],
+        digitCount: _digitNotePattern.hasMatch(item.str) ? 1 : 0,
+      );
+      rows.add(newRow);
+    }
+  }
+
+  final musicRows = rows.where((r) => r.digitCount >= 2).toList();
+
+  final noteInfos = <NoteInfo>[];
+  int noteIdx = 0;
+  for (final row in musicRows) {
+    final sortedItems = List<_TextItem>.from(row.items)
+      ..sort((a, b) => a.chars.single.left.compareTo(b.chars.single.left));
+    for (final item in sortedItems) {
+      final char = item.chars.single;
+      final charWidth = char.right - char.left;
+      final centerX = char.left + (charWidth / 2);
+      final baselineY = item.bottom;
+
+      final xPct = centerX / pageWidth * 100;
+      final yPct = (1.0 - baselineY / pageHeight) * 100;
+      final clampedXPct = xPct.clamp(1.0, 99.0);
+      final clampedYPct = yPct.clamp(1.0, 99.0);
+
+      final isNote = _digitNotePattern.hasMatch(item.str);
+      final isDot = _legacyStandardHoldPattern.hasMatch(item.str);
+      final isRest = item.str == '0';
+      final normalizedStr = _legacyStandardHoldPattern.hasMatch(item.str)
+          ? (item.str == '.' ? '.' : '-')
+          : item.str;
+
+      noteInfos.add(
+        NoteInfo(
+          idx: noteIdx,
+          xPct: clampedXPct,
+          yPct: clampedYPct,
+          rowY: row.y,
+          str: normalizedStr,
+          isNote: isNote,
+          isDot: isDot,
+          isRest: isRest,
+        ),
+      );
+      noteIdx++;
+    }
+  }
+
+  return PdfExtractionResult(
+    notes: noteInfos,
+    detectedKey: detectedKey,
+    detectedTempo: detectedTempo,
+  );
 }
 
 double _dominantRoundedFontSize(Iterable<double> sizes) {

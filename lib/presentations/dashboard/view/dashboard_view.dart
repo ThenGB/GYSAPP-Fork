@@ -1,7 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:ui';
-
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -64,22 +62,51 @@ const dashboardNavigationDestinations = [
   ),
 ];
 
+const dashboardBottomNavigationDestinations = [
+  DashboardNavigationDestination(
+    icon: Icons.home_outlined,
+    selectedIcon: Icons.home_rounded,
+    label: 'Dashboard',
+    page: HomeRoute(),
+  ),
+  DashboardNavigationDestination(
+    icon: Icons.menu_book_outlined,
+    selectedIcon: Icons.menu_book_rounded,
+    label: 'Bible',
+    page: BibleRoute(),
+  ),
+  DashboardNavigationDestination(
+    icon: Icons.music_note_rounded,
+    label: 'Hymnal',
+    page: SongRoute(),
+  ),
+  DashboardNavigationDestination(
+    icon: Icons.auto_stories_outlined,
+    selectedIcon: Icons.auto_stories_rounded,
+    label: 'Beliefs',
+    page: FaithRoute(),
+  ),
+];
+
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
-const bool kDashboardExtendsBodyForMiniPlayerOverlay = false;
-const double kDashboardMiniPlayerNavGap = 6;
+const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
+const double kDashboardMiniPlayerNavGap = 8;
 const double kDashboardExpandedMiniPlayerHeight = 168;
-const double kDashboardPortraitBottomNavHeight = 72;
-const double kDashboardLandscapeBottomNavHeight = 56;
-const double kDashboardCompactNavOuterVerticalPadding = 3;
-const double kDashboardCompactNavInnerVerticalPadding = 3;
-const double kDashboardCompactNavIconSize = 20;
-const double kDashboardCompactNavLabelFontSize = 9;
+const double kDashboardPortraitBottomNavHeight = 84;
+const double kDashboardLandscapeBottomNavHeight = 66;
+const double kDashboardCompactNavOuterVerticalPadding = 4;
+const double kDashboardCompactNavInnerVerticalPadding = 5;
+const double kDashboardCompactNavIconSize = 19;
+const double kDashboardCompactNavLabelFontSize = 9.5;
 const double kDashboardCompactNavIconLabelGap = 1;
-const double kDashboardRegularNavOuterVerticalPadding = 6;
-const double kDashboardRegularNavInnerVerticalPadding = 6;
-const double kDashboardRegularNavIconSize = 22;
-const double kDashboardRegularNavLabelFontSize = 10;
-const double kDashboardRegularNavIconLabelGap = 2;
+const double kDashboardRegularNavOuterVerticalPadding = 7;
+const double kDashboardRegularNavInnerVerticalPadding = 7;
+const double kDashboardRegularNavIconSize = 21;
+const double kDashboardRegularNavLabelFontSize = 10.5;
+const double kDashboardRegularNavIconLabelGap = 3;
+const double kDashboardNavMaxWidth = 700;
+const double kDashboardBodyBottomSafetyGap = 14;
+const double kDashboardNavMinInteractiveExtent = 48;
 
 double dashboardMiniPlayerBottomOffset({
   required bool isExpanded,
@@ -124,11 +151,14 @@ double dashboardBottomNavItemHeight({
   required double labelFontSize,
   required double iconLabelGap,
 }) {
-  return (outerVerticalPadding * 2) +
+  final rawHeight = (outerVerticalPadding * 2) +
       (innerVerticalPadding * 2) +
       iconSize +
       iconLabelGap +
       labelFontSize;
+  return rawHeight < kDashboardNavMinInteractiveExtent
+      ? kDashboardNavMinInteractiveExtent
+      : rawHeight;
 }
 
 void openDashboardDrawer() {
@@ -185,6 +215,7 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   Widget build(BuildContext context) {
     const pages = dashboardNavigationDestinations;
+    const bottomNavPages = dashboardBottomNavigationDestinations;
     return MultiBlocProvider(
       providers: [
         BlocProvider<DashboardCubit>(create: (context) => di(), lazy: false),
@@ -290,15 +321,49 @@ class _DashboardViewState extends State<DashboardView> {
                   builder: (context, child) {
                     final tabsRouter = AutoTabsRouter.of(context);
                     tabRouter = tabsRouter;
-                    
+                    final isLandscape =
+                        MediaQuery.orientationOf(context) ==
+                        Orientation.landscape;
+                    final bottomInset = MediaQuery.paddingOf(context).bottom;
+                    final navHeight = isLandscape
+                        ? kDashboardLandscapeBottomNavHeight
+                        : kDashboardPortraitBottomNavHeight;
+                    final bodyBottomPadding =
+                        navHeight + bottomInset + kDashboardBodyBottomSafetyGap;
+
                     return Scaffold(
                       key: dashboardScaffoldKey,
                       backgroundColor: context.colorScheme.surface,
-                      extendBody: false,
+                      extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
                       drawer: const _DashboardDrawer(),
                       body: Stack(
                         children: [
-                          child,
+                          Positioned.fill(
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    context.colorScheme.surfaceContainerHighest
+                                        .withValues(alpha: 0.28),
+                                    context.colorScheme.surfaceContainerLowest,
+                                    context.colorScheme.surfaceContainerLow
+                                        .withValues(alpha: 0.75),
+                                    context.colorScheme.surface,
+                                  ],
+                                ),
+                              ),
+                              child: AnimatedPadding(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeOutCubic,
+                                padding: EdgeInsets.only(
+                                  bottom: bodyBottomPadding,
+                                ),
+                                child: child,
+                              ),
+                            ),
+                          ),
                           // Global MIDI Player as an Overlay
                           if (songState.showAudio)
                             AnimatedBuilder(
@@ -348,24 +413,27 @@ class _DashboardViewState extends State<DashboardView> {
                                   nowPlayingTitle: songState.getSongTitleAt(
                                     songState.pageIndex,
                                   ),
-                                  runningFamilyChord: songState.originalFamilyChord != null
+                                  runningFamilyChord:
+                                      songState.originalFamilyChord != null
                                       ? ChordService.formatChordForDisplay(
                                           songState.originalFamilyChord!,
-                                          accidentalMode: songState.chordAccidentalMode,
-                                          baseTransposeOffset: songState.baseTransposeOffset,
+                                          accidentalMode:
+                                              songState.chordAccidentalMode,
+                                          baseTransposeOffset:
+                                              songState.baseTransposeOffset,
                                         )
                                       : null,
-                                  // sit above the navbar
-                                  // since we're in the body and extendBody: false,
-                                  // the body ends above the navbar, so bottom: 0 is just above the navbar.
-                                  bottomOffset: kDashboardMiniPlayerNavGap,
+                                  bottomOffset: dashboardMiniPlayerBottomOffset(
+                                    isExpanded: _globalMidiExpanded,
+                                    navHeight: navHeight + bottomInset,
+                                  ),
                                 );
                               },
                             ),
                         ],
                       ),
-                      bottomNavigationBar: _HymnalBottomNav(
-                        destinations: pages,
+                      bottomNavigationBar: _DashboardNavigationShell(
+                        destinations: bottomNavPages,
                         activeIndex: tabsRouter.activeIndex,
                         onTap: (value) {
                           context.read<BibleCubit>().stopSpeaking();
@@ -384,12 +452,12 @@ class _DashboardViewState extends State<DashboardView> {
   }
 }
 
-class _HymnalBottomNav extends StatelessWidget {
+class _DashboardNavigationShell extends StatelessWidget {
   final List<DashboardNavigationDestination> destinations;
   final int activeIndex;
   final ValueChanged<int> onTap;
 
-  const _HymnalBottomNav({
+  const _DashboardNavigationShell({
     required this.destinations,
     required this.activeIndex,
     required this.onTap,
@@ -400,55 +468,65 @@ class _HymnalBottomNav extends StatelessWidget {
     final colors = context.colorScheme;
     final isLandscape =
         MediaQuery.of(context).orientation == Orientation.landscape;
-    final navHeight = isLandscape
+    final baseNavHeight = isLandscape
         ? kDashboardLandscapeBottomNavHeight
         : kDashboardPortraitBottomNavHeight;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final contentHeight = dashboardBottomNavContentHeight(
-      navHeight: navHeight,
-      bottomInset: bottomInset,
-    );
+    final navHeight = baseNavHeight + bottomInset;
+    final compact = isLandscape || baseNavHeight < 78;
+    final showLabel = !isLandscape && baseNavHeight >= 80;
     return SizedBox(
       height: navHeight,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.90),
-          border: const Border(
-            top: BorderSide(color: Color(0xFFD4AF37), width: 1),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: colors.primary.withValues(alpha: 0.06),
-              blurRadius: 24,
-              offset: const Offset(0, -8),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                colors.surfaceContainerHighest.withValues(alpha: 0.96),
+                colors.surfaceContainerLow.withValues(alpha: 0.94),
+              ],
             ),
-          ],
-        ),
-        child: ClipRect(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-            child: Padding(
-              padding: EdgeInsets.only(bottom: bottomInset),
-              child: SizedBox(
-                height: contentHeight,
-                child: Center(
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 560),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        for (var i = 0; i < destinations.length; i++)
-                          Flexible(
-                            child: _HymnalBottomNavItem(
-                              destination: destinations[i],
-                              selected: i == activeIndex,
-                              compact: isLandscape || contentHeight < 60,
-                              onTap: () => onTap(i),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
+            borderRadius: BorderRadius.circular(26),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.74),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadow.withValues(alpha: 0.18),
+                blurRadius: 24,
+                offset: const Offset(0, 10),
+              ),
+              BoxShadow(
+                color: colors.primary.withValues(alpha: 0.08),
+                blurRadius: 18,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(8, 4, 8, bottomInset + 4),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: kDashboardNavMaxWidth,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    for (var i = 0; i < destinations.length; i++)
+                      Flexible(
+                        child: _HymnalBottomNavItem(
+                          destination: destinations[i],
+                          selected: i == activeIndex,
+                          compact: compact,
+                          showLabel: showLabel,
+                          onTap: () => onTap(i),
+                        ),
+                      ),
+                  ],
                 ),
               ),
             ),
@@ -459,94 +537,167 @@ class _HymnalBottomNav extends StatelessWidget {
   }
 }
 
-class _HymnalBottomNavItem extends StatelessWidget {
+class _HymnalBottomNavItem extends StatefulWidget {
   final DashboardNavigationDestination destination;
   final bool selected;
   final bool compact;
+  final bool showLabel;
   final VoidCallback onTap;
 
   const _HymnalBottomNavItem({
     required this.destination,
     required this.selected,
     required this.compact,
+    required this.showLabel,
     required this.onTap,
   });
 
   @override
+  State<_HymnalBottomNavItem> createState() => _HymnalBottomNavItemState();
+}
+
+class _HymnalBottomNavItemState extends State<_HymnalBottomNavItem> {
+  bool _hovered = false;
+
+  @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final foreground = selected
-        ? colors.primary
-        : colors.onSurface.withValues(alpha: 0.68);
-    final outerVerticalPadding = compact
+    final icon = widget.selected
+        ? (widget.destination.selectedIcon ?? widget.destination.icon)
+        : widget.destination.icon;
+    final foreground = widget.selected
+        ? colors.onPrimaryContainer
+        : colors.onSurface.withValues(alpha: 0.8);
+    final iconOnly = !widget.showLabel;
+    final outerVerticalPadding = iconOnly
+        ? 0.0
+        : widget.compact
         ? kDashboardCompactNavOuterVerticalPadding
         : kDashboardRegularNavOuterVerticalPadding;
-    final innerVerticalPadding = compact
-        ? kDashboardCompactNavInnerVerticalPadding
-        : kDashboardRegularNavInnerVerticalPadding;
-    final iconSize = compact
-        ? kDashboardCompactNavIconSize
-        : kDashboardRegularNavIconSize;
-    final labelFontSize = compact
+    final innerVerticalPadding = widget.showLabel
+        ? (widget.compact
+              ? kDashboardCompactNavInnerVerticalPadding
+              : kDashboardRegularNavInnerVerticalPadding)
+        : 0.0;
+    final iconSize = widget.showLabel
+        ? (widget.compact
+              ? kDashboardCompactNavIconSize
+              : kDashboardRegularNavIconSize)
+        : (widget.compact ? 20.0 : 22.0);
+    final labelFontSize = widget.compact
         ? kDashboardCompactNavLabelFontSize
         : kDashboardRegularNavLabelFontSize;
-    final iconLabelGap = compact
-        ? kDashboardCompactNavIconLabelGap
-        : kDashboardRegularNavIconLabelGap;
+    final iconLabelGap = widget.showLabel
+        ? (widget.compact
+              ? kDashboardCompactNavIconLabelGap
+              : kDashboardRegularNavIconLabelGap)
+        : 0.0;
     return Padding(
       padding: EdgeInsets.symmetric(
-        horizontal: 2,
+        horizontal: 4,
         vertical: outerVerticalPadding,
       ),
       child: AnimatedScale(
-        scale: selected ? 0.96 : 1.0,
-        duration: kThemeAnimationDuration,
-        curve: Curves.easeOut,
-        child: Material(
-          color: selected ? colors.secondaryContainer : Colors.transparent,
-          borderRadius: BorderRadius.circular(16),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(16),
-            onTap: onTap,
-            child: AnimatedContainer(
-              duration: kThemeAnimationDuration,
-              curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(
-                horizontal: 2,
-                vertical: innerVerticalPadding,
-              ),
-              decoration: BoxDecoration(
+        scale: widget.selected
+            ? 1.0
+            : _hovered
+            ? 1.01
+            : 1.0,
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOutCubic,
+        child: Tooltip(
+          message: widget.destination.label.tr(),
+          waitDuration: const Duration(milliseconds: 500),
+          child: MouseRegion(
+            onEnter: (_) => setState(() => _hovered = true),
+            onExit: (_) => setState(() => _hovered = false),
+              child: Material(
+                color: Colors.transparent,
                 borderRadius: BorderRadius.circular(16),
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    selected
-                        ? (destination.selectedIcon ?? destination.icon)
-                        : destination.icon,
-                    size: iconSize,
-                    color: foreground,
-                  ),
-                  SizedBox(height: iconLabelGap),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Text(
-                      destination.label.tr(),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: foreground,
-                        fontSize: labelFontSize,
-                        height: 1,
-                        letterSpacing: 0.5,
-                        fontWeight: FontWeight.w800,
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(16),
+                  onTap: widget.onTap,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      minWidth: kDashboardNavMinInteractiveExtent,
+                      minHeight: kDashboardNavMinInteractiveExtent,
+                    ),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.easeOutCubic,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: widget.compact ? 7 : 10,
+                        vertical: innerVerticalPadding,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: widget.selected
+                            ? LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  colors.primaryContainer.withValues(
+                                    alpha: 0.96,
+                                  ),
+                                  colors.primaryContainer.withValues(
+                                    alpha: 0.7,
+                                  ),
+                                ],
+                              )
+                            : null,
+                        color: widget.selected
+                            ? null
+                            : _hovered
+                            ? colors.surfaceContainerHighest.withValues(
+                                alpha: 0.72,
+                              )
+                            : Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: widget.selected
+                              ? colors.primary.withValues(alpha: 0.62)
+                              : _hovered
+                              ? colors.outlineVariant.withValues(alpha: 0.82)
+                              : colors.outlineVariant.withValues(alpha: 0.45),
+                        ),
+                        boxShadow: widget.selected
+                            ? [
+                                BoxShadow(
+                                  color: colors.primary.withValues(alpha: 0.2),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(icon, size: iconSize, color: foreground),
+                          if (widget.showLabel) ...[
+                            SizedBox(height: iconLabelGap),
+                            FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(
+                                widget.destination.label.tr(),
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: foreground,
+                                      fontSize: labelFontSize,
+                                      height: 1,
+                                      letterSpacing: 0.4,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
                   ),
-                ],
+                ),
               ),
             ),
-          ),
         ),
       ),
     );
@@ -561,154 +712,171 @@ class _DashboardDrawer extends StatelessWidget {
     final colors = context.colorScheme;
     return Drawer(
       width: (MediaQuery.sizeOf(context).width * 0.84)
-          .clamp(300.0, 360.0)
+          .clamp(320.0, 410.0)
           .toDouble(),
       backgroundColor: colors.surface,
       child: SafeArea(
-        child: BlocBuilder<DashboardCubit, DashboardState>(
-          builder: (context, state) {
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.only(bottom: 12),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.surfaceContainerHighest.withValues(alpha: 0.75),
+                colors.surface,
+              ],
+            ),
+          ),
+          child: BlocBuilder<DashboardCubit, DashboardState>(
+            builder: (context, state) {
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.only(bottom: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _DrawerHeader(state: state),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Divider(
+                              color: colors.outlineVariant.withValues(
+                                alpha: 0.42,
+                              ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                            child: Text(
+                              'AKTIVITAS CEPAT',
+                              style: Theme.of(context).textTheme.labelSmall
+                                  ?.copyWith(
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 1.5,
+                                  ),
+                            ),
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final songCubit = context.read<SongCubit>();
+                              final lastSong = songCubit.state.lastOpenedSong;
+                              return _DrawerActivityTile(
+                                icon: Icons.music_note_rounded,
+                                label: 'Terakhir dibuka',
+                                value: lastSong != null
+                                    ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
+                                    : 'Belum ada riwayat',
+                                onTap: lastSong != null
+                                    ? () {
+                                        Navigator.of(context).maybePop();
+                                        AutoTabsRouter.of(
+                                          context,
+                                        ).setActiveIndex(2);
+                                        songCubit.openSong(lastSong);
+                                      }
+                                    : null,
+                              );
+                            },
+                          ),
+                          const _DrawerProgressTile(),
+                          const SizedBox(height: 10),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 14),
+                            child: Divider(
+                              color: colors.outlineVariant.withValues(
+                                alpha: 0.42,
+                              ),
+                            ),
+                          ),
+                          ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                            ),
+                            leading: Icon(
+                              Icons.settings_outlined,
+                              color: colors.onSurfaceVariant,
+                            ),
+                            title: Text(
+                              'Pengaturan',
+                              style: Theme.of(context).textTheme.titleLarge
+                                  ?.copyWith(
+                                    fontFamily: 'Lato',
+                                    color: colors.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                            ),
+                            onTap: () {
+                              Navigator.of(context).maybePop();
+                              AutoTabsRouter.of(context).setActiveIndex(4);
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        _DrawerHeader(state: state),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24),
-                          child: Divider(
-                            color: colors.outlineVariant.withValues(alpha: 0.5),
+                        FilledButton.icon(
+                          style: FilledButton.styleFrom(
+                            backgroundColor: colors.primary,
+                            foregroundColor: colors.onPrimary,
+                            minimumSize: const Size.fromHeight(56),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
                           ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-                          child: Text(
-                            'AKTIVITAS TERAKHIR',
-                            style: Theme.of(context).textTheme.labelSmall
-                                ?.copyWith(
-                                  color: colors.onSurfaceVariant,
-                                  fontWeight: FontWeight.w800,
-                                  letterSpacing: 1.5,
-                                ),
-                          ),
-                        ),
-                        Builder(
-                          builder: (context) {
-                            final songCubit = context.read<SongCubit>();
-                            final lastSong = songCubit.state.lastOpenedSong;
-                            return _DrawerActivityTile(
-                              icon: Icons.music_note_rounded,
-                              label: 'Terakhir dibuka',
-                              value: lastSong != null
-                                  ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
-                                  : 'Belum ada riwayat',
-                              onTap: lastSong != null
-                                  ? () {
-                                      Navigator.of(context).maybePop();
-                                      AutoTabsRouter.of(
-                                        context,
-                                      ).setActiveIndex(2);
-                                      songCubit.openSong(lastSong);
-                                    }
-                                  : null,
-                            );
-                          },
-                        ),
-                        const _DrawerProgressTile(),
-                        const SizedBox(height: 10),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 14),
-                          child: Divider(
-                            color: colors.outlineVariant.withValues(alpha: 0.5),
-                          ),
-                        ),
-                        ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                          ),
-                          leading: Icon(
-                            Icons.settings_outlined,
-                            color: colors.onSurfaceVariant,
-                          ),
-                          title: Text(
-                            'Pengaturan',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  fontFamily: 'Manrope',
-                                  color: colors.onSurfaceVariant,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                          ),
-                          onTap: () {
+                          onPressed: () {
                             Navigator.of(context).maybePop();
-                            AutoTabsRouter.of(context).setActiveIndex(4);
+                            if (state.idToken == null) {
+                              router.push(
+                                LoginRoute(
+                                  onLoggedIn: (token) {
+                                    router.maybePop();
+                                    context
+                                        .read<DashboardCubit>()
+                                        .loginSuccessCallback(token);
+                                  },
+                                ),
+                              );
+                            } else {
+                              context
+                                  .read<DashboardCubit>()
+                                  .loginSuccessCallback(null);
+                            }
                           },
+                          icon: Icon(
+                            state.idToken == null
+                                ? Icons.login_rounded
+                                : Icons.logout_rounded,
+                          ),
+                          label: Text(
+                            (state.idToken == null ? 'Login' : 'Keluar').tr(),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Versi 1.0.0',
+                          style: Theme.of(context).textTheme.labelSmall
+                              ?.copyWith(
+                                color: colors.onSurfaceVariant.withValues(
+                                  alpha: 0.75,
+                                ),
+                                letterSpacing: 1.5,
+                              ),
                         ),
                       ],
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          backgroundColor: colors.primary,
-                          foregroundColor: colors.onPrimary,
-                          minimumSize: const Size.fromHeight(58),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          Navigator.of(context).maybePop();
-                          if (state.idToken == null) {
-                            router.push(
-                              LoginRoute(
-                                onLoggedIn: (token) {
-                                  router.maybePop();
-                                  context
-                                      .read<DashboardCubit>()
-                                      .loginSuccessCallback(token);
-                                },
-                              ),
-                            );
-                          } else {
-                            context.read<DashboardCubit>().loginSuccessCallback(
-                              null,
-                            );
-                          }
-                        },
-                        icon: Icon(
-                          state.idToken == null
-                              ? Icons.login_rounded
-                              : Icons.logout_rounded,
-                        ),
-                        label: Text(
-                          (state.idToken == null ? 'Login' : 'Keluar').tr(),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Versi 1.0.0',
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant.withValues(
-                            alpha: 0.75,
-                          ),
-                          letterSpacing: 1.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            );
-          },
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
@@ -728,77 +896,92 @@ class _DrawerHeader extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: colors.secondaryContainer,
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.primary.withValues(alpha: 0.08),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: ClipOval(
-                  child: state.account?.profilePicture == null
-                      ? Image.asset(Assets.assetsImagesAppicon)
-                      : Image.network(
-                          state.account!.profilePicture!,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Image.asset(Assets.assetsImagesAppicon),
-                        ),
-                ),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  colors.primaryContainer.withValues(alpha: 0.64),
+                  colors.surfaceContainerHighest.withValues(alpha: 0.92),
+                ],
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      state.account?.name ?? 'Gereja Yesus Sejati',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(
-                            color: colors.primary,
-                            fontSize: 22,
-                            fontWeight: FontWeight.w500,
-                          ),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.28)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  padding: const EdgeInsets.all(4),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: colors.primary.withValues(alpha: 0.5),
+                      width: 1.6,
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      state.idToken == null
-                          ? 'Akun e-GYS'
-                          : state.account?.email ?? 'Akun e-GYS',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: colors.onSurfaceVariant,
+                    boxShadow: [
+                      BoxShadow(
+                        color: colors.primary.withValues(alpha: 0.16),
+                        blurRadius: 12,
+                        offset: const Offset(0, 3),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
+                  child: ClipOval(
+                    child: state.account?.profilePicture == null
+                        ? Image.asset(Assets.assetsImagesAppicon)
+                        : Image.network(
+                            state.account!.profilePicture!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                Image.asset(Assets.assetsImagesAppicon),
+                          ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        state.account?.name ?? 'Gereja Yesus Sejati',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.headlineSmall
+                            ?.copyWith(
+                              color: colors.onSurface,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        state.idToken == null
+                            ? 'Akun e-GYS'
+                            : state.account?.email ?? 'Akun e-GYS',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 14),
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: colors.surfaceContainer,
+              color: colors.surfaceContainerLow.withValues(alpha: 0.88),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.55),
+                color: colors.outlineVariant.withValues(alpha: 0.56),
               ),
             ),
             child: Column(
@@ -821,15 +1004,15 @@ class _DrawerHeader extends StatelessWidget {
           OutlinedButton.icon(
             onPressed: () {
               Navigator.of(context).maybePop();
-              router.push(WebpageRoute(url: 'https://e.gys.or.id/u/home'));
+              AutoTabsRouter.of(context).setActiveIndex(4);
             },
-            icon: const Icon(Icons.open_in_new_rounded, size: 16),
-            label: const Text('Buka Web e-GYS'),
+            icon: const Icon(Icons.settings_rounded, size: 16),
+            label: const Text('Buka Workspace Settings'),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colors.secondaryContainer),
-              minimumSize: const Size.fromHeight(40),
+              side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
+              minimumSize: const Size.fromHeight(46),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
           ),
@@ -863,14 +1046,23 @@ class _DrawerActivityTile extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: onTap != null
-              ? colors.primaryContainer.withValues(alpha: 0.35)
-              : colors.surfaceContainer,
+              ? colors.primaryContainer.withValues(alpha: 0.52)
+              : colors.surfaceContainerLow.withValues(alpha: 0.8),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: onTap != null
-                ? colors.primary.withValues(alpha: 0.25)
-                : colors.outlineVariant.withValues(alpha: 0.30),
+                ? colors.primary.withValues(alpha: 0.45)
+                : colors.outlineVariant.withValues(alpha: 0.42),
           ),
+          boxShadow: onTap != null
+              ? [
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
@@ -926,10 +1118,17 @@ class _DrawerProgressTile extends StatelessWidget {
       margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colors.surfaceContainerLow,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            colors.surfaceContainerHighest.withValues(alpha: 0.92),
+            colors.surfaceContainerLow.withValues(alpha: 0.9),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.20),
+          color: colors.outlineVariant.withValues(alpha: 0.42),
         ),
       ),
       child: Column(

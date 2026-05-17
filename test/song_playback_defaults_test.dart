@@ -25,7 +25,9 @@ void main() {
       expect(reset.baseTransposeOffset, 0);
     });
 
-    test('keeps PDF key as the viewer baseline like gyschordweb', () {
+    test(
+      'anchors family chord to detected PDF key baseline at transpose zero',
+      () {
       const reset = SongPlaybackDefaults(
         transposeStep: 0,
         tempoBpm: 76,
@@ -54,6 +56,31 @@ void main() {
         'Eb',
       );
     });
+
+    test(
+      'prefers natural transpose from pdf key when family chord is missing',
+      () {
+        const reset = SongPlaybackDefaults(
+          transposeStep: 0,
+          tempoBpm: 76,
+          defaultTempoBpm: 76,
+        );
+
+        final blackKey = reset.resolveChordBaseline(
+          familyChord: null,
+          pdfKey: 'Fis',
+          preferNaturalChords: true,
+        );
+        final whiteKey = reset.resolveChordBaseline(
+          familyChord: null,
+          pdfKey: 'E',
+          preferNaturalChords: true,
+        );
+
+        expect(blackKey.transposeStep, -1);
+        expect(whiteKey.transposeStep, 0);
+      },
+    );
 
     test('detects active key and maps key selection to transpose step', () {
       const baseline = SongPlaybackDefaults(

@@ -17,6 +17,18 @@ import 'package:church/data/services/pdf_note_extractor.dart';
 
 void main() {
   group('PdfNoteExtractor', () {
+    test('detects key from "1 = Es" notation', () {
+      final raw = _rawFromText('4/4 1 = Es');
+      final result = extractPdfContent(raw, 400, 600);
+      expect(result.detectedKey, 'Eb');
+    });
+
+    test('detects key from "Es = 1" notation', () {
+      final raw = _rawFromText('4/4 Es = 1 (3 mol)');
+      final result = extractPdfContent(raw, 400, 600);
+      expect(result.detectedKey, 'Eb');
+    });
+
     test('returns empty map for empty text', () {
       final raw = _makeRawText('', []);
       final result = extractNotePositions(raw, 595, 842);
@@ -46,14 +58,18 @@ void main() {
       final text = chars1.join() + chars2.join(); // "123567"
       final rects = [
         ...chars1.asMap().entries.map(
-              (e) => _rect(50.0 + e.key * 20, 500, 58.0 + e.key * 20, 490),
-            ),
+          (e) => _rect(50.0 + e.key * 20, 500, 58.0 + e.key * 20, 490),
+        ),
         ...chars2.asMap().entries.map(
-              (e) => _rect(50.0 + e.key * 20, 400, 58.0 + e.key * 20, 390),
-            ),
+          (e) => _rect(50.0 + e.key * 20, 400, 58.0 + e.key * 20, 390),
+        ),
       ];
 
-      final positions = extractNotePositions(_makeRawText(text, rects), pageW, pageH);
+      final positions = extractNotePositions(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+      );
 
       // Should produce 6 positions (noteIdx 0..5)
       expect(positions.length, 6);
@@ -87,14 +103,276 @@ void main() {
         _rect(70, 500, 78, 490), // '2' at x=70 (right)
         _rect(50, 500, 58, 490), // '1' at x=50 (left)
       ];
-      final positions =
-          extractNotePositions(_makeRawText(text, rects), pageW, pageH);
+      final positions = extractNotePositions(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+      );
 
       expect(positions.length, 2);
       // noteIdx 0 should be the leftmost note (x=50, center=54)
       expect(positions[0]!.xPct, closeTo(54 / 400 * 100, 0.1));
       // noteIdx 1 should be the rightmost note (x=70, center=74)
       expect(positions[1]!.xPct, closeTo(74 / 400 * 100, 0.1));
+    });
+
+    test('treats ASCII dash as hold marker in numeric rows', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1-2';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // -
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 3);
+      expect(result.notes[1].str, '-');
+      expect(result.notes[1].isDot, isTrue);
+      expect(result.notes[1].isNote, isFalse);
+    });
+
+    test('treats Unicode en dash as hold marker in numeric rows', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1–2';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // –
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 3);
+      expect(result.notes[1].str, '-');
+      expect(result.notes[1].isDot, isTrue);
+      expect(result.notes[1].isNote, isFalse);
+    });
+
+    test('treats MDR private-use dash glyph as hold marker', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1\uF00B2';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // \uF00B
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 3);
+      expect(result.notes[1].str, '-');
+      expect(result.notes[1].isDot, isTrue);
+      expect(result.notes[1].isNote, isFalse);
+    });
+
+    test('treats MDR private-use alt dash glyph as hold marker', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1\uF00E2';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // \uF00E
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 3);
+      expect(result.notes[1].str, '-');
+      expect(result.notes[1].isDot, isTrue);
+      expect(result.notes[1].isNote, isFalse);
+    });
+
+    test('ignores MDR private-use staff glyph in numeric rows', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1\uF00A2';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // \uF00A (MDR note)
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 2);
+      expect(result.notes.every((n) => n.isNote), isTrue);
+    });
+
+    test('ignores MDR staff-only rows without numeric anchors', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '\uF00A\uF00B\uF00A';
+      final rects = [
+        _rect(50, 500, 58, 490),
+        _rect(62, 500, 70, 490),
+        _rect(74, 500, 82, 490),
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes, isEmpty);
+    });
+
+    test('ignores unknown private-use glyphs in numeric rows', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '1\uE1232';
+      final rects = [
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // unknown private-use glyph
+        _rect(74, 500, 82, 490), // 2
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 2);
+      expect(result.notes.every((n) => n.isNote), isTrue);
+    });
+
+    test(
+      'extracts notation from rows that include non-notation layout symbols',
+      () {
+        const pageW = 600.0;
+        const pageH = 800.0;
+        // Mimics ASM/MDR-like rows where bars/separators are present in same row.
+        final text = '| 5 5 1 6 7 - 2 - 1 3 - - |';
+        final rects = <PdfRect>[];
+        var x = 40.0;
+        for (var i = 0; i < text.length; i++) {
+          rects.add(_rect(x, 650, x + 8, 640));
+          x += 10.0;
+        }
+
+        final result = extractPdfContent(
+          _makeRawText(text, rects),
+          pageW,
+          pageH,
+        );
+        // Should keep the notation sequence and ignore layout bars.
+        expect(result.notes.length, greaterThanOrEqualTo(12));
+        expect(
+          result.notes.where((n) => n.isNote).length,
+          greaterThanOrEqualTo(8),
+        );
+        expect(
+          result.notes.where((n) => n.isDot).length,
+          greaterThanOrEqualTo(4),
+        );
+      },
+    );
+
+    test('attaches detached hold row to nearby numeric row', () {
+      const pageW = 600.0;
+      const pageH = 800.0;
+      final text = '55167213----';
+      final rects = <PdfRect>[
+        // Digits on one baseline (bottom=640)
+        _rect(40, 650, 48, 640), // 5
+        _rect(52, 650, 60, 640), // 5
+        _rect(64, 650, 72, 640), // 1
+        _rect(76, 650, 84, 640), // 6
+        _rect(88, 650, 96, 640), // 7
+        _rect(112, 650, 120, 640), // 2
+        _rect(136, 650, 144, 640), // 1
+        _rect(148, 650, 156, 640), // 3
+        // Holds on slightly different baseline (bottom=636)
+        _rect(100, 646, 108, 636), // -
+        _rect(124, 646, 132, 636), // -
+        _rect(160, 646, 168, 636), // -
+        _rect(172, 646, 180, 636), // -
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 12);
+      expect(result.notes.where((n) => n.isNote).length, 8);
+      expect(result.notes.where((n) => n.isDot).length, 4);
+    });
+
+    test('standard profile also attaches detached dash row near numeric row', () {
+      const pageW = 600.0;
+      const pageH = 800.0;
+      final text = '55167213----';
+      final rects = <PdfRect>[
+        _rect(40, 650, 48, 640),
+        _rect(52, 650, 60, 640),
+        _rect(64, 650, 72, 640),
+        _rect(76, 650, 84, 640),
+        _rect(88, 650, 96, 640),
+        _rect(112, 650, 120, 640),
+        _rect(136, 650, 144, 640),
+        _rect(148, 650, 156, 640),
+        _rect(100, 646, 108, 636),
+        _rect(124, 646, 132, 636),
+        _rect(160, 646, 168, 636),
+        _rect(172, 646, 180, 636),
+      ];
+
+      final result = extractPdfContent(_makeRawText(text, rects), pageW, pageH);
+      expect(result.notes.where((n) => n.isNote).length, 8);
+      expect(result.notes.where((n) => n.isDot).length, 4);
+    });
+
+    test('does not self-attach detached hold row when numeric row exists', () {
+      const pageW = 400.0;
+      const pageH = 600.0;
+      final text = '12\uF00B\uF00B';
+      final rects = [
+        // Numeric row (ensures candidateItems is not empty)
+        _rect(50, 500, 58, 490), // 1
+        _rect(62, 500, 70, 490), // 2
+        // Hold-only row far away: previously could self-attach and throw
+        _rect(50, 420, 58, 410), // \uF00B
+        _rect(62, 420, 70, 410), // \uF00B
+      ];
+
+      final result = extractPdfContent(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+        profile: ExtractionProfile.mdr,
+      );
+      expect(result.notes.length, 2);
+      expect(result.notes.where((n) => n.isNote).length, 2);
+      expect(result.notes.where((n) => n.isDot).length, 0);
     });
 
     test('yPct is clamped to minimum 1.0 even for notes at top of page', () {
@@ -107,8 +385,11 @@ void main() {
         _rect(50, 600, 58, 595), // '1' at very top, fontSize=5
         _rect(70, 600, 78, 595), // '2' at very top, fontSize=5
       ];
-      final positions =
-          extractNotePositions(_makeRawText(text, rects), pageW, pageH);
+      final positions = extractNotePositions(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+      );
 
       // Both notes pass (2 digit notes in one row)
       expect(positions.length, 2);
@@ -142,7 +423,11 @@ void main() {
         _rect(50, 312, 58, 300),
       ];
 
-      final positions = extractNotePositions(_makeRawText(text, rects), pageW, pageH);
+      final positions = extractNotePositions(
+        _makeRawText(text, rects),
+        pageW,
+        pageH,
+      );
       // Should have 3 positions from the note row only
       expect(positions.length, 3);
     });
@@ -156,3 +441,11 @@ PdfPageRawText _makeRawText(String text, List<PdfRect> rects) {
 /// Create a PdfRect in PDF coordinate system.
 /// [l] = left, [t] = top (must be >= b), [r] = right, [b] = bottom.
 PdfRect _rect(double l, double t, double r, double b) => PdfRect(l, t, r, b);
+
+PdfPageRawText _rawFromText(String text) {
+  final rects = <PdfRect>[];
+  for (var i = 0; i < text.length; i++) {
+    rects.add(_rect(i * 8.0, 500, i * 8.0 + 6.0, 490));
+  }
+  return _makeRawText(text, rects);
+}

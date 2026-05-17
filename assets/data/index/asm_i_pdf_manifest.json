@@ -11,7 +11,8 @@
       "pageCount": 1,
       "source": "001_LAGU_PENCIPTAAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 1
+      "chunkRelativeStart": 1,
+      "packIndex": 0
     },
     "002": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -19,7 +20,8 @@
       "pageCount": 1,
       "source": "002_LAGU_RINTIK_HUJAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 1
+      "chunkRelativeStart": 1,
+      "packIndex": 1
     },
     "003": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -27,7 +29,8 @@
       "pageCount": 1,
       "source": "003_MAKHLUK_CIPTAANNYA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 1
+      "chunkRelativeStart": 1,
+      "packIndex": 2
     },
     "004": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -35,7 +38,8 @@
       "pageCount": 1,
       "source": "004_KU_MAU_TAAT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 1
+      "chunkRelativeStart": 1,
+      "packIndex": 3
     },
     "005": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -43,7 +47,8 @@
       "pageCount": 1,
       "source": "005_MULUT_KECILKU_MEMUJI_TUHAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 4
     },
     "006": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -51,7 +56,8 @@
       "pageCount": 1,
       "source": "006_MASUK_BAHTERA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 5
     },
     "007": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -59,7 +65,8 @@
       "pageCount": 1,
       "source": "007_KU_TAK_LUPA_FIRMANNYA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 6
     },
     "008": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -67,7 +74,8 @@
       "pageCount": 1,
       "source": "008_PUJI_TUHAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 7
     },
     "009": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -75,7 +83,8 @@
       "pageCount": 1,
       "source": "009_KEPALA_PUNDAK_LUTUT_KAKI.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 8
     },
     "010": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -83,7 +92,8 @@
       "pageCount": 1,
       "source": "010_TIDAK_TAMAK_TIDAK_BOHONG.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 9
     },
     "011": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -91,7 +101,8 @@
       "pageCount": 1,
       "source": "011_AKU_MAU_SELALU_BERDOA_KEPADA_YESUS.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 10
     },
     "012": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -99,7 +110,8 @@
       "pageCount": 1,
       "source": "012_BERTEPUK_TANGAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 11
     },
     "013": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -107,7 +119,8 @@
       "pageCount": 1,
       "source": "013_BINTANG-BINTANG_DI_LANGIT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 12
     },
     "014": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -115,7 +128,8 @@
       "pageCount": 1,
       "source": "014_AKU_MAU_JADI_PENOLONG_YANG_BAIK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 13
     },
     "015": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -123,7 +137,8 @@
       "pageCount": 1,
       "source": "015_DENGAN_KASIHKU_MEMBANTU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 14
     },
     "016": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -131,7 +146,8 @@
       "pageCount": 1,
       "source": "016_KU_MAU_JADI_ANAK_YANG_BAIK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 15
     },
     "017": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -139,7 +155,8 @@
       "pageCount": 1,
       "source": "017_YESUS_MEMBANTUKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 16
     },
     "018": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -147,7 +164,8 @@
       "pageCount": 1,
       "source": "018_MARI_SEMBAH_DIA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 17
     },
     "019": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -155,7 +173,8 @@
       "pageCount": 1,
       "source": "019_BIARLAH_AKU_B_RITAHUMU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 18
     },
     "020": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -163,7 +182,8 @@
       "pageCount": 1,
       "source": "020_ALLAH_MENDENGAR_DOA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 19
     },
     "021": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -171,7 +191,8 @@
       "pageCount": 1,
       "source": "021_MARI_MEMUJILAH.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 20
     },
     "022": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -179,7 +200,8 @@
       "pageCount": 1,
       "source": "022_MARI_IKUTI_AKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 21
     },
     "023": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -187,7 +209,8 @@
       "pageCount": 1,
       "source": "023_KITA_SEMUA_ADALAH_BINTANG_KECIL.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 22
     },
     "024": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -195,7 +218,8 @@
       "pageCount": 1,
       "source": "024_YESUS_DI_DALAMKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 23
     },
     "025": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -203,7 +227,8 @@
       "pageCount": 1,
       "source": "025_BANYAK_BERDOA_BANYAK_KEKUATAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 24
     },
     "026": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -211,7 +236,8 @@
       "pageCount": 1,
       "source": "026_KASIH_TUHAN_BESAR.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 25
     },
     "027": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -219,7 +245,8 @@
       "pageCount": 1,
       "source": "027_YESUS_TAHU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 26
     },
     "028": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -227,7 +254,8 @@
       "pageCount": 1,
       "source": "028_PUJILAH_ALLAH.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 27
     },
     "029": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -235,7 +263,8 @@
       "pageCount": 1,
       "source": "029_ALLAHLAH_BAPAKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 28
     },
     "030": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -243,7 +272,8 @@
       "pageCount": 1,
       "source": "030_KASIH_YANG_KEKAL.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 29
     },
     "031": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -251,7 +281,8 @@
       "pageCount": 1,
       "source": "031_ALKITAB_WARTAKAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 30
     },
     "032": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -259,7 +290,8 @@
       "pageCount": 1,
       "source": "032_TUHAN_YESUS_KECIL.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 31
     },
     "033": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -267,7 +299,8 @@
       "pageCount": 1,
       "source": "033_YESUS_CINTA_GEREJANYA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 32
     },
     "034": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -275,7 +308,8 @@
       "pageCount": 1,
       "source": "034_YESUS_MENYEMBUHKAN_ORANG_SAKIT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 10
+      "chunkRelativeStart": 10,
+      "packIndex": 33
     },
     "035": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -283,7 +317,8 @@
       "pageCount": 1,
       "source": "035_SEPULUH_ORANG_ANAK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 10
+      "chunkRelativeStart": 10,
+      "packIndex": 34
     },
     "036": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -291,7 +326,8 @@
       "pageCount": 1,
       "source": "036_YESUS_DAPAT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 10
+      "chunkRelativeStart": 10,
+      "packIndex": 35
     },
     "037": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -299,7 +335,8 @@
       "pageCount": 1,
       "source": "037_MENYENANGKAN_YESUS.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 11
+      "chunkRelativeStart": 11,
+      "packIndex": 36
     },
     "038": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -307,7 +344,8 @@
       "pageCount": 1,
       "source": "038_KELUARGA_YANG_BAIK_TETANGGA_YANG_BAIK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 11
+      "chunkRelativeStart": 11,
+      "packIndex": 37
     },
     "039": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -315,7 +353,8 @@
       "pageCount": 1,
       "source": "039_SIAPA_DAPAT_.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 11
+      "chunkRelativeStart": 11,
+      "packIndex": 38
     },
     "040": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -323,7 +362,8 @@
       "pageCount": 1,
       "source": "040_DIA_MELIHATKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 12
+      "chunkRelativeStart": 12,
+      "packIndex": 39
     },
     "041": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -331,7 +371,8 @@
       "pageCount": 1,
       "source": "041_AKU_DOMBA_KECIL_TUHAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 12
+      "chunkRelativeStart": 12,
+      "packIndex": 40
     },
     "042": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -339,7 +380,8 @@
       "pageCount": 1,
       "source": "042_AKU_MAU_BELAJAR.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 12
+      "chunkRelativeStart": 12,
+      "packIndex": 41
     },
     "043": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -347,7 +389,8 @@
       "pageCount": 1,
       "source": "043_BERSANDAR_YESUS.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 12
+      "chunkRelativeStart": 12,
+      "packIndex": 42
     },
     "044": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -355,7 +398,8 @@
       "pageCount": 1,
       "source": "044_SAHABAT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 13
+      "chunkRelativeStart": 13,
+      "packIndex": 43
     },
     "045": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -363,7 +407,8 @@
       "pageCount": 1,
       "source": "045_MENYANYI_DI_BERBAGAI_TEMPAT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 13
+      "chunkRelativeStart": 13,
+      "packIndex": 44
     },
     "046": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -371,7 +416,8 @@
       "pageCount": 1,
       "source": "046_DUA_RAJA_DI_HATIKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 13
+      "chunkRelativeStart": 13,
+      "packIndex": 45
     },
     "047": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -379,7 +425,8 @@
       "pageCount": 1,
       "source": "047_ORANG_YANG_BIJAK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 14
+      "chunkRelativeStart": 14,
+      "packIndex": 46
     },
     "048": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -387,7 +434,8 @@
       "pageCount": 1,
       "source": "048_LAGU_PERSEMBAHAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 14
+      "chunkRelativeStart": 14,
+      "packIndex": 47
     },
     "049": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -395,7 +443,8 @@
       "pageCount": 1,
       "source": "049_JANGAN_SEMBAH_MENTARI_BULAN_BINTANG.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 15
+      "chunkRelativeStart": 15,
+      "packIndex": 48
     },
     "050": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -403,7 +452,8 @@
       "pageCount": 1,
       "source": "050_KASIH_ALLAH_BAPA.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 15
+      "chunkRelativeStart": 15,
+      "packIndex": 49
     },
     "051": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -411,7 +461,8 @@
       "pageCount": 1,
       "source": "051_ALLAH_ADALAH_KASIH.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 15
+      "chunkRelativeStart": 15,
+      "packIndex": 50
     },
     "052": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -419,7 +470,8 @@
       "pageCount": 1,
       "source": "052_SURGA_TEMPAT_YANG_SENANG.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 15
+      "chunkRelativeStart": 15,
+      "packIndex": 51
     },
     "053": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -427,7 +479,8 @@
       "pageCount": 1,
       "source": "053_AKU_MAU_PUJI_ALLAH.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 16
+      "chunkRelativeStart": 16,
+      "packIndex": 52
     },
     "054": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -435,7 +488,8 @@
       "pageCount": 1,
       "source": "054_SEORANG_PENOLONG.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 16
+      "chunkRelativeStart": 16,
+      "packIndex": 53
     },
     "055": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -443,7 +497,8 @@
       "pageCount": 1,
       "source": "055_NYANYI_TERIMA_KASIH.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 16
+      "chunkRelativeStart": 16,
+      "packIndex": 54
     },
     "056": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -451,7 +506,8 @@
       "pageCount": 1,
       "source": "056_KAMI_IKUT_LAKUKAN.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 17
+      "chunkRelativeStart": 17,
+      "packIndex": 55
     },
     "057": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -459,7 +515,8 @@
       "pageCount": 1,
       "source": "057_SIAPAKAH_DI_SAMPINGMU_.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 17
+      "chunkRelativeStart": 17,
+      "packIndex": 56
     },
     "058": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -467,7 +524,8 @@
       "pageCount": 1,
       "source": "058_AKU_SELALU_INGAT.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 17
+      "chunkRelativeStart": 17,
+      "packIndex": 57
     },
     "059": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -475,7 +533,8 @@
       "pageCount": 1,
       "source": "059_KEBAKTIAN_ANAK.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 18
+      "chunkRelativeStart": 18,
+      "packIndex": 58
     },
     "060": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -483,7 +542,8 @@
       "pageCount": 1,
       "source": "060_KU_YAKIN_ALLAH_DENGAR_DOAKU.pdf",
       "chunkIndex": 0,
-      "chunkRelativeStart": 18
+      "chunkRelativeStart": 18,
+      "packIndex": 59
     },
     "061": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -491,7 +551,8 @@
       "pageCount": 1,
       "source": "061_WAKTU_DI_DALAM_GEREJA.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 1
+      "chunkRelativeStart": 1,
+      "packIndex": 60
     },
     "062": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -499,7 +560,8 @@
       "pageCount": 1,
       "source": "062_SUARA_GENTA_APA_.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 61
     },
     "063": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -507,7 +569,8 @@
       "pageCount": 1,
       "source": "063_MENDAPAT_ORANG_BAGAI_MENDAPAT_IKAN.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 62
     },
     "064": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -515,7 +578,8 @@
       "pageCount": 1,
       "source": "064_TANGANKU_UNTUK_APA_.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 2
+      "chunkRelativeStart": 2,
+      "packIndex": 63
     },
     "065": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -523,7 +587,8 @@
       "pageCount": 1,
       "source": "065_PERSEMBAHKAN_HADIAH_KECIL.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 64
     },
     "066": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -531,7 +596,8 @@
       "pageCount": 1,
       "source": "066_BURUNG_PIPIT_DAN_DOMBA.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 65
     },
     "067": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -539,7 +605,8 @@
       "pageCount": 1,
       "source": "067_YESUS_SAHABAT_TERBAIKKU.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 3
+      "chunkRelativeStart": 3,
+      "packIndex": 66
     },
     "068": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -547,7 +614,8 @@
       "pageCount": 1,
       "source": "068_TUHAN_MEREDAKAN_ANGIN_BADAI.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 67
     },
     "069": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -555,7 +623,8 @@
       "pageCount": 1,
       "source": "069_SUKACITA.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 68
     },
     "070": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -563,7 +632,8 @@
       "pageCount": 1,
       "source": "070_YESUS_JURUSELAMATKU.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 4
+      "chunkRelativeStart": 4,
+      "packIndex": 69
     },
     "071": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -571,7 +641,8 @@
       "pageCount": 1,
       "source": "071_AJAIB_AJAIB_AJAIB.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 70
     },
     "072": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -579,7 +650,8 @@
       "pageCount": 1,
       "source": "072_CEPAT_KABARKAN_TUHAN_YESUS.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 71
     },
     "073": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -587,7 +659,8 @@
       "pageCount": 1,
       "source": "073_BIARKAN_ANAK-ANAK_DATANG.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 5
+      "chunkRelativeStart": 5,
+      "packIndex": 72
     },
     "074": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -595,7 +668,8 @@
       "pageCount": 1,
       "source": "074_YESUS_SAHABAT_ANAK_KECIL.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 73
     },
     "075": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -603,7 +677,8 @@
       "pageCount": 1,
       "source": "075_LAGU_MAKANAN_KECIL.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 74
     },
     "076": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -611,7 +686,8 @@
       "pageCount": 1,
       "source": "076_SEMUT_KECIL.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 75
     },
     "077": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -619,7 +695,8 @@
       "pageCount": 1,
       "source": "077_BERSYUKUR_ATAS_MAKANAN.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 6
+      "chunkRelativeStart": 6,
+      "packIndex": 76
     },
     "078": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -627,7 +704,8 @@
       "pageCount": 1,
       "source": "078_BUNGA_NAN_INDAH.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 77
     },
     "079": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -635,7 +713,8 @@
       "pageCount": 1,
       "source": "079_HOSANA.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 78
     },
     "080": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -643,7 +722,8 @@
       "pageCount": 1,
       "source": "080_KITA_CINTA_YESUS.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 7
+      "chunkRelativeStart": 7,
+      "packIndex": 79
     },
     "081": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -651,7 +731,8 @@
       "pageCount": 1,
       "source": "081_TUHAN_BANGKIT_DEMIKU.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 80
     },
     "082": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -659,7 +740,8 @@
       "pageCount": 1,
       "source": "082_MARI_KITA_TEPUK_TANGAN.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 81
     },
     "083": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -667,7 +749,8 @@
       "pageCount": 1,
       "source": "083_AKU_ANAK_LELAKI_PEREMPUAN.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 8
+      "chunkRelativeStart": 8,
+      "packIndex": 82
     },
     "084": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -675,7 +758,8 @@
       "pageCount": 1,
       "source": "084_TAHUN_BARU_YANG_BAHAGIA.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 83
     },
     "085": {
       "path": "assets/data/pdf/asm_i/ASM-I.pdf",
@@ -683,7 +767,8 @@
       "pageCount": 1,
       "source": "085_KEBAKTIAN_TELAH_USAI.pdf",
       "chunkIndex": 1,
-      "chunkRelativeStart": 9
+      "chunkRelativeStart": 9,
+      "packIndex": 84
     }
   },
   "chunkFile": "assets/data/pdf/asm_i/asm_i_chunks.bin",
@@ -701,6 +786,774 @@
       "endPage": 26,
       "compressedSize": 140257,
       "uncompressedSize": 148328
+    }
+  ],
+  "packFile": "assets/data/pdf/asm_i/asm_i_song_pack.bin",
+  "packs": [
+    {
+      "index": 0,
+      "songNumber": "001",
+      "startPage": 1,
+      "endPage": 1,
+      "pageCount": 1,
+      "compressedSize": 55330,
+      "uncompressedSize": 57787
+    },
+    {
+      "index": 1,
+      "songNumber": "002",
+      "startPage": 1,
+      "endPage": 1,
+      "pageCount": 1,
+      "compressedSize": 55330,
+      "uncompressedSize": 57787
+    },
+    {
+      "index": 2,
+      "songNumber": "003",
+      "startPage": 1,
+      "endPage": 1,
+      "pageCount": 1,
+      "compressedSize": 55330,
+      "uncompressedSize": 57787
+    },
+    {
+      "index": 3,
+      "songNumber": "004",
+      "startPage": 1,
+      "endPage": 1,
+      "pageCount": 1,
+      "compressedSize": 55330,
+      "uncompressedSize": 57787
+    },
+    {
+      "index": 4,
+      "songNumber": "005",
+      "startPage": 2,
+      "endPage": 2,
+      "pageCount": 1,
+      "compressedSize": 62862,
+      "uncompressedSize": 66144
+    },
+    {
+      "index": 5,
+      "songNumber": "006",
+      "startPage": 2,
+      "endPage": 2,
+      "pageCount": 1,
+      "compressedSize": 62862,
+      "uncompressedSize": 66144
+    },
+    {
+      "index": 6,
+      "songNumber": "007",
+      "startPage": 2,
+      "endPage": 2,
+      "pageCount": 1,
+      "compressedSize": 62862,
+      "uncompressedSize": 66144
+    },
+    {
+      "index": 7,
+      "songNumber": "008",
+      "startPage": 3,
+      "endPage": 3,
+      "pageCount": 1,
+      "compressedSize": 63046,
+      "uncompressedSize": 66324
+    },
+    {
+      "index": 8,
+      "songNumber": "009",
+      "startPage": 3,
+      "endPage": 3,
+      "pageCount": 1,
+      "compressedSize": 63046,
+      "uncompressedSize": 66324
+    },
+    {
+      "index": 9,
+      "songNumber": "010",
+      "startPage": 3,
+      "endPage": 3,
+      "pageCount": 1,
+      "compressedSize": 63046,
+      "uncompressedSize": 66324
+    },
+    {
+      "index": 10,
+      "songNumber": "011",
+      "startPage": 4,
+      "endPage": 4,
+      "pageCount": 1,
+      "compressedSize": 56047,
+      "uncompressedSize": 58436
+    },
+    {
+      "index": 11,
+      "songNumber": "012",
+      "startPage": 4,
+      "endPage": 4,
+      "pageCount": 1,
+      "compressedSize": 56047,
+      "uncompressedSize": 58436
+    },
+    {
+      "index": 12,
+      "songNumber": "013",
+      "startPage": 4,
+      "endPage": 4,
+      "pageCount": 1,
+      "compressedSize": 56047,
+      "uncompressedSize": 58436
+    },
+    {
+      "index": 13,
+      "songNumber": "014",
+      "startPage": 4,
+      "endPage": 4,
+      "pageCount": 1,
+      "compressedSize": 56047,
+      "uncompressedSize": 58436
+    },
+    {
+      "index": 14,
+      "songNumber": "015",
+      "startPage": 5,
+      "endPage": 5,
+      "pageCount": 1,
+      "compressedSize": 55927,
+      "uncompressedSize": 58316
+    },
+    {
+      "index": 15,
+      "songNumber": "016",
+      "startPage": 5,
+      "endPage": 5,
+      "pageCount": 1,
+      "compressedSize": 55927,
+      "uncompressedSize": 58316
+    },
+    {
+      "index": 16,
+      "songNumber": "017",
+      "startPage": 5,
+      "endPage": 5,
+      "pageCount": 1,
+      "compressedSize": 55927,
+      "uncompressedSize": 58316
+    },
+    {
+      "index": 17,
+      "songNumber": "018",
+      "startPage": 5,
+      "endPage": 5,
+      "pageCount": 1,
+      "compressedSize": 55927,
+      "uncompressedSize": 58316
+    },
+    {
+      "index": 18,
+      "songNumber": "019",
+      "startPage": 6,
+      "endPage": 6,
+      "pageCount": 1,
+      "compressedSize": 53204,
+      "uncompressedSize": 55667
+    },
+    {
+      "index": 19,
+      "songNumber": "020",
+      "startPage": 6,
+      "endPage": 6,
+      "pageCount": 1,
+      "compressedSize": 53204,
+      "uncompressedSize": 55667
+    },
+    {
+      "index": 20,
+      "songNumber": "021",
+      "startPage": 6,
+      "endPage": 6,
+      "pageCount": 1,
+      "compressedSize": 53204,
+      "uncompressedSize": 55667
+    },
+    {
+      "index": 21,
+      "songNumber": "022",
+      "startPage": 6,
+      "endPage": 6,
+      "pageCount": 1,
+      "compressedSize": 53204,
+      "uncompressedSize": 55667
+    },
+    {
+      "index": 22,
+      "songNumber": "023",
+      "startPage": 7,
+      "endPage": 7,
+      "pageCount": 1,
+      "compressedSize": 62783,
+      "uncompressedSize": 66066
+    },
+    {
+      "index": 23,
+      "songNumber": "024",
+      "startPage": 7,
+      "endPage": 7,
+      "pageCount": 1,
+      "compressedSize": 62783,
+      "uncompressedSize": 66066
+    },
+    {
+      "index": 24,
+      "songNumber": "025",
+      "startPage": 7,
+      "endPage": 7,
+      "pageCount": 1,
+      "compressedSize": 62783,
+      "uncompressedSize": 66066
+    },
+    {
+      "index": 25,
+      "songNumber": "026",
+      "startPage": 8,
+      "endPage": 8,
+      "pageCount": 1,
+      "compressedSize": 56160,
+      "uncompressedSize": 58625
+    },
+    {
+      "index": 26,
+      "songNumber": "027",
+      "startPage": 8,
+      "endPage": 8,
+      "pageCount": 1,
+      "compressedSize": 56160,
+      "uncompressedSize": 58625
+    },
+    {
+      "index": 27,
+      "songNumber": "028",
+      "startPage": 8,
+      "endPage": 8,
+      "pageCount": 1,
+      "compressedSize": 56160,
+      "uncompressedSize": 58625
+    },
+    {
+      "index": 28,
+      "songNumber": "029",
+      "startPage": 8,
+      "endPage": 8,
+      "pageCount": 1,
+      "compressedSize": 56160,
+      "uncompressedSize": 58625
+    },
+    {
+      "index": 29,
+      "songNumber": "030",
+      "startPage": 9,
+      "endPage": 9,
+      "pageCount": 1,
+      "compressedSize": 56260,
+      "uncompressedSize": 58732
+    },
+    {
+      "index": 30,
+      "songNumber": "031",
+      "startPage": 9,
+      "endPage": 9,
+      "pageCount": 1,
+      "compressedSize": 56260,
+      "uncompressedSize": 58732
+    },
+    {
+      "index": 31,
+      "songNumber": "032",
+      "startPage": 9,
+      "endPage": 9,
+      "pageCount": 1,
+      "compressedSize": 56260,
+      "uncompressedSize": 58732
+    },
+    {
+      "index": 32,
+      "songNumber": "033",
+      "startPage": 9,
+      "endPage": 9,
+      "pageCount": 1,
+      "compressedSize": 56260,
+      "uncompressedSize": 58732
+    },
+    {
+      "index": 33,
+      "songNumber": "034",
+      "startPage": 10,
+      "endPage": 10,
+      "pageCount": 1,
+      "compressedSize": 56035,
+      "uncompressedSize": 58508
+    },
+    {
+      "index": 34,
+      "songNumber": "035",
+      "startPage": 10,
+      "endPage": 10,
+      "pageCount": 1,
+      "compressedSize": 56035,
+      "uncompressedSize": 58508
+    },
+    {
+      "index": 35,
+      "songNumber": "036",
+      "startPage": 10,
+      "endPage": 10,
+      "pageCount": 1,
+      "compressedSize": 56035,
+      "uncompressedSize": 58508
+    },
+    {
+      "index": 36,
+      "songNumber": "037",
+      "startPage": 11,
+      "endPage": 11,
+      "pageCount": 1,
+      "compressedSize": 56351,
+      "uncompressedSize": 58821
+    },
+    {
+      "index": 37,
+      "songNumber": "038",
+      "startPage": 11,
+      "endPage": 11,
+      "pageCount": 1,
+      "compressedSize": 56351,
+      "uncompressedSize": 58821
+    },
+    {
+      "index": 38,
+      "songNumber": "039",
+      "startPage": 11,
+      "endPage": 11,
+      "pageCount": 1,
+      "compressedSize": 56351,
+      "uncompressedSize": 58821
+    },
+    {
+      "index": 39,
+      "songNumber": "040",
+      "startPage": 12,
+      "endPage": 12,
+      "pageCount": 1,
+      "compressedSize": 46267,
+      "uncompressedSize": 47992
+    },
+    {
+      "index": 40,
+      "songNumber": "041",
+      "startPage": 12,
+      "endPage": 12,
+      "pageCount": 1,
+      "compressedSize": 46267,
+      "uncompressedSize": 47992
+    },
+    {
+      "index": 41,
+      "songNumber": "042",
+      "startPage": 12,
+      "endPage": 12,
+      "pageCount": 1,
+      "compressedSize": 46267,
+      "uncompressedSize": 47992
+    },
+    {
+      "index": 42,
+      "songNumber": "043",
+      "startPage": 12,
+      "endPage": 12,
+      "pageCount": 1,
+      "compressedSize": 46267,
+      "uncompressedSize": 47992
+    },
+    {
+      "index": 43,
+      "songNumber": "044",
+      "startPage": 13,
+      "endPage": 13,
+      "pageCount": 1,
+      "compressedSize": 55233,
+      "uncompressedSize": 57686
+    },
+    {
+      "index": 44,
+      "songNumber": "045",
+      "startPage": 13,
+      "endPage": 13,
+      "pageCount": 1,
+      "compressedSize": 55233,
+      "uncompressedSize": 57686
+    },
+    {
+      "index": 45,
+      "songNumber": "046",
+      "startPage": 13,
+      "endPage": 13,
+      "pageCount": 1,
+      "compressedSize": 55233,
+      "uncompressedSize": 57686
+    },
+    {
+      "index": 46,
+      "songNumber": "047",
+      "startPage": 14,
+      "endPage": 14,
+      "pageCount": 1,
+      "compressedSize": 55522,
+      "uncompressedSize": 57983
+    },
+    {
+      "index": 47,
+      "songNumber": "048",
+      "startPage": 14,
+      "endPage": 14,
+      "pageCount": 1,
+      "compressedSize": 55522,
+      "uncompressedSize": 57983
+    },
+    {
+      "index": 48,
+      "songNumber": "049",
+      "startPage": 15,
+      "endPage": 15,
+      "pageCount": 1,
+      "compressedSize": 55512,
+      "uncompressedSize": 57974
+    },
+    {
+      "index": 49,
+      "songNumber": "050",
+      "startPage": 15,
+      "endPage": 15,
+      "pageCount": 1,
+      "compressedSize": 55512,
+      "uncompressedSize": 57974
+    },
+    {
+      "index": 50,
+      "songNumber": "051",
+      "startPage": 15,
+      "endPage": 15,
+      "pageCount": 1,
+      "compressedSize": 55512,
+      "uncompressedSize": 57974
+    },
+    {
+      "index": 51,
+      "songNumber": "052",
+      "startPage": 15,
+      "endPage": 15,
+      "pageCount": 1,
+      "compressedSize": 55512,
+      "uncompressedSize": 57974
+    },
+    {
+      "index": 52,
+      "songNumber": "053",
+      "startPage": 16,
+      "endPage": 16,
+      "pageCount": 1,
+      "compressedSize": 55279,
+      "uncompressedSize": 57741
+    },
+    {
+      "index": 53,
+      "songNumber": "054",
+      "startPage": 16,
+      "endPage": 16,
+      "pageCount": 1,
+      "compressedSize": 55279,
+      "uncompressedSize": 57741
+    },
+    {
+      "index": 54,
+      "songNumber": "055",
+      "startPage": 16,
+      "endPage": 16,
+      "pageCount": 1,
+      "compressedSize": 55279,
+      "uncompressedSize": 57741
+    },
+    {
+      "index": 55,
+      "songNumber": "056",
+      "startPage": 17,
+      "endPage": 17,
+      "pageCount": 1,
+      "compressedSize": 63784,
+      "uncompressedSize": 67023
+    },
+    {
+      "index": 56,
+      "songNumber": "057",
+      "startPage": 17,
+      "endPage": 17,
+      "pageCount": 1,
+      "compressedSize": 63784,
+      "uncompressedSize": 67023
+    },
+    {
+      "index": 57,
+      "songNumber": "058",
+      "startPage": 17,
+      "endPage": 17,
+      "pageCount": 1,
+      "compressedSize": 63784,
+      "uncompressedSize": 67023
+    },
+    {
+      "index": 58,
+      "songNumber": "059",
+      "startPage": 18,
+      "endPage": 18,
+      "pageCount": 1,
+      "compressedSize": 44854,
+      "uncompressedSize": 46558
+    },
+    {
+      "index": 59,
+      "songNumber": "060",
+      "startPage": 18,
+      "endPage": 18,
+      "pageCount": 1,
+      "compressedSize": 44854,
+      "uncompressedSize": 46558
+    },
+    {
+      "index": 60,
+      "songNumber": "061",
+      "startPage": 18,
+      "endPage": 18,
+      "pageCount": 1,
+      "compressedSize": 44854,
+      "uncompressedSize": 46558
+    },
+    {
+      "index": 61,
+      "songNumber": "062",
+      "startPage": 19,
+      "endPage": 19,
+      "pageCount": 1,
+      "compressedSize": 57830,
+      "uncompressedSize": 60238
+    },
+    {
+      "index": 62,
+      "songNumber": "063",
+      "startPage": 19,
+      "endPage": 19,
+      "pageCount": 1,
+      "compressedSize": 57830,
+      "uncompressedSize": 60238
+    },
+    {
+      "index": 63,
+      "songNumber": "064",
+      "startPage": 19,
+      "endPage": 19,
+      "pageCount": 1,
+      "compressedSize": 57830,
+      "uncompressedSize": 60238
+    },
+    {
+      "index": 64,
+      "songNumber": "065",
+      "startPage": 20,
+      "endPage": 20,
+      "pageCount": 1,
+      "compressedSize": 57610,
+      "uncompressedSize": 60021
+    },
+    {
+      "index": 65,
+      "songNumber": "066",
+      "startPage": 20,
+      "endPage": 20,
+      "pageCount": 1,
+      "compressedSize": 57610,
+      "uncompressedSize": 60021
+    },
+    {
+      "index": 66,
+      "songNumber": "067",
+      "startPage": 20,
+      "endPage": 20,
+      "pageCount": 1,
+      "compressedSize": 57610,
+      "uncompressedSize": 60021
+    },
+    {
+      "index": 67,
+      "songNumber": "068",
+      "startPage": 21,
+      "endPage": 21,
+      "pageCount": 1,
+      "compressedSize": 58170,
+      "uncompressedSize": 60662
+    },
+    {
+      "index": 68,
+      "songNumber": "069",
+      "startPage": 21,
+      "endPage": 21,
+      "pageCount": 1,
+      "compressedSize": 58170,
+      "uncompressedSize": 60662
+    },
+    {
+      "index": 69,
+      "songNumber": "070",
+      "startPage": 21,
+      "endPage": 21,
+      "pageCount": 1,
+      "compressedSize": 58170,
+      "uncompressedSize": 60662
+    },
+    {
+      "index": 70,
+      "songNumber": "071",
+      "startPage": 22,
+      "endPage": 22,
+      "pageCount": 1,
+      "compressedSize": 58031,
+      "uncompressedSize": 60527
+    },
+    {
+      "index": 71,
+      "songNumber": "072",
+      "startPage": 22,
+      "endPage": 22,
+      "pageCount": 1,
+      "compressedSize": 58031,
+      "uncompressedSize": 60527
+    },
+    {
+      "index": 72,
+      "songNumber": "073",
+      "startPage": 22,
+      "endPage": 22,
+      "pageCount": 1,
+      "compressedSize": 58031,
+      "uncompressedSize": 60527
+    },
+    {
+      "index": 73,
+      "songNumber": "074",
+      "startPage": 23,
+      "endPage": 23,
+      "pageCount": 1,
+      "compressedSize": 57616,
+      "uncompressedSize": 60110
+    },
+    {
+      "index": 74,
+      "songNumber": "075",
+      "startPage": 23,
+      "endPage": 23,
+      "pageCount": 1,
+      "compressedSize": 57616,
+      "uncompressedSize": 60110
+    },
+    {
+      "index": 75,
+      "songNumber": "076",
+      "startPage": 23,
+      "endPage": 23,
+      "pageCount": 1,
+      "compressedSize": 57616,
+      "uncompressedSize": 60110
+    },
+    {
+      "index": 76,
+      "songNumber": "077",
+      "startPage": 23,
+      "endPage": 23,
+      "pageCount": 1,
+      "compressedSize": 57616,
+      "uncompressedSize": 60110
+    },
+    {
+      "index": 77,
+      "songNumber": "078",
+      "startPage": 24,
+      "endPage": 24,
+      "pageCount": 1,
+      "compressedSize": 57608,
+      "uncompressedSize": 60104
+    },
+    {
+      "index": 78,
+      "songNumber": "079",
+      "startPage": 24,
+      "endPage": 24,
+      "pageCount": 1,
+      "compressedSize": 57608,
+      "uncompressedSize": 60104
+    },
+    {
+      "index": 79,
+      "songNumber": "080",
+      "startPage": 24,
+      "endPage": 24,
+      "pageCount": 1,
+      "compressedSize": 57608,
+      "uncompressedSize": 60104
+    },
+    {
+      "index": 80,
+      "songNumber": "081",
+      "startPage": 25,
+      "endPage": 25,
+      "pageCount": 1,
+      "compressedSize": 64073,
+      "uncompressedSize": 67369
+    },
+    {
+      "index": 81,
+      "songNumber": "082",
+      "startPage": 25,
+      "endPage": 25,
+      "pageCount": 1,
+      "compressedSize": 64073,
+      "uncompressedSize": 67369
+    },
+    {
+      "index": 82,
+      "songNumber": "083",
+      "startPage": 25,
+      "endPage": 25,
+      "pageCount": 1,
+      "compressedSize": 64073,
+      "uncompressedSize": 67369
+    },
+    {
+      "index": 83,
+      "songNumber": "084",
+      "startPage": 26,
+      "endPage": 26,
+      "pageCount": 1,
+      "compressedSize": 57723,
+      "uncompressedSize": 60830
+    },
+    {
+      "index": 84,
+      "songNumber": "085",
+      "startPage": 26,
+      "endPage": 26,
+      "pageCount": 1,
+      "compressedSize": 57723,
+      "uncompressedSize": 60830
     }
   ]
 }

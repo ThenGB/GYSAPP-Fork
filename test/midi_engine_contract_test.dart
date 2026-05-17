@@ -174,5 +174,36 @@ void main() {
       expect(loadBody, contains('if (startAt == Duration.zero)'));
       expect(loadBody, isNot(contains('startAt: startAt,')));
     });
+
+    test('stale async play requests cannot restart after pause', () {
+      final source = File(
+        'lib/data/services/midi_engine_service.dart',
+      ).readAsStringSync();
+
+      expect(source, contains('_playbackIntentGeneration'));
+      expect(source, contains('_wantsPlayback'));
+      expect(source, contains('_canHonorPlayIntent'));
+    });
+
+    test('seek rerender keeps requested absolute position visible', () {
+      final source = File(
+        'lib/data/services/midi_engine_service.dart',
+      ).readAsStringSync();
+      final seekBody =
+          RegExp(
+            r'Future<void> _seekViaRerender\(double seconds\) async \{([\s\S]*?)\n  \}',
+          ).firstMatch(source)?.group(1) ??
+          '';
+      final loadBody =
+          RegExp(
+            r'Future<void> loadMidi\([\s\S]*?\n  Future<void> _finishBackgroundRender',
+          ).firstMatch(source)?.group(0) ??
+          '';
+
+      expect(seekBody, contains('position: clamped'));
+      expect(seekBody, isNot(contains('position: 0')));
+      expect(loadBody, contains('startSeconds'));
+      expect(loadBody, contains('position: startSeconds'));
+    });
   });
 }

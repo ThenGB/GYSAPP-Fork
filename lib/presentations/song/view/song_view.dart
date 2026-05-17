@@ -15,6 +15,8 @@ import '../../../router/router.dart';
 import '../../presentations.dart';
 import '../widgets/song_pdf_viewer.dart';
 
+const double _songTextMaxContentWidth = 920;
+
 @RoutePage()
 class SongView extends StatefulWidget {
   const SongView({super.key});
@@ -46,6 +48,7 @@ class _SongViewState extends State<SongView> {
       return 0;
     }
   }
+
   late String _currentBookCode = cubit.state.bookCode;
   final _pdfViewerController = PdfViewerController();
 
@@ -98,12 +101,16 @@ class _SongViewState extends State<SongView> {
                 state.songs.isNotEmpty && state.currentPdfPath == null;
             // True when the actual song changed
             final songChanged =
-                safePageIndex != currentPageIndex || newBookCode != _currentBookCode;
+                safePageIndex != currentPageIndex ||
+                newBookCode != _currentBookCode;
 
             setState(() {
               currentPageIndex = safePageIndex;
               _currentVerseIndex = state.verseIndex;
               _currentBookCode = newBookCode;
+              if (newBookCode == 'HYMNE' && _isChordEditMode) {
+                _isChordEditMode = false;
+              }
             });
 
             // Sync the PageController so the visible page matches the state.
@@ -123,26 +130,26 @@ class _SongViewState extends State<SongView> {
       child: BlocBuilder<SongCubit, SongState>(
         buildWhen: (previous, current) =>
             previous.isImageMode != current.isImageMode ||
-            previous.bookCode != current.bookCode, // Only rebuild Scaffold if mode or book changes
+            previous.bookCode !=
+                current
+                    .bookCode, // Only rebuild Scaffold if mode or book changes
         builder: (context, state) {
           final textMode = state.isImageMode == true;
           final colors = Theme.of(context).colorScheme;
+          final compactToolbar = MediaQuery.sizeOf(context).width < 430;
+          final chordToggleEnabled = state.bookCode != 'HYMNE';
+          final shouldRenderChord = chordToggleEnabled && state.showChord;
 
           return Scaffold(
             backgroundColor: colors.surface,
             appBar: AppBar(
               centerTitle: true,
-              backgroundColor: colors.surface,
-              foregroundColor: colors.primary,
+              backgroundColor: colors.surface.withValues(alpha: 0.88),
+              foregroundColor: colors.onSurface,
               surfaceTintColor: Colors.transparent,
-              shape: Border(
-                bottom: BorderSide(
-                  color: colors.outlineVariant,
-                  width: 1,
-                ),
-              ),
+              toolbarHeight: 74,
               leading: IconButton(
-                icon: const Icon(Icons.list_alt_rounded),
+                icon: const Icon(Icons.queue_music_rounded),
                 tooltip: 'Selector nomor pujian',
                 onPressed: _openSongSelector,
               ),
@@ -190,18 +197,24 @@ class _SongViewState extends State<SongView> {
                 ),
                 BlocBuilder<SongCubit, SongState>(
                   buildWhen: (prev, curr) => prev.showChord != curr.showChord,
-                  builder: (context, state) => IconButton(
-                    icon: Icon(
-                      state.showChord ? Icons.music_note : Icons.music_off,
-                      color: state.showChord
-                          ? colors.secondary
-                          : colors.onSurface.withValues(alpha: 0.4),
-                    ),
-                    tooltip: state.showChord
-                        ? 'Sembunyikan chord'
-                        : 'Tampilkan chord',
-                    onPressed: () => cubit.toggleChord(),
-                  ),
+                  builder: (context, state) => compactToolbar
+                      ? const SizedBox.shrink()
+                      : !chordToggleEnabled
+                      ? const SizedBox.shrink()
+                      : IconButton(
+                          icon: Icon(
+                            state.showChord
+                                ? Icons.music_note
+                                : Icons.music_off,
+                            color: state.showChord
+                                ? colors.secondary
+                                : colors.onSurface.withValues(alpha: 0.4),
+                          ),
+                          tooltip: state.showChord
+                              ? 'Sembunyikan chord'
+                              : 'Tampilkan chord',
+                          onPressed: () => cubit.toggleChord(),
+                        ),
                 ),
                 IconButton(
                   icon: Icon(
@@ -212,13 +225,13 @@ class _SongViewState extends State<SongView> {
                   tooltip: textMode ? 'Mode PDF' : 'Mode teks',
                   onPressed: cubit.changeMode,
                 ),
-                if (!textMode)
+                if (!compactToolbar && !textMode)
                   IconButton(
                     icon: const Icon(Icons.fit_screen_rounded),
                     tooltip: 'Fit halaman',
                     onPressed: _fitPdfToPage,
                   ),
-                if (textMode)
+                if (!compactToolbar && textMode)
                   IconButton(
                     icon: const Icon(Icons.tune_rounded),
                     tooltip: 'Pengaturan lirik',
@@ -236,9 +249,39 @@ class _SongViewState extends State<SongView> {
                       case 'notes':
                         router.push(SongNotesListRoute(cubit: context.read()));
                         break;
+                      case 'toggleChord':
+                        if (chordToggleEnabled) {
+                          cubit.toggleChord();
+                        }
+                        break;
+                      case 'fit':
+                        _fitPdfToPage();
+                        break;
+                      case 'lyrics':
+                        _openLyricsSettings();
+                        break;
                     }
                   },
                   itemBuilder: (context) => [
+                    if (compactToolbar && chordToggleEnabled)
+                      PopupMenuItem(
+                        value: 'toggleChord',
+                        child: Text(
+                          state.showChord
+                              ? 'Sembunyikan chord'
+                              : 'Tampilkan chord',
+                        ),
+                      ),
+                    if (compactToolbar && !textMode)
+                      const PopupMenuItem(
+                        value: 'fit',
+                        child: Text('Fit halaman'),
+                      ),
+                    if (compactToolbar && textMode)
+                      const PopupMenuItem(
+                        value: 'lyrics',
+                        child: Text('Pengaturan lirik'),
+                      ),
                     PopupMenuItem(value: 'copy', child: Text('Copy'.tr())),
                     PopupMenuItem(value: 'share', child: Text('Share'.tr())),
                     PopupMenuItem(
@@ -252,10 +295,27 @@ class _SongViewState extends State<SongView> {
             body: Stack(
               fit: StackFit.expand,
               children: [
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          colors.surfaceContainerHighest.withValues(
+                            alpha: 0.22,
+                          ),
+                          colors.surfaceContainerLow.withValues(alpha: 0.4),
+                          colors.surface,
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 // Text mode layer
                 if (textMode)
                   BlocBuilder<SongCubit, SongState>(
-                    buildWhen: (prev, curr) => 
+                    buildWhen: (prev, curr) =>
                         prev.pageIndex != curr.pageIndex ||
                         prev.defaultFont != curr.defaultFont ||
                         prev.defaultTextScale != curr.defaultTextScale ||
@@ -294,17 +354,22 @@ class _SongViewState extends State<SongView> {
                         prev.transposeStep != curr.transposeStep ||
                         prev.baseTransposeOffset != curr.baseTransposeOffset ||
                         prev.pdfTwoPageMode != curr.pdfTwoPageMode ||
-                        prev.pdfVerticalScrolling != curr.pdfVerticalScrolling ||
-                        prev.chordFontSizePercent != curr.chordFontSizePercent ||
-                        prev.chordFillOpacityPercent != curr.chordFillOpacityPercent ||
+                        prev.pdfVerticalScrolling !=
+                            curr.pdfVerticalScrolling ||
+                        prev.chordFontSizePercent !=
+                            curr.chordFontSizePercent ||
+                        prev.chordFillOpacityPercent !=
+                            curr.chordFillOpacityPercent ||
                         prev.chordPaddingPercent != curr.chordPaddingPercent,
                     builder: (context, state) {
-                      if (state.currentPdfPath == null) return const SizedBox.shrink();
+                      if (state.currentPdfPath == null) {
+                        return const SizedBox.shrink();
+                      }
                       return Positioned.fill(
                         child: SongPdfViewer(
                           key: const ValueKey('pdf_viewer_instance'),
                           pdfPath: state.currentPdfPath,
-                          showChord: state.showChord,
+                          showChord: shouldRenderChord,
                           chords: state.currentChords,
                           transposeStep: state.transposeStep,
                           baseTransposeOffset: state.baseTransposeOffset,
@@ -312,9 +377,10 @@ class _SongViewState extends State<SongView> {
                           twoPageMode: state.pdfTwoPageMode,
                           verticalScrolling: state.pdfVerticalScrolling,
                           chordFontSizePercent: state.chordFontSizePercent,
-                          chordFillOpacityPercent: state.chordFillOpacityPercent,
+                          chordFillOpacityPercent:
+                              state.chordFillOpacityPercent,
                           chordPaddingPercent: state.chordPaddingPercent,
-                          isEditMode: _isChordEditMode,
+                          isEditMode: chordToggleEnabled && _isChordEditMode,
                           onChordsChanged: (updatedChords) {
                             cubit.detectAndUpdateFamilyChord(updatedChords);
                           },
@@ -326,7 +392,8 @@ class _SongViewState extends State<SongView> {
 
                 // Audio loading indicator
                 BlocBuilder<SongCubit, SongState>(
-                  buildWhen: (prev, curr) => prev.isAudioLoading != curr.isAudioLoading,
+                  buildWhen: (prev, curr) =>
+                      prev.isAudioLoading != curr.isAudioLoading,
                   builder: (context, state) {
                     if (!state.isAudioLoading) return const SizedBox.shrink();
                     return Positioned(
@@ -374,14 +441,32 @@ class _SongViewState extends State<SongView> {
         return BlocBuilder<SongCubit, SongState>(
           bloc: cubit,
           builder: (context, state) {
+            final colors = Theme.of(context).colorScheme;
             return ListView(
               shrinkWrap: true,
               padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
               children: [
-                Text(
-                  'Pengaturan lirik',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colors.primaryContainer.withValues(alpha: 0.55),
+                        colors.surfaceContainerHighest,
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: colors.outlineVariant.withValues(alpha: 0.65),
+                    ),
+                  ),
+                  child: Text(
+                    'Pengaturan lirik',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -549,6 +634,7 @@ class _SongViewState extends State<SongView> {
   void _fitPdfToPage() => _pdfViewerController.fitToPage?.call();
 
   void _toggleChordEditMode() {
+    if (cubit.state.bookCode == 'HYMNE') return;
     setState(() {
       _isChordEditMode = !_isChordEditMode;
     });
@@ -624,6 +710,13 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final compact = screenWidth < 420;
+    final titleMaxWidth = screenWidth < 420
+        ? screenWidth * 0.42
+        : screenWidth < 600
+        ? screenWidth * 0.52
+        : (screenWidth * 0.58).clamp(260, 520).toDouble();
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -631,6 +724,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
         Opacity(
           opacity: widget.canGoPrevious ? 1.0 : 0.0,
           child: IconButton(
+            visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Pujian sebelumnya',
             onPressed: widget.canGoPrevious ? widget.onPrevious : null,
             icon: const Icon(Icons.chevron_left_rounded),
@@ -646,18 +740,23 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
               },
               child: Container(
                 key: ValueKey('${widget.number}-${widget.title}'),
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.sizeOf(context).width * 0.6,
-                ),
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 5,
+                constraints: BoxConstraints(maxWidth: titleMaxWidth),
+                padding: EdgeInsets.symmetric(
+                  horizontal: compact ? 10 : 12,
+                  vertical: compact ? 7 : 8,
                 ),
                 decoration: BoxDecoration(
-                  color: colors.surfaceContainerLowest.withValues(alpha: 0.92),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      colors.surfaceContainerHighest.withValues(alpha: 0.7),
+                      colors.surfaceContainerLow.withValues(alpha: 0.7),
+                    ],
+                  ),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: colors.outlineVariant.withValues(alpha: 0.6),
+                    color: colors.outlineVariant.withValues(alpha: 0.56),
                   ),
                 ),
                 child: Column(
@@ -673,7 +772,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w800,
-                        fontSize: 15.5,
+                        fontSize: 15,
                       ),
                     ),
                     if (widget.familyChord != null)
@@ -683,7 +782,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
                           fontSize: 11,
-                          fontWeight: FontWeight.w600,
+                          fontWeight: FontWeight.w700,
                           color: colors.onSurfaceVariant.withValues(
                             alpha: 0.72,
                           ),
@@ -698,6 +797,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
         Opacity(
           opacity: widget.canGoNext ? 1.0 : 0.0,
           child: IconButton(
+            visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Pujian berikutnya',
             onPressed: widget.canGoNext ? widget.onNext : null,
             icon: const Icon(Icons.chevron_right_rounded),
@@ -779,8 +879,18 @@ class _SongTextPage extends StatelessWidget {
             Expanded(
               child: LayoutBuilder(
                 builder: (context, constraints) {
+                  final compact = constraints.maxWidth < 420;
+                  final horizontalPadding = compact ? 14.0 : 20.0;
+                  final cardMaxWidth = constraints.maxWidth > 980
+                      ? _songTextMaxContentWidth
+                      : constraints.maxWidth;
                   return SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      20,
+                      horizontalPadding,
+                      8,
+                    ),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         minHeight: (constraints.maxHeight - 28)
@@ -791,36 +901,79 @@ class _SongTextPage extends StatelessWidget {
                         mainAxisAlignment: _resolveVerticalAlign(),
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          if (hasVerses) ...[
-                            Text(
-                              'Bait ${safeIndex + 1} dari ${verses.length}',
-                              textAlign: _resolveTextAlign(),
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.primary.withValues(
-                                  alpha: 0.5,
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: cardMaxWidth,
+                              ),
+                              child: Container(
+                                padding: EdgeInsets.fromLTRB(
+                                  compact ? 14 : 18,
+                                  compact ? 12 : 14,
+                                  compact ? 14 : 18,
+                                  compact ? 14 : 18,
                                 ),
-                                fontWeight: FontWeight.w700,
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      theme.colorScheme.surfaceContainerHighest
+                                          .withValues(alpha: 0.58),
+                                      theme.colorScheme.surfaceContainerLow
+                                          .withValues(alpha: 0.82),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(
+                                    compact ? 14 : 18,
+                                  ),
+                                  border: Border.all(
+                                    color: theme.colorScheme.outlineVariant
+                                        .withValues(alpha: 0.5),
+                                  ),
+                                ),
+                                child: hasVerses
+                                    ? Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Text(
+                                            'Bait ${safeIndex + 1} dari ${verses.length}',
+                                            textAlign: _resolveTextAlign(),
+                                            style: theme.textTheme.bodySmall
+                                                ?.copyWith(
+                                                  color: theme
+                                                      .colorScheme
+                                                      .primary
+                                                      .withValues(alpha: 0.6),
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 16),
+                                          Text(
+                                            currentVerse!,
+                                            textAlign: _resolveTextAlign(),
+                                            style: theme.textTheme.bodyLarge
+                                                ?.copyWith(
+                                                  fontFamily: fontFamily,
+                                                  fontSize: 16 * textScale,
+                                                  height: textHeight,
+                                                  fontWeight: fontBold
+                                                      ? FontWeight.w700
+                                                      : FontWeight.w400,
+                                                ),
+                                          ),
+                                        ],
+                                      )
+                                    : Text(
+                                        'Teks lagu belum tersedia.',
+                                        textAlign: _resolveTextAlign(),
+                                        style: theme.textTheme.bodyMedium,
+                                      ),
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              currentVerse!,
-                              textAlign: _resolveTextAlign(),
-                              style: theme.textTheme.bodyLarge?.copyWith(
-                                fontFamily: fontFamily,
-                                fontSize: 16 * textScale,
-                                height: textHeight,
-                                fontWeight: fontBold
-                                    ? FontWeight.w700
-                                    : FontWeight.w400,
-                              ),
-                            ),
-                          ] else
-                            Text(
-                              'Teks lagu belum tersedia.',
-                              textAlign: _resolveTextAlign(),
-                              style: theme.textTheme.bodyMedium,
-                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -930,6 +1083,15 @@ class _LyricsChoiceGroup extends StatelessWidget {
                 (entry) => ChoiceChip(
                   label: Text(entry.value),
                   selected: value == entry.key,
+                  side: BorderSide(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.outlineVariant.withValues(alpha: 0.65),
+                  ),
+                  selectedColor: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.65),
+                  showCheckmark: false,
                   onSelected: (_) => onSelected(entry.key),
                 ),
               )

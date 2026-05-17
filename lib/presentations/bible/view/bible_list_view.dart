@@ -58,7 +58,9 @@ class _BibleListViewState extends State<BibleListView> {
         return true;
       },
       child: Scaffold(
+        backgroundColor: context.colorScheme.surfaceContainerLowest,
         appBar: AppBar(
+          backgroundColor: context.colorScheme.surfaceContainerLowest,
           title: Text(
             '${selectedBook?.longName ?? 'Search'.tr()} ${chapter?.toString() ?? ''}',
           ),
@@ -87,7 +89,7 @@ class _BibleListViewState extends State<BibleListView> {
               SharedAxisTransition(
                 animation: primaryAnimation,
                 secondaryAnimation: secondaryAnimation,
-                fillColor: context.colorScheme.surface,
+                fillColor: context.colorScheme.surfaceContainerLowest,
                 transitionType: SharedAxisTransitionType.vertical,
                 child: child,
               ),
@@ -101,7 +103,16 @@ class _BibleListViewState extends State<BibleListView> {
               alignment: Alignment.topCenter,
               children: [
                 Container(
-                  color: context.colorScheme.surface,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [
+                        context.colorScheme.surfaceContainerLowest,
+                        context.colorScheme.surface,
+                      ],
+                    ),
+                  ),
                   child: FutureBuilder(
                     future: FirebaseUtils.jsonConfig('bible_name'),
                     builder: (context, snapshot) {
@@ -151,8 +162,8 @@ class _BibleListViewState extends State<BibleListView> {
                               height:
                                   (constraints.maxWidth / 8) * widget.textScale,
                               child: Material(
-                                borderRadius: BorderRadius.circular(12),
-                                color: context.colorScheme.secondaryContainer,
+                                borderRadius: BorderRadius.circular(8),
+                                color: context.colorScheme.surfaceContainerLow,
                                 child: InkWell(
                                   onTap: () {
                                     chapter = e.value + 1;
@@ -162,6 +173,15 @@ class _BibleListViewState extends State<BibleListView> {
                                   child: Container(
                                     padding: const EdgeInsets.all(4),
                                     alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(8),
+                                      border: Border.all(
+                                        color: context
+                                            .colorScheme
+                                            .outlineVariant
+                                            .withValues(alpha: 0.52),
+                                      ),
+                                    ),
                                     child: Text(
                                       (e.value + 1).toString(),
                                       textAlign: TextAlign.center,
@@ -198,9 +218,9 @@ class _BibleListViewState extends State<BibleListView> {
                                       (constraints.maxWidth / 8) *
                                       widget.textScale,
                                   child: Material(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(8),
                                     color:
-                                        context.colorScheme.secondaryContainer,
+                                        context.colorScheme.surfaceContainerLow,
                                     child: InkWell(
                                       onTap: () {
                                         allowForceClose = true;
@@ -211,6 +231,17 @@ class _BibleListViewState extends State<BibleListView> {
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
                                         alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          borderRadius: BorderRadius.circular(
+                                            8,
+                                          ),
+                                          border: Border.all(
+                                            color: context
+                                                .colorScheme
+                                                .outlineVariant
+                                                .withValues(alpha: 0.52),
+                                          ),
+                                        ),
                                         child: Text(
                                           (e.value + 1).toString(),
                                           textAlign: TextAlign.center,
@@ -250,8 +281,8 @@ class _BibleListViewState extends State<BibleListView> {
                   (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
                   widget.textScale,
               child: Material(
-                borderRadius: BorderRadius.circular(12),
-                color: context.colorScheme.secondaryContainer,
+                borderRadius: BorderRadius.circular(8),
+                color: context.colorScheme.surfaceContainerLow,
                 child: InkWell(
                   onTap: () {
                     selectedBook = e.value;
@@ -259,6 +290,14 @@ class _BibleListViewState extends State<BibleListView> {
                     setState(() {});
                   },
                   child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: context.colorScheme.outlineVariant.withValues(
+                          alpha: 0.52,
+                        ),
+                      ),
+                    ),
                     padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
                     alignment: isGridViewMode
                         ? Alignment.center
