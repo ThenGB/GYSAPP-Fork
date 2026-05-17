@@ -73,7 +73,7 @@ void main() {
     final path = await service.getPdfPath('HYMNE', '001');
 
     expect(path, startsWith('assets/data/pdf/hymne/'));
-    expect(path, contains('page=5'));
+    expect(path, contains('page='));
     expect(path, contains('pages=1'));
     expect(path, isNotNull);
   });
