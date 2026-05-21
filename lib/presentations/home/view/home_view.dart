@@ -174,16 +174,11 @@ class HomeView extends StatelessWidget {
                                         ),
                                         decoration: BoxDecoration(
                                           borderRadius: BorderRadius.circular(
-                                            14,
+                                            20,
                                           ),
                                           color: context
                                               .colorScheme
-                                              .surfaceContainerLowest,
-                                          border: Border.all(
-                                            color: context
-                                                .colorScheme
-                                                .outlineVariant,
-                                          ),
+                                              .surfaceContainer,
                                         ),
                                         child: Stack(
                                           children: [
@@ -215,7 +210,7 @@ class HomeView extends StatelessWidget {
                                     );
                                   },
                                   options: CarouselOptions(
-                                    height: 132,
+                                    height: 80,
                                     enlargeFactor: 1,
                                     autoPlay: true,
                                     enlargeStrategy:
@@ -351,13 +346,13 @@ class _LinkGroup extends StatelessWidget {
                     (link) => SizedBox(
                       width: width,
                       child: Material(
-                        color: context.colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(14),
+                        color: context.colorScheme.surfaceContainer,
+                        borderRadius: BorderRadius.circular(16),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius: BorderRadius.circular(16),
                           onTap: () => _handleTap(context, link),
                           child: Padding(
-                            padding: const EdgeInsets.all(8),
+                            padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
                                 ClipRRect(
@@ -365,14 +360,14 @@ class _LinkGroup extends StatelessWidget {
                                   child: Container(
                                     width: 42,
                                     height: 42,
-                                    color: context.colorScheme.surfaceContainer,
+                                    color: context.colorScheme.surfaceContainerHighest,
                                     child: _LinkThumbnail(
                                       link: link,
                                       fallbackIcon: icon,
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 8),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment:
@@ -384,7 +379,8 @@ class _LinkGroup extends StatelessWidget {
                                         overflow: TextOverflow.ellipsis,
                                         style: context.textTheme.titleMedium
                                             ?.copyWith(
-                                              fontWeight: FontWeight.w600,
+                                              fontWeight: FontWeight.w700,
+                                              fontSize: 15,
                                             ),
                                       ),
                                       Text(
@@ -403,6 +399,7 @@ class _LinkGroup extends StatelessWidget {
                                               color: context
                                                   .colorScheme
                                                   .onSurfaceVariant,
+                                              fontSize: 12,
                                             ),
                                       ),
                                     ],
@@ -640,30 +637,26 @@ class SauhBagiJiwa extends StatelessWidget {
       label: 'Sauh Bagi Jiwa'.tr(),
       child: (gap) => InkWell(
         onTap: () {
-          // FlutterWebBrowser.openWebPage(url: item.url);
           router.push(WebpageRoute(url: item.url));
         },
         child: Container(
           clipBehavior: Clip.hardEdge,
           margin: EdgeInsets.symmetric(horizontal: gap),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(14),
-            color: context.colorScheme.surfaceContainerLow,
-            border: Border.all(
-              color: context.colorScheme.outlineVariant.withValues(alpha: 0.65),
-            ),
+            borderRadius: BorderRadius.circular(20),
+            color: context.colorScheme.surfaceContainer,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _safeNetworkImage(
                 item.imageUrl,
-                height: 130,
+                height: 120,
                 fit: BoxFit.cover,
                 width: double.infinity,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 14),
+                padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -672,17 +665,18 @@ class SauhBagiJiwa extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.w700,
                         color: context.colorScheme.onSurface,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     Text(
                       item.description,
                       maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
+                        fontSize: 14,
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -801,78 +795,70 @@ class _SuaraSejatiState extends State<SuaraSejati> {
             itemBuilder: (context, index) {
               final item = widget.trueVoices[index];
               return Padding(
-                padding: EdgeInsets.only(left: index == 0 ? gap : 3, right: 3),
+                padding: EdgeInsets.only(left: index == 0 ? gap : 4, right: 4),
                 child: InkWell(
                   onTap: () {
                     router.push(WebpageRoute(url: item.url));
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      color: context.colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: context.colorScheme.outlineVariant.withValues(
-                          alpha: 0.6,
-                        ),
-                      ),
+                      color: context.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(16),
                     ),
+                    clipBehavior: Clip.hardEdge,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(14),
-                          ),
-                          child: SizedBox(
-                            width: double.infinity,
-                            height: 110,
-                            child: _safeNetworkImage(
-                              item.imageUrl,
-                              fit: BoxFit.cover,
-                            ),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 110,
+                          child: _safeNetworkImage(
+                            item.imageUrl,
+                            fit: BoxFit.cover,
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(10, 6, 10, 8),
+                          padding: const EdgeInsets.all(12),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 5,
-                                  vertical: 2,
+                                  horizontal: 6,
+                                  vertical: 3,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: context.colorScheme.surfaceContainer,
+                                  color: context.colorScheme.primaryContainer,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
                                   'ARTIKEL',
                                   style: context.textTheme.labelSmall?.copyWith(
-                                    color: context.colorScheme.primary,
+                                    color: context.colorScheme.onPrimaryContainer,
                                     fontSize: 9,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              const SizedBox(height: 8),
                               Text(
                                 item.title,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: context.textTheme.titleMedium?.copyWith(
                                   color: context.colorScheme.onSurface,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
                                 ),
                               ),
-                              const SizedBox(height: 3),
+                              const SizedBox(height: 4),
                               Text(
                                 item.creator.trim(),
-                                maxLines: 2,
+                                maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 style: context.textTheme.bodySmall?.copyWith(
                                   color: context.colorScheme.onSurfaceVariant,
-                                  fontSize: 11,
+                                  fontSize: 12,
                                 ),
                               ),
                             ],
@@ -902,23 +888,8 @@ class _HomeHeaderState extends State<HomeHeader> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.9),
-            context.colorScheme.surfaceContainerLow.withValues(alpha: 0.92),
-          ],
-        ),
-        border: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.outlineVariant.withValues(alpha: 0.5),
-            width: 1,
-          ),
-        ),
-      ),
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+      color: context.colorScheme.surface,
+      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
       child: Row(
         children: [
           IconButton(
@@ -931,7 +902,7 @@ class _HomeHeaderState extends State<HomeHeader> {
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
-                  'Liturgical Workspace',
+                  'Workspace',
                   textAlign: TextAlign.center,
                   style: context.textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w800,
@@ -982,27 +953,12 @@ class _HomeHeroPanel extends StatelessWidget {
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 640;
         return Padding(
-          padding: EdgeInsets.fromLTRB(16, compact ? 14 : 20, 16, 12),
+          padding: EdgeInsets.fromLTRB(16, compact ? 12 : 16, 16, 12),
           child: Container(
-            padding: EdgeInsets.all(compact ? 18 : 22),
+            padding: EdgeInsets.all(compact ? 16 : 20),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryContainer.withValues(alpha: 0.44),
-                  colors.surfaceContainerHighest.withValues(alpha: 0.9),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(compact ? 20 : 24),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.26)),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.shadow.withValues(alpha: 0.14),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
-                ),
-              ],
+              color: colors.primaryContainer.withValues(alpha: 0.5),
+              borderRadius: BorderRadius.circular(compact ? 12 : 16),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1011,23 +967,23 @@ class _HomeHeroPanel extends StatelessWidget {
                   'One Desk For Worship Flow',
                   style: context.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
-                    color: colors.onSurface,
-                    fontSize: compact ? 25 : 30,
+                    color: colors.onPrimaryContainer,
+                    fontSize: compact ? 22 : 26,
                   ),
                 ),
-                SizedBox(height: compact ? 10 : 8),
+                SizedBox(height: 8),
                 Text(
                   'Open hymns, scripture, and doctrine from one modern control room built for daily ministry rhythm.',
                   style: context.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontSize: compact ? 15 : 16,
+                    color: colors.onPrimaryContainer.withValues(alpha: 0.8),
+                    fontSize: compact ? 14 : 15,
                     height: 1.4,
                   ),
                 ),
-                const SizedBox(height: 14),
+                const SizedBox(height: 12),
                 Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
+                  spacing: 12,
+                  runSpacing: 12,
                   children: const [
                     _QuickLaunchTile(
                       icon: Icons.music_note_rounded,
@@ -1041,7 +997,7 @@ class _HomeHeroPanel extends StatelessWidget {
                     ),
                     _QuickLaunchTile(
                       icon: Icons.auto_stories_rounded,
-                      label: 'Open Beliefs',
+                      label: 'Beliefs',
                       tabIndex: 3,
                     ),
                   ],
@@ -1069,52 +1025,29 @@ class _QuickLaunchTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final compact = MediaQuery.sizeOf(context).width < 430;
     return InkWell(
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(8),
       onTap: () => AutoTabsRouter.of(context).setActiveIndex(tabIndex),
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: compact ? 160 : 176,
-          maxWidth: compact ? 220 : 236,
+      child: Ink(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surface.withValues(alpha: 0.8),
+          borderRadius: BorderRadius.circular(8),
         ),
-        child: Ink(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-          decoration: BoxDecoration(
-            color: colors.surfaceContainerLowest.withValues(alpha: 0.84),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.62),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: colors.primary, size: 18),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: context.textTheme.titleMedium?.copyWith(
+                color: colors.onSurface,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: BorderRadius.circular(9),
-                ),
-                child: Icon(icon, color: colors.primary, size: 18),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  label,
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14.5,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right_rounded,
-                size: 18,
-                color: colors.onSurfaceVariant,
-              ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -1128,41 +1061,28 @@ class _HomeWelcomeSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 10),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-          decoration: BoxDecoration(
-            color: context.colorScheme.surfaceContainerLow.withValues(
-              alpha: 0.72,
-            ),
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: context.colorScheme.outlineVariant.withValues(alpha: 0.45),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Shalom,',
-                style: context.textTheme.titleMedium?.copyWith(
-                  color: context.colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                ),
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Shalom,',
+              style: context.textTheme.titleMedium?.copyWith(
+                color: context.colorScheme.primary,
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: 4),
-              Text(
-                state.account?.name?.trim().isNotEmpty == true
-                    ? state.account!.name!
-                    : 'Jemaat Terkasih',
-                style: context.textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: context.colorScheme.onSurface,
-                ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              state.account?.name?.trim().isNotEmpty == true
+                  ? state.account!.name!
+                  : 'Jemaat Terkasih',
+              style: context.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: context.colorScheme.onSurface,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -1176,75 +1096,62 @@ class _DailyVerseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(18),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                context.colorScheme.secondaryContainer.withValues(alpha: 0.34),
-                context.colorScheme.surfaceContainerLow.withValues(alpha: 0.9),
-              ],
-            ),
-            border: Border.all(
-              color: context.colorScheme.outlineVariant.withValues(alpha: 0.64),
-            ),
-          ),
-          child: IntrinsicHeight(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'TODAY VERSE',
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: context.colorScheme.primary,
-                      letterSpacing: 1.3,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
-                    style: context.textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: context.colorScheme.onSurface,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: context.colorScheme.primaryContainer,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Text(
-                          'Matius 5:8',
-                          style: context.textTheme.labelSmall?.copyWith(
-                            color: context.colorScheme.onPrimaryContainer,
-                            letterSpacing: 0.4,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        Icons.ios_share_rounded,
-                        size: 18,
-                        color: context.colorScheme.onSurfaceVariant,
-                      ),
-                    ],
-                  ),
-                ],
+      child: Container(
+        decoration: BoxDecoration(
+          color: context.colorScheme.secondaryContainer.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'TODAY VERSE',
+              style: context.textTheme.labelSmall?.copyWith(
+                color: context.colorScheme.onSecondaryContainer,
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w800,
               ),
             ),
-          ),
+            const SizedBox(height: 8),
+            Text(
+              '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
+              style: context.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: context.colorScheme.onSecondaryContainer,
+                height: 1.4,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: context.colorScheme.primaryContainer,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Text(
+                    'Matius 5:8',
+                    style: context.textTheme.labelMedium?.copyWith(
+                      color: context.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.4,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.ios_share_rounded,
+                  size: 18,
+                  color: context.colorScheme.onSecondaryContainer,
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
