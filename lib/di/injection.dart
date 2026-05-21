@@ -104,6 +104,7 @@ void _repositories() {
   di.registerFactory<AccountRepository>(
     () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi),
   );
+  di.registerFactory<ThemePreferencesRepository>(() => ThemePreferencesRepository());
 }
 
 class AppDirectory {

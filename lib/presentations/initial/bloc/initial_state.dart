@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../data/models/theme_preferences.dart';
+
 part 'initial_state.freezed.dart';
 part 'initial_state.g.dart';
 
@@ -19,6 +21,7 @@ abstract class InitialState with _$InitialState {
     @Default(1.2) double defaultTextScale,
     @Default('Roboto') String defaultFont,
     @Default('maroon') String accentKey,
+    @Default(ThemePreferences()) ThemePreferences themePreferences,
   }) = _InitialState;
 
   factory InitialState.fromJson(Map<String, dynamic> json) =>

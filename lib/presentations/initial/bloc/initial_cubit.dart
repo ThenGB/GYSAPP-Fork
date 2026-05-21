@@ -8,6 +8,8 @@ import '../../../app.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/app_config_store.dart';
 import '../../../data/services/local_asset_service.dart';
+import '../../../data/repositories/theme_preferences_repository.dart';
+import '../../../data/models/theme_preferences.dart';
 import '../../../di/injection.dart';
 import 'initial_state.dart';
 
@@ -83,6 +85,22 @@ class InitialCubit extends HydratedCubit<InitialState> {
             state.configFetchIntervalSeconds,
       ),
     );
+
+    // Load theme preferences
+    await _loadThemePreferences();
+  }
+
+  Future<void> _loadThemePreferences() async {
+    try {
+      final themeRepo = di<ThemePreferencesRepository>();
+      await themeRepo.init();
+      final prefs = themeRepo.preferences;
+      emit(state.copyWith(themePreferences: prefs));
+    } catch (e) {
+      log('Failed to load theme preferences', name: 'InitialCubit', error: e);
+      // Fallback to defaults if loading fails
+      emit(state.copyWith(themePreferences: const ThemePreferences()));
+    }
   }
 
   void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
