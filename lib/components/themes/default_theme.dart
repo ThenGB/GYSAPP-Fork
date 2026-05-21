@@ -11,7 +11,6 @@ ThemeData defaultTheme(
   String accentKey = defaultAccentKey,
 }) {
   final colorScheme = lightHymnalColorScheme(accentKey);
-  const controlRadius = 16.0;
 
   return ThemeData(
     useMaterial3: true,
@@ -31,9 +30,9 @@ ThemeData defaultTheme(
     ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
-      toolbarHeight: 74,
+      toolbarHeight: 56,  // Reduced from 74
       titleSpacing: 0,
-      backgroundColor: colorScheme.surface.withValues(alpha: 0.86),
+      backgroundColor: colorScheme.surface,
       foregroundColor: colorScheme.onSurface,
       iconTheme: IconThemeData(color: colorScheme.onSurface),
       actionsIconTheme: IconThemeData(color: colorScheme.onSurface),
@@ -48,7 +47,7 @@ ThemeData defaultTheme(
       titleTextStyle: TextStyle(
         fontFamily: _hymnalHeadingFont,
         fontWeight: FontWeight.w700,
-        fontSize: 24,
+        fontSize: 20,
         letterSpacing: 0.1,
         color: colorScheme.onSurface,
       ),
@@ -126,13 +125,13 @@ ThemeData defaultTheme(
       fontFamily: defaultFont,
     ),
     cardTheme: CardThemeData(
-      color: colorScheme.surfaceContainerLowest,
+      color: colorScheme.surfaceContainerLow,
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(12),  // Reduced from 20
         side: BorderSide(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+          color: colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
       ),
     ),
@@ -180,18 +179,18 @@ ThemeData defaultTheme(
     ),
     inputDecorationTheme: InputDecorationTheme(
       filled: true,
-      fillColor: colorScheme.surfaceContainerLowest,
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      fillColor: colorScheme.surfaceContainerLow,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(controlRadius),
-        borderSide: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(controlRadius),
-        borderSide: BorderSide(color: colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(8),
+        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(controlRadius),
+        borderRadius: BorderRadius.circular(8),
         borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       labelStyle: TextStyle(
@@ -209,7 +208,8 @@ ThemeData defaultTheme(
       iconColor: colorScheme.primary,
       textColor: colorScheme.onSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      minVerticalPadding: 4,
     ),
     iconButtonTheme: IconButtonThemeData(
       style: ButtonStyle(
@@ -231,17 +231,17 @@ ThemeData defaultTheme(
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      height: 70,
+      height: 64,  // Reduced from 70
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: colorScheme.primaryContainer.withValues(alpha: 0.45),
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.2),  // Subtle 20%
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
           size: selected ? 22 : 20,
           color: selected
-              ? colorScheme.onPrimaryContainer
+              ? colorScheme.primary
               : colorScheme.onSurfaceVariant,
         );
       }),
@@ -250,9 +250,9 @@ ThemeData defaultTheme(
         return TextStyle(
           fontFamily: _hymnalUiFont,
           fontSize: 11,
-          fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+          fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           color: selected
-              ? colorScheme.onPrimaryContainer
+              ? colorScheme.primary
               : colorScheme.onSurfaceVariant,
         );
       }),
@@ -278,11 +278,11 @@ ThemeData defaultTheme(
       backgroundColor: colorScheme.surface,
       surfaceTintColor: Colors.transparent,
       modalBackgroundColor: colorScheme.surface,
-      modalBarrierColor: Colors.black.withValues(alpha: 0.24),
+      modalBarrierColor: Colors.black.withValues(alpha: 0.2),
       showDragHandle: true,
-      dragHandleColor: colorScheme.outline,
+      dragHandleColor: colorScheme.outlineVariant,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
     ),
     dialogTheme: DialogThemeData(
@@ -308,12 +308,13 @@ ThemeData defaultTheme(
     ),
     chipTheme: ChipThemeData(
       backgroundColor: colorScheme.surfaceContainerLow,
-      selectedColor: colorScheme.primaryContainer.withValues(alpha: 0.55),
-      side: BorderSide(color: colorScheme.outlineVariant),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+      selectedColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
+      side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       labelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
-        fontWeight: FontWeight.w700,
+        fontWeight: FontWeight.w600,
+        fontSize: 13,
         color: colorScheme.onSurface,
       ),
     ),
