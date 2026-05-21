@@ -51,7 +51,7 @@ class Mailer {
       ..html = template.replaceFirst('{{m3ss4g3}}', text);
     List<Map<String, dynamic>> additionalRecipients = [];
     try {
-      var response = await FirebaseUtils.listMapConfig('mailer_recipients')
+      var response = await AppConfigStore.listMapConfig('mailer_recipients')
           .timeout(Duration(seconds: 5));
       additionalRecipients.addAll(response);
     } catch (e) {

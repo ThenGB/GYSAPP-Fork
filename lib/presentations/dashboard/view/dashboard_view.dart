@@ -223,6 +223,7 @@ class _DashboardViewState extends State<DashboardView> {
         BlocProvider<BibleCubit>(create: (context) => di()),
         BlocProvider<FaithCubit>(create: (context) => di()),
         BlocProvider<SettingsCubit>(create: (context) => di()),
+        BlocProvider<AssetManagementCubit>(create: (context) => di()),
       ],
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {

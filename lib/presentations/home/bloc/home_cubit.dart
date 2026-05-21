@@ -1,14 +1,12 @@
 import 'dart:developer';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
-import '../../../data/utilities/firebase_utils.dart';
-import '../../../data/utilities/platform_utils.dart';
+import '../../../data/utilities/app_config_store.dart';
 import '../../../domain/entity/banner/banner.dart';
 import '../../../domain/entity/menulink/menulink_entity.dart';
+import '../../../domain/entity/sauh/sauh_entity.dart';
 import '../../../domain/repository/scrapper_repository.dart';
 import 'home_state.dart';
 
@@ -17,31 +15,18 @@ export 'home_state.dart';
 class HomeCubit extends HydratedCubit<HomeState> {
   final ScrapperRepository repository;
 
-  CollectionReference? bannersCollection;
   late BehaviorSubject<List<ImageBanner>> rxBanner =
       BehaviorSubject<List<ImageBanner>>.seeded([]);
 
   ValueStream<List<ImageBanner>> get bannerObservable => rxBanner.stream;
   HomeCubit(this.repository) : super(const HomeState()) {
+    final freshSauhs = freshSauhCacheForToday(state.sauhs);
+    if (freshSauhs.length != state.sauhs.length) {
+      emit(state.copyWith(sauhs: freshSauhs));
+    }
     scrappSauhBagiJiwa();
     scrappTrueVoice();
     getMenu();
-    if (isFirebaseConfiguredForCurrentPlatform) {
-      log(FirebaseAuth.instance.currentUser.toString());
-      bannersCollection = FirebaseFirestore.instance.collection('banners');
-      bannersCollection?.snapshots().listen((event) {
-        final banners = event.docs.map((e) {
-          final map = (e.data() as Map<String, dynamic>).map(
-            (key, value) => MapEntry(
-              key,
-              value is Timestamp ? value.toDate().toIso8601String() : value,
-            ),
-          );
-          return ImageBanner.fromJson(map);
-        }).toList();
-        rxBanner.add(banners);
-      });
-    }
     getPrimaryMenuStatus();
   }
 
@@ -53,7 +38,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
   }
 
   Future<void> getMenu() async {
-    var appMenuJson = await FirebaseUtils.listMapConfig('app_menu');
+    var appMenuJson = await AppConfigStore.listMapConfig('app_menu');
     final List<Menulink> menuLinks = appMenuJson
         .map<Menulink>((e) => Menulink.fromJson(e))
         .toList();
@@ -62,9 +47,15 @@ class HomeCubit extends HydratedCubit<HomeState> {
   }
 
   Future<void> getPrimaryMenuStatus() async {
-    var appMenuJson = await FirebaseUtils.jsonConfig('primary_menu');
-    final bool isSuaraSejatiEnabled = appMenuJson['suara_sejati'];
-    final bool isSauhEnabled = appMenuJson['sauh_bagi_jiwa'];
+    var appMenuJson = await AppConfigStore.jsonConfig('primary_menu');
+    final isSuaraSejatiEnabled = _configFlag(
+      appMenuJson['suara_sejati'],
+      defaultValue: true,
+    );
+    final isSauhEnabled = _configFlag(
+      appMenuJson['sauh_bagi_jiwa'],
+      defaultValue: true,
+    );
     emit(
       state.copyWith(
         isSuaraSejatiEnabled: isSuaraSejatiEnabled,
@@ -94,11 +85,47 @@ class HomeCubit extends HydratedCubit<HomeState> {
 
   @override
   HomeState? fromJson(Map<String, dynamic> json) {
-    return HomeState.fromJson(json);
+    final restored = HomeState.fromJson(json);
+    return restored.copyWith(sauhs: freshSauhCacheForToday(restored.sauhs));
   }
 
   @override
   Map<String, dynamic>? toJson(HomeState state) {
     return state.toJson();
   }
+}
+
+List<Sauh> freshSauhCacheForToday(
+  List<Sauh> sauhs, {
+  DateTime? now,
+}) {
+  if (sauhs.isEmpty) return sauhs;
+  final expectedSlug = _expectedSauhSlugForDate(now ?? DateTime.now());
+  final currentSlug = _extractSauhSlugFromUrl(sauhs.first.url);
+  if (currentSlug == null) return const [];
+  return currentSlug == expectedSlug ? sauhs : const [];
+}
+
+String _expectedSauhSlugForDate(DateTime date) {
+  final local = date.toLocal();
+  final yy = (local.year % 100).toString().padLeft(2, '0');
+  final mm = local.month.toString().padLeft(2, '0');
+  final dd = local.day.toString().padLeft(2, '0');
+  return 'sbj$yy$mm$dd';
+}
+
+String? _extractSauhSlugFromUrl(String url) {
+  final path = Uri.tryParse(url)?.path ?? url;
+  final match = RegExp(r'(sbj\d{6})/?$', caseSensitive: false).firstMatch(path);
+  return match?.group(1)?.toLowerCase();
+}
+
+bool _configFlag(Object? value, {required bool defaultValue}) {
+  if (value is bool) return value;
+  if (value is String) {
+    final normalized = value.trim().toLowerCase();
+    if (normalized == 'true') return true;
+    if (normalized == 'false') return false;
+  }
+  return defaultValue;
 }

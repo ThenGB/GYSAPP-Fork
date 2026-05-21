@@ -19,34 +19,36 @@ import '../data.dart';
 
 class ScrapperRepositoryImpl implements ScrapperRepository {
   final Chaleno chaleno;
+  final http.Client _client;
 
-  ScrapperRepositoryImpl(this.chaleno);
+  ScrapperRepositoryImpl(this.chaleno, {http.Client? client})
+    : _client = client ?? http.Client();
   @override
-  Future<Either<Failure, List<Sauh>>> getSauh() async {
-    return _getSauhFromHtml();
+  Future<Either<Failure, List<Sauh>>> getSauh({DateTime? now}) async {
+    return _getSauhFromHtml(now: now ?? DateTime.now());
   }
 
-  Future<Either<Failure, List<Sauh>>> _getSauhFromHtml() async {
+  Future<Either<Failure, List<Sauh>>> _getSauhFromHtml({
+    required DateTime now,
+  }) async {
     bool hasError = false;
     List<Sauh> data = [];
     late Failure failure;
     try {
-      final response = await http.get(
-        Uri.parse(
-          'https://tjc.org/id/wp-json/wp/v2/posts'
-          '?categories=229'
-          '&per_page=6'
-          '&orderby=date'
-          '&order=desc'
-          '&_embed=wp:featuredmedia',
-        ),
+      final expectedSlug = expectedSauhSlugForDate(now);
+      var posts = await _fetchSauhPosts(slug: expectedSlug, perPage: 1);
+      posts = posts.isNotEmpty ? posts : await _fetchSauhPosts(perPage: 6);
+
+      final preferredPost = selectPreferredSauhPost(posts, now: now);
+      if (preferredPost == null) throw "Can't parse Sauh Bagi Jiwa";
+
+      final orderedPosts = orderSauhPostsByFreshness(
+        posts,
+        now: now,
+        preferredPost: preferredPost,
       );
-      if (response.statusCode != 200) {
-        throw 'HTTP ${response.statusCode}';
-      }
-      final List posts = jsonDecode(response.body);
       final seenUrls = <String>{};
-      for (final post in posts) {
+      for (final post in orderedPosts) {
         final title = (post['title']?['rendered'] ?? '').trim();
         final url = _absoluteTjcUrl(post['link'] ?? '#');
         String imageUrl = '';
@@ -81,6 +83,24 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
       failure = Failure.fromError(e);
     }
     return hasError ? Left(failure) : Right(data);
+  }
+
+  Future<List<Map<String, dynamic>>> _fetchSauhPosts({
+    String? slug,
+    int perPage = 6,
+  }) async {
+    final response = await _client.get(
+      buildSauhPostsApiUri(slug: slug, perPage: perPage),
+    );
+    if (response.statusCode != 200) {
+      throw 'HTTP ${response.statusCode}';
+    }
+    final decoded = jsonDecode(response.body);
+    if (decoded is! List) return const [];
+    return decoded
+        .whereType<Map>()
+        .map((post) => Map<String, dynamic>.from(post))
+        .toList();
   }
 
   String _extractImageUrl(dynamic element) {
@@ -402,7 +422,7 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     late Failure failure;
     try {
       var articles =
-          await FirebaseUtils.listMapConfig('literature_panduan_alkitab');
+          await AppConfigStore.listMapConfig('literature_panduan_alkitab');
       for (var article in articles) {
         data.add(
           Panduan(
@@ -419,5 +439,73 @@ class ScrapperRepositoryImpl implements ScrapperRepository {
     }
     return hasError ? Left(failure) : Right(data);
   }
+}
+
+Uri buildSauhPostsApiUri({String? slug, int perPage = 6}) {
+  return Uri.https('tjc.org', '/id/wp-json/wp/v2/posts', {
+    'categories': '229',
+    'per_page': perPage.toString(),
+    'orderby': 'date',
+    'order': 'desc',
+    '_embed': 'wp:featuredmedia',
+    if (slug != null && slug.isNotEmpty) 'slug': slug,
+  });
+}
+
+String expectedSauhSlugForDate(DateTime date) {
+  final local = date.toLocal();
+  final yy = (local.year % 100).toString().padLeft(2, '0');
+  final mm = local.month.toString().padLeft(2, '0');
+  final dd = local.day.toString().padLeft(2, '0');
+  return 'sbj$yy$mm$dd';
+}
+
+Map<String, dynamic>? selectPreferredSauhPost(
+  List<Map<String, dynamic>> posts, {
+  DateTime? now,
+}) {
+  if (posts.isEmpty) return null;
+  final expectedSlug = expectedSauhSlugForDate(now ?? DateTime.now());
+  final normalizedPosts = List<Map<String, dynamic>>.from(posts)
+    ..sort(
+      (a, b) => _parseSauhPostDate(
+        b,
+      ).compareTo(_parseSauhPostDate(a)),
+    );
+
+  return normalizedPosts.firstWhereOrNull(
+        (post) => ((post['slug'] ?? '') as String).toLowerCase() == expectedSlug,
+      ) ??
+      normalizedPosts.first;
+}
+
+List<Map<String, dynamic>> orderSauhPostsByFreshness(
+  List<Map<String, dynamic>> posts, {
+  DateTime? now,
+  Map<String, dynamic>? preferredPost,
+}) {
+  if (posts.isEmpty) return const [];
+  final preferred = preferredPost ?? selectPreferredSauhPost(posts, now: now);
+  final ordered = List<Map<String, dynamic>>.from(posts)
+    ..sort(
+      (a, b) => _parseSauhPostDate(
+        b,
+      ).compareTo(_parseSauhPostDate(a)),
+    );
+  if (preferred == null) return ordered;
+
+  final preferredSlug = ((preferred['slug'] ?? '') as String).toLowerCase();
+  final rest = ordered
+      .where(
+        (post) => ((post['slug'] ?? '') as String).toLowerCase() != preferredSlug,
+      )
+      .toList();
+  return [preferred, ...rest];
+}
+
+DateTime _parseSauhPostDate(Map<String, dynamic> post) {
+  final raw = (post['date_gmt'] ?? post['date'] ?? '') as String;
+  final parsed = DateTime.tryParse(raw);
+  return parsed?.toUtc() ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true);
 }
 

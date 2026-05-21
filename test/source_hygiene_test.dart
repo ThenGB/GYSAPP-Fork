@@ -99,6 +99,134 @@ void main() {
     expect(pubspec, isNot(contains('assets/web/pdfjs')));
   });
 
+  test('app source no longer depends on Firebase SDK wiring', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final appSource = File('lib/app.dart').readAsStringSync();
+    final mainSource = File('lib/main.dart').readAsStringSync();
+    final failureSource = File(
+      'lib/data/utilities/variables/failure.dart',
+    ).readAsStringSync();
+
+    expect(pubspec, isNot(contains('firebase_')));
+    expect(pubspec, isNot(contains('cloud_firestore')));
+    expect(appSource, isNot(contains('Firebase')));
+    expect(mainSource, isNot(contains('Firebase')));
+    expect(failureSource, isNot(contains('Firebase')));
+    expect(File('lib/firebase_options.dart').existsSync(), isFalse);
+    expect(File('ios/GoogleService-Info.plist').existsSync(), isFalse);
+    expect(File('macos/Runner/GoogleService-Info.plist').existsSync(), isFalse);
+    expect(File('android/app/google-services.json').existsSync(), isFalse);
+    expect(File('firebase.json').existsSync(), isFalse);
+  });
+
+  test('app source no longer includes remote storage cloud helpers', () {
+    final utilitiesSource = File(
+      'lib/data/utilities/utilities.dart',
+    ).readAsStringSync();
+    final dartSources = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'))
+        .map((file) => file.readAsStringSync())
+        .join('\n');
+
+    expect(
+      File('lib/data/utilities/remote_storage_helper.dart').existsSync(),
+      isFalse,
+    );
+    expect(utilitiesSource, isNot(contains('remote_storage_helper.dart')));
+    expect(dartSources, isNot(contains('storage.googleapis.com')));
+  });
+
+  test('legacy Google auth and Drive backup wiring are removed from app code', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
+    final injection = File('lib/di/injection.dart').readAsStringSync();
+    final loginView = File('lib/presentations/auth/view/login_view.dart')
+        .readAsStringSync();
+    final authCubit = File('lib/presentations/auth/cubit/auth_cubit.dart')
+        .readAsStringSync();
+    final backupView = File('lib/presentations/backup/view/backup_view.dart')
+        .readAsStringSync();
+    final backupCubit = File('lib/presentations/backup/cubit/backup_cubit.dart')
+        .readAsStringSync();
+
+    expect(pubspec, isNot(contains('google_sign_in:')));
+    expect(pubspec, isNot(contains('googleapis:')));
+    expect(pubspec, isNot(contains('flutter_appauth:')));
+    expect(injection, isNot(contains('GoogleSignIn(')));
+    expect(injection, isNot(contains('GoogleRepository')));
+    expect(injection, isNot(contains('BackupSyncRepository')));
+    expect(loginView, isNot(contains('googlelogin')));
+    expect(loginView, isNot(contains('google-signup')));
+    expect(authCubit, isNot(contains('FlutterAppAuth')));
+    expect(backupView, isNot(contains('GoogleSignIn')));
+    expect(backupView, isNot(contains('Cloud Backup')));
+    expect(backupCubit, isNot(contains('backupToDrive')));
+    expect(backupCubit, isNot(contains('syncFromDrive')));
+  });
+
+  test('settings exposes local asset download management launcher', () {
+    final settingsView = File('lib/presentations/settings/view/settings_view.dart')
+        .readAsStringSync();
+    final assetManagementView = File(
+      'lib/presentations/settings/view/asset_management_view.dart',
+    ).readAsStringSync();
+
+    expect(settingsView, contains('Offline Library'));
+    expect(settingsView, contains('AssetManagementRoute('));
+    expect(assetManagementView, contains('Delete app cache'));
+    expect(assetManagementView, contains('Clear Cache'));
+  });
+
+  test('repo root is free of loose diagnostic artifacts', () {
+    const blockedRootArtifacts = [
+      '.build_apk.log',
+      '.flutter_run.log',
+      'COMPREHENSIVE_TESTING_GUIDE.md',
+      'CURRENT_STATE_ANALYSIS.md',
+      'EDIT_MODE_ANALYSIS.md',
+      'IMPLEMENTATION_SUMMARY.md',
+      'MANUAL_TESTING_GUIDE.md',
+      'MCP_SERVER_STATUS.md',
+      'MINI_PLAYER_ANALYSIS.md',
+      'chord_positioning_report.json',
+      'deep_analysis_screenshot.png',
+      'deep_positioning_analysis.json',
+      'flutter_01.log',
+      'image.png',
+      'image2.png',
+      'image3.png',
+      'image4.png',
+      'image5.png',
+      'inputimage.txt',
+      'ipad.png',
+      'ipad2.png',
+      'ipad3.png',
+      'mini_player_actual.html',
+      'mini_player_state.png',
+      'mini_player_structure.html',
+      'test_pypdf_001.pdf',
+      'test_pypdf_2page.pdf',
+      'test_storage.dart',
+      'web_app_screenshot.png',
+      'web_app_screenshot_song0.png',
+      'web_app_screenshot_song1.png',
+      'web_app_screenshot_song2.png',
+      'web_app_screenshot_song3.png',
+      'web_app_screenshot_song4.png',
+      'web_edit_mode_state.png',
+      'web_viewer_state.png',
+    ];
+
+    for (final artifact in blockedRootArtifacts) {
+      expect(
+        File(artifact).existsSync(),
+        isFalse,
+        reason: '$artifact should be moved out of the repository root',
+      );
+    }
+  });
+
   test('local asset service uses Flutter asset manifest API', () {
     final source = File(
       'lib/data/services/local_asset_service.dart',
@@ -199,27 +327,30 @@ void main() {
     expect(source, isNot(contains('72 + playerHeight')));
   });
 
-  test('large pdf asset folders stay consolidated as master documents', () {
-    const mastersByFolder = {
-      'mdr': 'mdr_master.pdf',
-      'asm_i': 'asm_i_master.pdf',
-      'asm_m': 'asm_m_master.pdf',
-      'asm_p': 'asm_p_master.pdf',
-    };
+  test('bundled asset manifest keeps only KR song PDFs and TB bible data', () {
+    final pubspec = File('pubspec.yaml').readAsStringSync();
 
-    for (final entry in mastersByFolder.entries) {
-      final pdfs = Directory('assets/data/pdf/${entry.key}')
-          .listSync()
-          .whereType<File>()
-          .where((file) => file.path.toLowerCase().endsWith('.pdf'))
-          .map((file) => file.uri.pathSegments.last)
-          .toList();
+    expect(pubspec, contains('- assets/data/bible/b_tb/'));
+    expect(pubspec, contains('- assets/data/pdf/kr/'));
+    expect(pubspec, isNot(contains('- assets/data/pdf/hymne/')));
+    expect(pubspec, isNot(contains('- assets/data/pdf/mdr/')));
+    expect(pubspec, isNot(contains('- assets/data/pdf/asm_i/')));
+    expect(pubspec, isNot(contains('- assets/data/pdf/asm_m/')));
+    expect(pubspec, isNot(contains('- assets/data/pdf/asm_p/')));
+  });
 
-      expect(pdfs, [entry.value]);
-      expect(
-        File('assets/data/index/${entry.key}_pdf_manifest.json').existsSync(),
-        true,
-      );
-    }
+  test('bundled song PDFs do not ship prebuilt chunk or pack binaries', () {
+    final bundledPdfBins = Directory('assets/data/pdf')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.toLowerCase().endsWith('.bin'))
+        .map((file) => file.path.replaceAll('\\', '/'))
+        .where(
+          (path) =>
+              path.contains('_chunks.bin') || path.contains('_song_pack'),
+        )
+        .toList();
+
+    expect(bundledPdfBins, isEmpty);
   });
 }

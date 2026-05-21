@@ -32,7 +32,7 @@ void main() {
     }
   });
 
-  test('repairs a corrupt cached chunk before returning it', () async {
+  test('returns null when legacy chunk bundles are unavailable', () async {
     final cachedChunk = File(p.join(tempDir.path, 'pdf_chunks', 'KR_0.pdf'));
     await cachedChunk.parent.create(recursive: true);
     await cachedChunk.writeAsString('partial failed write');
@@ -43,19 +43,7 @@ void main() {
       cacheKey: 'KR',
     );
 
-    expect(chunkPath, cachedChunk.path);
-    final bytes = await cachedChunk.openRead(0, 5).first;
-    expect(String.fromCharCodes(bytes), '%PDF-');
-    expect(await cachedChunk.length(), greaterThan(1000));
-  });
-
-  test('stores extracted chunks in persistent app support cache', () async {
-    final chunkPath = await PdfChunkService().getChunkFile(
-      chunkFilePath: 'assets/data/pdf/kr/kr_chunks.bin',
-      chunkIndex: 0,
-      cacheKey: 'KR',
-    );
-
-    expect(chunkPath, p.join(tempDir.path, 'pdf_chunks', 'KR_0.pdf'));
+    expect(chunkPath, isNull);
+    expect(await cachedChunk.exists(), isFalse);
   });
 }

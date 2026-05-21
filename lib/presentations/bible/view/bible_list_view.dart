@@ -114,7 +114,7 @@ class _BibleListViewState extends State<BibleListView> {
                     ),
                   ),
                   child: FutureBuilder(
-                    future: FirebaseUtils.jsonConfig('bible_name'),
+                    future: AppConfigStore.jsonConfig('bible_name'),
                     builder: (context, snapshot) {
                       log('test ${snapshot.data}');
                       return ListView(

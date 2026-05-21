@@ -5,8 +5,6 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
@@ -15,7 +13,6 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as paths;
 
 import 'app.dart';
-import 'data/utilities/platform_utils.dart';
 
 void main() async {
   runZonedGuarded(
@@ -53,11 +50,6 @@ void main() async {
       );
     },
     (error, stack) {
-      if (isFirebaseCrashlyticsConfiguredForCurrentPlatform &&
-          Firebase.apps.isNotEmpty) {
-        FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
-        return;
-      }
       log(
         'Uncaught zoned error',
         error: error,

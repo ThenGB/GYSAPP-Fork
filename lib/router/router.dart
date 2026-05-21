@@ -47,6 +47,7 @@ class AppRouter extends RootStackRouter {
         CupertinoRoute(page: FontSettingRoute.page),
         CupertinoRoute(page: BibleAudioSettingRoute.page),
         CupertinoRoute(page: BibleVersionRoute.page),
+        CupertinoRoute(page: AssetManagementRoute.page),
         CupertinoRoute(
           page: DashboardRoute.page,
           children: [

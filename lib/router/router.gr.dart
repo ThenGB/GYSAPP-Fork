@@ -11,6 +11,81 @@
 part of 'router.dart';
 
 /// generated route for
+/// [AssetManagementView]
+class AssetManagementRoute extends PageRouteInfo<AssetManagementRouteArgs> {
+  AssetManagementRoute({
+    Key? key,
+    required AssetManagementCubit assetManagementCubit,
+    required BibleCubit bibleCubit,
+    required SongCubit songCubit,
+    List<PageRouteInfo>? children,
+  }) : super(
+         AssetManagementRoute.name,
+         args: AssetManagementRouteArgs(
+           key: key,
+           assetManagementCubit: assetManagementCubit,
+           bibleCubit: bibleCubit,
+           songCubit: songCubit,
+         ),
+         initialChildren: children,
+       );
+
+  static const String name = 'AssetManagementRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<AssetManagementRouteArgs>();
+      return AssetManagementView(
+        key: args.key,
+        assetManagementCubit: args.assetManagementCubit,
+        bibleCubit: args.bibleCubit,
+        songCubit: args.songCubit,
+      );
+    },
+  );
+}
+
+class AssetManagementRouteArgs {
+  const AssetManagementRouteArgs({
+    this.key,
+    required this.assetManagementCubit,
+    required this.bibleCubit,
+    required this.songCubit,
+  });
+
+  final Key? key;
+
+  final AssetManagementCubit assetManagementCubit;
+
+  final BibleCubit bibleCubit;
+
+  final SongCubit songCubit;
+
+  @override
+  String toString() {
+    return 'AssetManagementRouteArgs{key: $key, assetManagementCubit: $assetManagementCubit, bibleCubit: $bibleCubit, songCubit: $songCubit}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! AssetManagementRouteArgs) return false;
+    return key == other.key &&
+        assetManagementCubit == other.assetManagementCubit &&
+        bibleCubit == other.bibleCubit &&
+        songCubit == other.songCubit;
+  }
+
+  @override
+  int get hashCode =>
+      key.hashCode ^
+      assetManagementCubit.hashCode ^
+      bibleCubit.hashCode ^
+      songCubit.hashCode;
+}
+
+/// generated route for
 /// [BackupView]
 class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
   BackupRoute({

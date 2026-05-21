@@ -9,7 +9,7 @@ import '../entity/truevoice/truevoice_entity.dart';
 import '../entity/warta/warta_entity.dart';
 
 abstract class ScrapperRepository {
-  Future<Either<Failure, List<Sauh>>> getSauh();
+  Future<Either<Failure, List<Sauh>>> getSauh({DateTime? now});
   Future<Either<Failure, List<TrueVoice>>> getSuaraSejati();
   Future<Either<Failure, List<Kesaksian>>> getKesaksian(String selector);
   Future<Either<Failure, List<Warta>>> getWarta(String selector);

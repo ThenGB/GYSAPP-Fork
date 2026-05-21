@@ -37,11 +37,6 @@ class _LoginViewState extends State<LoginView> {
         Navigator.pop(context);
       }
       widget.onLoggedIn(msg['token'] ?? '');
-    } else if (cmd == 'googlelogin' || cmd == 'google-signup') {
-      context.read<AuthCubit>().onGoogleLogin(
-        _webViewController!,
-        msg['action'] ?? cmd,
-      );
     }
   }
 

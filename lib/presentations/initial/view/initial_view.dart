@@ -18,6 +18,10 @@ class InitialView extends StatefulWidget {
   State<InitialView> createState() => _InitialViewState();
 }
 
+bool shouldShowStartupPreparationDialog(InitialState state) {
+  return !state.isLoaded && state.message == startupKrPreparationMessage;
+}
+
 class _InitialViewState extends State<InitialView> {
   @override
   void initState() {
@@ -50,49 +54,91 @@ class _InitialViewState extends State<InitialView> {
           }
         },
         child: Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: MirrorAnimationBuilder(
-                    duration: const Duration(milliseconds: 1500),
-                    tween: Tween<double>(
-                      begin: 0.0,
-                      end: 1.0,
-                    ), // Keep the original tween
-                    builder: (context, value, child) {
-                      double scale =
-                          1 +
-                          (0.1 *
-                              value); // Interpolate to get scale between 1 and 1.3
-                      double opacity =
-                          1 -
-                          (0.5 *
-                              value); // Interpolate to get scale between 1 and 1.3
-                      return state.isFailed
-                          ? child!
-                          : Transform.scale(
-                              scale: scale, // Apply the interpolated scale
-                              child: Opacity(opacity: opacity, child: child),
-                            );
-                    },
-                    child: Image.asset(Assets.assetsImagesAppicon),
+          body: Stack(
+            fit: StackFit.expand,
+            children: [
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: MirrorAnimationBuilder(
+                        duration: const Duration(milliseconds: 1500),
+                        tween: Tween<double>(
+                          begin: 0.0,
+                          end: 1.0,
+                        ),
+                        builder: (context, value, child) {
+                          double scale = 1 + (0.1 * value);
+                          double opacity = 1 - (0.5 * value);
+                          return state.isFailed
+                              ? child!
+                              : Transform.scale(
+                                  scale: scale,
+                                  child: Opacity(opacity: opacity, child: child),
+                                );
+                        },
+                        child: Image.asset(Assets.assetsImagesAppicon),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    CupertinoActivityIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      state.message,
+                      style: TextStyle(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (shouldShowStartupPreparationDialog(state))
+                ColoredBox(
+                  color: Colors.black.withValues(alpha: 0.34),
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 360),
+                      child: Card(
+                        elevation: 18,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.offline_bolt_rounded,
+                                size: 42,
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Preparing Kidung Rohani',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'This first-time setup prepares KR for faster offline access later.',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                              const SizedBox(height: 18),
+                              const CupertinoActivityIndicator(radius: 12),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(height: 16),
-                CupertinoActivityIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  state.message,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontSize: 12,
-                  ),
-                ),
-              ],
-            ),
+            ],
           ),
         ),
       ),

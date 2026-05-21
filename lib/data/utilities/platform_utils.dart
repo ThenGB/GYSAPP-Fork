@@ -1,36 +1,5 @@
 import 'package:flutter/foundation.dart';
 
-bool get isFirebaseCoreConfiguredForCurrentPlatform =>
-    kIsWeb ||
-    defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.iOS ||
-    defaultTargetPlatform == TargetPlatform.macOS ||
-    defaultTargetPlatform == TargetPlatform.windows;
-
-bool get isFirebaseStorageConfiguredForCurrentPlatform =>
-    isFirebaseCoreConfiguredForCurrentPlatform;
-
-bool get isFirebaseRemoteConfigConfiguredForCurrentPlatform =>
-    kIsWeb ||
-    defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.iOS ||
-    defaultTargetPlatform == TargetPlatform.macOS;
-
-bool get isFirebaseCrashlyticsConfiguredForCurrentPlatform =>
-    !kIsWeb &&
-    (defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS ||
-        defaultTargetPlatform == TargetPlatform.macOS);
-
-bool get isFirebaseAppCheckConfiguredForCurrentPlatform =>
-    kIsWeb ||
-    defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.iOS ||
-    defaultTargetPlatform == TargetPlatform.macOS;
-
-bool get isFirebaseConfiguredForCurrentPlatform =>
-    isFirebaseRemoteConfigConfiguredForCurrentPlatform;
-
 bool get isNotificationConfiguredForCurrentPlatform =>
     !kIsWeb &&
     (defaultTargetPlatform == TargetPlatform.android ||
@@ -63,4 +32,3 @@ bool get isFluttertoastConfiguredForCurrentPlatform =>
     (defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS ||
         defaultTargetPlatform == TargetPlatform.macOS);
-

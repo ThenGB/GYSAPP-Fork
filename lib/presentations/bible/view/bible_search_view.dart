@@ -118,7 +118,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                   ),
                 ),
                 FutureBuilder(
-                  future: FirebaseUtils.jsonConfig('bible_name'),
+                  future: AppConfigStore.jsonConfig('bible_name'),
                   builder: (context, snapshot) => Wrap(
                     children: [
                       TextButton(

@@ -256,6 +256,7 @@ class SettingsView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const _AssetDistributionSection(),
                     Column(
                       children: [
                         BlocBuilder<BibleCubit, BibleState>(
@@ -1049,6 +1050,46 @@ class _SettingsSwitchTile extends StatelessWidget {
       description: description,
       trailing: Switch(value: value, onChanged: onChanged),
       onTap: () => onChanged(!value),
+    );
+  }
+}
+
+class _AssetDistributionSection extends StatelessWidget {
+  const _AssetDistributionSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Section(
+      label: 'Offline Library',
+      child: (gap) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: gap),
+        child: Material(
+          color: context.colorScheme.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: _SettingsTile(
+            icon: Icons.offline_bolt_rounded,
+            title: 'Offline Library',
+            description:
+                'Kelola Alkitab dan hymnal terenkripsi, cek rilis terbaru GitHub, hapus aset terinstal, dan bersihkan cache cepat dari satu halaman khusus.',
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () {
+              router.push(
+                AssetManagementRoute(
+                  assetManagementCubit: context.read<AssetManagementCubit>(),
+                  bibleCubit: context.read<BibleCubit>(),
+                  songCubit: context.read<SongCubit>(),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
     );
   }
 }

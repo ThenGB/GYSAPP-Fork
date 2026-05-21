@@ -8,12 +8,19 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
+import 'asset_distribution/installed_asset_registry.dart';
+import 'asset_distribution/models.dart';
 import 'pdf_chunk_service.dart';
 
 class LocalAssetService {
+  // Retained as a constructor dependency for backward compatibility with
+  // existing tests and injection wiring while chunk bundles are phased out.
+  // ignore: unused_field
   final PdfChunkService _chunkService;
+  final InstalledAssetRegistry? _installedAssetRegistry;
 
-  LocalAssetService(this._chunkService);
+  LocalAssetService(this._chunkService, {InstalledAssetRegistry? installedAssetRegistry})
+    : _installedAssetRegistry = installedAssetRegistry;
 
   final Map<String, List<Map<String, dynamic>>> _indexCache = {};
   final Map<String, Map<String, Map<String, dynamic>>> _songLookupCache = {};
@@ -31,6 +38,12 @@ class LocalAssetService {
   /// Force extraction of a master PDF asset to a temp file for instant access later.
   Future<void> preparePdfFile(String assetPath) async {
     await _extractMasterPdfToTemp(assetPath);
+  }
+
+  Future<bool> needsPdfPreparation(String bookCode, String number) async {
+    final bundledMasterPath = await _resolveMasterPdfAssetPath(bookCode, number);
+    if (bundledMasterPath == null) return false;
+    return !(await _isMasterPdfPrepared(bundledMasterPath));
   }
 
   Future<List<Map<String, dynamic>>> _loadBookIndex(String code) async {
@@ -62,8 +75,24 @@ class LocalAssetService {
   }
 
   Future<List<SongBook>> loadSongBooks() async {
-    const codes = ['KR', 'HYMNE', 'MDR', 'ASM-I', 'ASM-M', 'ASM-P'];
+    final registry = _installedAssetRegistry;
+    final codes = registry == null
+        ? const ['KR', 'HYMNE', 'MDR', 'ASM-I', 'ASM-M', 'ASM-P']
+        : await _loadAvailableBookCodesFromRegistry(registry);
     return Future.wait(codes.map(loadSongBook));
+  }
+
+  Future<List<String>> _loadAvailableBookCodesFromRegistry(
+    InstalledAssetRegistry registry,
+  ) async {
+    final installed = await registry.getInstalledRecords(
+      kind: DistributedAssetKind.hymnal,
+    );
+    final codes = <String>{'KR'};
+    for (final record in installed) {
+      codes.add(record.code);
+    }
+    return codes.toList()..sort();
   }
 
   Future<SongBook> loadSongBook(String code) async {
@@ -116,6 +145,38 @@ class LocalAssetService {
   }
 
   Future<String?> _resolveMasterPdfPath(String bookCode, String number) async {
+    final entry = await _loadPdfManifestSongEntry(bookCode, number);
+    if (entry == null) return null;
+
+    final startPage = entry.startPage;
+    final pageCount = entry.pageCount;
+    final installedMasterPath = await _installedAssetRegistry
+        ?.resolveInstalledHymnalPath(bookCode);
+    final bundledMasterPath = installedMasterPath ?? entry.masterAssetPath;
+
+    if (bundledMasterPath == null) {
+      log(
+        'Master PDF missing for $bookCode $number',
+        name: 'LocalAssetService',
+      );
+      return null;
+    }
+
+    final localMasterPath =
+        installedMasterPath ??
+        await _extractMasterPdfToTemp(bundledMasterPath) ??
+        bundledMasterPath;
+    final version = localMasterPath == bundledMasterPath
+        ? null
+        : await _fileVersion(localMasterPath);
+
+    return '$localMasterPath#${_pdfRangeFragment(page: startPage, pages: pageCount, version: version)}';
+  }
+
+  Future<_PdfManifestSongEntry?> _loadPdfManifestSongEntry(
+    String bookCode,
+    String number,
+  ) async {
     final manifest = await _loadPdfManifest(bookCode);
     if (manifest.isEmpty) {
       log('Manifest empty for $bookCode', name: 'LocalAssetService');
@@ -137,42 +198,36 @@ class LocalAssetService {
       return null;
     }
 
-    // Hybrid mode: prefer chunked master-range loading.
-    // This keeps asset footprint near merged-master size and still gives
-    // fast random song access by loading only the referenced chunk/pages.
-    final chunkFile = manifest['chunkFile'] as String?;
-    final chunkIndex = entry['chunkIndex'];
-    final relStart = entry['chunkRelativeStart'];
-    if (chunkFile != null && chunkIndex is int && relStart is int) {
-      final pageCount = entry['pageCount'] as int? ?? 1;
-      final masterPath = manifest['masterPath'] as String? ?? chunkFile;
-      try {
-        final chunkPath = await _chunkService.getChunkFile(
-          chunkFilePath: chunkFile,
-          chunkIndex: chunkIndex,
-          cacheKey: bookCode,
-        );
-        if (chunkPath != null) {
-          final version = await _fileVersion(chunkPath);
-          return '$chunkPath#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath, version: version)}';
-        }
-        // Same chunk-based strategy, but without extracted temp chunk file.
-        return '$chunkFile#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath)}';
-      } catch (e) {
-        log(
-          'Failed to load chunk for $bookCode $number: $e',
-          name: 'LocalAssetService',
-        );
-        // Keep strict chunk mode: fall back to the raw chunk asset path only.
-        return '$chunkFile#${_pdfRangeFragment(page: relStart, pages: pageCount, master: masterPath)}';
-      }
+    final startPage =
+        entry['startPage'] as int? ??
+        entry['page'] as int? ??
+        entry['chunkRelativeStart'] as int?;
+    if (startPage == null) {
+      log(
+        'Song $number in $bookCode manifest is missing a start page',
+        name: 'LocalAssetService',
+      );
+      return null;
     }
 
-    log(
-      'Chunk metadata missing for $bookCode $number (strict chunk mode)',
-      name: 'LocalAssetService',
+    final pageCount =
+        entry['pageCount'] as int? ?? entry['pages'] as int? ?? 1;
+    final manifestMasterPath = manifest['masterPath'] as String?;
+    final entryMasterPath = entry['path'] as String?;
+    final bundledMasterPath = await _resolveAssetPath(
+      manifestMasterPath ?? entryMasterPath,
     );
-    return null;
+
+    return _PdfManifestSongEntry(
+      startPage: startPage,
+      pageCount: pageCount,
+      masterAssetPath: bundledMasterPath,
+    );
+  }
+
+  Future<String?> _resolveMasterPdfAssetPath(String bookCode, String number) async {
+    final entry = await _loadPdfManifestSongEntry(bookCode, number);
+    return entry?.masterAssetPath;
   }
 
   Future<String?> _fileVersion(String path) async {
@@ -256,10 +311,8 @@ class LocalAssetService {
 
   Future<String?> _extractMasterPdfToTempInternal(String assetPath) async {
     try {
-      final appDir = await getApplicationDocumentsDirectory();
-      final fileName = p.basename(assetPath);
-      final pdfDir = Directory(p.join(appDir.path, 'master_pdfs'));
-      final targetFile = File(p.join(pdfDir.path, fileName));
+      final targetFile = await _masterPdfTargetFile(assetPath);
+      final pdfDir = targetFile.parent;
 
       // If file exists and is complete, reuse it permanently.
       if (await targetFile.exists()) {
@@ -341,6 +394,25 @@ class LocalAssetService {
       );
       return null;
     }
+  }
+
+  Future<bool> _isMasterPdfPrepared(String assetPath) async {
+    final cached = _masterPdfTempPaths[assetPath];
+    if (cached != null) {
+      final cachedFile = File(cached);
+      if (await _isCompletePdf(cachedFile)) return true;
+      _masterPdfTempPaths.remove(assetPath);
+    }
+
+    final targetFile = await _masterPdfTargetFile(assetPath);
+    return _isCompletePdf(targetFile);
+  }
+
+  Future<File> _masterPdfTargetFile(String assetPath) async {
+    final appDir = await getApplicationDocumentsDirectory();
+    final fileName = p.basename(assetPath);
+    final pdfDir = Directory(p.join(appDir.path, 'master_pdfs'));
+    return File(p.join(pdfDir.path, fileName));
   }
 
   static Future<bool> _isCompletePdf(File file) async {
@@ -476,13 +548,17 @@ class LocalAssetService {
 
     try {
       final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
-      _assetManifest = {
+      final assetMap = {
         for (final asset in manifest.listAssets()) asset: const <String>[],
       };
+      if (assetMap.isNotEmpty) {
+        _assetManifest = assetMap;
+        return _assetManifest!;
+      }
     } catch (e) {
       log('Failed to load asset manifest: $e', name: 'LocalAssetService');
-      _assetManifest = {};
     }
+    _assetManifest = await _loadAssetManifestFromSourceTree();
     return _assetManifest!;
   }
 
@@ -497,7 +573,9 @@ class LocalAssetService {
   }
 
   String _normalizeAssetKey(String value) {
-    return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+    return Uri.decodeFull(
+      value,
+    ).toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
   }
 
   /// Get all available soundfont files
@@ -509,8 +587,34 @@ class LocalAssetService {
               k.startsWith('assets/data/soundfont/') &&
               k.toLowerCase().endsWith('.sf2'),
         )
-        .map((k) => k.split('/').last)
+        .map((k) => Uri.decodeFull(k.split('/').last))
         .toList()
       ..sort();
   }
+
+  Future<Map<String, dynamic>> _loadAssetManifestFromSourceTree() async {
+    final assetsDir = Directory('assets');
+    if (!await assetsDir.exists()) {
+      return {};
+    }
+
+    final manifest = <String, dynamic>{};
+    await for (final entity in assetsDir.list(recursive: true)) {
+      if (entity is! File) continue;
+      manifest[entity.path.replaceAll('\\', '/')] = const <String>[];
+    }
+    return manifest;
+  }
+}
+
+class _PdfManifestSongEntry {
+  const _PdfManifestSongEntry({
+    required this.startPage,
+    required this.pageCount,
+    required this.masterAssetPath,
+  });
+
+  final int startPage;
+  final int pageCount;
+  final String? masterAssetPath;
 }

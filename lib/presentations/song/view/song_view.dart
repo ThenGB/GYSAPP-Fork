@@ -25,6 +25,10 @@ class SongView extends StatefulWidget {
   State<SongView> createState() => _SongViewState();
 }
 
+bool shouldRenderChordForSongState(SongState state) {
+  return state.bookCode != 'HYMNE' && state.showChord;
+}
+
 class _SongViewState extends State<SongView> {
   late final cubit = context.read<SongCubit>();
   late final int _initialPageIndex = _resolveInitialPageIndex();
@@ -73,6 +77,9 @@ class _SongViewState extends State<SongView> {
   @override
   void initState() {
     super.initState();
+    if (cubit.state.songs.isNotEmpty && cubit.state.currentPdfPath == null) {
+      cubit.changePage(currentPageIndex, _currentVerseIndex);
+    }
     // Chords are now managed by cubit
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _openSongSelector();
@@ -90,6 +97,7 @@ class _SongViewState extends State<SongView> {
               previous.pageIndex != current.pageIndex ||
               previous.bookCode != current.bookCode ||
               previous.songBook != current.songBook ||
+              previous.showChord != current.showChord ||
               previous.currentPdfPath != current.currentPdfPath ||
               (previous.songs.isEmpty && current.songs.isNotEmpty),
           listener: (context, state) {
@@ -138,7 +146,6 @@ class _SongViewState extends State<SongView> {
           final colors = Theme.of(context).colorScheme;
           final compactToolbar = MediaQuery.sizeOf(context).width < 430;
           final chordToggleEnabled = state.bookCode != 'HYMNE';
-          final shouldRenderChord = chordToggleEnabled && state.showChord;
 
           return Scaffold(
             backgroundColor: colors.surface,
@@ -369,7 +376,7 @@ class _SongViewState extends State<SongView> {
                         child: SongPdfViewer(
                           key: const ValueKey('pdf_viewer_instance'),
                           pdfPath: state.currentPdfPath,
-                          showChord: shouldRenderChord,
+                          showChord: shouldRenderChordForSongState(state),
                           chords: state.currentChords,
                           transposeStep: state.transposeStep,
                           baseTransposeOffset: state.baseTransposeOffset,
@@ -390,21 +397,57 @@ class _SongViewState extends State<SongView> {
                     },
                   ),
 
-                // Audio loading indicator
+                // PDF/audio loading indicators
                 BlocBuilder<SongCubit, SongState>(
                   buildWhen: (prev, curr) =>
-                      prev.isAudioLoading != curr.isAudioLoading,
+                      prev.isAudioLoading != curr.isAudioLoading ||
+                      prev.isPdfLoading != curr.isPdfLoading,
                   builder: (context, state) {
-                    if (!state.isAudioLoading) return const SizedBox.shrink();
+                    if (!state.isAudioLoading && !state.isPdfLoading) {
+                      return const SizedBox.shrink();
+                    }
+
                     return Positioned(
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: LinearProgressIndicator(
-                        backgroundColor: Colors.transparent,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          colors.secondary.withValues(alpha: 0.5),
-                        ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (state.isPdfLoading)
+                            Container(
+                              width: double.infinity,
+                              color: colors.primaryContainer.withValues(
+                                alpha: 0.88,
+                              ),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              child: Text(
+                                'Preparing local PDF for offline access...',
+                                style: Theme.of(context).textTheme.labelSmall
+                                    ?.copyWith(
+                                      color: colors.onPrimaryContainer,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                              ),
+                            ),
+                          if (state.isPdfLoading)
+                            LinearProgressIndicator(
+                              backgroundColor: Colors.transparent,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                colors.primary,
+                              ),
+                            ),
+                          if (state.isAudioLoading)
+                            LinearProgressIndicator(
+                              backgroundColor: Colors.transparent,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                colors.secondary.withValues(alpha: 0.5),
+                              ),
+                            ),
+                        ],
                       ),
                     );
                   },

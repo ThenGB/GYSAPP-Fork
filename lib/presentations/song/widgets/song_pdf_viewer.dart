@@ -72,6 +72,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
   /// Global service for note extraction and caching.
   final _noteService = PdfNoteService();
+  // Historical compatibility note:
+  // _fallbackPositions used to supply a native chord placement fallback when
+  // notePositions != null && notePositions.isNotEmpty was false.
 
   PdfDocumentRequest? _pdfRequest;
 
@@ -489,6 +492,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   Matrix4? _tryCalcFitMatrix({required int pageNumber}) {
     try {
       if (!_pdfCtrl.isReady) return null;
+      // Keep fit behavior aligned with pdfrx's legacy
+      // PdfViewerSizeDelegateProviderLegacy sizing expectations and fitZoom.
       return _pdfCtrl.calcMatrixForFit(pageNumber: pageNumber);
     } on TypeError catch (error, stackTrace) {
       log(

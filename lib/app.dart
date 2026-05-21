@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:io' show File, Platform;
-import 'dart:isolate';
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_core/firebase_core.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_remote_config/firebase_remote_config.dart';
-import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb, kReleaseMode;
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -23,7 +18,6 @@ import 'components/themes/default_theme.dart';
 import 'data/data.dart';
 import 'di/injection.dart';
 import 'domain/entity/appconfig/appconfig.dart';
-import 'firebase_options.dart';
 import 'presentations/presentations.dart';
 import 'router/router.dart';
 
@@ -86,46 +80,9 @@ Future initApplication() async {
           }),
     );
   }
-  if (isFirebaseCoreConfiguredForCurrentPlatform) {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
-    if (isFirebaseCrashlyticsConfiguredForCurrentPlatform) {
-      FlutterError.onError =
-          FirebaseCrashlytics.instance.recordFlutterFatalError;
-      Isolate.current.addErrorListener(
-        RawReceivePort((pair) {
-          final errorAndStackTrace = pair as List<dynamic>;
-          FirebaseCrashlytics.instance.recordError(
-            errorAndStackTrace.firstOrNull,
-            StackTrace.fromString(errorAndStackTrace.lastOrNull ?? ''),
-            fatal: true,
-          );
-        }).sendPort,
-      );
-    } else {
-      FlutterError.onError = FlutterError.presentError;
-    }
-    if (isFirebaseRemoteConfigConfiguredForCurrentPlatform) {
-      await FirebaseRemoteConfig.instance.ensureInitialized();
-      if (isFirebaseAppCheckConfiguredForCurrentPlatform) {
-        await FirebaseAppCheck.instance.activate(
-          providerAndroid: kReleaseMode
-              ? const AndroidPlayIntegrityProvider()
-              : const AndroidDebugProvider(),
-          providerApple: const AppleAppAttestProvider(),
-        );
-      }
-      initLog('firebase ready');
-    } else {
-      FirebaseUtils.useFallbackConfig();
-      initLog('firebase core ready with fallback remote config');
-    }
-  } else {
-    FirebaseUtils.useFallbackConfig();
-    FlutterError.onError = FlutterError.presentError;
-    initLog('using fallback firebase config');
-  }
+  FlutterError.onError = FlutterError.presentError;
+  AppConfigStore.useFallbackConfig();
+  initLog('using bundled app config');
 
   FlutterNativeSplash.remove();
   initLog('done');

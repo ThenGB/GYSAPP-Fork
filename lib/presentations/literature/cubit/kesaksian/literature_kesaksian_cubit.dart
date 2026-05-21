@@ -4,7 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-import '../../../../data/utilities/firebase_utils.dart';
+import '../../../../data/utilities/app_config_store.dart';
 import '../../../../domain/entity/config_literature/config_literature_entity.dart';
 import '../../../../domain/repository/scrapper_repository.dart';
 import 'literature_kesaksian_state.dart';
@@ -14,7 +14,7 @@ export 'literature_kesaksian_state.dart';
 class LiteratureKesaksianCubit extends HydratedCubit<LiteratureKesaksianState> {
   LiteratureKesaksianCubit(this.repository)
     : super(const LiteratureKesaksianState()) {
-    FirebaseUtils.jsonConfig('config_literature').then((json) {
+    AppConfigStore.jsonConfig('config_literature').then((json) {
       selector = ConfigLiterature.fromJson(json).kesaksian;
       getData();
     });
