@@ -1278,30 +1278,30 @@ class _ThemeSettingsSection extends StatelessWidget {
                 ),
                 const SizedBox(height: 24),
                 _DensitySelector(
-                  selected: DisplayDensity.standard,
+                  selected: state.themePreferences.density,
                   onChanged: (density) {
-                    // TODO: connect to InitialCubit when density support is added
+                    context.read<InitialCubit>().changeDensity(density);
                   },
                 ),
                 const SizedBox(height: 16),
                 _CornerRadiusSelector(
-                  selected: CornerRadiusStyle.soft,
+                  selected: state.themePreferences.cornerRadius,
                   onChanged: (style) {
-                    // TODO: connect to InitialCubit when corner radius support is added
+                    context.read<InitialCubit>().changeCornerRadius(style);
                   },
                 ),
                 const SizedBox(height: 16),
                 _TypographyScaleSelector(
-                  selected: TypographyScale.normal,
+                  selected: state.themePreferences.typographyScale,
                   onChanged: (scale) {
-                    // TODO: connect to InitialCubit when typography scale support is added
+                    context.read<InitialCubit>().changeTypographyScale(scale);
                   },
                 ),
                 const SizedBox(height: 24),
                 _ThemePreviewCard(
                   accentKey: state.accentKey,
-                  cornerRadius: CornerRadiusStyle.soft,
-                  typographyScale: TypographyScale.normal,
+                  cornerRadius: state.themePreferences.cornerRadius,
+                  typographyScale: state.themePreferences.typographyScale,
                 ),
                 const SizedBox(height: 8),
               ],

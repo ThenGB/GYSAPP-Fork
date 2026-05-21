@@ -126,6 +126,33 @@ class InitialCubit extends HydratedCubit<InitialState> {
     emit(state.copyWith(accentKey: accentKey));
   }
 
+  void changeDensity(DisplayDensity density) {
+    final updatedPrefs = state.themePreferences.copyWith(density: density);
+    emit(state.copyWith(themePreferences: updatedPrefs));
+    _saveThemePreferences();
+  }
+
+  void changeCornerRadius(CornerRadiusStyle style) {
+    final updatedPrefs = state.themePreferences.copyWith(cornerRadius: style);
+    emit(state.copyWith(themePreferences: updatedPrefs));
+    _saveThemePreferences();
+  }
+
+  void changeTypographyScale(TypographyScale scale) {
+    final updatedPrefs = state.themePreferences.copyWith(typographyScale: scale);
+    emit(state.copyWith(themePreferences: updatedPrefs));
+    _saveThemePreferences();
+  }
+
+  Future<void> _saveThemePreferences() async {
+    try {
+      final themeRepo = di<ThemePreferencesRepository>();
+      await themeRepo.savePreferences(state.themePreferences);
+    } catch (e) {
+      log('Failed to save theme preferences', name: 'InitialCubit', error: e);
+    }
+  }
+
   void resetToDefaults() {
     emit(const InitialState());
   }

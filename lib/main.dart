@@ -5,9 +5,7 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as paths;
@@ -17,12 +15,8 @@ import 'app.dart';
 void main() async {
   runZonedGuarded(
     () async {
-      // Initialize MarionetteBinding for screenshot support in debug mode
-      if (kDebugMode) {
-        MarionetteBinding.ensureInitialized();
-      } else {
-        WidgetsFlutterBinding.ensureInitialized();
-      }
+      // Only ensure initialization - actual binding done in app.dart via initApplication()
+      WidgetsFlutterBinding.ensureInitialized();
 
       await initApplication();
       runApp(
