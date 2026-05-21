@@ -208,19 +208,12 @@ class _SongListViewState extends State<SongListView>
                         vertical: 12,
                       ),
                       child: Container(
-                        padding: const EdgeInsets.all(6),
+                        padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              colors.surfaceContainerLowest,
-                              colors.surfaceContainerLow,
-                            ],
-                          ),
+                          color: colors.surfaceContainerLow,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: colors.outlineVariant.withValues(alpha: 0.7),
+                            color: colors.outlineVariant.withValues(alpha: 0.4),
                           ),
                         ),
                         child: LayoutBuilder(
@@ -453,20 +446,18 @@ class _SongListViewState extends State<SongListView>
                           return Column(
                             children: [
                               Container(
-                                margin: const EdgeInsets.fromLTRB(10, 6, 10, 2),
+                                margin: const EdgeInsets.fromLTRB(12, 4, 12, 2),
                                 decoration: BoxDecoration(
-                                  color: context
-                                      .colorScheme
-                                      .surfaceContainerLowest,
+                                  color: context.colorScheme.surfaceContainerLow,
                                   borderRadius: BorderRadius.circular(8),
                                   border: Border.all(
                                     color: context.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.38),
+                                        .withValues(alpha: 0.2),
                                   ),
                                 ),
                                 child: ListTile(
                                   contentPadding: EdgeInsets.symmetric(
-                                    horizontal: compactList ? 14 : 20,
+                                    horizontal: compactList ? 12 : 16,
                                     vertical: 2,
                                   ),
                                   onTap: () {
@@ -605,9 +596,9 @@ class _SongListTabButton extends StatelessWidget {
     final compact = MediaQuery.sizeOf(context).width < 430;
     return OutlinedButton(
       style: OutlinedButton.styleFrom(
-        minimumSize: Size(compact ? 76 : 88, 34),
+        minimumSize: Size(compact ? 72 : 84, 32),
         backgroundColor: selected
-            ? context.colorScheme.primaryContainer.withValues(alpha: 0.6)
+            ? context.colorScheme.primaryContainer.withValues(alpha: 0.4)
             : Colors.transparent,
         side: BorderSide(
           strokeAlign: BorderSide.strokeAlignCenter,
@@ -788,19 +779,12 @@ class _PlaylistCard extends StatelessWidget {
         .toList();
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            context.colorScheme.surfaceContainerLowest,
-            context.colorScheme.surfaceContainerLow,
-          ],
-        ),
+        color: context.colorScheme.surfaceContainerLow,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
-          color: context.colorScheme.outlineVariant.withValues(alpha: 0.6),
+          color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
       ),
       child: Column(
