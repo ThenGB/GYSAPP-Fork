@@ -26,8 +26,9 @@ class _LiteratureViewState extends State<LiteratureView> {
   Widget build(BuildContext context) {
     log(router.currentPath);
     return Scaffold(
-      backgroundColor: context.colorScheme.surface,
+      backgroundColor: context.colorScheme.surfaceContainerLowest,
       appBar: AppBar(
+        backgroundColor: context.colorScheme.surfaceContainerLowest,
         shape: Border(
           bottom: BorderSide(color: context.colorScheme.outlineVariant),
         ),
