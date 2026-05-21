@@ -30,6 +30,7 @@ class DesignSystem {
   static const double radiusLg = 12;
   static const double radiusXl = 16;
   static const double radius2Xl = 20;
+  static const double radiusXLarge = 24;
   static const double radiusFull = 9999;
 
   // ═══════════════════════════════════════════════════════════════

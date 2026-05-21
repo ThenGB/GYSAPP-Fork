@@ -208,19 +208,7 @@ class _FaithViewState extends State<FaithView> {
             ? const Center(child: CircularProgressIndicator())
             : DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      context.colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.22,
-                      ),
-                      context.colorScheme.surfaceContainerLow.withValues(
-                        alpha: 0.38,
-                      ),
-                      context.colorScheme.surface,
-                    ],
-                  ),
+                  color: context.colorScheme.surface,
                 ),
                 child: Column(
                   children: [
@@ -404,48 +392,13 @@ class FaithWidget extends StatelessWidget {
             return AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
-              margin: const EdgeInsets.fromLTRB(14, 7, 14, 7),
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: state.selectedFaith.contains(index)
-                      ? [
-                          context.colorScheme.primaryContainer.withValues(
-                            alpha: 0.56,
-                          ),
-                          context.colorScheme.surfaceContainerHigh.withValues(
-                            alpha: 0.8,
-                          ),
-                        ]
-                      : [
-                          context.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.76),
-                          context.colorScheme.surfaceContainerLow.withValues(
-                            alpha: 0.78,
-                          ),
-                        ],
-                ),
-                borderRadius: BorderRadius.circular(compact ? 14 : 18),
-                border: Border.all(
-                  color: state.selectedFaith.contains(index)
-                      ? context.colorScheme.primary
-                      : context.colorScheme.outlineVariant.withValues(
-                          alpha: 0.30,
-                        ),
-                ),
-                boxShadow: state.selectedFaith.contains(index)
-                    ? [
-                        BoxShadow(
-                          color: context.colorScheme.primary.withValues(
-                            alpha: 0.16,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
+                color: state.selectedFaith.contains(index)
+                    ? context.colorScheme.primaryContainer
+                    : context.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(compact ? 18 : 22),
               ),
               padding: EdgeInsets.fromLTRB(
                 cardPadding,
@@ -608,15 +561,8 @@ class SelectedFaithMenu extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            border: Border.all(color: context.colorScheme.outlineVariant),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 160,
-                color: Colors.black.withValues(alpha: .2),
-              ),
-            ],
-            color: context.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            color: context.colorScheme.surfaceContainerHighest,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -649,9 +595,9 @@ class SelectedFaithMenu extends StatelessWidget {
                   if (indexes.length == 1)
                     TextButton(
                       style: TextButton.styleFrom(
-                        backgroundColor: context.colorScheme.outlineVariant,
+                        backgroundColor: context.colorScheme.primaryContainer,
                         foregroundColor:
-                            context.colorScheme.onSecondaryContainer,
+                            context.colorScheme.onPrimaryContainer,
                       ),
                       onPressed: () {
                         router.push(
@@ -675,8 +621,8 @@ class SelectedFaithMenu extends StatelessWidget {
                     ),
                   TextButton(
                     style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.outlineVariant,
-                      foregroundColor: context.colorScheme.onSecondaryContainer,
+                      backgroundColor: context.colorScheme.primaryContainer,
+                      foregroundColor: context.colorScheme.onPrimaryContainer,
                     ),
                     onPressed: () async {
                       String text = '';

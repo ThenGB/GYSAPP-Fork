@@ -28,7 +28,7 @@ ThemeData darkTheme(String defaultFont, {String accentKey = defaultAccentKey}) {
     ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
-      toolbarHeight: 74,
+      toolbarHeight: 56,  // Reduced from 74
       titleSpacing: 0,
       backgroundColor: colorScheme.surface.withValues(alpha: 0.78),
       foregroundColor: colorScheme.onSurface,

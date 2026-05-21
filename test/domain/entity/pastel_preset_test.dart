@@ -22,9 +22,9 @@ void main() {
 
     test('all presets have valid colors', () {
       for (final preset in pastelPresets) {
-        expect(preset.primary.alpha, greaterThan(0));
-        expect(preset.container.alpha, greaterThan(0));
-        expect(preset.surface.alpha, greaterThan(0));
+        expect((preset.primary.a * 255.0).round().clamp(0, 255), greaterThan(0));
+        expect((preset.container.a * 255.0).round().clamp(0, 255), greaterThan(0));
+        expect((preset.surface.a * 255.0).round().clamp(0, 255), greaterThan(0));
       }
     });
 

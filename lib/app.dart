@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:io' show File, Platform;
+import 'dart:io' show Directory, File, Platform;
 
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -11,8 +11,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -54,6 +56,47 @@ Future initApplication() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   _initializePdfRuntime();
   initLog('flutter binding ready');
+
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final packageInfo = await PackageInfo.fromPlatform();
+    final currentAppVersion = packageInfo.version;
+    final storedAppVersion = prefs.getString('app_version') ?? '0.0.0';
+
+    bool isOlderThan2_1(String v) {
+      final parts = v.split('.');
+      if (parts.length < 2) return true;
+      final major = int.tryParse(parts[0]) ?? 0;
+      final minor = int.tryParse(parts[1]) ?? 0;
+      if (major < 2) return true;
+      if (major == 2 && minor < 1) return true;
+      return false;
+    }
+
+    if (currentAppVersion != storedAppVersion) {
+      if (isOlderThan2_1(storedAppVersion)) {
+        initLog('Updating from older version (< 2.1). Wiping app data...');
+        if (!kIsWeb) {
+          Future<void> _resetDir(String p) async {
+            final d = Directory(p);
+            if (await d.exists()) {
+              await d.delete(recursive: true);
+              await d.create(recursive: true);
+            }
+          }
+          await _resetDir((await getApplicationDocumentsDirectory()).path);
+          await _resetDir((await getTemporaryDirectory()).path);
+          await _resetDir((await getApplicationSupportDirectory()).path);
+        } else {
+          await prefs.clear();
+        }
+      }
+      await prefs.setString('app_version', currentAppVersion);
+    }
+  } catch (e, st) {
+    log('Migration check failed', error: e, stackTrace: st, name: 'App');
+  }
+
   HydratedBloc.storage = await HydratedStorage.build(
     storageDirectory: HydratedStorageDirectory(
       (await getApplicationSupportDirectory()).path,
