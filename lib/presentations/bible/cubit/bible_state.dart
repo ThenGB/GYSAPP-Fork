@@ -208,7 +208,7 @@ abstract class BibleState with _$BibleState {
 
   Future<String> get currentBibleCodeName async {
     String code = currentBibleCode.split('_').last.toUpperCase();
-    var fb = await FirebaseUtils.jsonConfig('bible_codename');
+    var fb = await AppConfigStore.jsonConfig('bible_codename');
     return fb[code] ?? 'Unknown'.tr();
   }
 }
@@ -218,7 +218,7 @@ Future<String> getBibleCodeName(String? code) async {
   if (code.contains('.')) {
     code = code.split('.').first;
   }
-  var fb = await FirebaseUtils.jsonConfig('bible_codename');
+  var fb = await AppConfigStore.jsonConfig('bible_codename');
   return fb[code] ?? 'Unknown'.tr();
 }
 

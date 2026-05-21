@@ -18,7 +18,7 @@ void main() {
       expect(source, contains('BottomSheetThemeData'));
       expect(source, contains("const _hymnalUiFont = 'Manrope'"));
       expect(source, contains("const _hymnalHeadingFont = 'EB Garamond'"));
-      expect(source, contains('toolbarHeight: 74'));
+      expect(source, contains('toolbarHeight: 56'));
       expect(source, contains('borderRadius: BorderRadius.circular(16)'));
     }
   });
@@ -28,11 +28,11 @@ void main() {
       'lib/presentations/dashboard/view/dashboard_view.dart',
     ).readAsStringSync();
 
-    expect(source, contains('_DashboardNavigationShell'));
-    expect(source, contains('Padding('));
-    expect(source, contains('BorderRadius.circular(26)'));
+    expect(source, contains('DashboardNavigationDestination'));
+    expect(source, contains('BorderRadius.circular(16)'));
     expect(source, contains('kDashboardNavMaxWidth'));
     expect(source, contains('kDashboardExtendsBodyForMiniPlayerOverlay'));
+    expect(source, contains('NavigationBar'));
   });
 
   test('shared section and card components use bold modern radii', () {
@@ -44,7 +44,7 @@ void main() {
     ).readAsStringSync();
 
     expect(section, contains('AnimatedContainer'));
-    expect(designSystem, contains('static const double radiusLarge = 8'));
+    expect(designSystem, contains('static const double radiusMd = 8'));
     expect(section, contains('borderRadius: BorderRadius.circular(radius)'));
     expect(section, contains('child(innerGap)'));
   });

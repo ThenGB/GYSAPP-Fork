@@ -21,14 +21,16 @@ class DesignSystem {
   static const double spacing64 = 64;
 
   // ═══════════════════════════════════════════════════════════════
-  // RADIUS - Consistent border radius values
+  // RADIUS - Consistent, softer border radius
   // ═══════════════════════════════════════════════════════════════
 
-  static const double radiusSmall = 4;
-  static const double radiusMedium = 6;
-  static const double radiusLarge = 8;
-  static const double radiusXLarge = 8;
-  static const double radius2XLarge = 12;
+  static const double radiusNone = 0;
+  static const double radiusSm = 4;
+  static const double radiusMd = 8;
+  static const double radiusLg = 12;
+  static const double radiusXl = 16;
+  static const double radius2Xl = 20;
+  static const double radiusXLarge = 24;
   static const double radiusFull = 9999;
 
   // ═══════════════════════════════════════════════════════════════
@@ -41,12 +43,13 @@ class DesignSystem {
   static const double iconXLarge = 32;
 
   // ═══════════════════════════════════════════════════════════════
-  // ELEVATION - Subtle shadows for depth
+  // ELEVATION - Minimal elevation (no heavy shadows)
   // ═══════════════════════════════════════════════════════════════
 
+  static const double elevationNone = 0;
   static const double elevationLow = 1;
-  static const double elevationMedium = 4;
-  static const double elevationHigh = 8;
+  static const double elevationMedium = 2;
+  static const double elevationHigh = 4;
 
   // ═══════════════════════════════════════════════════════════════
   // ANIMATION DURATIONS
@@ -64,11 +67,11 @@ class DesignSystem {
   static const String fontUI = 'Manrope';
 
   // ═══════════════════════════════════════════════════════════════
-  // NAVIGATION - Navigation constants
+  // NAVIGATION - Compact navigation sizes
   // ═══════════════════════════════════════════════════════════════
 
-  static const double navBarHeightPortrait = 72;
-  static const double navBarHeightLandscape = 56;
+  static const double navBarHeightPortrait = 64;  // Reduced from 84
+  static const double navBarHeightLandscape = 56;   // Reduced from 66
   static const double navBarHeightCompact = 48;
 }
 
@@ -115,7 +118,7 @@ BoxDecoration cardDecoration(
   final theme = Theme.of(context);
   return BoxDecoration(
     color: color ?? theme.colorScheme.surfaceContainerLowest,
-    borderRadius: BorderRadius.circular(radius ?? DesignSystem.radiusXLarge),
+    borderRadius: BorderRadius.circular(radius ?? DesignSystem.radiusXl),
     border: borderColor != null
         ? Border.all(color: borderColor, width: borderWidth ?? 1)
         : null,
@@ -126,18 +129,18 @@ BoxDecoration cardDecoration(
 /// Creates a subtle shadow for elevated elements
 List<BoxShadow> get elevationShadows => [
   BoxShadow(
-    color: Colors.black.withValues(alpha: 0.08),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
+    color: Colors.black.withValues(alpha: 0.05),
+    blurRadius: 4,
+    offset: const Offset(0, 1),
   ),
 ];
 
 /// Creates a medium shadow for floating elements
 List<BoxShadow> get floatingShadows => [
   BoxShadow(
-    color: Colors.black.withValues(alpha: 0.12),
-    blurRadius: 16,
-    offset: const Offset(0, 4),
+    color: Colors.black.withValues(alpha: 0.08),
+    blurRadius: 8,
+    offset: const Offset(0, 2),
   ),
 ];
 
@@ -148,19 +151,19 @@ class Gradients {
   static const LinearGradient surfaceGradient = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Color(0xFFFFF8F7), Color(0xFFFFF0F0)],
+    colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
   );
 
-  static const LinearGradient accentGradient = LinearGradient(
+  static const LinearGradient pastelOverlay = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: [Color(0xFF570013), Color(0xFF800020)],
+    colors: [Color(0x33DBEAFE), Color(0x00F8FAFC)],
   );
 
   static const LinearGradient subtleOverlay = LinearGradient(
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
-    colors: [Colors.transparent, Color(0x1A000000)],
+    colors: [Colors.transparent, Color(0x0A000000)],
   );
 }
 

@@ -5,14 +5,8 @@
 list(APPEND FLUTTER_PLUGIN_LIST
   app_links
   awesome_notifications
-  cloud_firestore
   connectivity_plus
   file_selector_windows
-  firebase_app_check
-  firebase_auth
-  firebase_core
-  firebase_remote_config
-  firebase_storage
   flutter_inappwebview_windows
   flutter_tts
   permission_handler_windows

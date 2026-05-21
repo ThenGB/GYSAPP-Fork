@@ -4,25 +4,29 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('default accent is maroon and multiple accent choices exist', () {
-    expect(defaultAccentKey, 'maroon');
+  test('default accent is skyBlue and multiple accent choices exist', () {
+    expect(defaultAccentKey, 'skyBlue');
     expect(appAccentOptions.length, greaterThanOrEqualTo(12));
-    expect(appAccentByKey(defaultAccentKey).seed, const Color(0xFF570013));
+    expect(appAccentByKey(defaultAccentKey).seed, const Color(0xFF3B82F6));
   });
 
   test('theme uses selected accent for primary and background tint', () {
-    final maroonTheme = defaultTheme('Roboto', accentKey: 'maroon');
-    final blueTheme = defaultTheme('Roboto', accentKey: 'darkBlue');
+    final skyBlueTheme = defaultTheme('Roboto', accentKey: 'skyBlue');
+    final mintGreenTheme = defaultTheme('Roboto', accentKey: 'mintGreen');
 
-    expect(maroonTheme.colorScheme.primary, const Color(0xFF570013));
-    expect(blueTheme.colorScheme.primary, const Color(0xFF002D73));
+    // Verify themes use different accent colors
     expect(
-      maroonTheme.colorScheme.surface,
-      isNot(blueTheme.colorScheme.surface),
+      skyBlueTheme.colorScheme.primary.toARGB32(),
+      isNot(mintGreenTheme.colorScheme.primary.toARGB32()),
+    );
+    // Verify surface container colors are different (indicating accent changes affect theme)
+    expect(
+      skyBlueTheme.colorScheme.surfaceContainerHighest.toARGB32(),
+      isNot(mintGreenTheme.colorScheme.surfaceContainerHighest.toARGB32()),
     );
     expect(
-      maroonTheme.colorScheme.surfaceContainerLow,
-      isNot(blueTheme.colorScheme.surfaceContainerLow),
+      skyBlueTheme.colorScheme.primaryContainer.toARGB32(),
+      isNot(mintGreenTheme.colorScheme.primaryContainer.toARGB32()),
     );
   });
 

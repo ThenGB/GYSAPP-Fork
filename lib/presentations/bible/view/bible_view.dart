@@ -599,8 +599,7 @@ class _BibleViewState extends State<BibleView> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          color: colors.surfaceContainerHighest.withValues(alpha: 0.35),
-          border: Border.all(color: colors.outline.withValues(alpha: 0.56)),
+          color: colors.surfaceContainer,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -624,25 +623,10 @@ class _BibleViewState extends State<BibleView> {
     );
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            (secondPane
-                    ? colors.surfaceContainerLow
-                    : colors.surfaceContainerLowest)
-                .withValues(alpha: 0.95),
-            colors.surfaceContainerHighest.withValues(alpha: 0.88),
-          ],
-        ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-        border: Border(
-          bottom: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.34),
-          ),
-        ),
+        color: context.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
@@ -697,11 +681,10 @@ class _BibleViewState extends State<BibleView> {
             : Axis.vertical;
       }),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: colors.surfaceContainerLow,
+          color: colors.surfaceContainer,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: colors.outlineVariant),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -731,19 +714,18 @@ class _BibleViewState extends State<BibleView> {
         lockScroll = !lockScroll;
       }),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
           color: lockScroll
-              ? colors.secondaryContainer
-              : colors.surfaceContainerLow,
+              ? colors.primaryContainer
+              : colors.surfaceContainer,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: colors.outlineVariant),
         ),
         child: Text(
           lockScroll ? 'Locked'.tr() : 'Unlocked'.tr(),
           style: context.textTheme.labelSmall?.copyWith(
             color: lockScroll
-                ? colors.onSecondaryContainer
+                ? colors.onPrimaryContainer
                 : colors.onSurfaceVariant,
             fontWeight: FontWeight.w700,
           ),

@@ -453,6 +453,26 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(bibleCodes: bibles));
   }
 
+  Future<void> refreshAvailableBibles() async {
+    await getBibles();
+    if (!state.bibleCodes.contains(state.currentBibleCode)) {
+      await selectBibleCodeByName('b_tb');
+    }
+  }
+
+  Future<void> releaseResourcesForMaintenance() async {
+    final openDatabases = [bibleDb, splitBibleDb].whereType<Database>().toSet();
+    bibleDb = null;
+    splitBibleDb = null;
+    for (final database in openDatabases) {
+      await database.close();
+    }
+    final tts = this.tts;
+    if (tts != null) {
+      await tts.stop();
+    }
+  }
+
   Future<List<Verse>> getVersesByBook(int bookId, int chapterId) async {
     if (_usesAssetBible) {
       return bibleAssetService.getVerses(
@@ -471,7 +491,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   Future<void> selectBibleCode(int index, [bool secondary = false]) async {
     var bibleCode = state.bibleCodes[index].split('.').first;
+    await selectBibleCodeByName(bibleCode, secondary: secondary);
+  }
 
+  Future<void> selectBibleCodeByName(
+    String bibleCode, {
+    bool secondary = false,
+  }) async {
     /// close current bible
     if (secondary) {
       try {
@@ -647,10 +673,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
           state.currentBibleCode,
           bc: bcvbc.bc!,
         ),
-        bibleAssetService.getRefs(
-          state.currentBibleCode,
-          bc: bcvbc.bc!,
-        ),
+        bibleAssetService.getRefs(state.currentBibleCode, bc: bcvbc.bc!),
       ]);
       bibleContent = results[0] as List<Verse>;
       bookContent = results[1] as List<BibleBook>;
@@ -811,7 +834,11 @@ class BibleCubit extends HydratedCubit<BibleState> {
         ),
       );
     } catch (e, stackTrace) {
-      log('Error in getContent: $e', name: 'BibleCubit', stackTrace: stackTrace);
+      log(
+        'Error in getContent: $e',
+        name: 'BibleCubit',
+        stackTrace: stackTrace,
+      );
     }
   }
 

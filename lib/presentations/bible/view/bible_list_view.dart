@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:developer';
 
 import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
@@ -102,48 +101,33 @@ class _BibleListViewState extends State<BibleListView> {
               key: ValueKey(pageIndex),
               alignment: Alignment.topCenter,
               children: [
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        context.colorScheme.surfaceContainerLowest,
-                        context.colorScheme.surface,
+                FutureBuilder(
+                  future: AppConfigStore.jsonConfig('bible_name'),
+                  builder: (context, snapshot) {
+                    return ListView(
+                      padding: const EdgeInsets.all(12),
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 8),
+                          child: Text(
+                            snapshot.data?['Perjanjian lama']?[widget.bibleCode] ??
+                                'Perjanjian lama'.tr(),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        buildGridList(widget.books.sublist(0, 39)),
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 8, top: 12),
+                          child: Text(
+                            snapshot.data?['Perjanjian baru']?[widget.bibleCode] ??
+                                'Perjanjian baru'.tr(),
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                        ),
+                        buildGridList(widget.books.sublist(39)),
                       ],
-                    ),
-                  ),
-                  child: FutureBuilder(
-                    future: FirebaseUtils.jsonConfig('bible_name'),
-                    builder: (context, snapshot) {
-                      log('test ${snapshot.data}');
-                      return ListView(
-                        padding: const EdgeInsets.all(12),
-                        children: [
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 8),
-                            child: Text(
-                              snapshot.data?['Perjanjian lama']?[widget
-                                      .bibleCode] ??
-                                  'Perjanjian lama'.tr(),
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          buildGridList(widget.books.sublist(0, 39)),
-                          Padding(
-                            padding: EdgeInsets.only(bottom: 8, top: 12),
-                            child: Text(
-                              snapshot.data?['Perjanjian baru']?[widget
-                                      .bibleCode] ??
-                                  'Perjanjian baru'.tr(),
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ),
-                          buildGridList(widget.books.sublist(39)),
-                        ],
-                      );
-                    },
-                  ),
+                    );
+                  },
                 ),
                 SizedBox(
                   width: double.infinity,
@@ -159,8 +143,7 @@ class _BibleListViewState extends State<BibleListView> {
                             (e) => Container(
                               padding: const EdgeInsets.all(2),
                               width: (constraints.maxWidth / 5),
-                              height:
-                                  (constraints.maxWidth / 8) * widget.textScale,
+                              height: (constraints.maxWidth / 8) * widget.textScale,
                               child: Material(
                                 borderRadius: BorderRadius.circular(8),
                                 color: context.colorScheme.surfaceContainerLow,
@@ -176,10 +159,7 @@ class _BibleListViewState extends State<BibleListView> {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: context
-                                            .colorScheme
-                                            .outlineVariant
-                                            .withValues(alpha: 0.52),
+                                        color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                                       ),
                                     ),
                                     child: Text(
@@ -214,32 +194,22 @@ class _BibleListViewState extends State<BibleListView> {
                                 (e) => Container(
                                   padding: const EdgeInsets.all(2),
                                   width: (constraints.maxWidth / 5),
-                                  height:
-                                      (constraints.maxWidth / 8) *
-                                      widget.textScale,
+                                  height: (constraints.maxWidth / 8) * widget.textScale,
                                   child: Material(
                                     borderRadius: BorderRadius.circular(8),
-                                    color:
-                                        context.colorScheme.surfaceContainerLow,
+                                    color: context.colorScheme.surfaceContainerLow,
                                     child: InkWell(
                                       onTap: () {
                                         allowForceClose = true;
-                                        widget.onSelected(
-                                          snapshot.data![e.key],
-                                        );
+                                        widget.onSelected(snapshot.data![e.key]);
                                       },
                                       child: Container(
                                         padding: const EdgeInsets.all(4),
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            8,
-                                          ),
+                                          borderRadius: BorderRadius.circular(8),
                                           border: Border.all(
-                                            color: context
-                                                .colorScheme
-                                                .outlineVariant
-                                                .withValues(alpha: 0.52),
+                                            color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                                           ),
                                         ),
                                         child: Text(
@@ -274,12 +244,8 @@ class _BibleListViewState extends State<BibleListView> {
             (e) => AnimatedContainer(
               duration: kThemeAnimationDuration,
               padding: const EdgeInsets.all(2),
-              width: isGridViewMode
-                  ? (constraints.maxWidth / 6)
-                  : constraints.maxWidth,
-              height:
-                  (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
-                  widget.textScale,
+              width: isGridViewMode ? (constraints.maxWidth / 6) : constraints.maxWidth,
+              height: (isGridViewMode ? (constraints.maxWidth / 8) : 48) * widget.textScale,
               child: Material(
                 borderRadius: BorderRadius.circular(8),
                 color: context.colorScheme.surfaceContainerLow,
@@ -293,19 +259,13 @@ class _BibleListViewState extends State<BibleListView> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: context.colorScheme.outlineVariant.withValues(
-                          alpha: 0.52,
-                        ),
+                        color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                       ),
                     ),
                     padding: EdgeInsets.all(isGridViewMode ? 4 : 8),
-                    alignment: isGridViewMode
-                        ? Alignment.center
-                        : Alignment.centerLeft,
+                    alignment: isGridViewMode ? Alignment.center : Alignment.centerLeft,
                     child: Text(
-                      isGridViewMode
-                          ? (e.value.shortName ?? '')
-                          : (e.value.longName ?? ''),
+                      isGridViewMode ? (e.value.shortName ?? '') : (e.value.longName ?? ''),
                       textAlign: TextAlign.center,
                     ),
                   ),

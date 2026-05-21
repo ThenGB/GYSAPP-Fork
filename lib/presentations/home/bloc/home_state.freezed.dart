@@ -214,7 +214,7 @@ return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_th
 @JsonSerializable()
 
 class _HomeState extends HomeState {
-  const _HomeState({this.isLoading = false, final  List<Sauh> sauhs = const [], final  List<TrueVoice> trueVoices = const [], final  List<Menulink> menuLinks = const [], this.isSuaraSejatiEnabled = false, this.isSauhEnabled = false}): _sauhs = sauhs,_trueVoices = trueVoices,_menuLinks = menuLinks,super._();
+  const _HomeState({this.isLoading = false, final  List<Sauh> sauhs = const [], final  List<TrueVoice> trueVoices = const [], final  List<Menulink> menuLinks = const [], this.isSuaraSejatiEnabled = true, this.isSauhEnabled = true}): _sauhs = sauhs,_trueVoices = trueVoices,_menuLinks = menuLinks,super._();
   factory _HomeState.fromJson(Map<String, dynamic> json) => _$HomeStateFromJson(json);
 
 @override@JsonKey() final  bool isLoading;

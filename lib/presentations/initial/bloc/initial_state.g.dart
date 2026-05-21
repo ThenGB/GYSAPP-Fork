@@ -21,6 +21,11 @@ _InitialState _$InitialStateFromJson(Map<String, dynamic> json) =>
       defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
       accentKey: json['accentKey'] as String? ?? 'maroon',
+      themePreferences: json['themePreferences'] == null
+          ? const ThemePreferences()
+          : ThemePreferences.fromJson(
+              json['themePreferences'] as Map<String, dynamic>,
+            ),
     );
 
 Map<String, dynamic> _$InitialStateToJson(_InitialState instance) =>
@@ -36,4 +41,5 @@ Map<String, dynamic> _$InitialStateToJson(_InitialState instance) =>
       'defaultTextScale': instance.defaultTextScale,
       'defaultFont': instance.defaultFont,
       'accentKey': instance.accentKey,
+      'themePreferences': instance.themePreferences,
     };

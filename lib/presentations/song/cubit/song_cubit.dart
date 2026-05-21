@@ -142,7 +142,7 @@ class SongCubit extends HydratedCubit<SongState> {
             .then((path) {
               if (path != null) {
                 // 1. Update state so UI starts rendering the PDF container
-                emit(state.copyWith(currentPdfPath: path, isPdfLoading: true));
+                emit(state.copyWith(currentPdfPath: path, isPdfLoading: false));
 
                 // 2. Trigger note extraction pre-warmup
                 unawaited(
@@ -243,7 +243,7 @@ class SongCubit extends HydratedCubit<SongState> {
     return current.position >= current.duration - 0.35;
   }
 
-  Future<void> getData() async {
+  Future<void> getData({bool preloadCurrentSong = true}) async {
     final response = await songRepository.getData();
     response.fold(
       (failure) {
@@ -252,8 +252,21 @@ class SongCubit extends HydratedCubit<SongState> {
       },
       (res) {
         final hadSongs = state.songs.isNotEmpty;
-        emit(state.copyWith(songBook: res));
-        if (!hadSongs &&
+        final availableCodes = res.map((book) => book.code ?? '').toSet();
+        final nextBookCode = availableCodes.contains(state.bookCode)
+            ? state.bookCode
+            : (res.firstOrNull?.code ?? state.bookCode);
+        final resetIndex = nextBookCode == state.bookCode ? state.pageIndex : 0;
+        emit(
+          state.copyWith(
+            songBook: res,
+            bookCode: nextBookCode,
+            pageIndex: resetIndex,
+            verseIndex: nextBookCode == state.bookCode ? state.verseIndex : 0,
+          ),
+        );
+        if (preloadCurrentSong &&
+            !hadSongs &&
             state.songs.isNotEmpty &&
             state.currentPdfPath == null) {
           final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
@@ -263,6 +276,10 @@ class SongCubit extends HydratedCubit<SongState> {
         }
       },
     );
+  }
+
+  Future<void> refreshLibraryAvailability() async {
+    await getData();
   }
 
   // ─── PDF & MIDI Resource Loading ──────────────────────────────
@@ -285,57 +302,73 @@ class SongCubit extends HydratedCubit<SongState> {
     final generation = ++_pdfLoadGeneration;
     final songCode = song.code ?? '';
     final songNumber = song.number ?? '';
-    final pdfPath = await getPdfPath(songCode, songNumber);
+    final previousPath = state.currentPdfPath;
 
+    final needsPreparation = await _assetService.needsPdfPreparation(
+      songCode,
+      songNumber,
+    );
     if (!_isActivePdfLoad(generation)) return;
-
-    final pathUnchanged =
-        pdfPath == state.currentPdfPath && !state.isPdfLoading;
-
-    if (!pathUnchanged) {
-      emit(state.copyWith(isPdfLoading: true, currentPdfPath: pdfPath));
+    if (needsPreparation) {
+      emit(state.copyWith(isPdfLoading: true));
     }
 
-    // TRIGGER NOTE EXTRACTION EARLY - This pre-warms the PdfNoteService cache
-    // so when the PDF viewer opens, note positions are already cached
-    if (pdfPath != null && (forceMetadataWarmup || !pathUnchanged)) {
-      final noteService = PdfNoteService();
-      final metadataSource = _metadataSourceForSong(song);
-      final metadataPdfPath = await getPdfPath(
-        metadataSource.bookCode,
-        metadataSource.number,
-      );
-      final request = PdfDocumentRequest.parse(metadataPdfPath ?? pdfPath);
-      final warmupPages = _warmupPageCount(request.pageCount);
+    String? pdfPath;
+    try {
+      pdfPath = await getPdfPath(songCode, songNumber);
 
-      // Give note extraction a short head start so real note-aligned chord
-      // positions are ready sooner on non-preloaded songs.
-      try {
-        final metadata = await noteService
-            .warmup(
-              request.assetPath,
-              startPage: request.startPage,
-              pageCount: warmupPages,
-            )
-            .timeout(const Duration(milliseconds: 450));
-        if (metadata != null) {
-          if (metadata.detectedKey != null) {
-            updatePdfKey(metadata.detectedKey);
-          }
-          if (metadata.detectedTempo != null) {
-            updatePdfTempo(metadata.detectedTempo!);
-          }
-        }
-      } on TimeoutException {
-        log('Note warm-up timeout for ${song.number}', name: 'SongCubit');
-      } catch (e) {
-        log('Note warm-up failed for ${song.number}: $e', name: 'SongCubit');
+      if (!_isActivePdfLoad(generation)) return;
+
+      final pathUnchanged = pdfPath == previousPath;
+      if (!pathUnchanged || state.currentPdfPath != pdfPath) {
+        emit(state.copyWith(currentPdfPath: pdfPath));
       }
-    }
 
-    // PDF viewer will handle actual loading, signal ready
-    if (!pathUnchanged) {
-      emit(state.copyWith(isPdfLoading: false));
+      // TRIGGER NOTE EXTRACTION EARLY - This pre-warms the PdfNoteService cache
+      // so when the PDF viewer opens, note positions are already cached
+      if (pdfPath != null && (forceMetadataWarmup || !pathUnchanged)) {
+        final noteService = PdfNoteService();
+        final metadataSource = _metadataSourceForSong(song);
+        final metadataPdfPath = await getPdfPath(
+          metadataSource.bookCode,
+          metadataSource.number,
+        );
+        final request = PdfDocumentRequest.parse(metadataPdfPath ?? pdfPath);
+        final warmupPages = _warmupPageCount(request.pageCount);
+
+        // Give note extraction a short head start so real note-aligned chord
+        // positions are ready sooner on non-preloaded songs.
+        try {
+          final metadata = await noteService
+              .warmup(
+                request.assetPath,
+                startPage: request.startPage,
+                pageCount: warmupPages,
+              )
+              .timeout(const Duration(milliseconds: 450));
+          if (metadata != null) {
+            if (metadata.detectedKey != null) {
+              updatePdfKey(metadata.detectedKey);
+            }
+            if (metadata.detectedTempo != null) {
+              updatePdfTempo(metadata.detectedTempo!);
+            }
+          }
+        } on TimeoutException {
+          log('Note warm-up timeout for ${song.number}', name: 'SongCubit');
+        } catch (e) {
+          log('Note warm-up failed for ${song.number}: $e', name: 'SongCubit');
+        }
+      }
+    } finally {
+      if (_isActivePdfLoad(generation)) {
+        emit(
+          state.copyWith(
+            isPdfLoading: false,
+            currentPdfPath: pdfPath ?? state.currentPdfPath,
+          ),
+        );
+      }
     }
   }
 
@@ -642,7 +675,7 @@ class SongCubit extends HydratedCubit<SongState> {
         pageIndex: index,
         verseIndex: verseIndex,
         isAudioPlaying: false,
-        isPdfLoading: true,
+        isPdfLoading: false,
         showChord: _isChordEnabledForBook(song.code ?? state.bookCode)
             ? state.showChord
             : false,
@@ -1315,6 +1348,35 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<String?> getPdfPath(String bookCode, String number) async {
     return _assetService.getPdfPath(bookCode, number);
+  }
+
+  Future<void> releaseResourcesForMaintenance() async {
+    _pdfLoadGeneration++;
+    _midiLoadGeneration++;
+    _handlingAutoNext = false;
+    _resolvedChordsCache = null;
+    await stop();
+    PdfNoteService().clearCache();
+    emit(
+      state.copyWith(
+        currentPdfPath: null,
+        currentChords: const {},
+        isAudioLoading: false,
+        isPdfLoading: false,
+        isAudioPlaying: false,
+      ),
+    );
+  }
+
+  Future<void> prepareForAppReset() async {
+    await releaseResourcesForMaintenance();
+  }
+
+  Future<void> resetToDefaults() async {
+    emit(const SongState());
+    await _midiEngine.changeSoundFont(state.soundFont);
+    _midiEngine.setCacheMax(state.midiCacheMaxCount);
+    await getData(preloadCurrentSong: false);
   }
 
   void sync(SongState songState) {

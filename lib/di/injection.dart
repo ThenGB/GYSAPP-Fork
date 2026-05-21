@@ -1,21 +1,16 @@
 import 'dart:developer';
+import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:google_sign_in/google_sign_in.dart';
-import 'package:googleapis/drive/v3.dart' as drive;
 import 'package:path_provider/path_provider.dart';
 
 import '../data/data.dart';
-import '../data/repository/backupsync_repository_impl.dart';
-import '../data/repository/google_repository_impl.dart';
 
 import '../data/utilities/encrypt.dart';
 import '../domain/domain.dart';
-import '../domain/repository/backupsync_repository.dart';
-import '../domain/repository/google_repository.dart';
 import '../presentations/presentations.dart';
 
 var di = GetIt.I;
@@ -40,8 +35,9 @@ void _blocs() {
   di.registerSingleton(SongCubit(di(), di(), di()));
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
-  di.registerFactory(() => AuthCubit(di()));
-  di.registerFactory(() => BackupCubit(di(), di(), di(), di()));
+  di.registerFactory(() => AssetManagementCubit(di(), di()));
+  di.registerFactory(() => AuthCubit());
+  di.registerFactory(() => BackupCubit(di(), di()));
 }
 
 Future<void> _utils(AppConfig appConfig) async {
@@ -61,7 +57,7 @@ Future<void> _utils(AppConfig appConfig) async {
   di.registerFactory(() => Dio()..interceptors.add(loggingInterceptor));
   di.registerLazySingletonAsync(() async {
     try {
-      var credentials = await FirebaseUtils.jsonConfig('mailer_credentials');
+      var credentials = await AppConfigStore.jsonConfig('mailer_credentials');
       String username = credentials['username'];
       String password = credentials['password'];
       return Mailer(username, password);
@@ -69,17 +65,31 @@ Future<void> _utils(AppConfig appConfig) async {
       return Mailer('', '');
     }
   });
-  di.registerSingleton(
-    GoogleSignIn(scopes: [drive.DriveApi.driveAppdataScope]),
-  );
 }
 
 void _services() {
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => PdfChunkService());
-  di.registerLazySingleton(() => LocalAssetService(di()));
+  di.registerLazySingleton(() => AppResetService(appDirectory: di()));
+  di.registerLazySingleton(
+    () => InstalledAssetRegistry(
+      supportDirectory: Directory(di<AppDirectory>().support),
+    ),
+  );
+  di.registerLazySingleton(() => EncryptedAssetPackageService());
+  di.registerLazySingleton(() => GitHubReleaseAssetClient(di()));
+  di.registerLazySingleton(
+    () => AssetCacheMaintenanceService(appDirectory: di()),
+  );
+  di.registerLazySingleton(
+    () => LocalAssetService(di(), installedAssetRegistry: di()),
+  );
+  di.registerLazySingleton(
+    () => AssetDistributionService(di(), di(), di(), di(), di(), di()),
+  );
 
-  di.registerLazySingleton(    () => MidiEngineService(
+  di.registerLazySingleton(
+    () => MidiEngineService(
       di(),
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
@@ -94,10 +104,7 @@ void _repositories() {
   di.registerFactory<AccountRepository>(
     () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi),
   );
-  di.registerFactory<BackupSyncRepository>(
-    () => BackupSyncRepositoryImpl(di()),
-  );
-  di.registerFactory<GoogleRepository>(() => GoogleRepositoryImpl(di()));
+  di.registerFactory<ThemePreferencesRepository>(() => ThemePreferencesRepository());
 }
 
 class AppDirectory {
@@ -107,7 +114,13 @@ class AppDirectory {
 
   AppDirectory(this.document, this.cache, this.support);
 
-  String get bibleFolder => '$cache/bible';
+  String get bibleFolder => '$support/installed_assets/bible';
+  String get hymnalFolder => '$support/installed_assets/hymnal';
+  String get assetRegistryPath => '$support/installed_assets/registry.json';
+  String get assetTempFolder => '$cache/asset_downloads';
+  String get preparedPdfFolder => '$document/master_pdfs';
+  String get pdfNoteCacheFolder => '$cache/pdf_note_cache';
+  String get songRenderCacheFolder => '$songMusicFolder/render_cache';
   String get songMusicFolder => '$cache/song';
   String get songLyricFolder => '$cache/lyrics';
   String get songDbPath => '$cache/song/song.db';

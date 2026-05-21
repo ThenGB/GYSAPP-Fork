@@ -124,7 +124,7 @@ class SelectedVerseMenu extends StatelessWidget {
                       var title = await context
                           .read<BibleCubit>()
                           .getBibleTitle(verses, withVerse: true);
-                      var json = await FirebaseUtils.jsonConfig(
+                      var json = await AppConfigStore.jsonConfig(
                         'footer_copied_text',
                       );
                       var footer = json[context.locale.languageCode];
@@ -157,7 +157,7 @@ class SelectedVerseMenu extends StatelessWidget {
                       var title = await context
                           .read<BibleCubit>()
                           .getBibleTitle(verses, withVerse: true);
-                      var json = await FirebaseUtils.jsonConfig(
+                      var json = await AppConfigStore.jsonConfig(
                         'footer_copied_text',
                       );
                       var footer = json[context.locale.languageCode];

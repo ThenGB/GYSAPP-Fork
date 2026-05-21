@@ -2,7 +2,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
-import '../../../data/utilities/firebase_utils.dart';
+import '../../../data/utilities/app_config_store.dart';
 import '../../../data/utilities/platform_utils.dart';
 import '../../../router/router.dart';
 import 'settings_state.dart';
@@ -30,7 +30,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
       if (!res) return;
     }
     var data = value ?? !state.isSabatNotificationActive;
-    var json = await FirebaseUtils.jsonConfig('notifikasi_sabat');
+    var json = await AppConfigStore.jsonConfig('notifikasi_sabat');
     if (data) {
       await AwesomeNotifications().createNotification(
         content: NotificationContent(
@@ -91,7 +91,7 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
         .toSet()
         .difference(days.keys.toSet())
         .toList();
-    var json = await FirebaseUtils.jsonConfig('notifikasi_bible');
+    var json = await AppConfigStore.jsonConfig('notifikasi_bible');
     var lang = router.navigatorKey.currentContext?.locale.languageCode ?? '';
     for (int weekDay in days.keys) {
       await AwesomeNotifications().createNotification(

@@ -23,8 +23,8 @@ _HomeState _$HomeStateFromJson(Map<String, dynamic> json) => _HomeState(
           ?.map((e) => Menulink.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
-  isSuaraSejatiEnabled: json['isSuaraSejatiEnabled'] as bool? ?? false,
-  isSauhEnabled: json['isSauhEnabled'] as bool? ?? false,
+  isSuaraSejatiEnabled: json['isSuaraSejatiEnabled'] as bool? ?? true,
+  isSauhEnabled: json['isSauhEnabled'] as bool? ?? true,
 );
 
 Map<String, dynamic> _$HomeStateToJson(_HomeState instance) =>

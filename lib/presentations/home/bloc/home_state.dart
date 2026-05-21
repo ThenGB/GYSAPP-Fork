@@ -15,8 +15,8 @@ abstract class HomeState with _$HomeState {
     @Default([]) List<Sauh> sauhs,
     @Default([]) List<TrueVoice> trueVoices,
     @Default([]) List<Menulink> menuLinks,
-    @Default(false) bool isSuaraSejatiEnabled,
-    @Default(false) bool isSauhEnabled,
+    @Default(true) bool isSuaraSejatiEnabled,
+    @Default(true) bool isSauhEnabled,
   }) = _HomeState;
 
   bool get isSauhEmpty => sauhs.isEmpty;

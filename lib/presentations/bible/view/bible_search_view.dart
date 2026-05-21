@@ -61,18 +61,11 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                   child: Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          context.colorScheme.surfaceContainerLowest,
-                          context.colorScheme.surfaceContainerLow,
-                        ],
-                      ),
+                      color: context.colorScheme.surfaceContainerLow,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
                         color: context.colorScheme.outlineVariant.withValues(
-                          alpha: 0.62,
+                          alpha: 0.2,
                         ),
                       ),
                     ),
@@ -118,7 +111,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                   ),
                 ),
                 FutureBuilder(
-                  future: FirebaseUtils.jsonConfig('bible_name'),
+                  future: AppConfigStore.jsonConfig('bible_name'),
                   builder: (context, snapshot) => Wrap(
                     children: [
                       TextButton(
@@ -248,15 +241,19 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                 return Container(
                                   margin: const EdgeInsets.only(bottom: 8),
                                   decoration: BoxDecoration(
-                                    color:
-                                        context.colorScheme.surfaceContainerLow,
+                                    color: context.colorScheme.surfaceContainerLow,
                                     borderRadius: BorderRadius.circular(8),
                                     border: Border.all(
-                                      color: context.colorScheme.outlineVariant
-                                          .withValues(alpha: 0.48),
+                                      color: context.colorScheme.outlineVariant.withValues(
+                                        alpha: 0.2,
+                                      ),
                                     ),
                                   ),
                                   child: ListTile(
+                                    contentPadding: EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 4,
+                                    ),
                                     onTap: () {
                                       widget.onTap(item);
                                     },

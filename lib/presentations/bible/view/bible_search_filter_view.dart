@@ -114,7 +114,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
             ),
           ),
           child: FutureBuilder(
-            future: FirebaseUtils.jsonConfig('bible_name'),
+            future: AppConfigStore.jsonConfig('bible_name'),
             builder: (context, snapshot) => ListView(
               padding: const EdgeInsets.all(12),
               children: [

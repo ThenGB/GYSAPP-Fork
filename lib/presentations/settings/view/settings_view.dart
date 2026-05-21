@@ -10,8 +10,8 @@ import 'package:timeago/timeago.dart' as timeago;
 
 import '../../../components/widgets/drag_handler.dart';
 import '../../../components/widgets/section.dart';
-import '../../../components/themes/app_accent.dart';
 import '../../../data/data.dart';
+import '../../../data/models/theme_preferences.dart';
 import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
@@ -256,6 +256,7 @@ class SettingsView extends StatelessWidget {
                         ),
                       ),
                     ),
+                    const _AssetDistributionSection(),
                     Column(
                       children: [
                         BlocBuilder<BibleCubit, BibleState>(
@@ -612,7 +613,7 @@ class SettingsView extends StatelessWidget {
                             ),
                           ),
                         ),
-                        const _AccentColorSection(),
+                        const _ThemeSettingsSection(),
                         Section(
                           label: 'Others'.tr(),
                           child: (gap) => Material(
@@ -1053,6 +1054,46 @@ class _SettingsSwitchTile extends StatelessWidget {
   }
 }
 
+class _AssetDistributionSection extends StatelessWidget {
+  const _AssetDistributionSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Section(
+      label: 'Offline Library',
+      child: (gap) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: gap),
+        child: Material(
+          color: context.colorScheme.surfaceContainerLowest,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: BorderSide(
+              color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: _SettingsTile(
+            icon: Icons.offline_bolt_rounded,
+            title: 'Offline Library',
+            description:
+                'Kelola Alkitab dan hymnal terenkripsi, cek rilis terbaru GitHub, hapus aset terinstal, dan bersihkan cache cepat dari satu halaman khusus.',
+            trailing: const Icon(Icons.chevron_right_rounded),
+            onTap: () {
+              router.push(
+                AssetManagementRoute(
+                  assetManagementCubit: context.read<AssetManagementCubit>(),
+                  bibleCubit: context.read<BibleCubit>(),
+                  songCubit: context.read<SongCubit>(),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 class _SongSettingsSection extends StatelessWidget {
   const _SongSettingsSection();
 
@@ -1214,111 +1255,405 @@ class _SongSettingsSection extends StatelessWidget {
   }
 }
 
-class _AccentColorSection extends StatelessWidget {
-  const _AccentColorSection();
+class _ThemeSettingsSection extends StatelessWidget {
+  const _ThemeSettingsSection();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<InitialCubit, InitialState>(
       builder: (context, state) {
         return Section(
-          label: 'Warna Aksen',
+          label: 'Theme',
           child: (gap) => Padding(
             padding: EdgeInsets.symmetric(horizontal: gap),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    context.colorScheme.surfaceContainerLowest,
-                    context.colorScheme.surfaceContainerLow,
-                  ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _AccentColorPicker(
+                  selectedKey: state.accentKey,
+                  onSelected: (key) {
+                    context.read<InitialCubit>().changeAccentColor(key);
+                  },
                 ),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color: context.colorScheme.outlineVariant.withValues(
-                    alpha: 0.8,
-                  ),
+                const SizedBox(height: 24),
+                _DensitySelector(
+                  selected: state.themePreferences.density,
+                  onChanged: (density) {
+                    context.read<InitialCubit>().changeDensity(density);
+                  },
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: appAccentOptions.map((accent) {
-                    final selected = state.accentKey == accent.key;
-                    return InkWell(
-                      onTap: () {
-                        context.read<InitialCubit>().changeAccentColor(
-                          accent.key,
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(999),
-                      child: AnimatedContainer(
-                        duration: kThemeAnimationDuration,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 8,
-                        ),
-                        decoration: BoxDecoration(
-                          color: selected
-                              ? accent.fixed.withValues(alpha: 0.5)
-                              : context.colorScheme.surface.withValues(
-                                  alpha: 0.92,
-                                ),
-                          borderRadius: BorderRadius.circular(999),
-                          border: Border.all(
-                            color: selected
-                                ? context.colorScheme.primary
-                                : context.colorScheme.outlineVariant,
-                            width: selected ? 1.5 : 1,
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              width: 18,
-                              height: 18,
-                              decoration: BoxDecoration(
-                                color: accent.seed,
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.7),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Text(
-                              accent.label,
-                              style: context.textTheme.labelMedium?.copyWith(
-                                color: selected
-                                    ? accent.seed
-                                    : context.colorScheme.onSurface,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                            if (selected) ...[
-                              const SizedBox(width: 6),
-                              Icon(
-                                Icons.check_rounded,
-                                size: 16,
-                                color: accent.seed,
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                    );
-                  }).toList(),
+                const SizedBox(height: 16),
+                _CornerRadiusSelector(
+                  selected: state.themePreferences.cornerRadius,
+                  onChanged: (style) {
+                    context.read<InitialCubit>().changeCornerRadius(style);
+                  },
                 ),
-              ),
+                const SizedBox(height: 16),
+                _TypographyScaleSelector(
+                  selected: state.themePreferences.typographyScale,
+                  onChanged: (scale) {
+                    context.read<InitialCubit>().changeTypographyScale(scale);
+                  },
+                ),
+                const SizedBox(height: 24),
+                _ThemePreviewCard(
+                  accentKey: state.accentKey,
+                  cornerRadius: state.themePreferences.cornerRadius,
+                  typographyScale: state.themePreferences.typographyScale,
+                ),
+                const SizedBox(height: 8),
+              ],
             ),
           ),
         );
       },
+    );
+  }
+}
+
+class _AccentColorPicker extends StatelessWidget {
+  final String selectedKey;
+  final ValueChanged<String> onSelected;
+
+  const _AccentColorPicker({
+    required this.selectedKey,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = [
+      ('skyBlue', 'Sky Blue', const Color(0xFF3B82F6), const Color(0xFFDBEAFE)),
+      ('mintGreen', 'Mint', const Color(0xFF10B981), const Color(0xFFD1FAF5)),
+      ('softLavender', 'Lavender', const Color(0xFF8B5CF6), const Color(0xFFF3E8FF)),
+      ('warmPeach', 'Peach', const Color(0xFFF97316), const Color(0xFFFFEDD5)),
+      ('dustyRose', 'Rose', const Color(0xFFF43F5E), const Color(0xFFFFE4E6)),
+      ('softTeal', 'Teal', const Color(0xFF14B8A6), const Color(0xFFCCFBF1)),
+      ('softIndigo', 'Indigo', const Color(0xFF6366F1), const Color(0xFFE0E7FF)),
+      ('softAmber', 'Amber', const Color(0xFFF59E0B), const Color(0xFFFEF3C7)),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Accent Color',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 12,
+          children: colors.map((c) {
+            final isSelected = c.$1 == selectedKey;
+            return GestureDetector(
+              onTap: () => onSelected(c.$1),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: c.$4,
+                  borderRadius: BorderRadius.circular(12),
+                  border: isSelected
+                      ? Border.all(color: c.$3, width: 2)
+                      : Border.all(color: c.$3.withValues(alpha: 0.3)),
+                ),
+                child: isSelected
+                    ? Center(
+                        child: Icon(
+                          Icons.check_rounded,
+                          color: c.$3,
+                          size: 24,
+                        ),
+                      )
+                    : null,
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
+
+class _DensitySelector extends StatelessWidget {
+  final DisplayDensity selected;
+  final ValueChanged<DisplayDensity> onChanged;
+
+  const _DensitySelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Display Density',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SegmentedButton<DisplayDensity>(
+          segments: const [
+            ButtonSegment(
+              value: DisplayDensity.compact,
+              label: Text('Compact'),
+            ),
+            ButtonSegment(
+              value: DisplayDensity.standard,
+              label: Text('Standard'),
+            ),
+            ButtonSegment(
+              value: DisplayDensity.comfortable,
+              label: Text('Comfortable'),
+            ),
+          ],
+          selected: {selected},
+          onSelectionChanged: (set) => onChanged(set.first),
+        ),
+      ],
+    );
+  }
+}
+
+class _CornerRadiusSelector extends StatelessWidget {
+  final CornerRadiusStyle selected;
+  final ValueChanged<CornerRadiusStyle> onChanged;
+
+  const _CornerRadiusSelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Corner Radius',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SegmentedButton<CornerRadiusStyle>(
+          segments: const [
+            ButtonSegment(
+              value: CornerRadiusStyle.soft,
+              label: Text('Soft'),
+            ),
+            ButtonSegment(
+              value: CornerRadiusStyle.medium,
+              label: Text('Medium'),
+            ),
+            ButtonSegment(
+              value: CornerRadiusStyle.sharp,
+              label: Text('Sharp'),
+            ),
+          ],
+          selected: {selected},
+          onSelectionChanged: (set) => onChanged(set.first),
+        ),
+      ],
+    );
+  }
+}
+
+class _TypographyScaleSelector extends StatelessWidget {
+  final TypographyScale selected;
+  final ValueChanged<TypographyScale> onChanged;
+
+  const _TypographyScaleSelector({
+    required this.selected,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Typography Scale',
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SegmentedButton<TypographyScale>(
+          segments: const [
+            ButtonSegment(
+              value: TypographyScale.compact,
+              label: Text('Compact'),
+            ),
+            ButtonSegment(
+              value: TypographyScale.normal,
+              label: Text('Normal'),
+            ),
+            ButtonSegment(
+              value: TypographyScale.comfortable,
+              label: Text('Comfortable'),
+            ),
+          ],
+          selected: {selected},
+          onSelectionChanged: (set) => onChanged(set.first),
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemePreviewCard extends StatelessWidget {
+  final String accentKey;
+  final CornerRadiusStyle cornerRadius;
+  final TypographyScale typographyScale;
+
+  const _ThemePreviewCard({
+    required this.accentKey,
+    required this.cornerRadius,
+    required this.typographyScale,
+  });
+
+  Color _getSeedColor() {
+    switch (accentKey) {
+      case 'skyBlue': return const Color(0xFF3B82F6);
+      case 'mintGreen': return const Color(0xFF10B981);
+      case 'softLavender': return const Color(0xFF8B5CF6);
+      case 'warmPeach': return const Color(0xFFF97316);
+      case 'dustyRose': return const Color(0xFFF43F5E);
+      case 'softTeal': return const Color(0xFF14B8A6);
+      case 'softIndigo': return const Color(0xFF6366F1);
+      case 'softAmber': return const Color(0xFFF59E0B);
+      default: return const Color(0xFF3B82F6);
+    }
+  }
+
+  Color _getContainerColor() {
+    switch (accentKey) {
+      case 'skyBlue': return const Color(0xFFDBEAFE);
+      case 'mintGreen': return const Color(0xFFD1FAF5);
+      case 'softLavender': return const Color(0xFFF3E8FF);
+      case 'warmPeach': return const Color(0xFFFFEDD5);
+      case 'dustyRose': return const Color(0xFFFFE4E6);
+      case 'softTeal': return const Color(0xFFCCFBF1);
+      case 'softIndigo': return const Color(0xFFE0E7FF);
+      case 'softAmber': return const Color(0xFFFEF3C7);
+      default: return const Color(0xFFDBEAFE);
+    }
+  }
+
+  double _getRadius() {
+    switch (cornerRadius) {
+      case CornerRadiusStyle.soft: return 16;
+      case CornerRadiusStyle.medium: return 12;
+      case CornerRadiusStyle.sharp: return 4;
+    }
+  }
+
+  double _getScale() {
+    switch (typographyScale) {
+      case TypographyScale.compact: return 0.9;
+      case TypographyScale.normal: return 1.0;
+      case TypographyScale.comfortable: return 1.1;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final seed = _getSeedColor();
+    final container = _getContainerColor();
+    final radius = _getRadius();
+    final scale = _getScale();
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(radius),
+        border: Border.all(color: container, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'PREVIEW',
+            style: TextStyle(
+              fontSize: 10 * scale,
+              fontWeight: FontWeight.w700,
+              color: Colors.grey,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Sample Heading',
+            style: TextStyle(
+              fontSize: 18 * scale,
+              fontWeight: FontWeight.w700,
+              color: seed,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'This is sample body text showing the current theme settings.',
+            style: TextStyle(
+              fontSize: 14 * scale,
+              color: Colors.grey[700],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12 * scale,
+                  vertical: 6 * scale,
+                ),
+                decoration: BoxDecoration(
+                  color: container,
+                  borderRadius: BorderRadius.circular(radius * 0.5),
+                ),
+                child: Text(
+                  'Sample Chip',
+                  style: TextStyle(
+                    fontSize: 12 * scale,
+                    color: seed,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 16 * scale,
+                  vertical: 8 * scale,
+                ),
+                decoration: BoxDecoration(
+                  color: seed,
+                  borderRadius: BorderRadius.circular(radius * 0.5),
+                ),
+                child: Text(
+                  'Button',
+                  style: TextStyle(
+                    fontSize: 13 * scale,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

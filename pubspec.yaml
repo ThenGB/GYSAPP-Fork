@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 2.0.30+132
+version: 2.1.0+133
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
@@ -51,16 +51,11 @@ dependencies:
   awesome_notifications: ^0.11.0
   json_annotation: ^4.11.0
   internet_connection_checker: ^3.0.0
-  firebase_remote_config: ^6.4.0
-  firebase_analytics: ^12.3.0
   sqflite: ^2.3.0
-  ftpconnect: ^2.0.2
   dartz: ^0.10.1
   collection: ^1.17.1
   cached_network_image: ^3.2.3
   scrollable_positioned_list: ^0.3.5
-  cloud_firestore: ^6.3.0
-  firebase_auth: ^6.4.0
   rxdart: ^0.28.0
   url_launcher: ^6.1.10
   flutter_inappwebview: ^6.2.0-beta.2
@@ -69,11 +64,7 @@ dependencies:
   fluttertoast: ^9.0.0
   image: ^4.0.16
   share_plus: ^12.0.2
-  firebase_storage: ^13.3.0
-  flutter_cache_manager: ^3.3.0
   animations: ^2.0.7
-  flutter_appauth: ^12.0.0
-  firebase_core: ^4.7.0
   intl: ^0.20.2
   dio: ^5.1.2
   flutter_quill: ^11.5.0
@@ -96,21 +87,21 @@ dependencies:
   package_info_plus: ^9.0.1
   cross_fade: ^0.5.0
   shimmer: ^3.0.0
-  googleapis: ^16.0.0
-  google_sign_in: ^6.1.4
   http: ^1.2.2
+  crypto: ^3.0.6
   ffi: ^2.1.3
-  firebase_crashlytics: ^5.2.0
   app_links: ^7.0.0
   open_filex: ^4.3.4
   connectivity_plus: ^6.1.0
-  firebase_app_check: ^0.4.3
   archive: ^4.0.0
   dart_melty_soundfont: ^2.0.0
   flutter_soloud: ^4.0.4
   marionette_flutter: ^0.5.0
   sqflite_common_ffi: ^2.4.0+3
   sqlite3_flutter_libs: ^0.6.0+eol
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
@@ -164,18 +155,11 @@ flutter:
     - assets/translations/
     - assets/data/email_report.html
     - assets/data/faith.json
-    - assets/data/bible/
     - assets/data/bible/b_tb/
     - assets/data/bible/b_tb/chapters/
     - assets/data/bible/b_tb/pericopes/
     - assets/data/index/
-    - assets/data/pdf/
     - assets/data/pdf/kr/
-    - assets/data/pdf/hymne/
-    - assets/data/pdf/mdr/
-    - assets/data/pdf/asm_i/
-    - assets/data/pdf/asm_m/
-    - assets/data/pdf/asm_p/
     - assets/data/midi/
     - assets/data/midi/kr/
     - assets/data/chord/

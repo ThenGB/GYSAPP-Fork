@@ -120,6 +120,66 @@ void main() {
     },
   );
 
+  test(
+    'page change does not show PDF preparation loading when prep is already done',
+    () async {
+      final assetService = _FakeAssetService(
+        pdfPath: 'assets/data/pdf/kr/002.pdf',
+      );
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        assetService,
+        _FakeMidiEngine(),
+      );
+      await _flushAsync();
+      await _flushAsync();
+
+      final loadingStates = <bool>[];
+      final subscription = cubit.stream
+          .map((state) => state.isPdfLoading)
+          .listen(loadingStates.add);
+
+      await cubit.changePage(1, 0);
+      await _flushAsync();
+
+      expect(assetService.pdfRequests, contains('KR:002'));
+      expect(loadingStates, isNot(contains(true)));
+
+      await subscription.cancel();
+      await cubit.close();
+    },
+  );
+
+  test(
+    'maintenance release clears active PDF path and loading flags',
+    () async {
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        _FakeAssetService(),
+        _FakeMidiEngine(),
+      );
+      await _flushAsync();
+
+      cubit.sync(
+        const SongState(
+          currentPdfPath: 'assets/data/pdf/kr/001.pdf',
+          isPdfLoading: true,
+          isAudioLoading: true,
+          isAudioPlaying: true,
+        ),
+      );
+
+      await cubit.releaseResourcesForMaintenance();
+
+      expect(cubit.state.currentPdfPath, isNull);
+      expect(cubit.state.isPdfLoading, isFalse);
+      expect(cubit.state.isAudioLoading, isFalse);
+      expect(cubit.state.isAudioPlaying, isFalse);
+
+      await cubit.close();
+    },
+  );
+
   test('requests chord data using the active book code', () async {
     final assetService = _FakeAssetService(chordPath: null);
     final cubit = SongCubit(
@@ -523,6 +583,11 @@ class _FakeAssetService extends LocalAssetService {
   Future<String?> getPdfPath(String bookCode, String number) async {
     pdfRequests.add('$bookCode:$number');
     return pdfPath ?? 'assets/data/pdf/${bookCode.toLowerCase()}/$number.pdf';
+  }
+
+  @override
+  Future<bool> needsPdfPreparation(String bookCode, String number) async {
+    return false;
   }
 
   @override

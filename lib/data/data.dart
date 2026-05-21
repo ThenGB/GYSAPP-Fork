@@ -1,5 +1,13 @@
 export 'repository/repository.dart';
+export 'repositories/theme_preferences_repository.dart';
+export 'services/app_reset_service.dart';
 export 'services/chord_service.dart';
+export 'services/asset_distribution/asset_cache_maintenance_service.dart';
+export 'services/asset_distribution/asset_distribution_service.dart';
+export 'services/asset_distribution/encrypted_asset_package_service.dart';
+export 'services/asset_distribution/github_release_asset_client.dart';
+export 'services/asset_distribution/installed_asset_registry.dart';
+export 'services/asset_distribution/models.dart';
 export 'services/local_asset_service.dart';
 export 'services/pdf_chunk_service.dart';
 export 'services/pdf_song_pack_service.dart';

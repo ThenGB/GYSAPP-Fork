@@ -1,11 +1,39 @@
+import 'dart:io';
+
+import 'package:church/data/services/asset_distribution/installed_asset_registry.dart';
+import 'package:church/data/services/asset_distribution/models.dart';
 import 'package:church/data/services/local_asset_service.dart';
 import 'package:church/data/services/pdf_chunk_service.dart';
 import 'package:church/data/services/local_bible_asset_service.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late Directory tempDir;
+  const pathProviderChannel = MethodChannel('plugins.flutter.io/path_provider');
+
+  setUp(() async {
+    tempDir = await Directory.systemTemp.createTemp('church_local_asset_test_');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathProviderChannel, (call) async {
+          return switch (call.method) {
+            'getTemporaryDirectory' => tempDir.path,
+            'getApplicationSupportDirectory' => tempDir.path,
+            'getApplicationDocumentsDirectory' => tempDir.path,
+            _ => null,
+          };
+        });
+  });
+
+  tearDown(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(pathProviderChannel, null);
+    if (await tempDir.exists()) {
+      await tempDir.delete(recursive: true);
+    }
+  });
 
   test('resolves indexed midi path to bundled asset path', () async {
     final service = LocalAssetService(PdfChunkService());
@@ -41,17 +69,32 @@ void main() {
   });
 
   test(
-    'resolves non KR pdf path even when index title encoding differs',
+    'resolves installed MDR pdf path even when index title encoding differs',
     () async {
-      final service = LocalAssetService(PdfChunkService());
+      final registry = InstalledAssetRegistry(supportDirectory: tempDir);
+      final installedFile = File(
+        '${registry.hymnalInstallDirectory.path}/mdr_master.pdf',
+      )..createSync(recursive: true);
+      await installedFile.writeAsBytes(const [1, 2, 3, 4]);
+      await registry.saveInstalled(
+        const InstalledAssetRecord(
+          kind: DistributedAssetKind.hymnal,
+          code: 'MDR',
+          version: '2026.05.21',
+          installedPath: 'mdr_master.pdf',
+          installedAtEpochMs: 100,
+        ),
+      );
+      final service = LocalAssetService(
+        PdfChunkService(),
+        installedAssetRegistry: registry,
+      );
 
       final path = await service.getPdfPath('MDR', '001');
 
-      expect(path, startsWith('assets/data/pdf/mdr/'));
+      expect(path, startsWith(installedFile.path));
       expect(path, contains('page='));
       expect(path, contains('pages='));
-      final data = await rootBundle.load(path!.split('#').first);
-      expect(data.lengthInBytes, greaterThan(0));
     },
   );
 
@@ -60,22 +103,51 @@ void main() {
 
     final path = await service.getPdfPath('KR', '001');
 
-    expect(path, startsWith('assets/data/pdf/kr/'));
+    expect(path, startsWith(p.join(tempDir.path, 'master_pdfs')));
     expect(path, contains('#page='));
     expect(path, contains('pages='));
-    final data = await rootBundle.load(path!.split('#').first);
-    expect(data.lengthInBytes, greaterThan(0));
+    final cachedMaster = File(path!.split('#').first);
+    expect(await cachedMaster.exists(), isTrue);
+    expect(await cachedMaster.length(), greaterThan(0));
   });
 
-  test('resolves HYMNE pdf path with page range', () async {
-    final service = LocalAssetService(PdfChunkService());
+  test('resolves installed HYMNE pdf path with page range', () async {
+    final registry = InstalledAssetRegistry(supportDirectory: tempDir);
+    final installedFile = File(
+      '${registry.hymnalInstallDirectory.path}/hymne_master.pdf',
+    )..createSync(recursive: true);
+    await installedFile.writeAsBytes(const [1, 2, 3, 4]);
+    await registry.saveInstalled(
+      const InstalledAssetRecord(
+        kind: DistributedAssetKind.hymnal,
+        code: 'HYMNE',
+        version: '2026.05.21',
+        installedPath: 'hymne_master.pdf',
+        installedAtEpochMs: 100,
+      ),
+    );
+    final service = LocalAssetService(
+      PdfChunkService(),
+      installedAssetRegistry: registry,
+    );
 
     final path = await service.getPdfPath('HYMNE', '001');
 
-    expect(path, startsWith('assets/data/pdf/hymne/'));
+    expect(path, startsWith(installedFile.path));
     expect(path, contains('page='));
     expect(path, contains('pages=1'));
     expect(path, isNotNull);
+  });
+
+  test('tracks whether a bundled master pdf still needs first-time preparation', () async {
+    final service = LocalAssetService(PdfChunkService());
+
+    expect(await service.needsPdfPreparation('KR', '001'), isTrue);
+
+    final path = await service.getPdfPath('KR', '001');
+
+    expect(path, isNotNull);
+    expect(await service.needsPdfPreparation('KR', '001'), isFalse);
   });
 
   test('resolves KR chord path to bundled native overlay data', () async {
@@ -115,16 +187,31 @@ void main() {
     expect(path, isNull);
   });
 
-  test('resolves ASM pdf path to consolidated master range', () async {
-    final service = LocalAssetService(PdfChunkService());
+  test('resolves installed ASM pdf path to consolidated master range', () async {
+    final registry = InstalledAssetRegistry(supportDirectory: tempDir);
+    final installedFile = File(
+      '${registry.hymnalInstallDirectory.path}/asm_i_master.pdf',
+    )..createSync(recursive: true);
+    await installedFile.writeAsBytes(const [1, 2, 3, 4]);
+    await registry.saveInstalled(
+      const InstalledAssetRecord(
+        kind: DistributedAssetKind.hymnal,
+        code: 'ASM-I',
+        version: '2026.05.21',
+        installedPath: 'asm_i_master.pdf',
+        installedAtEpochMs: 100,
+      ),
+    );
+    final service = LocalAssetService(
+      PdfChunkService(),
+      installedAssetRegistry: registry,
+    );
 
     final path = await service.getPdfPath('ASM-I', '001');
 
-    expect(path, startsWith('assets/data/pdf/asm_i/'));
+    expect(path, startsWith(installedFile.path));
     expect(path, contains('page='));
     expect(path, contains('pages='));
-    final data = await rootBundle.load(path!.split('#').first);
-    expect(data.lengthInBytes, greaterThan(0));
   });
 
   test(
@@ -151,5 +238,62 @@ void main() {
       final data = await rootBundle.load('assets/data/soundfont/$fileName');
       expect(data.lengthInBytes, greaterThan(0));
     }
+  });
+
+  test('installed hymnals are exposed as available song books when registry is provided', () async {
+    final registry = InstalledAssetRegistry(supportDirectory: tempDir);
+    final installedFile = File(
+      '${registry.hymnalInstallDirectory.path}/hymne_master.pdf',
+    )..createSync(recursive: true);
+    await installedFile.writeAsBytes(const [1, 2, 3, 4]);
+    await registry.saveInstalled(
+      const InstalledAssetRecord(
+        kind: DistributedAssetKind.hymnal,
+        code: 'HYMNE',
+        version: '2026.05.21',
+        installedPath: 'hymne_master.pdf',
+        installedAtEpochMs: 100,
+      ),
+    );
+
+    final service = LocalAssetService(
+      PdfChunkService(),
+      installedAssetRegistry: registry,
+    );
+
+    final books = await service.loadSongBooks();
+    final codes = books.map((book) => book.code).toList();
+
+    expect(codes, contains('KR'));
+    expect(codes, contains('HYMNE'));
+    expect(codes, isNot(contains('MDR')));
+  });
+
+  test('installed hymnals resolve directly to persistent local master files', () async {
+    final registry = InstalledAssetRegistry(supportDirectory: tempDir);
+    final installedFile = File(
+      '${registry.hymnalInstallDirectory.path}/hymne_master.pdf',
+    )..createSync(recursive: true);
+    await installedFile.writeAsBytes(const [1, 2, 3, 4]);
+    await registry.saveInstalled(
+      const InstalledAssetRecord(
+        kind: DistributedAssetKind.hymnal,
+        code: 'HYMNE',
+        version: '2026.05.21',
+        installedPath: 'hymne_master.pdf',
+        installedAtEpochMs: 100,
+      ),
+    );
+
+    final service = LocalAssetService(
+      PdfChunkService(),
+      installedAssetRegistry: registry,
+    );
+
+    final path = await service.getPdfPath('HYMNE', '001');
+
+    expect(path, startsWith(installedFile.path));
+    expect(path, contains('#page='));
+    expect(path, contains('pages=1'));
   });
 }

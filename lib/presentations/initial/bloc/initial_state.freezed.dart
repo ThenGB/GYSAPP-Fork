@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$InitialState {
 
- bool get isLoading; bool get isLoaded; bool get isFailed; String get message; bool get isFreshInstall; String get themeMode; int get configFetchTimeoutSeconds; int get configFetchIntervalSeconds; double get defaultTextScale; String get defaultFont; String get accentKey;
+ bool get isLoading; bool get isLoaded; bool get isFailed; String get message; bool get isFreshInstall; String get themeMode; int get configFetchTimeoutSeconds; int get configFetchIntervalSeconds; double get defaultTextScale; String get defaultFont; String get accentKey; ThemePreferences get themePreferences;
 /// Create a copy of InitialState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $InitialStateCopyWith<InitialState> get copyWith => _$InitialStateCopyWithImpl<I
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is InitialState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.message, message) || other.message == message)&&(identical(other.isFreshInstall, isFreshInstall) || other.isFreshInstall == isFreshInstall)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.configFetchTimeoutSeconds, configFetchTimeoutSeconds) || other.configFetchTimeoutSeconds == configFetchTimeoutSeconds)&&(identical(other.configFetchIntervalSeconds, configFetchIntervalSeconds) || other.configFetchIntervalSeconds == configFetchIntervalSeconds)&&(identical(other.defaultTextScale, defaultTextScale) || other.defaultTextScale == defaultTextScale)&&(identical(other.defaultFont, defaultFont) || other.defaultFont == defaultFont)&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is InitialState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.message, message) || other.message == message)&&(identical(other.isFreshInstall, isFreshInstall) || other.isFreshInstall == isFreshInstall)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.configFetchTimeoutSeconds, configFetchTimeoutSeconds) || other.configFetchTimeoutSeconds == configFetchTimeoutSeconds)&&(identical(other.configFetchIntervalSeconds, configFetchIntervalSeconds) || other.configFetchIntervalSeconds == configFetchIntervalSeconds)&&(identical(other.defaultTextScale, defaultTextScale) || other.defaultTextScale == defaultTextScale)&&(identical(other.defaultFont, defaultFont) || other.defaultFont == defaultFont)&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.themePreferences, themePreferences) || other.themePreferences == themePreferences));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isLoaded,isFailed,message,isFreshInstall,themeMode,configFetchTimeoutSeconds,configFetchIntervalSeconds,defaultTextScale,defaultFont,accentKey);
+int get hashCode => Object.hash(runtimeType,isLoading,isLoaded,isFailed,message,isFreshInstall,themeMode,configFetchTimeoutSeconds,configFetchIntervalSeconds,defaultTextScale,defaultFont,accentKey,themePreferences);
 
 @override
 String toString() {
-  return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont, accentKey: $accentKey)';
+  return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont, accentKey: $accentKey, themePreferences: $themePreferences)';
 }
 
 
@@ -48,11 +48,11 @@ abstract mixin class $InitialStateCopyWith<$Res>  {
   factory $InitialStateCopyWith(InitialState value, $Res Function(InitialState) _then) = _$InitialStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, bool isLoaded, bool isFailed, String message, bool isFreshInstall, String themeMode, int configFetchTimeoutSeconds, int configFetchIntervalSeconds, double defaultTextScale, String defaultFont, String accentKey
+ bool isLoading, bool isLoaded, bool isFailed, String message, bool isFreshInstall, String themeMode, int configFetchTimeoutSeconds, int configFetchIntervalSeconds, double defaultTextScale, String defaultFont, String accentKey, ThemePreferences themePreferences
 });
 
 
-
+$ThemePreferencesCopyWith<$Res> get themePreferences;
 
 }
 /// @nodoc
@@ -65,7 +65,7 @@ class _$InitialStateCopyWithImpl<$Res>
 
 /// Create a copy of InitialState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? isLoaded = null,Object? isFailed = null,Object? message = null,Object? isFreshInstall = null,Object? themeMode = null,Object? configFetchTimeoutSeconds = null,Object? configFetchIntervalSeconds = null,Object? defaultTextScale = null,Object? defaultFont = null,Object? accentKey = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? isLoaded = null,Object? isFailed = null,Object? message = null,Object? isFreshInstall = null,Object? themeMode = null,Object? configFetchTimeoutSeconds = null,Object? configFetchIntervalSeconds = null,Object? defaultTextScale = null,Object? defaultFont = null,Object? accentKey = null,Object? themePreferences = null,}) {
   return _then(_self.copyWith(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
@@ -78,10 +78,20 @@ as int,configFetchIntervalSeconds: null == configFetchIntervalSeconds ? _self.co
 as int,defaultTextScale: null == defaultTextScale ? _self.defaultTextScale : defaultTextScale // ignore: cast_nullable_to_non_nullable
 as double,defaultFont: null == defaultFont ? _self.defaultFont : defaultFont // ignore: cast_nullable_to_non_nullable
 as String,accentKey: null == accentKey ? _self.accentKey : accentKey // ignore: cast_nullable_to_non_nullable
-as String,
+as String,themePreferences: null == themePreferences ? _self.themePreferences : themePreferences // ignore: cast_nullable_to_non_nullable
+as ThemePreferences,
   ));
 }
-
+/// Create a copy of InitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ThemePreferencesCopyWith<$Res> get themePreferences {
+  
+  return $ThemePreferencesCopyWith<$Res>(_self.themePreferences, (value) {
+    return _then(_self.copyWith(themePreferences: value));
+  });
+}
 }
 
 
@@ -163,10 +173,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey,  ThemePreferences themePreferences)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _InitialState() when $default != null:
-return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey);case _:
+return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey,_that.themePreferences);case _:
   return orElse();
 
 }
@@ -184,10 +194,10 @@ return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey,  ThemePreferences themePreferences)  $default,) {final _that = this;
 switch (_that) {
 case _InitialState():
-return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey);case _:
+return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey,_that.themePreferences);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -204,10 +214,10 @@ return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_tha
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  bool isLoaded,  bool isFailed,  String message,  bool isFreshInstall,  String themeMode,  int configFetchTimeoutSeconds,  int configFetchIntervalSeconds,  double defaultTextScale,  String defaultFont,  String accentKey,  ThemePreferences themePreferences)?  $default,) {final _that = this;
 switch (_that) {
 case _InitialState() when $default != null:
-return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey);case _:
+return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_that.isFreshInstall,_that.themeMode,_that.configFetchTimeoutSeconds,_that.configFetchIntervalSeconds,_that.defaultTextScale,_that.defaultFont,_that.accentKey,_that.themePreferences);case _:
   return null;
 
 }
@@ -219,7 +229,7 @@ return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_tha
 @JsonSerializable()
 
 class _InitialState extends InitialState {
-  const _InitialState({this.isLoading = false, this.isLoaded = false, this.isFailed = false, this.message = '', this.isFreshInstall = true, this.themeMode = 'light', this.configFetchTimeoutSeconds = 5, this.configFetchIntervalSeconds = 10, this.defaultTextScale = 1.2, this.defaultFont = 'Roboto', this.accentKey = 'maroon'}): super._();
+  const _InitialState({this.isLoading = false, this.isLoaded = false, this.isFailed = false, this.message = '', this.isFreshInstall = true, this.themeMode = 'light', this.configFetchTimeoutSeconds = 5, this.configFetchIntervalSeconds = 10, this.defaultTextScale = 1.2, this.defaultFont = 'Roboto', this.accentKey = 'maroon', this.themePreferences = const ThemePreferences()}): super._();
   factory _InitialState.fromJson(Map<String, dynamic> json) => _$InitialStateFromJson(json);
 
 @override@JsonKey() final  bool isLoading;
@@ -233,6 +243,7 @@ class _InitialState extends InitialState {
 @override@JsonKey() final  double defaultTextScale;
 @override@JsonKey() final  String defaultFont;
 @override@JsonKey() final  String accentKey;
+@override@JsonKey() final  ThemePreferences themePreferences;
 
 /// Create a copy of InitialState
 /// with the given fields replaced by the non-null parameter values.
@@ -247,16 +258,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InitialState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.message, message) || other.message == message)&&(identical(other.isFreshInstall, isFreshInstall) || other.isFreshInstall == isFreshInstall)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.configFetchTimeoutSeconds, configFetchTimeoutSeconds) || other.configFetchTimeoutSeconds == configFetchTimeoutSeconds)&&(identical(other.configFetchIntervalSeconds, configFetchIntervalSeconds) || other.configFetchIntervalSeconds == configFetchIntervalSeconds)&&(identical(other.defaultTextScale, defaultTextScale) || other.defaultTextScale == defaultTextScale)&&(identical(other.defaultFont, defaultFont) || other.defaultFont == defaultFont)&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _InitialState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&(identical(other.isLoaded, isLoaded) || other.isLoaded == isLoaded)&&(identical(other.isFailed, isFailed) || other.isFailed == isFailed)&&(identical(other.message, message) || other.message == message)&&(identical(other.isFreshInstall, isFreshInstall) || other.isFreshInstall == isFreshInstall)&&(identical(other.themeMode, themeMode) || other.themeMode == themeMode)&&(identical(other.configFetchTimeoutSeconds, configFetchTimeoutSeconds) || other.configFetchTimeoutSeconds == configFetchTimeoutSeconds)&&(identical(other.configFetchIntervalSeconds, configFetchIntervalSeconds) || other.configFetchIntervalSeconds == configFetchIntervalSeconds)&&(identical(other.defaultTextScale, defaultTextScale) || other.defaultTextScale == defaultTextScale)&&(identical(other.defaultFont, defaultFont) || other.defaultFont == defaultFont)&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.themePreferences, themePreferences) || other.themePreferences == themePreferences));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,isLoaded,isFailed,message,isFreshInstall,themeMode,configFetchTimeoutSeconds,configFetchIntervalSeconds,defaultTextScale,defaultFont,accentKey);
+int get hashCode => Object.hash(runtimeType,isLoading,isLoaded,isFailed,message,isFreshInstall,themeMode,configFetchTimeoutSeconds,configFetchIntervalSeconds,defaultTextScale,defaultFont,accentKey,themePreferences);
 
 @override
 String toString() {
-  return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont, accentKey: $accentKey)';
+  return 'InitialState(isLoading: $isLoading, isLoaded: $isLoaded, isFailed: $isFailed, message: $message, isFreshInstall: $isFreshInstall, themeMode: $themeMode, configFetchTimeoutSeconds: $configFetchTimeoutSeconds, configFetchIntervalSeconds: $configFetchIntervalSeconds, defaultTextScale: $defaultTextScale, defaultFont: $defaultFont, accentKey: $accentKey, themePreferences: $themePreferences)';
 }
 
 
@@ -267,11 +278,11 @@ abstract mixin class _$InitialStateCopyWith<$Res> implements $InitialStateCopyWi
   factory _$InitialStateCopyWith(_InitialState value, $Res Function(_InitialState) _then) = __$InitialStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, bool isLoaded, bool isFailed, String message, bool isFreshInstall, String themeMode, int configFetchTimeoutSeconds, int configFetchIntervalSeconds, double defaultTextScale, String defaultFont, String accentKey
+ bool isLoading, bool isLoaded, bool isFailed, String message, bool isFreshInstall, String themeMode, int configFetchTimeoutSeconds, int configFetchIntervalSeconds, double defaultTextScale, String defaultFont, String accentKey, ThemePreferences themePreferences
 });
 
 
-
+@override $ThemePreferencesCopyWith<$Res> get themePreferences;
 
 }
 /// @nodoc
@@ -284,7 +295,7 @@ class __$InitialStateCopyWithImpl<$Res>
 
 /// Create a copy of InitialState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? isLoaded = null,Object? isFailed = null,Object? message = null,Object? isFreshInstall = null,Object? themeMode = null,Object? configFetchTimeoutSeconds = null,Object? configFetchIntervalSeconds = null,Object? defaultTextScale = null,Object? defaultFont = null,Object? accentKey = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? isLoaded = null,Object? isFailed = null,Object? message = null,Object? isFreshInstall = null,Object? themeMode = null,Object? configFetchTimeoutSeconds = null,Object? configFetchIntervalSeconds = null,Object? defaultTextScale = null,Object? defaultFont = null,Object? accentKey = null,Object? themePreferences = null,}) {
   return _then(_InitialState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,isLoaded: null == isLoaded ? _self.isLoaded : isLoaded // ignore: cast_nullable_to_non_nullable
@@ -297,11 +308,21 @@ as int,configFetchIntervalSeconds: null == configFetchIntervalSeconds ? _self.co
 as int,defaultTextScale: null == defaultTextScale ? _self.defaultTextScale : defaultTextScale // ignore: cast_nullable_to_non_nullable
 as double,defaultFont: null == defaultFont ? _self.defaultFont : defaultFont // ignore: cast_nullable_to_non_nullable
 as String,accentKey: null == accentKey ? _self.accentKey : accentKey // ignore: cast_nullable_to_non_nullable
-as String,
+as String,themePreferences: null == themePreferences ? _self.themePreferences : themePreferences // ignore: cast_nullable_to_non_nullable
+as ThemePreferences,
   ));
 }
 
-
+/// Create a copy of InitialState
+/// with the given fields replaced by the non-null parameter values.
+@override
+@pragma('vm:prefer-inline')
+$ThemePreferencesCopyWith<$Res> get themePreferences {
+  
+  return $ThemePreferencesCopyWith<$Res>(_self.themePreferences, (value) {
+    return _then(_self.copyWith(themePreferences: value));
+  });
+}
 }
 
 // dart format on

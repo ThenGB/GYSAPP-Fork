@@ -92,8 +92,8 @@ final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
 const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
 const double kDashboardMiniPlayerNavGap = 8;
 const double kDashboardExpandedMiniPlayerHeight = 168;
-const double kDashboardPortraitBottomNavHeight = 84;
-const double kDashboardLandscapeBottomNavHeight = 66;
+const double kDashboardPortraitBottomNavHeight = 64;
+const double kDashboardLandscapeBottomNavHeight = 56;
 const double kDashboardCompactNavOuterVerticalPadding = 4;
 const double kDashboardCompactNavInnerVerticalPadding = 5;
 const double kDashboardCompactNavIconSize = 19;
@@ -105,7 +105,6 @@ const double kDashboardRegularNavIconSize = 21;
 const double kDashboardRegularNavLabelFontSize = 10.5;
 const double kDashboardRegularNavIconLabelGap = 3;
 const double kDashboardNavMaxWidth = 700;
-const double kDashboardBodyBottomSafetyGap = 14;
 const double kDashboardNavMinInteractiveExtent = 48;
 
 double dashboardMiniPlayerBottomOffset({
@@ -223,6 +222,7 @@ class _DashboardViewState extends State<DashboardView> {
         BlocProvider<BibleCubit>(create: (context) => di()),
         BlocProvider<FaithCubit>(create: (context) => di()),
         BlocProvider<SettingsCubit>(create: (context) => di()),
+        BlocProvider<AssetManagementCubit>(create: (context) => di()),
       ],
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
@@ -328,8 +328,10 @@ class _DashboardViewState extends State<DashboardView> {
                     final navHeight = isLandscape
                         ? kDashboardLandscapeBottomNavHeight
                         : kDashboardPortraitBottomNavHeight;
-                    final bodyBottomPadding =
-                        navHeight + bottomInset + kDashboardBodyBottomSafetyGap;
+                    final bodyBottomPadding = navHeight + bottomInset;
+
+                    final bottomNavItemCount = bottomNavPages.length;
+                    final safeSelectedIndex = tabsRouter.activeIndex.clamp(0, bottomNavItemCount - 1);
 
                     return Scaffold(
                       key: dashboardScaffoldKey,
@@ -341,18 +343,7 @@ class _DashboardViewState extends State<DashboardView> {
                           Positioned.fill(
                             child: DecoratedBox(
                               decoration: BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    context.colorScheme.surfaceContainerHighest
-                                        .withValues(alpha: 0.28),
-                                    context.colorScheme.surfaceContainerLowest,
-                                    context.colorScheme.surfaceContainerLow
-                                        .withValues(alpha: 0.75),
-                                    context.colorScheme.surface,
-                                  ],
-                                ),
+                                color: context.colorScheme.surface,
                               ),
                               child: AnimatedPadding(
                                 duration: const Duration(milliseconds: 220),
@@ -432,13 +423,24 @@ class _DashboardViewState extends State<DashboardView> {
                             ),
                         ],
                       ),
-                      bottomNavigationBar: _DashboardNavigationShell(
-                        destinations: bottomNavPages,
-                        activeIndex: tabsRouter.activeIndex,
-                        onTap: (value) {
+                      bottomNavigationBar: NavigationBar(
+                        backgroundColor: context.colorScheme.surface,
+                        surfaceTintColor: Colors.transparent,
+                        elevation: 0,
+                        indicatorColor: context.colorScheme.primary.withValues(alpha: 0.2),
+                        selectedIndex: safeSelectedIndex,
+                        onDestinationSelected: (value) {
                           context.read<BibleCubit>().stopSpeaking();
                           tabsRouter.setActiveIndex(value);
                         },
+                        destinations: [
+                          for (final dest in bottomNavPages)
+                            NavigationDestination(
+                              icon: Icon(dest.icon),
+                              selectedIcon: Icon(dest.selectedIcon ?? dest.icon),
+                              label: dest.label.tr(),
+                            ),
+                        ],
                       ),
                     );
                   },
@@ -447,258 +449,6 @@ class _DashboardViewState extends State<DashboardView> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-class _DashboardNavigationShell extends StatelessWidget {
-  final List<DashboardNavigationDestination> destinations;
-  final int activeIndex;
-  final ValueChanged<int> onTap;
-
-  const _DashboardNavigationShell({
-    required this.destinations,
-    required this.activeIndex,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final isLandscape =
-        MediaQuery.of(context).orientation == Orientation.landscape;
-    final baseNavHeight = isLandscape
-        ? kDashboardLandscapeBottomNavHeight
-        : kDashboardPortraitBottomNavHeight;
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final navHeight = baseNavHeight + bottomInset;
-    final compact = isLandscape || baseNavHeight < 78;
-    final showLabel = !isLandscape && baseNavHeight >= 80;
-    return SizedBox(
-      height: navHeight,
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colors.surfaceContainerHighest.withValues(alpha: 0.96),
-                colors.surfaceContainerLow.withValues(alpha: 0.94),
-              ],
-            ),
-            borderRadius: BorderRadius.circular(26),
-            border: Border.all(
-              color: colors.outlineVariant.withValues(alpha: 0.74),
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: colors.shadow.withValues(alpha: 0.18),
-                blurRadius: 24,
-                offset: const Offset(0, 10),
-              ),
-              BoxShadow(
-                color: colors.primary.withValues(alpha: 0.08),
-                blurRadius: 18,
-                offset: const Offset(0, -2),
-              ),
-            ],
-          ),
-          child: Padding(
-            padding: EdgeInsets.fromLTRB(8, 4, 8, bottomInset + 4),
-            child: Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: kDashboardNavMaxWidth,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    for (var i = 0; i < destinations.length; i++)
-                      Flexible(
-                        child: _HymnalBottomNavItem(
-                          destination: destinations[i],
-                          selected: i == activeIndex,
-                          compact: compact,
-                          showLabel: showLabel,
-                          onTap: () => onTap(i),
-                        ),
-                      ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _HymnalBottomNavItem extends StatefulWidget {
-  final DashboardNavigationDestination destination;
-  final bool selected;
-  final bool compact;
-  final bool showLabel;
-  final VoidCallback onTap;
-
-  const _HymnalBottomNavItem({
-    required this.destination,
-    required this.selected,
-    required this.compact,
-    required this.showLabel,
-    required this.onTap,
-  });
-
-  @override
-  State<_HymnalBottomNavItem> createState() => _HymnalBottomNavItemState();
-}
-
-class _HymnalBottomNavItemState extends State<_HymnalBottomNavItem> {
-  bool _hovered = false;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final icon = widget.selected
-        ? (widget.destination.selectedIcon ?? widget.destination.icon)
-        : widget.destination.icon;
-    final foreground = widget.selected
-        ? colors.onPrimaryContainer
-        : colors.onSurface.withValues(alpha: 0.8);
-    final iconOnly = !widget.showLabel;
-    final outerVerticalPadding = iconOnly
-        ? 0.0
-        : widget.compact
-        ? kDashboardCompactNavOuterVerticalPadding
-        : kDashboardRegularNavOuterVerticalPadding;
-    final innerVerticalPadding = widget.showLabel
-        ? (widget.compact
-              ? kDashboardCompactNavInnerVerticalPadding
-              : kDashboardRegularNavInnerVerticalPadding)
-        : 0.0;
-    final iconSize = widget.showLabel
-        ? (widget.compact
-              ? kDashboardCompactNavIconSize
-              : kDashboardRegularNavIconSize)
-        : (widget.compact ? 20.0 : 22.0);
-    final labelFontSize = widget.compact
-        ? kDashboardCompactNavLabelFontSize
-        : kDashboardRegularNavLabelFontSize;
-    final iconLabelGap = widget.showLabel
-        ? (widget.compact
-              ? kDashboardCompactNavIconLabelGap
-              : kDashboardRegularNavIconLabelGap)
-        : 0.0;
-    return Padding(
-      padding: EdgeInsets.symmetric(
-        horizontal: 4,
-        vertical: outerVerticalPadding,
-      ),
-      child: AnimatedScale(
-        scale: widget.selected
-            ? 1.0
-            : _hovered
-            ? 1.01
-            : 1.0,
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOutCubic,
-        child: Tooltip(
-          message: widget.destination.label.tr(),
-          waitDuration: const Duration(milliseconds: 500),
-          child: MouseRegion(
-            onEnter: (_) => setState(() => _hovered = true),
-            onExit: (_) => setState(() => _hovered = false),
-              child: Material(
-                color: Colors.transparent,
-                borderRadius: BorderRadius.circular(16),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(16),
-                  onTap: widget.onTap,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(
-                      minWidth: kDashboardNavMinInteractiveExtent,
-                      minHeight: kDashboardNavMinInteractiveExtent,
-                    ),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      curve: Curves.easeOutCubic,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: widget.compact ? 7 : 10,
-                        vertical: innerVerticalPadding,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: widget.selected
-                            ? LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  colors.primaryContainer.withValues(
-                                    alpha: 0.96,
-                                  ),
-                                  colors.primaryContainer.withValues(
-                                    alpha: 0.7,
-                                  ),
-                                ],
-                              )
-                            : null,
-                        color: widget.selected
-                            ? null
-                            : _hovered
-                            ? colors.surfaceContainerHighest.withValues(
-                                alpha: 0.72,
-                              )
-                            : Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: widget.selected
-                              ? colors.primary.withValues(alpha: 0.62)
-                              : _hovered
-                              ? colors.outlineVariant.withValues(alpha: 0.82)
-                              : colors.outlineVariant.withValues(alpha: 0.45),
-                        ),
-                        boxShadow: widget.selected
-                            ? [
-                                BoxShadow(
-                                  color: colors.primary.withValues(alpha: 0.2),
-                                  blurRadius: 14,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ]
-                            : null,
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(icon, size: iconSize, color: foreground),
-                          if (widget.showLabel) ...[
-                            SizedBox(height: iconLabelGap),
-                            FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                widget.destination.label.tr(),
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: foreground,
-                                      fontSize: labelFontSize,
-                                      height: 1,
-                                      letterSpacing: 0.4,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-        ),
       ),
     );
   }
@@ -899,16 +649,8 @@ class _DrawerHeader extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryContainer.withValues(alpha: 0.64),
-                  colors.surfaceContainerHighest.withValues(alpha: 0.92),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.28)),
+              color: colors.primaryContainer.withValues(alpha: 0.3),
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Row(
               children: [
@@ -1042,27 +784,18 @@ class _DrawerActivityTile extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-        padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+        padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
           color: onTap != null
-              ? colors.primaryContainer.withValues(alpha: 0.52)
-              : colors.surfaceContainerLow.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(16),
+              ? colors.primaryContainer.withValues(alpha: 0.3)
+              : colors.surfaceContainerLow.withValues(alpha: 0.5),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: onTap != null
-                ? colors.primary.withValues(alpha: 0.45)
-                : colors.outlineVariant.withValues(alpha: 0.42),
+                ? colors.primary.withValues(alpha: 0.3)
+                : colors.outlineVariant.withValues(alpha: 0.3),
           ),
-          boxShadow: onTap != null
-              ? [
-                  BoxShadow(
-                    color: colors.primary.withValues(alpha: 0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Row(
           children: [
@@ -1222,3 +955,4 @@ class _DrawerProfileRow extends StatelessWidget {
     );
   }
 }
+

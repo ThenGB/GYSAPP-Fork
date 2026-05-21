@@ -188,18 +188,11 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                     child: Container(
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [
-                            context.colorScheme.surfaceContainerLowest,
-                            context.colorScheme.surfaceContainerLow,
-                          ],
-                        ),
+                        color: context.colorScheme.surfaceContainerLow,
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
                           color: context.colorScheme.outlineVariant.withValues(
-                            alpha: 0.62,
+                            alpha: 0.2,
                           ),
                         ),
                       ),
@@ -282,24 +275,12 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          context
-                                              .colorScheme
-                                              .surfaceContainerLowest,
-                                          context
-                                              .colorScheme
-                                              .surfaceContainerLow,
-                                        ],
-                                      ),
+                                      color: context.colorScheme.surfaceContainerLow,
                                       borderRadius: BorderRadius.circular(8),
                                       border: Border.all(
-                                        color: context
-                                            .colorScheme
-                                            .outlineVariant
-                                            .withValues(alpha: 0.55),
+                                        color: context.colorScheme.outlineVariant.withValues(
+                                          alpha: 0.2,
+                                        ),
                                       ),
                                     ),
                                     child: Padding(
@@ -385,17 +366,12 @@ class NoDataFound extends StatelessWidget {
         margin: const EdgeInsets.symmetric(horizontal: 24),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              context.colorScheme.surfaceContainerLowest,
-              context.colorScheme.surfaceContainerLow,
-            ],
-          ),
+          color: context.colorScheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
-            color: context.colorScheme.outlineVariant.withValues(alpha: 0.56),
+            color: context.colorScheme.outlineVariant.withValues(
+              alpha: 0.2,
+            ),
           ),
         ),
         child: Column(

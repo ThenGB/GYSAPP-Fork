@@ -8,10 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:open_filex/open_filex.dart' as open_filex;
-import 'package:path/path.dart' as path;
 import 'package:share_plus/share_plus.dart';
 import 'package:simple_animations/simple_animations.dart';
 
@@ -211,19 +208,7 @@ class _FaithViewState extends State<FaithView> {
             ? const Center(child: CircularProgressIndicator())
             : DecoratedBox(
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      context.colorScheme.surfaceContainerHighest.withValues(
-                        alpha: 0.22,
-                      ),
-                      context.colorScheme.surfaceContainerLow.withValues(
-                        alpha: 0.38,
-                      ),
-                      context.colorScheme.surface,
-                    ],
-                  ),
+                  color: context.colorScheme.surface,
                 ),
                 child: Column(
                   children: [
@@ -407,48 +392,13 @@ class FaithWidget extends StatelessWidget {
             return AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
-              margin: const EdgeInsets.fromLTRB(14, 7, 14, 7),
+              margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
               clipBehavior: Clip.antiAlias,
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: state.selectedFaith.contains(index)
-                      ? [
-                          context.colorScheme.primaryContainer.withValues(
-                            alpha: 0.56,
-                          ),
-                          context.colorScheme.surfaceContainerHigh.withValues(
-                            alpha: 0.8,
-                          ),
-                        ]
-                      : [
-                          context.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.76),
-                          context.colorScheme.surfaceContainerLow.withValues(
-                            alpha: 0.78,
-                          ),
-                        ],
-                ),
-                borderRadius: BorderRadius.circular(compact ? 14 : 18),
-                border: Border.all(
-                  color: state.selectedFaith.contains(index)
-                      ? context.colorScheme.primary
-                      : context.colorScheme.outlineVariant.withValues(
-                          alpha: 0.30,
-                        ),
-                ),
-                boxShadow: state.selectedFaith.contains(index)
-                    ? [
-                        BoxShadow(
-                          color: context.colorScheme.primary.withValues(
-                            alpha: 0.16,
-                          ),
-                          blurRadius: 8,
-                          offset: const Offset(0, 1),
-                        ),
-                      ]
-                    : null,
+                color: state.selectedFaith.contains(index)
+                    ? context.colorScheme.primaryContainer
+                    : context.colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(compact ? 18 : 22),
               ),
               padding: EdgeInsets.fromLTRB(
                 cardPadding,
@@ -502,41 +452,6 @@ class FaithWidget extends StatelessWidget {
                                     fontWeight: FontWeight.w500,
                                     fontSize: 16,
                                   ),
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'LIHAT PENJELASAN LENGKAP',
-                                  style: context.textTheme.labelSmall?.copyWith(
-                                    color: context.colorScheme.secondary,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1.1,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_down_rounded,
-                                  size: 16,
-                                  color: context.colorScheme.secondary,
-                                ),
-                              ],
-                            ),
-                            FutureBuilder<String?>(
-                              future: context.read<FaithCubit>().getPdfName(
-                                index + 1,
-                              ),
-                              builder: (context, snapshot) {
-                                final pdfName = snapshot.data;
-                                if (pdfName == null) return SizedBox.shrink();
-                                return Padding(
-                                  padding: const EdgeInsets.only(top: 12),
-                                  child: _FaithPdfPill(
-                                    index: index + 1,
-                                    pdfName: pdfName,
-                                  ),
-                                );
-                              },
                             ),
                           ],
                         ),
@@ -623,84 +538,6 @@ String _romanNumeral(int value) {
   return numerals[value] ?? value.toString();
 }
 
-class _FaithPdfPill extends StatelessWidget {
-  const _FaithPdfPill({required this.index, required this.pdfName});
-
-  final int index;
-  final String pdfName;
-
-  @override
-  Widget build(BuildContext context) {
-    return BlocBuilder<FaithCubit, FaithState>(
-      buildWhen: (previous, current) =>
-          previous.pdfLoadingList != current.pdfLoadingList,
-      builder: (context, state) => GestureDetector(
-        onTap: () {
-          if (!state.pdfLoadingList.contains(index)) {
-            context.read<FaithCubit>().putPdfState(index, isLoading: true);
-          }
-        },
-        child: Container(
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: context.colorScheme.outlineVariant,
-            borderRadius: BorderRadius.circular(100),
-            border: Border.all(color: context.colorScheme.secondary),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                path.basenameWithoutExtension(pdfName.split('-').last),
-                style: TextStyle(
-                  height: 1,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                  color: context.colorScheme.onSecondaryContainer,
-                ),
-              ),
-              if (state.pdfLoadingList.contains(index))
-                StreamBuilder<FileResponse>(
-                  stream: context.read<FaithCubit>().getPdf(index),
-                  builder: (context, snapshot) {
-                    if (snapshot.data is FileInfo) {
-                      context.read<FaithCubit>().putPdfState(
-                        index,
-                        isLoading: false,
-                      );
-                      open_filex.OpenFilex.open(
-                        (snapshot.data as FileInfo).file.path,
-                      );
-                    }
-                    return snapshot.data is DownloadProgress
-                        ? Padding(
-                            padding: const EdgeInsets.only(left: 8),
-                            child: SizedBox(
-                              width: 10,
-                              height: 10,
-                              child: Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation(
-                                    context.colorScheme.onSecondaryContainer,
-                                  ),
-                                  value: (snapshot.data as DownloadProgress)
-                                      .progress,
-                                ),
-                              ),
-                            ),
-                          )
-                        : SizedBox.shrink();
-                  },
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class SelectedFaithMenu extends StatelessWidget {
   final List<int> indexes;
   final String title;
@@ -724,15 +561,8 @@ class SelectedFaithMenu extends StatelessWidget {
           clipBehavior: Clip.antiAlias,
           padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            border: Border.all(color: context.colorScheme.outlineVariant),
-            boxShadow: [
-              BoxShadow(
-                blurRadius: 160,
-                color: Colors.black.withValues(alpha: .2),
-              ),
-            ],
-            color: context.colorScheme.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            color: context.colorScheme.surfaceContainerHighest,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -765,9 +595,9 @@ class SelectedFaithMenu extends StatelessWidget {
                   if (indexes.length == 1)
                     TextButton(
                       style: TextButton.styleFrom(
-                        backgroundColor: context.colorScheme.outlineVariant,
+                        backgroundColor: context.colorScheme.primaryContainer,
                         foregroundColor:
-                            context.colorScheme.onSecondaryContainer,
+                            context.colorScheme.onPrimaryContainer,
                       ),
                       onPressed: () {
                         router.push(
@@ -791,13 +621,13 @@ class SelectedFaithMenu extends StatelessWidget {
                     ),
                   TextButton(
                     style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.outlineVariant,
-                      foregroundColor: context.colorScheme.onSecondaryContainer,
+                      backgroundColor: context.colorScheme.primaryContainer,
+                      foregroundColor: context.colorScheme.onPrimaryContainer,
                     ),
                     onPressed: () async {
                       String text = '';
                       var verses = indexes.sorted((a, b) => a.compareTo(b));
-                      var json = await FirebaseUtils.jsonConfig(
+                      var json = await AppConfigStore.jsonConfig(
                         'footer_copied_text',
                       );
                       var footer = json[context.locale.languageCode];
@@ -820,7 +650,7 @@ class SelectedFaithMenu extends StatelessWidget {
                     onPressed: () async {
                       String text = '';
                       var verses = indexes.sorted((a, b) => a.compareTo(b));
-                      var json = await FirebaseUtils.jsonConfig(
+                      var json = await AppConfigStore.jsonConfig(
                         'footer_copied_text',
                       );
                       var footer = json[context.locale.languageCode];
@@ -841,147 +671,6 @@ class SelectedFaithMenu extends StatelessWidget {
               ),
               SizedBox(height: 8 + 16 + viewPadding),
             ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class CustomLoadingWidget extends StatefulWidget {
-  final String text;
-  final double progressValue;
-  final bool isLoading;
-  final bool isLoaded;
-  final GestureTapCallback onOpen;
-
-  const CustomLoadingWidget({
-    super.key,
-    required this.text,
-    required this.progressValue,
-    required this.isLoading,
-    required this.isLoaded,
-    required this.onOpen,
-  });
-
-  @override
-  _CustomLoadingWidgetState createState() => _CustomLoadingWidgetState();
-}
-
-class _CustomLoadingWidgetState extends State<CustomLoadingWidget> {
-  final GlobalKey _textKey = GlobalKey();
-  Size _textSize = Size.zero;
-
-  @override
-  void initState() {
-    super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _calculateTextSize());
-  }
-
-  void _calculateTextSize() {
-    final RenderBox renderBox =
-        _textKey.currentContext?.findRenderObject() as RenderBox;
-    setState(() {
-      _textSize = renderBox.size;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (widget.isLoading) _buildProgressContainer(),
-        _buildTextContainer(),
-      ],
-    );
-  }
-
-  Widget _buildProgressContainer() {
-    double textWidth =
-        _textSize.width; // Assuming _textSize is the size of the container
-    double gradientStop =
-        widget.progressValue; // Proportion of the container's width
-
-    return Container(
-      clipBehavior: Clip.hardEdge,
-      decoration: BoxDecoration(borderRadius: BorderRadius.circular(100)),
-      height: _textSize.height,
-      width: textWidth,
-      child: Stack(
-        fit: StackFit.passthrough,
-        children: [
-          LinearProgressIndicator(value: widget.progressValue),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 8),
-                child: ShaderMask(
-                  blendMode: BlendMode.srcIn,
-                  shaderCallback: (Rect bounds) {
-                    return LinearGradient(
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                      colors: const [Colors.white, Colors.black],
-                      stops: [
-                        gradientStop,
-                        gradientStop + 0.01,
-                      ], // Small delta to create a visible transition
-                    ).createShader(bounds);
-                  },
-                  child: Text(
-                    'Loading ${(widget.progressValue * 100).toStringAsFixed(0)}%',
-                    softWrap: false,
-                    overflow: TextOverflow.visible,
-                    style: TextStyle(fontSize: 6, fontStyle: FontStyle.italic),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTextContainer() {
-    return Opacity(
-      opacity: widget.isLoading ? 0.0 : 1.0,
-      child: GestureDetector(
-        onTap: widget.isLoaded ? widget.onOpen : null,
-        child: Badge(
-          isLabelVisible: widget.isLoaded,
-          padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-          backgroundColor: context.colorScheme.secondary,
-          label: Text(
-            'Open'.tr(),
-            style: TextStyle(
-              fontSize: 8,
-              height: 1,
-              fontWeight: FontWeight.bold,
-              color: context.colorScheme.onSecondary,
-            ),
-          ),
-          child: Container(
-            key: _textKey,
-            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: widget.isLoaded
-                  ? context.colorScheme.secondaryContainer
-                  : context.colorScheme.surfaceContainerLow,
-              borderRadius: BorderRadius.circular(100),
-              border: Border.all(color: context.colorScheme.outlineVariant),
-            ),
-            child: Text(
-              widget.text + (widget.isLoaded ? '  ' : ''),
-              style: TextStyle(
-                fontSize: 10,
-                color: widget.isLoaded
-                    ? context.colorScheme.onSecondaryContainer
-                    : context.colorScheme.onSurfaceVariant,
-              ),
-            ),
           ),
         ),
       ),
