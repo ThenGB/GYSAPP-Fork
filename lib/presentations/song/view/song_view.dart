@@ -373,8 +373,9 @@ class _SongViewState extends State<SongView> {
                         return const SizedBox.shrink();
                       }
                       return Positioned.fill(
-                        child: SongPdfViewer(
-                          key: const ValueKey('pdf_viewer_instance'),
+                        child: ClipRect(
+                          child: SongPdfViewer(
+                            key: const ValueKey('pdf_viewer_instance'),
                           pdfPath: state.currentPdfPath,
                           showChord: shouldRenderChordForSongState(state),
                           chords: state.currentChords,
@@ -392,6 +393,7 @@ class _SongViewState extends State<SongView> {
                             cubit.detectAndUpdateFamilyChord(updatedChords);
                           },
                           viewerController: _pdfViewerController,
+                          ),
                         ),
                       );
                     },
