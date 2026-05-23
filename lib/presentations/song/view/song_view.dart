@@ -372,10 +372,10 @@ class _SongViewState extends State<SongView> {
                       if (state.currentPdfPath == null) {
                         return const SizedBox.shrink();
                       }
-                      return Positioned.fill(
-                        child: SafeArea(
-                          top: false,
-                          maintainBottomViewPadding: true,
+                      return SafeArea(
+                        top: false,
+                        maintainBottomViewPadding: true,
+                        child: Positioned.fill(
                           child: ClipRect(
                             child: SongPdfViewer(
                               key: const ValueKey('pdf_viewer_instance'),
