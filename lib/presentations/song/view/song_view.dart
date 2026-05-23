@@ -372,26 +372,32 @@ class _SongViewState extends State<SongView> {
                       if (state.currentPdfPath == null) {
                         return const SizedBox.shrink();
                       }
-                      return Positioned.fill(
-                        child: SongPdfViewer(
-                          key: const ValueKey('pdf_viewer_instance'),
-                          pdfPath: state.currentPdfPath,
-                          showChord: shouldRenderChordForSongState(state),
-                          chords: state.currentChords,
-                          transposeStep: state.transposeStep,
-                          baseTransposeOffset: state.baseTransposeOffset,
-                          chordAccidentalMode: state.chordAccidentalMode,
-                          twoPageMode: state.pdfTwoPageMode,
-                          verticalScrolling: state.pdfVerticalScrolling,
-                          chordFontSizePercent: state.chordFontSizePercent,
-                          chordFillOpacityPercent:
-                              state.chordFillOpacityPercent,
-                          chordPaddingPercent: state.chordPaddingPercent,
-                          isEditMode: chordToggleEnabled && _isChordEditMode,
-                          onChordsChanged: (updatedChords) {
-                            cubit.detectAndUpdateFamilyChord(updatedChords);
-                          },
-                          viewerController: _pdfViewerController,
+                      return SafeArea(
+                        top: false,
+                        maintainBottomViewPadding: true,
+                        child: Positioned.fill(
+                          child: ClipRect(
+                            child: SongPdfViewer(
+                              key: const ValueKey('pdf_viewer_instance'),
+                              pdfPath: state.currentPdfPath,
+                              showChord: shouldRenderChordForSongState(state),
+                              chords: state.currentChords,
+                              transposeStep: state.transposeStep,
+                              baseTransposeOffset: state.baseTransposeOffset,
+                              chordAccidentalMode: state.chordAccidentalMode,
+                              twoPageMode: state.pdfTwoPageMode,
+                              verticalScrolling: state.pdfVerticalScrolling,
+                              chordFontSizePercent: state.chordFontSizePercent,
+                              chordFillOpacityPercent:
+                                  state.chordFillOpacityPercent,
+                              chordPaddingPercent: state.chordPaddingPercent,
+                              isEditMode: chordToggleEnabled && _isChordEditMode,
+                              onChordsChanged: (updatedChords) {
+                                cubit.detectAndUpdateFamilyChord(updatedChords);
+                              },
+                              viewerController: _pdfViewerController,
+                            ),
+                          ),
                         ),
                       );
                     },

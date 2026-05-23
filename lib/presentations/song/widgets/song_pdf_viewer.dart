@@ -110,12 +110,16 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// Used to prevent rendering new chords on the old PDF document.
   bool _isTransitioning = false;
 
+  /// Controls whether the PDF should be visible (true) or hidden (false).
+  /// PDF stays hidden until fit-to-page completes, then animates to visible.
+  bool _pdfFullyVisible = false;
+
   @override
   void initState() {
     super.initState();
     _navFadeCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 300),
     );
     _navOpacity = Tween<double>(
       begin: 1.0,
@@ -184,7 +188,11 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       _needsInitialFit = false;
       _viewerReadyGeneration = null;
       _viewerReadyWatchdog?.cancel();
+      _pdfFullyVisible = false;
       _isTransitioning = true; // Start transition
+      // Quick fade out
+      _navFadeCtrl.value = 1.0;
+      _navFadeCtrl.duration = const Duration(milliseconds: 150);
       _navFadeCtrl.forward(from: 0); // Fade out current
       _navFadeCtrl.addListener(_onFadeCompleteForNull);
       if (mounted) setState(() => _pdfRequest = null);
@@ -218,22 +226,30 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     // Clear note extraction cache when PDF changes
     _NoteExtractionCache.clear();
 
+    // Hide the viewer immediately when changing songs
+    _pdfFullyVisible = false;
+
     // Start fade out animation if there was a previous PDF
     if (oldRequest != null) {
+      // Set controller to fade-out position (value=1, opacity=0)
+      _navFadeCtrl.value = 1.0;
+      // Animate fade out over 150ms (fast portion of 300ms total)
+      _navFadeCtrl.duration = const Duration(milliseconds: 150);
       _navFadeCtrl.forward(from: 0).then((_) {
         if (mounted) {
           setState(() {
             _pdfRequest = newRequest;
             _isTransitioning = false;
           });
+          // Schedule watchdog for the new PDF
           _scheduleViewerReadyWatchdog(_pathGeneration);
         }
-        _navFadeCtrl.reverse();
+        // Keep controller at end (value=1.0) so Task 3 can call reverse() for fade-in
       });
     } else {
-      // No previous PDF, just show the new one immediately
+      // No previous PDF, just show the new one hidden
       if (mounted) setState(() => _pdfRequest = newRequest);
-      _navFadeCtrl.value = 0;
+      _navFadeCtrl.value = 0.0;
       _isTransitioning = false;
       _scheduleViewerReadyWatchdog(_pathGeneration);
     }
@@ -408,10 +424,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       }
     }
 
-    // Reveal the viewer immediately after fitting.
+    // PDF is now fully fitted. Trigger fade-in animation.
     if (mounted && generation == _pathGeneration) {
-      setState(() => _isTransitioning = false);
-      _navFadeCtrl.reverse();
+      _pdfFullyVisible = true;
+      _isTransitioning = false;
+      // Controller value is at 1.0 (end of fade-out). Call reverse() to animate 1.0 → 0.0.
+      // This produces fade-in effect: opacity increases as value decreases.
+      _navFadeCtrl.duration = const Duration(milliseconds: 300);
+      _navFadeCtrl.reverse(from: 1.0);
     }
   }
 
@@ -635,8 +655,12 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       child: AnimatedBuilder(
         animation: _navFadeCtrl,
         child: viewer,
-        builder: (context, child) =>
-            Opacity(opacity: _navOpacity.value, child: child),
+        builder: (context, child) {
+          // Only show the PDF when _pdfFullyVisible is true.
+          // Before that, keep it hidden (opacity 0).
+          final opacity = _pdfFullyVisible ? _navOpacity.value : 0.0;
+          return Opacity(opacity: opacity, child: child);
+        },
       ),
     );
   }

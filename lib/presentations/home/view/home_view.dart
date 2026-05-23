@@ -123,7 +123,6 @@ class HomeView extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const _HomeHeroPanel(),
                           const _HomeWelcomeSection(),
                           const _DailyVerseCard(),
                           StreamBuilder(
@@ -887,6 +886,8 @@ class HomeHeader extends StatefulWidget {
 class _HomeHeaderState extends State<HomeHeader> {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       color: context.colorScheme.surface,
       padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
@@ -898,26 +899,12 @@ class _HomeHeaderState extends State<HomeHeader> {
             icon: const Icon(Icons.widgets_rounded),
           ),
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Text(
-                  'Workspace',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                Text(
-                  'Hymnal • Bible • Beliefs',
-                  textAlign: TextAlign.center,
-                  style: context.textTheme.labelSmall?.copyWith(
-                    letterSpacing: 1.2,
-                    color: context.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-              ],
+            child: Image.asset(
+              isDark
+                  ? Assets.assetsImagesLogoIndonesiaWhite
+                  : Assets.assetsImagesLogoIndonesiaColor,
+              height: 28,
+              fit: BoxFit.contain,
             ),
           ),
           IconButton(
@@ -938,117 +925,6 @@ class _HomeHeaderState extends State<HomeHeader> {
             icon: const Icon(Icons.search_rounded),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _HomeHeroPanel extends StatelessWidget {
-  const _HomeHeroPanel();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final compact = constraints.maxWidth < 640;
-        return Padding(
-          padding: EdgeInsets.fromLTRB(16, compact ? 12 : 16, 16, 12),
-          child: Container(
-            padding: EdgeInsets.all(compact ? 16 : 20),
-            decoration: BoxDecoration(
-              color: colors.primaryContainer.withValues(alpha: 0.5),
-              borderRadius: BorderRadius.circular(compact ? 12 : 16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'One Desk For Worship Flow',
-                  style: context.textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: colors.onPrimaryContainer,
-                    fontSize: compact ? 22 : 26,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Open hymns, scripture, and doctrine from one modern control room built for daily ministry rhythm.',
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: colors.onPrimaryContainer.withValues(alpha: 0.8),
-                    fontSize: compact ? 14 : 15,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: const [
-                    _QuickLaunchTile(
-                      icon: Icons.music_note_rounded,
-                      label: 'Open Hymnal',
-                      tabIndex: 2,
-                    ),
-                    _QuickLaunchTile(
-                      icon: Icons.menu_book_rounded,
-                      label: 'Open Bible',
-                      tabIndex: 1,
-                    ),
-                    _QuickLaunchTile(
-                      icon: Icons.auto_stories_rounded,
-                      label: 'Beliefs',
-                      tabIndex: 3,
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-}
-
-class _QuickLaunchTile extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final int tabIndex;
-
-  const _QuickLaunchTile({
-    required this.icon,
-    required this.label,
-    required this.tabIndex,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return InkWell(
-      borderRadius: BorderRadius.circular(8),
-      onTap: () => AutoTabsRouter.of(context).setActiveIndex(tabIndex),
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: colors.surface.withValues(alpha: 0.8),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, color: colors.primary, size: 18),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: context.textTheme.titleMedium?.copyWith(
-                color: colors.onSurface,
-                fontWeight: FontWeight.w700,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }
@@ -1094,60 +970,104 @@ class _DailyVerseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
       child: Container(
         decoration: BoxDecoration(
-          color: context.colorScheme.secondaryContainer.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
+          // Soft gradient for daily verse
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: isDark
+                ? [
+                    colors.secondaryContainer.withValues(alpha: 0.5),
+                    colors.tertiaryContainer.withValues(alpha: 0.3),
+                  ]
+                : [
+                    colors.secondaryContainer.withValues(alpha: 0.35),
+                    colors.secondaryContainer.withValues(alpha: 0.15),
+                  ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: colors.secondary.withValues(alpha: 0.08),
+              blurRadius: 12,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'TODAY VERSE',
-              style: context.textTheme.labelSmall?.copyWith(
-                color: context.colorScheme.onSecondaryContainer,
-                letterSpacing: 1.2,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
-              style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w700,
-                color: context.colorScheme.onSecondaryContainer,
-                height: 1.4,
-              ),
-            ),
-            const SizedBox(height: 12),
+            // Softer label with icon
             Row(
               children: [
+                Icon(
+                  Icons.format_quote_rounded,
+                  color: colors.onSecondaryContainer.withValues(alpha: 0.6),
+                  size: 14,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  'TODAY VERSE',
+                  style: context.textTheme.labelSmall?.copyWith(
+                    color: colors.onSecondaryContainer.withValues(alpha: 0.7),
+                    letterSpacing: 1.5,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
+              style: context.textTheme.bodyLarge?.copyWith(
+                fontWeight: FontWeight.w500,
+                color: colors.onSecondaryContainer,
+                height: 1.55,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Row(
+              children: [
+                // Softer reference badge
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,
-                    vertical: 5,
+                    vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: context.colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(10),
+                    color: colors.primary.withValues(alpha: isDark ? 0.25 : 0.15),
+                    borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
                     'Matius 5:8',
                     style: context.textTheme.labelMedium?.copyWith(
-                      color: context.colorScheme.onPrimaryContainer,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.4,
+                      color: colors.primary,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.3,
                     ),
                   ),
                 ),
                 const Spacer(),
-                Icon(
-                  Icons.ios_share_rounded,
-                  size: 18,
-                  color: context.colorScheme.onSecondaryContainer,
+                // Soft share icon
+                Container(
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: colors.onSecondaryContainer.withValues(alpha: 0.08),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.ios_share_rounded,
+                    size: 14,
+                    color: colors.onSecondaryContainer.withValues(alpha: 0.6),
+                  ),
                 ),
               ],
             ),
