@@ -1,0 +1,26 @@
+# Claude Code plugin local settings
+.claude/*.local.md
+
+# MCP server logs
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+.dart_tool/
+.packages/
+.pub-cache/
+.pub/
+build/

@@ -234,7 +234,7 @@ ThemeData defaultTheme(
       height: 64,  // Reduced from 70
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: colorScheme.primary.withValues(alpha: 0.2),  // Subtle 20%
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.15),  // Softer 15%
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);

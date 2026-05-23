@@ -2269,6 +2269,21 @@ class Assets {
   /// assets/images/zh_flag.png
   static const String assetsImagesZhFlag = "assets/images/zh_flag.png";
 
+  /// Assets for assetsImagesLogoIndonesiaColor
+  /// assets/images/logo/tjc_logo_indonesia_color.png
+  static const String assetsImagesLogoIndonesiaColor =
+      "assets/images/logo/tjc_logo_indonesia_color.png";
+
+  /// Assets for assetsImagesLogoIndonesiaBlack
+  /// assets/images/logo/tjc_logo_indonesia_black.png
+  static const String assetsImagesLogoIndonesiaBlack =
+      "assets/images/logo/tjc_logo_indonesia_black.png";
+
+  /// Assets for assetsImagesLogoIndonesiaWhite
+  /// assets/images/logo/tjc_logo_indonesia_white.png
+  static const String assetsImagesLogoIndonesiaWhite =
+      "assets/images/logo/tjc_logo_indonesia_white.png";
+
   /// Assets for assetsTranslationsEn
   /// assets/translations/en.json
   static const String assetsTranslationsEn = "assets/translations/en.json";
