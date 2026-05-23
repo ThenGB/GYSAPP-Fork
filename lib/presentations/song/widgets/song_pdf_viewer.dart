@@ -110,12 +110,16 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// Used to prevent rendering new chords on the old PDF document.
   bool _isTransitioning = false;
 
+  /// Controls whether the PDF should be visible (true) or hidden (false).
+  /// PDF stays hidden until fit-to-page completes, then animates to visible.
+  bool _pdfFullyVisible = false;
+
   @override
   void initState() {
     super.initState();
     _navFadeCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 150),
+      duration: const Duration(milliseconds: 300),
     );
     _navOpacity = Tween<double>(
       begin: 1.0,
