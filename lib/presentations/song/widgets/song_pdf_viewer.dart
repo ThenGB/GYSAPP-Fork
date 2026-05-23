@@ -420,10 +420,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       }
     }
 
-    // Reveal the viewer immediately after fitting.
+    // PDF is now fully fitted. Trigger fade-in animation.
     if (mounted && generation == _pathGeneration) {
-      setState(() => _isTransitioning = false);
-      _navFadeCtrl.reverse();
+      _pdfFullyVisible = true;
+      _isTransitioning = false;
+      // Controller value is at 1.0 (end of fade-out). Call reverse() to animate 1.0 → 0.0.
+      // This produces fade-in effect: opacity increases as value decreases.
+      _navFadeCtrl.duration = const Duration(milliseconds: 300);
+      _navFadeCtrl.reverse(from: 1.0);
     }
   }
 
