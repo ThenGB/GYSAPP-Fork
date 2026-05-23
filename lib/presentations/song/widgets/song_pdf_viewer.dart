@@ -651,8 +651,12 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       child: AnimatedBuilder(
         animation: _navFadeCtrl,
         child: viewer,
-        builder: (context, child) =>
-            Opacity(opacity: _navOpacity.value, child: child),
+        builder: (context, child) {
+          // Only show the PDF when _pdfFullyVisible is true.
+          // Before that, keep it hidden (opacity 0).
+          final opacity = _pdfFullyVisible ? _navOpacity.value : 0.0;
+          return Opacity(opacity: opacity, child: child);
+        },
       ),
     );
   }
