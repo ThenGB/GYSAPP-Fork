@@ -222,22 +222,30 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     // Clear note extraction cache when PDF changes
     _NoteExtractionCache.clear();
 
+    // Hide the viewer immediately when changing songs
+    _pdfFullyVisible = false;
+
     // Start fade out animation if there was a previous PDF
     if (oldRequest != null) {
+      // Set controller to fade-out position (value=1, opacity=0)
+      _navFadeCtrl.value = 1.0;
+      // Animate fade out over 150ms (fast portion of 300ms total)
+      _navFadeCtrl.duration = const Duration(milliseconds: 150);
       _navFadeCtrl.forward(from: 0).then((_) {
         if (mounted) {
           setState(() {
             _pdfRequest = newRequest;
             _isTransitioning = false;
           });
+          // Schedule watchdog for the new PDF
           _scheduleViewerReadyWatchdog(_pathGeneration);
         }
-        _navFadeCtrl.reverse();
+        // Keep controller at end (value=1.0) so Task 3 can call reverse() for fade-in
       });
     } else {
-      // No previous PDF, just show the new one immediately
+      // No previous PDF, just show the new one hidden
       if (mounted) setState(() => _pdfRequest = newRequest);
-      _navFadeCtrl.value = 0;
+      _navFadeCtrl.value = 0.0;
       _isTransitioning = false;
       _scheduleViewerReadyWatchdog(_pathGeneration);
     }
