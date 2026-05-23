@@ -188,7 +188,11 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       _needsInitialFit = false;
       _viewerReadyGeneration = null;
       _viewerReadyWatchdog?.cancel();
+      _pdfFullyVisible = false;
       _isTransitioning = true; // Start transition
+      // Quick fade out
+      _navFadeCtrl.value = 1.0;
+      _navFadeCtrl.duration = const Duration(milliseconds: 150);
       _navFadeCtrl.forward(from: 0); // Fade out current
       _navFadeCtrl.addListener(_onFadeCompleteForNull);
       if (mounted) setState(() => _pdfRequest = null);
