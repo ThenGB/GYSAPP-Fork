@@ -384,13 +384,15 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   /// Circle size
   Size get _circleSize => const Size(kMidiCircleSize, kMidiCircleSize);
 
-  /// Current position based on animation state
+  /// Current position based on animation state with interpolation
   Offset get _currentPosition {
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
       case MidiPlayerAnimationState.flying_to_sidebar:
         return _sidebarPosition;
       case MidiPlayerAnimationState.flying_to_player:
+        // Interpolate position during fly animation
+        return Offset.lerp(_sidebarPosition, _playerPosition, _flyAnimation.value)!;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.collapsing_player:
       case MidiPlayerAnimationState.expanded_player:
@@ -398,13 +400,15 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
-  /// Current size based on animation state
+  /// Current size based on animation state with interpolation
   Size get _currentSize {
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
       case MidiPlayerAnimationState.flying_to_sidebar:
         return _circleSize;
       case MidiPlayerAnimationState.flying_to_player:
+        // Interpolate size during fly animation
+        return Size.lerp(_circleSize, _playerSize, _flyAnimation.value)!;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.collapsing_player:
       case MidiPlayerAnimationState.expanded_player:
@@ -412,52 +416,43 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
-  /// Calculate border radius based on animation state and progress
+  /// Calculate border radius with interpolation based on animation progress
   BorderRadius get _currentBorderRadius {
     final circleRadius = kMidiCircleSize / 2;
+    final expandedRadius = BorderRadius.only(
+      topLeft: const Radius.circular(16),
+      topRight: const Radius.circular(16),
+      bottomLeft: Radius.zero,
+      bottomRight: Radius.zero,
+    );
 
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
       case MidiPlayerAnimationState.flying_to_sidebar:
-        // Full circle
         return BorderRadius.all(Radius.circular(circleRadius));
 
       case MidiPlayerAnimationState.flying_to_player:
-        // Circle flying - stay circular
+        // Stay circular during fly phase
         return BorderRadius.all(Radius.circular(circleRadius));
 
       case MidiPlayerAnimationState.expanding_player:
-        // Morphing from circle to header
-        final morphProgress = _morphAnimation.value;
-        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
-        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
-        return BorderRadius.only(
-          topLeft: Radius.circular(topRadius),
-          topRight: Radius.circular(topRadius),
-          bottomLeft: Radius.circular(bottomRadius),
-          bottomRight: Radius.circular(bottomRadius),
-        );
+        // Interpolate from circle to header shape during morph
+        return BorderRadius.lerp(
+          BorderRadius.all(Radius.circular(circleRadius)),
+          expandedRadius,
+          _morphAnimation.value,
+        )!;
 
       case MidiPlayerAnimationState.expanded_player:
-        // Header shape: rounded top, flat bottom
-        return const BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-          bottomLeft: Radius.circular(0),
-          bottomRight: Radius.circular(0),
-        );
+        return expandedRadius;
 
       case MidiPlayerAnimationState.collapsing_player:
-        // Morphing from header to circle
-        final morphProgress = 1 - _morphAnimation.value;
-        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
-        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
-        return BorderRadius.only(
-          topLeft: Radius.circular(topRadius),
-          topRight: Radius.circular(topRadius),
-          bottomLeft: Radius.circular(bottomRadius),
-          bottomRight: Radius.circular(bottomRadius),
-        );
+        // Interpolate from header to circle during morph
+        return BorderRadius.lerp(
+          BorderRadius.all(Radius.circular(circleRadius)),
+          expandedRadius,
+          1 - _morphAnimation.value,
+        )!;
     }
   }
 
