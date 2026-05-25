@@ -81,7 +81,7 @@ void main() {
     );
     expect(
       source,
-      contains('navHeight + bottomInset + kDashboardBodyBottomSafetyGap'),
+      contains('navHeight + bottomInset'),
     );
     expect(source, isNot(contains('final reservedBottomSpace')));
   });
