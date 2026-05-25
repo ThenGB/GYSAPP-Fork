@@ -207,13 +207,6 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   Timer? _tempoDebounce;
   Timer? _transposeDebounce;
 
-  // Backwards compatibility getter
-  bool get _expanded => _animationState == MidiPlayerAnimationState.expanded_player ||
-                       _animationState == MidiPlayerAnimationState.expanding_player ||
-                       _animationState == MidiPlayerAnimationState.collapsing_player;
-
-  bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
-
   @override
   void initState() {
     super.initState();
