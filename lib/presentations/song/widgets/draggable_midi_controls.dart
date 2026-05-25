@@ -5,6 +5,10 @@ import 'package:flutter/material.dart';
 
 import '../cubit/song_playlist.dart';
 
+// Animation timing
+const Duration kMidiAnimationFlyDuration = Duration(milliseconds: 150);
+const Duration kMidiAnimationMorphDuration = Duration(milliseconds: 150);
+
 const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
 const double kMidiCollapsedBarHeight = 48;
@@ -161,50 +165,88 @@ class DraggableMidiControls extends StatefulWidget {
 
 class _DraggableMidiControlsState extends State<DraggableMidiControls>
     with TickerProviderStateMixin {
-  bool _expanded = true;
   final GlobalKey _instrumentButtonKey = GlobalKey();
-  late AnimationController _animationController;
-  late AnimationController _sidebarAnimController;
-  late Animation<double> _sidebarBounceAnimation;
 
-  // Debounce timers for tempo and transpose to prevent spamming
+  // === Animation State Machine ===
+  MidiPlayerAnimationState _animationState = MidiPlayerAnimationState.expanded_player;
+
+  // Position tracking for snap zones
+  double _sidebarX = 1.0;  // 0 = left edge, 1 = right edge
+  double _sidebarY = 0.5;   // 0 = top, 1 = bottom (normalized)
+
+  // Animation controllers
+  late AnimationController _flyController;      // Phase 1: fly to target
+  late AnimationController _morphController;   // Phase 2: morph shape
+  late AnimationController _bounceController;  // Pulse when playing (sidebar)
+
+  // Derived animations
+  late Animation<double> _flyAnimation;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _bounceAnimation;
+
+  // Drag state
+  bool _isDragging = false;
+  double _dragHoverScale = 1.0;
+
+  // Debounce timers
   Timer? _tempoDebounce;
   Timer? _transposeDebounce;
 
-  // Free-drag position for the sidebar button (only used when collapsed)
-  double _sidebarX = 0; // 0 = left, 1 = right (normalized)
-  double _sidebarY = 0; // 0 = top, 1 = bottom (normalized)
+  // Backwards compatibility getter
+  bool get _expanded => _animationState == MidiPlayerAnimationState.expanded_player ||
+                       _animationState == MidiPlayerAnimationState.expanding_player ||
+                       _animationState == MidiPlayerAnimationState.collapsing_player;
 
   bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
 
   @override
   void initState() {
     super.initState();
-    final initiallyExpanded = _effectiveExpanded;
-    _expanded = initiallyExpanded;
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+
+    // Initialize animation controllers
+    _flyController = AnimationController(
+      duration: kMidiAnimationFlyDuration,
       vsync: this,
-      value: initiallyExpanded ? 1.0 : 0.0,
     );
-    _sidebarAnimController = AnimationController(
+    _morphController = AnimationController(
+      duration: kMidiAnimationMorphDuration,
+      vsync: this,
+    );
+    _bounceController = AnimationController(
       duration: const Duration(milliseconds: 600),
       vsync: this,
     );
-    _sidebarBounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _sidebarAnimController, curve: Curves.easeInOut),
+
+    // Set up derived animations
+    _flyAnimation = CurvedAnimation(
+      parent: _flyController,
+      curve: Curves.easeOutCubic,
+    );
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeInOutCubic,
+    );
+    _bounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
     );
 
-    // Add listener to rebuild during animation
-    _animationController.addListener(_onAnimationChanged);
+    // Listeners
+    _flyController.addListener(_onAnimationTick);
+    _morphController.addListener(_onAnimationTick);
 
-    if (initiallyExpanded) {
-      _animationController.forward(from: 1.0);
+    // Determine initial state based on isExpanded
+    final initiallyExpanded = _effectiveExpanded;
+    _animationState = initiallyExpanded
+        ? MidiPlayerAnimationState.expanded_player
+        : MidiPlayerAnimationState.sidebar_circle;
+
+    // Start bounce animation if playing
+    if (widget.isPlaying && !initiallyExpanded) {
+      _bounceController.repeat(reverse: true);
     }
   }
 
-  void _onAnimationChanged() {
-    // Force rebuild during animation
+  void _onAnimationTick() {
     if (mounted) {
       setState(() {});
     }
@@ -214,34 +256,73 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void dispose() {
     _tempoDebounce?.cancel();
     _transposeDebounce?.cancel();
-    _animationController.dispose();
-    _sidebarAnimController.dispose();
+    _flyController.dispose();
+    _morphController.dispose();
+    _bounceController.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant DraggableMidiControls oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isExpanded != null &&
-        oldWidget.isExpanded != widget.isExpanded) {
-      final newValue = widget.isExpanded!;
-      _expanded = newValue;
-      if (newValue) {
-        _animationController.forward();
+
+    // Handle external isExpanded changes
+    if (widget.isExpanded != null && oldWidget.isExpanded != widget.isExpanded) {
+      if (widget.isExpanded!) {
+        expand();
       } else {
-        _animationController.reverse();
+        collapse();
       }
     }
 
-    // Only animate sidebar when playing
+    // Handle playing state changes for bounce animation
     if (oldWidget.isPlaying != widget.isPlaying) {
-      if (widget.isPlaying) {
-        _sidebarAnimController.repeat(reverse: true);
+      if (widget.isPlaying && _animationState == MidiPlayerAnimationState.sidebar_circle) {
+        _bounceController.repeat(reverse: true);
       } else {
-        _sidebarAnimController.stop();
-        _sidebarAnimController.value = 0;
+        _bounceController.stop();
+        _bounceController.value = 0;
       }
     }
+  }
+
+  void expand() {
+    if (_animationState != MidiPlayerAnimationState.sidebar_circle) return;
+
+    setState(() => _animationState = MidiPlayerAnimationState.flying_to_player);
+    _bounceController.stop();
+
+    // Phase 1: Fly to player position
+    _flyController.forward(from: 0).then((_) {
+      setState(() => _animationState = MidiPlayerAnimationState.expanding_player);
+
+      // Phase 2: Morph into player
+      _morphController.forward(from: 0).then((_) {
+        setState(() => _animationState = MidiPlayerAnimationState.expanded_player);
+      });
+    });
+  }
+
+  void collapse() {
+    if (_animationState != MidiPlayerAnimationState.expanded_player &&
+        _animationState != MidiPlayerAnimationState.expanding_player) return;
+
+    setState(() => _animationState = MidiPlayerAnimationState.collapsing_player);
+
+    // Phase 1: Morph to circle
+    _morphController.reverse(from: 1).then((_) {
+      setState(() => _animationState = MidiPlayerAnimationState.flying_to_sidebar);
+
+      // Phase 2: Fly to sidebar
+      _flyController.reverse(from: 1).then((_) {
+        setState(() => _animationState = MidiPlayerAnimationState.sidebar_circle);
+
+        // Start bounce if playing
+        if (widget.isPlaying) {
+          _bounceController.repeat(reverse: true);
+        }
+      });
+    });
   }
 
   String _formatTime(double seconds) {
@@ -448,13 +529,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void _setExpanded(bool value) {
     if (widget.onExpandedChanged != null) {
       widget.onExpandedChanged!(value);
-    } else {
-      setState(() => _expanded = value);
     }
     if (value) {
-      _animationController.forward();
+      expand();
     } else {
-      _animationController.reverse();
+      collapse();
     }
   }
 
@@ -462,7 +541,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final animValue = _animationController.value;
+    final morphValue = _morphController.value;
     final screenWidth = MediaQuery.sizeOf(context).width;
     final screenHeight = MediaQuery.sizeOf(context).height;
     final bottomInset = MediaQuery.paddingOf(context).bottom;
@@ -474,10 +553,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         : bottomInset;
 
     // Morph animation values
-    // animValue: 0 = collapsed (sidebar), 1 = expanded (panel)
-    final panelOpacity = animValue;
-    final sidebarOpacity = 1 - animValue;
-    final isCollapsed = animValue < 0.5;
+    // morphValue: 0 = collapsed (sidebar), 1 = expanded (panel)
+    final panelOpacity = morphValue;
+    final sidebarOpacity = 1 - morphValue;
+    final isCollapsed = morphValue < 0.5;
 
     // Morphing widget visibility:
     // - When collapsed: full opacity for sidebar button
@@ -485,7 +564,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     // - During morph: fade in/out to hide transition
     final double morphOpacity = isCollapsed
         ? sidebarOpacity.clamp(0.8, 1.0) // Show sidebar when collapsed
-        : animValue.clamp(0.8, 1.0); // Show header when expanded
+        : morphValue.clamp(0.8, 1.0); // Show header when expanded
 
     // Constants for collapsed state
     const collapsedWidth = kMidiSidebarButtonSize; // 56
@@ -525,8 +604,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     const expandedHeight = 48.0; // Panel header height
 
     // Interpolate dimensions
-    final sidebarWidth = collapsedWidth * (1 - animValue) + expandedWidth * animValue;
-    final sidebarHeight = collapsedHeight * (1 - animValue) + expandedHeight * animValue;
+    final sidebarWidth = collapsedWidth * (1 - morphValue) + expandedWidth * morphValue;
+    final sidebarHeight = collapsedHeight * (1 - morphValue) + expandedHeight * morphValue;
 
     // Calculate position based on snap
     double sidebarLeft;
@@ -554,7 +633,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     // - When expanded: header with rounded top corners
     BorderRadius sidebarBorderRadius;
 
-    if (animValue < 0.1) {
+    if (morphValue < 0.1) {
       // Collapsed state
       if (isAtEdge) {
         // Full circle when at edge
@@ -576,7 +655,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           bottomRight: Radius.circular(0),
         );
       }
-    } else if (animValue > 0.9) {
+    } else if (morphValue > 0.9) {
       // Expanded state: header with rounded top corners
       sidebarBorderRadius = BorderRadius.only(
         topLeft: Radius.circular(16),
@@ -590,25 +669,25 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       if (isAtEdge) {
         // Full circle morphing to header
         sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(cornerRadius * (1 - animValue) + 16 * animValue),
-          topRight: Radius.circular(cornerRadius * (1 - animValue) + 16 * animValue),
-          bottomLeft: Radius.circular(cornerRadius * (1 - animValue)),
-          bottomRight: Radius.circular(cornerRadius * (1 - animValue)),
+          topLeft: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
+          topRight: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
+          bottomLeft: Radius.circular(cornerRadius * (1 - morphValue)),
+          bottomRight: Radius.circular(cornerRadius * (1 - morphValue)),
         );
       } else if (snapX < 0.5) {
         // Left half-circle morphing to header
         sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(16 * animValue),
+          topLeft: Radius.circular(16 * morphValue),
           bottomLeft: Radius.circular(0),
-          topRight: Radius.circular(cornerRadius * (1 - animValue) + 16 * animValue),
-          bottomRight: Radius.circular(cornerRadius * (1 - animValue)),
+          topRight: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
+          bottomRight: Radius.circular(cornerRadius * (1 - morphValue)),
         );
       } else {
         // Right half-circle morphing to header
         sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(cornerRadius * (1 - animValue) + 16 * animValue),
-          bottomLeft: Radius.circular(cornerRadius * (1 - animValue)),
-          topRight: Radius.circular(16 * animValue),
+          topLeft: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
+          bottomLeft: Radius.circular(cornerRadius * (1 - morphValue)),
+          topRight: Radius.circular(16 * morphValue),
           bottomRight: Radius.circular(0),
         );
       }
@@ -621,7 +700,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
     // Content: show icon when collapsed, header when expanded
     Widget morphContent;
-    if (animValue < 0.5) {
+    if (morphValue < 0.5) {
       // Collapsed: just the music icon with bounce animation
       morphContent = _buildCollapsedContent(colors);
     } else {
@@ -700,7 +779,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       child: Opacity(
         opacity: panelOpacity.clamp(0.0, 1.0),
         child: Transform.translate(
-          offset: Offset(0, 30 * (1 - animValue)),
+          offset: Offset(0, 30 * (1 - morphValue)),
           child: _buildExpandedControls(context, colors),
         ),
       ),
@@ -726,9 +805,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   Widget _buildCollapsedContent(ColorScheme colors) {
     return AnimatedBuilder(
-      animation: _sidebarAnimController,
+      animation: _bounceController,
       builder: (context, child) {
-        final t = _sidebarBounceAnimation.value;
+        final t = _bounceAnimation.value;
         final pulseScale = widget.isPlaying ? (0.85 + (t * 0.15)) : 1.0;
         final bounceOffset = widget.isPlaying ? (t < 0.5 ? t * 2 : (1.0 - t) * 2) : 0.0;
         final iconY = bounceOffset * -3;
