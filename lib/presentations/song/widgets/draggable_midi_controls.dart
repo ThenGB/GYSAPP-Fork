@@ -19,6 +19,19 @@ const double kMidiSidebarButtonMargin = 16;
 const double kMidiSidebarBarWidth = 48;
 const double kMidiSidebarBarHeight = 48;
 
+// Expanded player dimensions
+const double kMidiExpandedHeaderHeight = 48.0;
+const double kMidiExpandedControlsHeight = 120.0;
+const double kMidiExpandedTotalHeight = kMidiExpandedHeaderHeight + kMidiExpandedControlsHeight;
+const double kMidiExpandedWidthRatio = 0.95;
+
+// Collapsed (circle) dimensions
+const double kMidiCircleSize = 56.0;
+const double kMidiCircleMargin = 16.0;
+
+// Dashboard navigation gap (needed for proper positioning)
+const double kDashboardMiniPlayerNavGap = 0.0;
+
 /// Animation states for the MIDI player morphing system.
 /// Follows a cycle: sidebar_circle ↔ (flying) ↔ expanded_player
 enum MidiPlayerAnimationState {
@@ -323,6 +336,145 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         }
       });
     });
+  }
+
+  // === Position Calculation Helpers ===
+
+  double get _screenWidth => MediaQuery.sizeOf(context).width;
+  double get _screenHeight => MediaQuery.sizeOf(context).height;
+  double get _screenCenterX => _screenWidth / 2;
+  double get _bottomInset => MediaQuery.paddingOf(context).bottom;
+
+  /// Target snap position (0 = left, 1 = right) based on current X
+  double get _targetSnapX {
+    final actualLeft = kMidiCircleMargin + (_sidebarX * (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2));
+    final centerX = actualLeft + (kMidiCircleSize / 2);
+    return centerX < _screenCenterX ? 0.0 : 1.0;
+  }
+
+  /// Circle position when collapsed (sidebar)
+  Offset get _sidebarPosition {
+    final maxLeft = _screenWidth - kMidiCircleSize - kMidiCircleMargin;
+    final minLeft = kMidiCircleMargin;
+    final left = minLeft + (_targetSnapX * (maxLeft - minLeft));
+
+    final maxBottom = _screenHeight * 0.75;
+    final minBottom = kMidiCircleMargin + _bottomInset;
+    final bottom = minBottom + (_sidebarY * (maxBottom - minBottom));
+
+    return Offset(left, bottom);
+  }
+
+  /// Player position (centered at bottom, above nav)
+  Offset get _playerPosition {
+    final left = (_screenWidth * (1 - kMidiExpandedWidthRatio)) / 2;
+    final bottom = _bottomInset + kDashboardMiniPlayerNavGap;
+    return Offset(left, bottom);
+  }
+
+  /// Player dimensions
+  Size get _playerSize {
+    final width = _screenWidth * kMidiExpandedWidthRatio;
+    return Size(width, kMidiExpandedTotalHeight);
+  }
+
+  /// Circle size
+  Size get _circleSize => const Size(kMidiCircleSize, kMidiCircleSize);
+
+  /// Current position based on animation state
+  Offset get _currentPosition {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        return _sidebarPosition;
+      case MidiPlayerAnimationState.flying_to_player:
+      case MidiPlayerAnimationState.expanding_player:
+      case MidiPlayerAnimationState.collapsing_player:
+      case MidiPlayerAnimationState.expanded_player:
+        return _playerPosition;
+    }
+  }
+
+  /// Current size based on animation state
+  Size get _currentSize {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        return _circleSize;
+      case MidiPlayerAnimationState.flying_to_player:
+      case MidiPlayerAnimationState.expanding_player:
+      case MidiPlayerAnimationState.collapsing_player:
+      case MidiPlayerAnimationState.expanded_player:
+        return _playerSize;
+    }
+  }
+
+  /// Calculate border radius based on animation state and progress
+  BorderRadius get _currentBorderRadius {
+    final circleRadius = kMidiCircleSize / 2;
+
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        // Full circle
+        return BorderRadius.all(Radius.circular(circleRadius));
+
+      case MidiPlayerAnimationState.flying_to_player:
+        // Circle flying - stay circular
+        return BorderRadius.all(Radius.circular(circleRadius));
+
+      case MidiPlayerAnimationState.expanding_player:
+        // Morphing from circle to header
+        final morphProgress = _morphAnimation.value;
+        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
+        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
+        return BorderRadius.only(
+          topLeft: Radius.circular(topRadius),
+          topRight: Radius.circular(topRadius),
+          bottomLeft: Radius.circular(bottomRadius),
+          bottomRight: Radius.circular(bottomRadius),
+        );
+
+      case MidiPlayerAnimationState.expanded_player:
+        // Header shape: rounded top, flat bottom
+        return const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        );
+
+      case MidiPlayerAnimationState.collapsing_player:
+        // Morphing from header to circle
+        final morphProgress = 1 - _morphAnimation.value;
+        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
+        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
+        return BorderRadius.only(
+          topLeft: Radius.circular(topRadius),
+          topRight: Radius.circular(topRadius),
+          bottomLeft: Radius.circular(bottomRadius),
+          bottomRight: Radius.circular(bottomRadius),
+        );
+    }
+  }
+
+  /// Helper for lerp
+  double lerpDouble(double a, double b, double t) {
+    return a + (b - a) * t;
+  }
+
+  /// Opacity for controls (fade in during morph phase)
+  double get _controlsOpacity {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.expanding_player:
+        return _morphAnimation.value;
+      case MidiPlayerAnimationState.expanded_player:
+        return 1.0;
+      case MidiPlayerAnimationState.collapsing_player:
+        return 1 - _morphAnimation.value;
+      default:
+        return 0.0;
+    }
   }
 
   String _formatTime(double seconds) {
