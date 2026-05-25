@@ -1,3 +1,5 @@
+// ignore_for_file: constant_identifier_names
+// Enum values use snake_case for readability (e.g., sidebar_circle, flying_to_player)
 import 'dart:async';
 import 'dart:ui';
 
