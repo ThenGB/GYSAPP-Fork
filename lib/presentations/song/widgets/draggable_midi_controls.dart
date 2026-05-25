@@ -768,16 +768,18 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                         child: showHeader
                             ? Column(
                                 mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
                                   // Header at top
-                                  SizedBox(
-                                    width: double.infinity,
+                                  Container(
                                     height: kMidiExpandedHeaderHeight,
+                                    padding: EdgeInsets.zero,
                                     child: _buildHeader(colors),
                                   ),
-                                  // Controls below header (scrollable if needed)
+                                  // Controls below header
                                   if (showControls)
-                                    Expanded(
+                                    SizedBox(
+                                      height: kMidiExpandedControlsHeight,
                                       child: Opacity(
                                         opacity: controlsOpacity,
                                         child: SingleChildScrollView(
