@@ -70,13 +70,14 @@ const dashboardBottomNavigationDestinations = [
     page: HomeRoute(),
   ),
   DashboardNavigationDestination(
-    icon: Icons.menu_book_outlined,
-    selectedIcon: Icons.menu_book_rounded,
+    icon: Icons.book_outlined,
+    selectedIcon: Icons.book_rounded,
     label: 'Bible',
     page: BibleRoute(),
   ),
   DashboardNavigationDestination(
-    icon: Icons.music_note_rounded,
+    icon: Icons.library_music_outlined,
+    selectedIcon: Icons.library_music_rounded,
     label: 'Hymnal',
     page: SongRoute(),
   ),
@@ -423,24 +424,13 @@ class _DashboardViewState extends State<DashboardView> {
                             ),
                         ],
                       ),
-                      bottomNavigationBar: NavigationBar(
-                        backgroundColor: context.colorScheme.surface,
-                        surfaceTintColor: Colors.transparent,
-                        elevation: 0,
-                        indicatorColor: context.colorScheme.primary.withValues(alpha: 0.2),
+                      bottomNavigationBar: _DashboardBottomNavBar(
                         selectedIndex: safeSelectedIndex,
                         onDestinationSelected: (value) {
                           context.read<BibleCubit>().stopSpeaking();
                           tabsRouter.setActiveIndex(value);
                         },
-                        destinations: [
-                          for (final dest in bottomNavPages)
-                            NavigationDestination(
-                              icon: Icon(dest.icon),
-                              selectedIcon: Icon(dest.selectedIcon ?? dest.icon),
-                              label: dest.label.tr(),
-                            ),
-                        ],
+                        destinations: bottomNavPages,
                       ),
                     );
                   },
@@ -952,6 +942,227 @@ class _DrawerProfileRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Custom bottom navigation bar with enhanced press animation and full tap targets.
+class _DashboardBottomNavBar extends StatefulWidget {
+  final int selectedIndex;
+  final ValueChanged<int> onDestinationSelected;
+  final List<DashboardNavigationDestination> destinations;
+
+  const _DashboardBottomNavBar({
+    required this.selectedIndex,
+    required this.onDestinationSelected,
+    required this.destinations,
+  });
+
+  @override
+  State<_DashboardBottomNavBar> createState() => _DashboardBottomNavBarState();
+}
+
+class _DashboardBottomNavBarState extends State<_DashboardBottomNavBar>
+    with TickerProviderStateMixin {
+  int? _pressedIndex;
+  late final List<AnimationController> _scaleControllers;
+  late final List<AnimationController> _highlightControllers;
+  late final List<Animation<double>> _scaleAnimations;
+  late final List<Animation<double>> _highlightAnimations;
+
+  @override
+  void initState() {
+    super.initState();
+    final count = widget.destinations.length;
+    _scaleControllers = List.generate(
+      count,
+      (_) => AnimationController(
+        duration: const Duration(milliseconds: 150),
+        vsync: this,
+      ),
+    );
+    _highlightControllers = List.generate(
+      count,
+      (_) => AnimationController(
+        duration: const Duration(milliseconds: 200),
+        vsync: this,
+      ),
+    );
+    _scaleAnimations = _scaleControllers.map((ctrl) {
+      return Tween<double>(begin: 1.0, end: 0.88).animate(
+        CurvedAnimation(parent: ctrl, curve: Curves.easeInOut),
+      );
+    }).toList();
+    _highlightAnimations = _highlightControllers.map((ctrl) {
+      return Tween<double>(begin: 0.0, end: 1.0).animate(
+        CurvedAnimation(parent: ctrl, curve: Curves.easeOut),
+      );
+    }).toList();
+  }
+
+  @override
+  void dispose() {
+    for (final ctrl in _scaleControllers) {
+      ctrl.dispose();
+    }
+    for (final ctrl in _highlightControllers) {
+      ctrl.dispose();
+    }
+    super.dispose();
+  }
+
+  void _onTapDown(int index) {
+    setState(() => _pressedIndex = index);
+    _scaleControllers[index].forward();
+    _highlightControllers[index].forward();
+  }
+
+  void _onTapUp(int index) {
+    setState(() => _pressedIndex = null);
+    _scaleControllers[index].reverse();
+    _highlightControllers[index].reverse();
+    widget.onDestinationSelected(index);
+  }
+
+  void _onTapCancel(int index) {
+    setState(() => _pressedIndex = null);
+    _scaleControllers[index].reverse();
+    _highlightControllers[index].reverse();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final count = widget.destinations.length;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(
+          top: BorderSide(
+            color: colors.outlineVariant.withValues(alpha: 0.4),
+            width: 0.5,
+          ),
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: SizedBox(
+          height: kDashboardPortraitBottomNavHeight,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: List.generate(count, (index) {
+              final dest = widget.destinations[index];
+              final isSelected = index == widget.selectedIndex;
+              final isPressed = index == _pressedIndex;
+
+              return Expanded(
+                child: _NavItem(
+                  icon: dest.icon,
+                  selectedIcon: dest.selectedIcon ?? dest.icon,
+                  label: dest.label.tr(),
+                  isSelected: isSelected,
+                  isPressed: isPressed,
+                  scaleAnimation: _scaleAnimations[index],
+                  highlightAnimation: _highlightAnimations[index],
+                  selectedColor: colors.primary,
+                  unselectedColor: colors.onSurfaceVariant,
+                  onTapDown: () => _onTapDown(index),
+                  onTapUp: () => _onTapUp(index),
+                  onTapCancel: () => _onTapCancel(index),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final IconData selectedIcon;
+  final String label;
+  final bool isSelected;
+  final bool isPressed;
+  final Animation<double> scaleAnimation;
+  final Animation<double> highlightAnimation;
+  final Color selectedColor;
+  final Color unselectedColor;
+  final VoidCallback onTapDown;
+  final VoidCallback onTapUp;
+  final VoidCallback onTapCancel;
+
+  const _NavItem({
+    required this.icon,
+    required this.selectedIcon,
+    required this.label,
+    required this.isSelected,
+    required this.isPressed,
+    required this.scaleAnimation,
+    required this.highlightAnimation,
+    required this.selectedColor,
+    required this.unselectedColor,
+    required this.onTapDown,
+    required this.onTapUp,
+    required this.onTapCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final effectiveColor = isSelected ? selectedColor : unselectedColor;
+
+    return GestureDetector(
+      onTapDown: (_) => onTapDown(),
+      onTapUp: (_) => onTapUp(),
+      onTapCancel: onTapCancel,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedBuilder(
+        animation: Listenable.merge([scaleAnimation, highlightAnimation]),
+        builder: (context, child) {
+          final scale = scaleAnimation.value;
+          final highlight = highlightAnimation.value;
+
+          return Transform.scale(
+            scale: scale,
+            child: Container(
+              color: Color.lerp(
+                Colors.transparent,
+                selectedColor.withValues(alpha: 0.12),
+                highlight,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    isSelected ? selectedIcon : icon,
+                    color: Color.lerp(
+                      unselectedColor,
+                      selectedColor,
+                      highlight,
+                    ),
+                    size: 24,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    label,
+                    style: TextStyle(
+                      color: effectiveColor,
+                      fontSize: 12,
+                      fontWeight:
+                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
     );
   }
 }
