@@ -691,307 +691,145 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    final morphValue = _morphController.value;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final bottomInset = MediaQuery.paddingOf(context).bottom;
-    final screenCenterX = screenWidth / 2;
+    final colors = Theme.of(context).colorScheme;
 
-    // Use widget.bottomOffset if provided, otherwise use system bottom inset
-    final effectiveBottomOffset = widget.bottomOffset > 0
-        ? widget.bottomOffset
-        : bottomInset;
+    // Calculate positions based on animation state
+    final position = _currentPosition;
+    final size = _currentSize;
+    final borderRadius = _currentBorderRadius;
 
-    // Morph animation values
-    // morphValue: 0 = collapsed (sidebar), 1 = expanded (panel)
-    final panelOpacity = morphValue;
-    final sidebarOpacity = 1 - morphValue;
-    final isCollapsed = morphValue < 0.5;
+    // Determine content based on state
+    final bool showHeader = _animationState == MidiPlayerAnimationState.expanding_player ||
+                            _animationState == MidiPlayerAnimationState.expanded_player ||
+                            _animationState == MidiPlayerAnimationState.collapsing_player;
 
-    // Morphing widget visibility:
-    // - When collapsed: full opacity for sidebar button
-    // - When expanded: full opacity for panel header
-    // - During morph: fade in/out to hide transition
-    final double morphOpacity = isCollapsed
-        ? sidebarOpacity.clamp(0.8, 1.0) // Show sidebar when collapsed
-        : morphValue.clamp(0.8, 1.0); // Show header when expanded
-
-    // Constants for collapsed state
-    const collapsedWidth = kMidiSidebarButtonSize; // 56
-    const collapsedHeight = kMidiSidebarButtonSize; // 56
-    const collapsedMargin = kMidiSidebarButtonMargin; // 16
-
-    // Snap position based on screen center
-    // _sidebarX: 0 = left edge, 0.5 = center, 1 = right edge
-    double snapX;
-    bool isAtEdge = false;
-
-    if (isCollapsed) {
-      // Calculate which snap zone we're in
-      final actualLeft = collapsedMargin + (_sidebarX * (screenWidth - collapsedWidth - collapsedMargin * 2));
-      final centerX = actualLeft + (collapsedWidth / 2);
-
-      if (centerX < screenCenterX - 50) {
-        // Left side: stick to left
-        snapX = 0.0;
-        isAtEdge = true;
-      } else if (centerX > screenCenterX + 50) {
-        // Right side: stick to right
-        snapX = 1.0;
-        isAtEdge = true;
-      } else {
-        // Center area: stick to center
-        snapX = 0.5;
-        isAtEdge = false;
-      }
-    } else {
-      snapX = 0.5;
-      isAtEdge = false;
-    }
-
-    // Calculate positions
-    final expandedWidth = screenWidth * 0.95;
-    const expandedHeight = 48.0; // Panel header height
-
-    // Interpolate dimensions
-    final sidebarWidth = collapsedWidth * (1 - morphValue) + expandedWidth * morphValue;
-    final sidebarHeight = collapsedHeight * (1 - morphValue) + expandedHeight * morphValue;
-
-    // Calculate position based on snap
-    double sidebarLeft;
-    double sidebarBottom;
-
-    if (isCollapsed) {
-      // Position based on snap zone
-      final maxLeft = screenWidth - collapsedWidth - collapsedMargin;
-      final minLeft = collapsedMargin;
-      sidebarLeft = minLeft + (snapX * (maxLeft - minLeft));
-
-      // Free drag Y: _sidebarY: 0 = top area, 1 = bottom (near navbar)
-      final maxBottom = screenHeight * 0.75;
-      final minBottom = collapsedMargin + effectiveBottomOffset;
-      sidebarBottom = minBottom + (_sidebarY * (maxBottom - minBottom));
-    } else {
-      // Expanded: fixed position at bottom center
-      sidebarLeft = (screenWidth - expandedWidth) / 2;
-      sidebarBottom = effectiveBottomOffset;
-    }
-
-    // Border radius morphs:
-    // - When at left/right edge: full circle (all corners rounded)
-    // - When at center: half-circle (flat on one side, rounded on other)
-    // - When expanded: header with rounded top corners
-    BorderRadius sidebarBorderRadius;
-
-    if (morphValue < 0.1) {
-      // Collapsed state
-      if (isAtEdge) {
-        // Full circle when at edge
-        sidebarBorderRadius = BorderRadius.all(Radius.circular(collapsedWidth / 2));
-      } else if (snapX < 0.5) {
-        // Center-left: half-circle on LEFT (flat on left)
-        sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(0),
-          bottomLeft: Radius.circular(0),
-          topRight: Radius.circular(collapsedWidth / 2),
-          bottomRight: Radius.circular(collapsedWidth / 2),
-        );
-      } else {
-        // Center-right: half-circle on RIGHT (flat on right)
-        sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(collapsedWidth / 2),
-          bottomLeft: Radius.circular(collapsedWidth / 2),
-          topRight: Radius.circular(0),
-          bottomRight: Radius.circular(0),
-        );
-      }
-    } else if (morphValue > 0.9) {
-      // Expanded state: header with rounded top corners
-      sidebarBorderRadius = BorderRadius.only(
-        topLeft: Radius.circular(16),
-        topRight: Radius.circular(16),
-        bottomLeft: Radius.circular(0),
-        bottomRight: Radius.circular(0),
-      );
-    } else {
-      // Morphing state: blend based on position
-      final cornerRadius = collapsedWidth / 2;
-      if (isAtEdge) {
-        // Full circle morphing to header
-        sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
-          topRight: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
-          bottomLeft: Radius.circular(cornerRadius * (1 - morphValue)),
-          bottomRight: Radius.circular(cornerRadius * (1 - morphValue)),
-        );
-      } else if (snapX < 0.5) {
-        // Left half-circle morphing to header
-        sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(16 * morphValue),
-          bottomLeft: Radius.circular(0),
-          topRight: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
-          bottomRight: Radius.circular(cornerRadius * (1 - morphValue)),
-        );
-      } else {
-        // Right half-circle morphing to header
-        sidebarBorderRadius = BorderRadius.only(
-          topLeft: Radius.circular(cornerRadius * (1 - morphValue) + 16 * morphValue),
-          bottomLeft: Radius.circular(cornerRadius * (1 - morphValue)),
-          topRight: Radius.circular(16 * morphValue),
-          bottomRight: Radius.circular(0),
-        );
-      }
-    }
-
-    // Build morphing widget
-    final double widgetLeft = isCollapsed
-        ? sidebarLeft
-        : kMidiOverlayHorizontalMargin;
-
-    // Content: show icon when collapsed, header when expanded
-    Widget morphContent;
-    if (morphValue < 0.5) {
-      // Collapsed: just the music icon with bounce animation
-      morphContent = _buildCollapsedContent(colors);
-    } else {
-      // Expanded: "Now Playing" header with expand arrow
-      morphContent = _buildExpandedHeader(colors);
-    }
-
-    Widget morphingWidget = Positioned(
-      left: widgetLeft,
-      right: isCollapsed ? null : kMidiOverlayHorizontalMargin,
-      bottom: sidebarBottom,
-      child: Opacity(
-        opacity: morphOpacity,
-        child: GestureDetector(
-          onTap: () {
-            if (isCollapsed) {
-              _setExpanded(true);
-            }
-          },
-          onPanUpdate: isCollapsed
-              ? (details) {
-                  // Update position based on delta
-                  final dx = details.delta.dx / (screenWidth - collapsedWidth - collapsedMargin * 2);
-                  final dy = -details.delta.dy / (screenHeight * 0.75 - collapsedMargin);
-
-                  setState(() {
-                    _sidebarX = (_sidebarX + dx).clamp(0.0, 1.0);
-                    _sidebarY = (_sidebarY + dy).clamp(0.0, 1.0);
-                  });
-                }
-              : null,
-          onPanEnd: (details) {
-            // Snap to nearest position based on current position
-            // This is handled by recalculating snapX on next build
-          },
-          child: Container(
-            width: isCollapsed ? sidebarWidth : null,
-            height: sidebarHeight,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: sidebarBorderRadius,
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.3 * sidebarOpacity),
-                  blurRadius: 12 * sidebarOpacity + 4,
-                  offset: Offset(
-                    -3 * sidebarOpacity,
-                    5 * sidebarOpacity,
-                  ),
-                  spreadRadius: -2 * sidebarOpacity,
-                ),
-              ],
+    return Stack(
+      children: [
+        // Expanded controls (below header) - opacity animated
+        if (_animationState != MidiPlayerAnimationState.sidebar_circle &&
+            _animationState != MidiPlayerAnimationState.flying_to_sidebar)
+          Positioned(
+            left: _playerPosition.dx,
+            right: _screenWidth - _playerPosition.dx - _playerSize.width,
+            bottom: _playerPosition.dy + kMidiExpandedHeaderHeight,
+            child: Opacity(
+              opacity: _controlsOpacity,
+              child: _buildExpandedControls(context, colors),
             ),
-            child: ClipRRect(
-              borderRadius: sidebarBorderRadius,
-              child: Material(
-                color: Colors.transparent,
-                child: morphContent,
-              ),
+          ),
+
+        // Main morphing container
+        Positioned(
+          left: position.dx,
+          bottom: position.dy,
+          child: GestureDetector(
+            onTap: () {
+              if (_animationState == MidiPlayerAnimationState.sidebar_circle) {
+                expand();
+              }
+            },
+            onPanStart: (_) {
+              setState(() => _isDragging = true);
+            },
+            onPanUpdate: (details) {
+              if (_animationState == MidiPlayerAnimationState.sidebar_circle ||
+                  _animationState == MidiPlayerAnimationState.flying_to_sidebar) {
+                _updateDragPosition(details.delta);
+              }
+            },
+            onPanEnd: (_) {
+              setState(() => _isDragging = false);
+              _snapToEdge();
+            },
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_flyController, _morphController, _bounceController]),
+              builder: (context, child) {
+                // Calculate scale for drag hover
+                final hoverScale = _isDragging ? 1.1 : 1.0;
+                final bounceScale = _animationState == MidiPlayerAnimationState.sidebar_circle
+                    ? (widget.isPlaying ? 0.95 + (_bounceAnimation.value * 0.1) : 1.0)
+                    : 1.0;
+
+                return Transform.scale(
+                  scale: hoverScale * bounceScale,
+                  child: Container(
+                    width: size.width,
+                    height: size.height,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: borderRadius,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(-3, 5),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: borderRadius,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: showHeader
+                            ? _buildHeader(colors)
+                            : _buildCircleContent(colors),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),
-      ),
-    );
-
-    // Build expanded controls (below header)
-    // When expanded: positioned above the bottom, controls appear below header
-    final double controlsBottom = isCollapsed
-        ? effectiveBottomOffset
-        : effectiveBottomOffset + expandedHeight;
-
-    Widget expandedControls = Positioned(
-      left: kMidiOverlayHorizontalMargin,
-      right: kMidiOverlayHorizontalMargin,
-      bottom: controlsBottom,
-      child: Opacity(
-        opacity: panelOpacity.clamp(0.0, 1.0),
-        child: Transform.translate(
-          offset: Offset(0, 30 * (1 - morphValue)),
-          child: _buildExpandedControls(context, colors),
-        ),
-      ),
-    );
-
-    // Stack: morphing widget on top (so header shows when expanded)
-    // Expanded controls behind
-    Widget content = Stack(
-      children: [
-        // Background: expanded controls (play/pause, seek, etc.)
-        expandedControls,
-        // Foreground: morphing widget (sidebar ↔ header)
-        // This stays on top so header is always visible
-        morphingWidget,
       ],
     );
-
-    if (widget.usePositioned) {
-      return content;
-    }
-    return content;
   }
 
-  Widget _buildCollapsedContent(ColorScheme colors) {
-    return AnimatedBuilder(
-      animation: _bounceController,
-      builder: (context, child) {
-        final t = _bounceAnimation.value;
-        final pulseScale = widget.isPlaying ? (0.85 + (t * 0.15)) : 1.0;
-        final bounceOffset = widget.isPlaying ? (t < 0.5 ? t * 2 : (1.0 - t) * 2) : 0.0;
-        final iconY = bounceOffset * -3;
-        final iconRotation = widget.isPlaying ? (t - 0.5) * 0.06 : 0.0;
+  void _updateDragPosition(Offset delta) {
+    final dx = delta.dx / (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2);
+    final dy = -delta.dy / (_screenHeight * 0.75 - kMidiCircleMargin);
 
-        return Center(
-          child: Transform.translate(
-            offset: Offset(0, iconY),
-            child: Transform.scale(
-              scale: pulseScale,
-              child: Transform.rotate(
-                angle: iconRotation,
-                child: Icon(
-                  Icons.queue_music_rounded,
-                  size: 28,
-                  color: colors.onPrimary,
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+    setState(() {
+      _sidebarX = (_sidebarX + dx).clamp(0.0, 1.0);
+      _sidebarY = (_sidebarY + dy).clamp(0.0, 1.0);
+    });
+  }
+
+  void _snapToEdge() {
+    // Determine snap position based on current X
+    final targetSnapX = _targetSnapX;
+
+    if (targetSnapX != _sidebarX) {
+      // Need to animate to new position
+      setState(() {
+        _sidebarX = targetSnapX;
+      });
+    }
+  }
+
+  Widget _buildCircleContent(ColorScheme colors) {
+    // Circle content - music icon with pulse when playing
+    return Center(
+      child: Icon(
+        Icons.queue_music_rounded,
+        size: 28,
+        color: colors.onPrimary,
+      ),
     );
   }
 
-  Widget _buildExpandedHeader(ColorScheme colors) {
-    // Show "Now Playing" header with expand arrow
+  Widget _buildHeader(ColorScheme colors) {
+    // Floating header - tap to collapse
     return GestureDetector(
-      onTap: () => _setExpanded(false),
+      onTap: () {
+        if (_animationState == MidiPlayerAnimationState.expanded_player) {
+          collapse();
+        }
+      },
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        height: kMidiExpandedHeaderHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Row(
           children: [
             Icon(
@@ -1001,36 +839,18 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.nowPlayingTitle.trim().isEmpty
-                        ? 'Now Playing'
-                        : widget.nowPlayingTitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      color: colors.onPrimary,
-                      fontSize: 12,
-                      letterSpacing: 1.3,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  if (widget.runningFamilyChord != null &&
-                      widget.runningFamilyChord!.isNotEmpty)
-                    Text(
-                      widget.runningFamilyChord!,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        color: colors.onPrimary.withValues(alpha: 0.8),
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                ],
+              child: Text(
+                widget.nowPlayingTitle.trim().isEmpty
+                    ? 'Now Playing'
+                    : widget.nowPlayingTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 12,
+                  letterSpacing: 1.3,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ),
             Icon(
