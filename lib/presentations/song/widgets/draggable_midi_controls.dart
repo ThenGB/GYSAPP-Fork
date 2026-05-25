@@ -250,14 +250,20 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _morphController.addListener(_onAnimationTick);
 
     // Determine initial state based on isExpanded
-    final initiallyExpanded = _effectiveExpanded;
-    _animationState = initiallyExpanded
-        ? MidiPlayerAnimationState.expanded_player
-        : MidiPlayerAnimationState.sidebar_circle;
-
-    // Start bounce animation if playing
-    if (widget.isPlaying && !initiallyExpanded) {
-      _bounceController.repeat(reverse: true);
+    final initiallyExpanded = widget.isExpanded ?? false;
+    if (initiallyExpanded) {
+      // Start in expanded state - set controllers to final values
+      _animationState = MidiPlayerAnimationState.expanded_player;
+      _flyController.value = 1.0;
+      _morphController.value = 1.0;
+    } else {
+      _animationState = MidiPlayerAnimationState.sidebar_circle;
+      _flyController.value = 0.0;
+      _morphController.value = 0.0;
+      // Start bounce animation if playing
+      if (widget.isPlaying) {
+        _bounceController.repeat(reverse: true);
+      }
     }
   }
 
@@ -704,27 +710,22 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     final size = _currentSize;
     final borderRadius = _currentBorderRadius;
 
-    // Determine content based on state
+    // Determine if showing header content
     final bool showHeader = _animationState == MidiPlayerAnimationState.expanding_player ||
                             _animationState == MidiPlayerAnimationState.expanded_player ||
                             _animationState == MidiPlayerAnimationState.collapsing_player;
 
+    // Determine if showing controls
+    final bool showControls = _animationState == MidiPlayerAnimationState.expanding_player ||
+                             _animationState == MidiPlayerAnimationState.expanded_player ||
+                             _animationState == MidiPlayerAnimationState.collapsing_player;
+
+    // Controls opacity based on animation state
+    final controlsOpacity = _controlsOpacity;
+
     return Stack(
       children: [
-        // Expanded controls (below header) - opacity animated
-        if (_animationState != MidiPlayerAnimationState.sidebar_circle &&
-            _animationState != MidiPlayerAnimationState.flying_to_sidebar)
-          Positioned(
-            left: _playerPosition.dx,
-            right: _screenWidth - _playerPosition.dx - _playerSize.width,
-            bottom: _playerPosition.dy + kMidiExpandedHeaderHeight,
-            child: Opacity(
-              opacity: _controlsOpacity,
-              child: _buildExpandedControls(context, colors),
-            ),
-          ),
-
-        // Main morphing container
+        // Main morphing container with header + controls in a Column
         Positioned(
           left: position.dx,
           bottom: position.dy,
@@ -750,7 +751,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             child: AnimatedBuilder(
               animation: Listenable.merge([_flyController, _morphController, _bounceController]),
               builder: (context, child) {
-                // Calculate scale for drag hover
+                // Calculate scale for drag hover and bounce
                 final hoverScale = _isDragging ? 1.1 : 1.0;
                 final bounceScale = _animationState == MidiPlayerAnimationState.sidebar_circle
                     ? (widget.isPlaying ? 0.95 + (_bounceAnimation.value * 0.1) : 1.0)
@@ -777,7 +778,27 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                       child: Material(
                         color: Colors.transparent,
                         child: showHeader
-                            ? _buildHeader(colors)
+                            ? Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Header at top
+                                  SizedBox(
+                                    width: double.infinity,
+                                    height: kMidiExpandedHeaderHeight,
+                                    child: _buildHeader(colors),
+                                  ),
+                                  // Controls below header (scrollable if needed)
+                                  if (showControls)
+                                    Expanded(
+                                      child: Opacity(
+                                        opacity: controlsOpacity,
+                                        child: SingleChildScrollView(
+                                          child: _buildExpandedControls(context, colors),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              )
                             : _buildCircleContent(colors),
                       ),
                     ),
