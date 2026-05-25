@@ -2,9 +2,12 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:vector_math/vector_math_64.dart' show Vector4;
 
 import '../cubit/song_playlist.dart';
+
+// Animation timing
+const Duration kMidiAnimationFlyDuration = Duration(milliseconds: 150);
+const Duration kMidiAnimationMorphDuration = Duration(milliseconds: 150);
 
 const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
@@ -15,6 +18,57 @@ const double kMidiSidebarButtonSize = 56;
 const double kMidiSidebarButtonMargin = 16;
 const double kMidiSidebarBarWidth = 48;
 const double kMidiSidebarBarHeight = 48;
+
+// Expanded player dimensions
+const double kMidiExpandedHeaderHeight = 48.0;
+const double kMidiExpandedControlsHeight = 120.0;
+const double kMidiExpandedTotalHeight = kMidiExpandedHeaderHeight + kMidiExpandedControlsHeight;
+const double kMidiExpandedWidthRatio = 0.95;
+
+// Collapsed (circle) dimensions
+const double kMidiCircleSize = 56.0;
+const double kMidiCircleMargin = 16.0;
+
+// Dashboard navigation gap (needed for proper positioning)
+const double kDashboardMiniPlayerNavGap = 0.0;
+
+/// Animation states for the MIDI player morphing system.
+/// Follows a cycle: sidebar_circle ↔ (flying) ↔ expanded_player
+enum MidiPlayerAnimationState {
+  /// Collapsed circle at sidebar position (left or right edge)
+  sidebar_circle,
+
+  /// Circle flying to player position (bottom center)
+  flying_to_player,
+
+  /// Circle morphing into player shape
+  expanding_player,
+
+  /// Full player visible with header + controls
+  expanded_player,
+
+  /// Player morphing back into circle (at player position)
+  collapsing_player,
+
+  /// Circle flying to sidebar snap position
+  flying_to_sidebar,
+}
+
+extension MidiPlayerAnimationStateExt on MidiPlayerAnimationState {
+  bool get isCircle => this == MidiPlayerAnimationState.sidebar_circle;
+  bool get isExpanded => this == MidiPlayerAnimationState.expanded_player;
+  bool get isAnimating =>
+      this == MidiPlayerAnimationState.flying_to_player ||
+      this == MidiPlayerAnimationState.expanding_player ||
+      this == MidiPlayerAnimationState.collapsing_player ||
+      this == MidiPlayerAnimationState.flying_to_sidebar;
+  bool get isExpanding =>
+      this == MidiPlayerAnimationState.flying_to_player ||
+      this == MidiPlayerAnimationState.expanding_player;
+  bool get isCollapsing =>
+      this == MidiPlayerAnimationState.collapsing_player ||
+      this == MidiPlayerAnimationState.flying_to_sidebar;
+}
 
 IconData midiLoopModeIcon(String mode) {
   return switch (SongPlaylistAutoNextMode.normalize(mode)) {
@@ -124,54 +178,90 @@ class DraggableMidiControls extends StatefulWidget {
 
 class _DraggableMidiControlsState extends State<DraggableMidiControls>
     with TickerProviderStateMixin {
-  bool _expanded = true;
   final GlobalKey _instrumentButtonKey = GlobalKey();
-  late AnimationController _animationController;
-  late AnimationController _pulseController;
-  late Animation<Offset> _slideAnimation;
-  late Animation<double> _fadeAnimation;
-  late Animation<double> _pulseAnimation;
 
-  // Sidebar button state
-  double _sidebarButtonY = 200; // Initial vertical position
-  bool _snapRight = true; // Snap to right or left side
-  double _dragX = 0; // Horizontal drag offset
+  // === Animation State Machine ===
+  MidiPlayerAnimationState _animationState = MidiPlayerAnimationState.expanded_player;
 
-  // Debounce timers for tempo and transpose to prevent spamming
+  // Position tracking for snap zones
+  double _sidebarX = 1.0;  // 0 = left edge, 1 = right edge
+  double _sidebarY = 0.5;   // 0 = top, 1 = bottom (normalized)
+
+  // Animation controllers
+  late AnimationController _flyController;      // Phase 1: fly to target
+  late AnimationController _morphController;   // Phase 2: morph shape
+  late AnimationController _bounceController;  // Pulse when playing (sidebar)
+
+  // Derived animations
+  late Animation<double> _flyAnimation;
+  late Animation<double> _morphAnimation;
+  late Animation<double> _bounceAnimation;
+
+  // Drag state
+  bool _isDragging = false;
+  double _dragHoverScale = 1.0;
+
+  // Debounce timers
   Timer? _tempoDebounce;
   Timer? _transposeDebounce;
+
+  // Backwards compatibility getter
+  bool get _expanded => _animationState == MidiPlayerAnimationState.expanded_player ||
+                       _animationState == MidiPlayerAnimationState.expanding_player ||
+                       _animationState == MidiPlayerAnimationState.collapsing_player;
 
   bool get _effectiveExpanded => widget.isExpanded ?? _expanded;
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize animation controllers
+    _flyController = AnimationController(
+      duration: kMidiAnimationFlyDuration,
+      vsync: this,
+    );
+    _morphController = AnimationController(
+      duration: kMidiAnimationMorphDuration,
+      vsync: this,
+    );
+    _bounceController = AnimationController(
+      duration: const Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    // Set up derived animations
+    _flyAnimation = CurvedAnimation(
+      parent: _flyController,
+      curve: Curves.easeOutCubic,
+    );
+    _morphAnimation = CurvedAnimation(
+      parent: _morphController,
+      curve: Curves.easeInOutCubic,
+    );
+    _bounceAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _bounceController, curve: Curves.easeInOut),
+    );
+
+    // Listeners
+    _flyController.addListener(_onAnimationTick);
+    _morphController.addListener(_onAnimationTick);
+
+    // Determine initial state based on isExpanded
     final initiallyExpanded = _effectiveExpanded;
-    _expanded = initiallyExpanded;
-    _animationController = AnimationController(
-      duration: const Duration(milliseconds: 280),
-      vsync: this,
-      value: initiallyExpanded ? 1.0 : 0.0,
-    );
-    _pulseController = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat();
-    _slideAnimation = Tween<Offset>(begin: const Offset(0, 1), end: Offset.zero)
-        .animate(
-          CurvedAnimation(
-            parent: _animationController,
-            curve: Curves.easeOutCubic,
-          ),
-        );
-    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
-    );
-    _pulseAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
-    );
-    if (initiallyExpanded) {
-      _animationController.forward(from: 1.0);
+    _animationState = initiallyExpanded
+        ? MidiPlayerAnimationState.expanded_player
+        : MidiPlayerAnimationState.sidebar_circle;
+
+    // Start bounce animation if playing
+    if (widget.isPlaying && !initiallyExpanded) {
+      _bounceController.repeat(reverse: true);
+    }
+  }
+
+  void _onAnimationTick() {
+    if (mounted) {
+      setState(() {});
     }
   }
 
@@ -179,23 +269,211 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void dispose() {
     _tempoDebounce?.cancel();
     _transposeDebounce?.cancel();
-    _animationController.dispose();
-    _pulseController.dispose();
+    _flyController.dispose();
+    _morphController.dispose();
+    _bounceController.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant DraggableMidiControls oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (widget.isExpanded != null &&
-        oldWidget.isExpanded != widget.isExpanded) {
-      final newValue = widget.isExpanded!;
-      _expanded = newValue;
-      if (newValue) {
-        _animationController.forward();
+
+    // Handle external isExpanded changes
+    if (widget.isExpanded != null && oldWidget.isExpanded != widget.isExpanded) {
+      if (widget.isExpanded!) {
+        expand();
       } else {
-        _animationController.reverse();
+        collapse();
       }
+    }
+
+    // Handle playing state changes for bounce animation
+    if (oldWidget.isPlaying != widget.isPlaying) {
+      if (widget.isPlaying && _animationState == MidiPlayerAnimationState.sidebar_circle) {
+        _bounceController.repeat(reverse: true);
+      } else {
+        _bounceController.stop();
+        _bounceController.value = 0;
+      }
+    }
+  }
+
+  void expand() {
+    if (_animationState != MidiPlayerAnimationState.sidebar_circle) return;
+
+    setState(() => _animationState = MidiPlayerAnimationState.flying_to_player);
+    _bounceController.stop();
+
+    // Phase 1: Fly to player position
+    _flyController.forward(from: 0).then((_) {
+      setState(() => _animationState = MidiPlayerAnimationState.expanding_player);
+
+      // Phase 2: Morph into player
+      _morphController.forward(from: 0).then((_) {
+        setState(() => _animationState = MidiPlayerAnimationState.expanded_player);
+      });
+    });
+  }
+
+  void collapse() {
+    if (_animationState != MidiPlayerAnimationState.expanded_player &&
+        _animationState != MidiPlayerAnimationState.expanding_player) return;
+
+    setState(() => _animationState = MidiPlayerAnimationState.collapsing_player);
+
+    // Phase 1: Morph to circle
+    _morphController.reverse(from: 1).then((_) {
+      setState(() => _animationState = MidiPlayerAnimationState.flying_to_sidebar);
+
+      // Phase 2: Fly to sidebar
+      _flyController.reverse(from: 1).then((_) {
+        setState(() => _animationState = MidiPlayerAnimationState.sidebar_circle);
+
+        // Start bounce if playing
+        if (widget.isPlaying) {
+          _bounceController.repeat(reverse: true);
+        }
+      });
+    });
+  }
+
+  // === Position Calculation Helpers ===
+
+  double get _screenWidth => MediaQuery.sizeOf(context).width;
+  double get _screenHeight => MediaQuery.sizeOf(context).height;
+  double get _screenCenterX => _screenWidth / 2;
+  double get _bottomInset => MediaQuery.paddingOf(context).bottom;
+
+  /// Target snap position (0 = left, 1 = right) based on current X
+  double get _targetSnapX {
+    final actualLeft = kMidiCircleMargin + (_sidebarX * (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2));
+    final centerX = actualLeft + (kMidiCircleSize / 2);
+    return centerX < _screenCenterX ? 0.0 : 1.0;
+  }
+
+  /// Circle position when collapsed (sidebar)
+  Offset get _sidebarPosition {
+    final maxLeft = _screenWidth - kMidiCircleSize - kMidiCircleMargin;
+    final minLeft = kMidiCircleMargin;
+    final left = minLeft + (_targetSnapX * (maxLeft - minLeft));
+
+    final maxBottom = _screenHeight * 0.75;
+    final minBottom = kMidiCircleMargin + _bottomInset;
+    final bottom = minBottom + (_sidebarY * (maxBottom - minBottom));
+
+    return Offset(left, bottom);
+  }
+
+  /// Player position (centered at bottom, above nav)
+  Offset get _playerPosition {
+    final left = (_screenWidth * (1 - kMidiExpandedWidthRatio)) / 2;
+    final bottom = _bottomInset + kDashboardMiniPlayerNavGap;
+    return Offset(left, bottom);
+  }
+
+  /// Player dimensions
+  Size get _playerSize {
+    final width = _screenWidth * kMidiExpandedWidthRatio;
+    return Size(width, kMidiExpandedTotalHeight);
+  }
+
+  /// Circle size
+  Size get _circleSize => const Size(kMidiCircleSize, kMidiCircleSize);
+
+  /// Current position based on animation state
+  Offset get _currentPosition {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        return _sidebarPosition;
+      case MidiPlayerAnimationState.flying_to_player:
+      case MidiPlayerAnimationState.expanding_player:
+      case MidiPlayerAnimationState.collapsing_player:
+      case MidiPlayerAnimationState.expanded_player:
+        return _playerPosition;
+    }
+  }
+
+  /// Current size based on animation state
+  Size get _currentSize {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        return _circleSize;
+      case MidiPlayerAnimationState.flying_to_player:
+      case MidiPlayerAnimationState.expanding_player:
+      case MidiPlayerAnimationState.collapsing_player:
+      case MidiPlayerAnimationState.expanded_player:
+        return _playerSize;
+    }
+  }
+
+  /// Calculate border radius based on animation state and progress
+  BorderRadius get _currentBorderRadius {
+    final circleRadius = kMidiCircleSize / 2;
+
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        // Full circle
+        return BorderRadius.all(Radius.circular(circleRadius));
+
+      case MidiPlayerAnimationState.flying_to_player:
+        // Circle flying - stay circular
+        return BorderRadius.all(Radius.circular(circleRadius));
+
+      case MidiPlayerAnimationState.expanding_player:
+        // Morphing from circle to header
+        final morphProgress = _morphAnimation.value;
+        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
+        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
+        return BorderRadius.only(
+          topLeft: Radius.circular(topRadius),
+          topRight: Radius.circular(topRadius),
+          bottomLeft: Radius.circular(bottomRadius),
+          bottomRight: Radius.circular(bottomRadius),
+        );
+
+      case MidiPlayerAnimationState.expanded_player:
+        // Header shape: rounded top, flat bottom
+        return const BorderRadius.only(
+          topLeft: Radius.circular(16),
+          topRight: Radius.circular(16),
+          bottomLeft: Radius.circular(0),
+          bottomRight: Radius.circular(0),
+        );
+
+      case MidiPlayerAnimationState.collapsing_player:
+        // Morphing from header to circle
+        final morphProgress = 1 - _morphAnimation.value;
+        final topRadius = lerpDouble(circleRadius, 16, morphProgress);
+        final bottomRadius = lerpDouble(circleRadius, 0, morphProgress);
+        return BorderRadius.only(
+          topLeft: Radius.circular(topRadius),
+          topRight: Radius.circular(topRadius),
+          bottomLeft: Radius.circular(bottomRadius),
+          bottomRight: Radius.circular(bottomRadius),
+        );
+    }
+  }
+
+  /// Helper for lerp
+  double lerpDouble(double a, double b, double t) {
+    return a + (b - a) * t;
+  }
+
+  /// Opacity for controls (fade in during morph phase)
+  double get _controlsOpacity {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.expanding_player:
+        return _morphAnimation.value;
+      case MidiPlayerAnimationState.expanded_player:
+        return 1.0;
+      case MidiPlayerAnimationState.collapsing_player:
+        return 1 - _morphAnimation.value;
+      default:
+        return 0.0;
     }
   }
 
@@ -403,172 +681,193 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void _setExpanded(bool value) {
     if (widget.onExpandedChanged != null) {
       widget.onExpandedChanged!(value);
-    } else {
-      setState(() => _expanded = value);
     }
     if (value) {
-      _animationController.forward();
+      expand();
     } else {
-      _animationController.reverse();
+      collapse();
     }
-  }
-
-  void _handleSidebarPanUpdate(DragUpdateDetails details) {
-    final screenHeight = MediaQuery.sizeOf(context).height;
-    final barHeight = kMidiSidebarBarHeight;
-    final margin = kMidiSidebarButtonMargin;
-
-    setState(() {
-      // Allow full screen vertical movement
-      _sidebarButtonY = (_sidebarButtonY + details.delta.dy).clamp(
-        margin,
-        screenHeight - barHeight - margin,
-      );
-      // Update dragX for smooth horizontal movement feedback
-      _dragX += details.delta.dx;
-    });
-  }
-
-  void _handleSidebarPanEnd(DragEndDetails details) {
-    final screenWidth = MediaQuery.sizeOf(context).width;
-
-    setState(() {
-      final currentPos = _snapRight ? screenWidth + _dragX : _dragX;
-      _snapRight = currentPos > screenWidth / 2;
-      _dragX = 0;
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
+    final colors = Theme.of(context).colorScheme;
 
-    if (_effectiveExpanded) {
-      Widget expandedPanel = SlideTransition(
-        position: _slideAnimation,
-        child: FadeTransition(
-          opacity: _fadeAnimation,
-          child: _buildExpandedPanel(context, colors),
-        ),
-      );
+    // Calculate positions based on animation state
+    final position = _currentPosition;
+    final size = _currentSize;
+    final borderRadius = _currentBorderRadius;
 
-      final content = Material(
-        type: MaterialType.transparency,
-        child: Align(
-          alignment: Alignment.bottomCenter,
-          heightFactor: 1.0,
-          child: Padding(
-            padding: EdgeInsets.only(bottom: widget.bottomOffset),
-            child: expandedPanel,
+    // Determine content based on state
+    final bool showHeader = _animationState == MidiPlayerAnimationState.expanding_player ||
+                            _animationState == MidiPlayerAnimationState.expanded_player ||
+                            _animationState == MidiPlayerAnimationState.collapsing_player;
+
+    return Stack(
+      children: [
+        // Expanded controls (below header) - opacity animated
+        if (_animationState != MidiPlayerAnimationState.sidebar_circle &&
+            _animationState != MidiPlayerAnimationState.flying_to_sidebar)
+          Positioned(
+            left: _playerPosition.dx,
+            right: _screenWidth - _playerPosition.dx - _playerSize.width,
+            bottom: _playerPosition.dy + kMidiExpandedHeaderHeight,
+            child: Opacity(
+              opacity: _controlsOpacity,
+              child: _buildExpandedControls(context, colors),
+            ),
+          ),
+
+        // Main morphing container
+        Positioned(
+          left: position.dx,
+          bottom: position.dy,
+          child: GestureDetector(
+            onTap: () {
+              if (_animationState == MidiPlayerAnimationState.sidebar_circle) {
+                expand();
+              }
+            },
+            onPanStart: (_) {
+              setState(() => _isDragging = true);
+            },
+            onPanUpdate: (details) {
+              if (_animationState == MidiPlayerAnimationState.sidebar_circle ||
+                  _animationState == MidiPlayerAnimationState.flying_to_sidebar) {
+                _updateDragPosition(details.delta);
+              }
+            },
+            onPanEnd: (_) {
+              setState(() => _isDragging = false);
+              _snapToEdge();
+            },
+            child: AnimatedBuilder(
+              animation: Listenable.merge([_flyController, _morphController, _bounceController]),
+              builder: (context, child) {
+                // Calculate scale for drag hover
+                final hoverScale = _isDragging ? 1.1 : 1.0;
+                final bounceScale = _animationState == MidiPlayerAnimationState.sidebar_circle
+                    ? (widget.isPlaying ? 0.95 + (_bounceAnimation.value * 0.1) : 1.0)
+                    : 1.0;
+
+                return Transform.scale(
+                  scale: hoverScale * bounceScale,
+                  child: Container(
+                    width: size.width,
+                    height: size.height,
+                    decoration: BoxDecoration(
+                      color: colors.primary,
+                      borderRadius: borderRadius,
+                      boxShadow: [
+                        BoxShadow(
+                          color: colors.primary.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(-3, 5),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: borderRadius,
+                      child: Material(
+                        color: Colors.transparent,
+                        child: showHeader
+                            ? _buildHeader(colors)
+                            : _buildCircleContent(colors),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
-      );
-
-      if (widget.usePositioned) {
-        return Positioned(left: 0, right: 0, bottom: 0, child: content);
-      }
-      return content;
-    }
-
-    // Collapsed state - sidebar button
-    final collapsedTrigger = Material(
-      type: MaterialType.transparency,
-      child: Transform.translate(
-        offset: Offset(_dragX, 0),
-        child: _buildCollapsedTrigger(context, colors),
-      ),
+      ],
     );
+  }
 
-    if (widget.usePositioned) {
-      return Positioned(
-        top: _sidebarButtonY,
-        left: _snapRight ? null : 0,
-        right: _snapRight ? 0 : null,
-        child: collapsedTrigger,
-      );
+  void _updateDragPosition(Offset delta) {
+    final dx = delta.dx / (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2);
+    final dy = -delta.dy / (_screenHeight * 0.75 - kMidiCircleMargin);
+
+    setState(() {
+      _sidebarX = (_sidebarX + dx).clamp(0.0, 1.0);
+      _sidebarY = (_sidebarY + dy).clamp(0.0, 1.0);
+    });
+  }
+
+  void _snapToEdge() {
+    // Determine snap position based on current X
+    final targetSnapX = _targetSnapX;
+
+    if (targetSnapX != _sidebarX) {
+      // Need to animate to new position
+      setState(() {
+        _sidebarX = targetSnapX;
+      });
     }
+  }
 
-    return Align(
-      alignment: _snapRight ? Alignment.topRight : Alignment.topLeft,
-      child: Padding(
-        padding: EdgeInsets.only(top: _sidebarButtonY),
-        child: collapsedTrigger,
+  Widget _buildCircleContent(ColorScheme colors) {
+    // Circle content - music icon with pulse when playing
+    return Center(
+      child: Icon(
+        Icons.queue_music_rounded,
+        size: 28,
+        color: colors.onPrimary,
       ),
     );
   }
 
-  Widget _buildCollapsedTrigger(BuildContext context, ColorScheme colors) {
+  Widget _buildHeader(ColorScheme colors) {
+    // Floating header - tap to collapse
     return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onPanUpdate: _handleSidebarPanUpdate,
-      onPanEnd: _handleSidebarPanEnd,
-      onTap: () => _setExpanded(true),
-      onDoubleTap: () {
-        setState(() {
-          _snapRight = !_snapRight;
-        });
+      onTap: () {
+        if (_animationState == MidiPlayerAnimationState.expanded_player) {
+          collapse();
+        }
       },
       child: Container(
-        key: const ValueKey('midi-collapsed'),
-        // The trigger itself
-        width: kMidiSidebarBarWidth,
-        height: kMidiSidebarBarHeight,
-        decoration: BoxDecoration(
-          color: colors.primary,
-          borderRadius: BorderRadius.only(
-            topLeft: _snapRight ? const Radius.circular(8) : Radius.zero,
-            bottomLeft: _snapRight ? const Radius.circular(8) : Radius.zero,
-            topRight: _snapRight ? Radius.zero : const Radius.circular(8),
-            bottomRight: _snapRight ? Radius.zero : const Radius.circular(8),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.15),
-              blurRadius: 10,
-              offset: Offset(_snapRight ? -2 : 2, 4),
+        width: double.infinity,
+        height: kMidiExpandedHeaderHeight,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            Icon(
+              Icons.music_note_rounded,
+              size: 16,
+              color: colors.onPrimary,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                widget.nowPlayingTitle.trim().isEmpty
+                    ? 'Now Playing'
+                    : widget.nowPlayingTitle,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  color: colors.onPrimary,
+                  fontSize: 12,
+                  letterSpacing: 1.3,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.expand_more,
+              size: 20,
+              color: colors.onPrimary,
             ),
           ],
         ),
-        child: AnimatedBuilder(
-          animation: _pulseAnimation,
-          builder: (context, child) {
-            double scale = _pulseAnimation.value;
-            double rotation = 0;
-            double translationY = 0;
-            double translationX = 0;
-
-            if (widget.isPlaying) {
-              // Musical rhythmic dance
-              final t = (DateTime.now().millisecondsSinceEpoch % 600) / 600.0;
-              final jump = (t < 0.5) ? t * 2 : (1.0 - t) * 2;
-              translationY = jump * -12;
-              rotation = 0.2 * (t < 0.5 ? 1 : -1) * jump;
-              // Subtle horizontal vibration
-              translationX = 2 * (t < 0.25 || t > 0.75 ? 1 : -1);
-            }
-
-            return Center(
-              child: Transform(
-                transform: Matrix4.identity()
-                  ..setTranslationRaw(translationX, translationY, 0.0)
-                  ..rotateZ(rotation)
-                  ..setDiagonal(Vector4(scale, scale, 1.0, 1.0)),
-                alignment: Alignment.center,
-                child: Icon(
-                  Icons.music_note_rounded,
-                  size: 32,
-                  color: colors.onPrimary,
-                ),
-              ),
-            );
-          },
-        ),
       ),
     );
   }
 
-  Widget _buildExpandedPanel(BuildContext context, ColorScheme colors) {
+  
+  /// Builds only the control panel (without header)
+  /// Used for the part that appears below the morphed header
+  Widget _buildExpandedControls(BuildContext context, ColorScheme colors) {
     return Center(
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: kMidiExpandedMaxWidth),
@@ -594,376 +893,287 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
               filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
               child: ColoredBox(
                 color: colors.surfaceContainerLowest.withValues(alpha: 0.82),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    InkWell(
-                      key: const ValueKey('midi-collapse-toggle'),
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(8),
-                      ),
-                      onTap: () => _setExpanded(false),
-                      child: Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                        decoration: BoxDecoration(
-                          color: colors.primary,
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(8),
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            AnimatedBuilder(
-                              animation: _pulseAnimation,
-                              builder: (context, child) {
-                                return Transform.scale(
-                                  scale: _pulseAnimation.value,
-                                  child: Icon(
-                                    Icons.music_note_rounded,
-                                    size: 16,
-                                    color: colors.onPrimary,
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    widget.nowPlayingTitle.trim().isEmpty
-                                        ? 'Now Playing'
-                                        : widget.nowPlayingTitle,
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .labelSmall
-                                        ?.copyWith(
-                                          color: colors.onPrimary,
-                                          letterSpacing: 1.3,
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                  ),
-                                  if (widget.runningFamilyChord != null &&
-                                      widget.runningFamilyChord!.isNotEmpty)
-                                    Text(
-                                      widget.runningFamilyChord!,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .labelSmall
-                                          ?.copyWith(
-                                            color: colors.onPrimary.withValues(
-                                              alpha: 0.8,
-                                            ),
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w600,
-                                          ),
-                                    ),
-                                ],
-                              ),
-                            ),
-                            AnimatedRotation(
-                              turns: _expanded ? 0 : 0.5,
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.easeInOut,
-                              child: Icon(
-                                Icons.expand_more,
-                                color: colors.onPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
-                      child: Column(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Row(
-                            children: [
-                              SizedBox(
-                                width: 40,
-                                height: 40,
-                                child: FilledButton(
-                                  onPressed: widget.isLoading
-                                      ? null
-                                      : widget.onPlayPause,
-                                  style: FilledButton.styleFrom(
-                                    shape: const CircleBorder(),
-                                    padding: EdgeInsets.zero,
-                                    backgroundColor: colors.primary,
-                                  ),
-                                  child: widget.isLoading
-                                      ? SizedBox(
-                                          width: 20,
-                                          height: 20,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2,
-                                            valueColor: AlwaysStoppedAnimation(
-                                              colors.onPrimary,
-                                            ),
-                                          ),
-                                        )
-                                      : Icon(
-                                          widget.isPlaying
-                                              ? Icons.pause_rounded
-                                              : Icons.play_arrow_rounded,
-                                          color: colors.onPrimary,
-                                          size: 28,
+                          SizedBox(
+                            width: 40,
+                            height: 40,
+                            child: FilledButton(
+                              onPressed: widget.isLoading
+                                  ? null
+                                  : widget.onPlayPause,
+                              style: FilledButton.styleFrom(
+                                shape: const CircleBorder(),
+                                padding: EdgeInsets.zero,
+                                backgroundColor: colors.primary,
+                              ),
+                              child: widget.isLoading
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation(
+                                          colors.onPrimary,
                                         ),
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: _MidiSeekSlider(
-                                  position: widget.position,
-                                  duration: widget.duration,
-                                  onSeek: widget.onSeek,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
-                                style: Theme.of(context).textTheme.labelSmall
-                                    ?.copyWith(
-                                      color: colors.onSurfaceVariant,
-                                      letterSpacing: 0.1,
+                                      ),
+                                    )
+                                  : Icon(
+                                      widget.isPlaying
+                                          ? Icons.pause_rounded
+                                          : Icons.play_arrow_rounded,
+                                      color: colors.onPrimary,
+                                      size: 28,
                                     ),
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 10),
-                          LayoutBuilder(
-                            builder: (context, constraints) {
-                              final compact = constraints.maxWidth < 380;
-                              final iconConstraints = BoxConstraints.tightFor(
-                                width: compact ? 34 : 36,
-                                height: compact ? 34 : 36,
-                              );
-                              final chordInfo =
-                                  (widget.runningFamilyChord
-                                          ?.trim()
-                                          .isNotEmpty ??
-                                      false)
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _MidiSeekSlider(
+                              position: widget.position,
+                              duration: widget.duration,
+                              onSeek: widget.onSeek,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                  letterSpacing: 0.1,
+                                ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final compact = constraints.maxWidth < 380;
+                          final iconConstraints = BoxConstraints.tightFor(
+                            width: compact ? 34 : 36,
+                            height: compact ? 34 : 36,
+                          );
+                          final chordInfo =
+                              (widget.runningFamilyChord
+                                      ?.trim()
+                                      .isNotEmpty ??
+                                  false)
                                   ? widget.runningFamilyChord!.trim()
                                   : widget.currentKey;
 
-                              Widget transposeControl = Container(
-                                decoration: BoxDecoration(
-                                  color: colors.surfaceContainerLowest,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: colors.outlineVariant,
+                          Widget transposeControl = Container(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: colors.outlineVariant,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  constraints: iconConstraints,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _adjustTranspose(
+                                    widget.transposeStep - 1,
                                   ),
+                                  icon: const Icon(Icons.remove_rounded),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      constraints: iconConstraints,
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () => _adjustTranspose(
-                                        widget.transposeStep - 1,
-                                      ),
-                                      icon: const Icon(Icons.remove_rounded),
+                                ConstrainedBox(
+                                  constraints: BoxConstraints(
+                                    minWidth: compact ? 120 : 150,
+                                    maxWidth: compact ? 150 : 190,
+                                  ),
+                                  child: InkWell(
+                                    key: const ValueKey(
+                                      'midi-transpose-field',
                                     ),
-                                    ConstrainedBox(
-                                      constraints: BoxConstraints(
-                                        minWidth: compact ? 120 : 150,
-                                        maxWidth: compact ? 150 : 190,
+                                    borderRadius: BorderRadius.circular(6),
+                                    onTap: () =>
+                                        _showTransposeEditDialog(context),
+                                    child: Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal: compact ? 4 : 6,
                                       ),
-                                      child: InkWell(
-                                        key: const ValueKey(
-                                          'midi-transpose-field',
-                                        ),
-                                        borderRadius: BorderRadius.circular(6),
-                                        onTap: () =>
-                                            _showTransposeEditDialog(context),
-                                        child: Padding(
-                                          padding: EdgeInsets.symmetric(
-                                            horizontal: compact ? 4 : 6,
+                                      child: Row(
+                                        children: [
+                                          Text(
+                                            '${widget.transposeStep}',
+                                            textAlign: TextAlign.center,
+                                            style: Theme.of(
+                                              context,
+                                            ).textTheme.titleMedium,
                                           ),
-                                          child: Row(
-                                            children: [
-                                              Text(
-                                                '${widget.transposeStep}',
-                                                textAlign: TextAlign.center,
-                                                style: Theme.of(
-                                                  context,
-                                                ).textTheme.titleMedium,
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Expanded(
-                                                child: Text(
-                                                  chordInfo,
-                                                  maxLines: 1,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .labelSmall
-                                                      ?.copyWith(
-                                                        color: colors
-                                                            .onSurfaceVariant,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                constraints: iconConstraints,
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                                tooltip: 'Select key',
-                                                onPressed:
-                                                    widget.availableKeys.isEmpty
+                                          const SizedBox(width: 4),
+                                          Expanded(
+                                            child: Text(
+                                              chordInfo,
+                                              maxLines: 1,
+                                              overflow:
+                                                  TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .labelSmall
+                                                  ?.copyWith(
+                                                    color: colors
+                                                        .onSurfaceVariant,
+                                                    fontWeight:
+                                                        FontWeight.w700,
+                                                  ),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            constraints: iconConstraints,
+                                            visualDensity:
+                                                VisualDensity.compact,
+                                            tooltip: 'Select key',
+                                            onPressed:
+                                                widget.availableKeys.isEmpty
                                                     ? null
                                                     : () => _showKeySelector(
                                                         context,
                                                       ),
-                                                icon: const Icon(
-                                                  Icons.key_rounded,
-                                                ),
-                                              ),
-                                            ],
+                                            icon: const Icon(
+                                              Icons.key_rounded,
+                                            ),
                                           ),
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                    IconButton(
-                                      constraints: iconConstraints,
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () => _adjustTranspose(
-                                        widget.transposeStep + 1,
-                                      ),
-                                      icon: const Icon(Icons.add_rounded),
-                                    ),
-                                  ],
-                                ),
-                              );
-
-                              Widget tempoControl = Container(
-                                decoration: BoxDecoration(
-                                  color: colors.surfaceContainerLowest,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: colors.outlineVariant,
                                   ),
                                 ),
+                                IconButton(
+                                  constraints: iconConstraints,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _adjustTranspose(
+                                    widget.transposeStep + 1,
+                                  ),
+                                  icon: const Icon(Icons.add_rounded),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          Widget tempoControl = Container(
+                            decoration: BoxDecoration(
+                              color: colors.surfaceContainerLowest,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: colors.outlineVariant,
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                IconButton(
+                                  constraints: iconConstraints,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _adjustTempo(
+                                    (widget.tempoBpm - 1).clamp(30, 300),
+                                  ),
+                                  icon: const Icon(Icons.remove_rounded),
+                                ),
+                                GestureDetector(
+                                  onTap: () =>
+                                      _showTempoEditDialog(context),
+                                  child: SizedBox(
+                                    width: compact ? 30 : 44,
+                                    child: Text(
+                                      '${widget.tempoBpm.round()}',
+                                      textAlign: TextAlign.center,
+                                      style: Theme.of(
+                                        context,
+                                      ).textTheme.titleMedium,
+                                    ),
+                                  ),
+                                ),
+                                IconButton(
+                                  constraints: iconConstraints,
+                                  visualDensity: VisualDensity.compact,
+                                  onPressed: () => _adjustTempo(
+                                    (widget.tempoBpm + 1).clamp(30, 300),
+                                  ),
+                                  icon: const Icon(Icons.add_rounded),
+                                ),
+                              ],
+                            ),
+                          );
+
+                          Widget iconActions = Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                key: _instrumentButtonKey,
+                                constraints: iconConstraints,
+                                visualDensity: VisualDensity.compact,
+                                onPressed: () =>
+                                    _showInstrumentMenu(context),
+                                icon: Icon(
+                                  Icons.piano_rounded,
+                                  color: colors.onSurfaceVariant,
+                                ),
+                              ),
+                              IconButton(
+                                constraints: iconConstraints,
+                                visualDensity: VisualDensity.compact,
+                                tooltip: midiLoopModeTooltip(
+                                  widget.autoNextMode,
+                                ),
+                                onPressed: widget.onLoopModeCycle,
+                                icon: Icon(
+                                  midiLoopModeIcon(widget.autoNextMode),
+                                  color:
+                                      midiLoopModeActive(
+                                        widget.autoNextMode,
+                                      )
+                                      ? colors.primary
+                                      : colors.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          );
+
+                          final labelStyle = Theme.of(context)
+                              .textTheme
+                              .labelSmall
+                              ?.copyWith(
+                                color: colors.onSurfaceVariant,
+                                letterSpacing: 0.1,
+                              );
+
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Transpose / Tempo / Instrument / Loop',
+                                style: labelStyle,
+                              ),
+                              const SizedBox(height: 6),
+                              SingleChildScrollView(
+                                key: const ValueKey('midi-control-row'),
+                                scrollDirection: Axis.horizontal,
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    IconButton(
-                                      constraints: iconConstraints,
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () => _adjustTempo(
-                                        (widget.tempoBpm - 1).clamp(30, 300),
-                                      ),
-                                      icon: const Icon(Icons.remove_rounded),
-                                    ),
-                                    GestureDetector(
-                                      onTap: () =>
-                                          _showTempoEditDialog(context),
-                                      child: SizedBox(
-                                        width: compact ? 30 : 44,
-                                        child: Text(
-                                          '${widget.tempoBpm.round()}',
-                                          textAlign: TextAlign.center,
-                                          style: Theme.of(
-                                            context,
-                                          ).textTheme.titleMedium,
-                                        ),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      constraints: iconConstraints,
-                                      visualDensity: VisualDensity.compact,
-                                      onPressed: () => _adjustTempo(
-                                        (widget.tempoBpm + 1).clamp(30, 300),
-                                      ),
-                                      icon: const Icon(Icons.add_rounded),
-                                    ),
+                                    transposeControl,
+                                    const SizedBox(width: 8),
+                                    tempoControl,
+                                    const SizedBox(width: 6),
+                                    iconActions,
                                   ],
                                 ),
-                              );
-
-                              Widget iconActions = Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    key: _instrumentButtonKey,
-                                    constraints: iconConstraints,
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () =>
-                                        _showInstrumentMenu(context),
-                                    icon: Icon(
-                                      Icons.piano_rounded,
-                                      color: colors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    constraints: iconConstraints,
-                                    visualDensity: VisualDensity.compact,
-                                    tooltip: midiLoopModeTooltip(
-                                      widget.autoNextMode,
-                                    ),
-                                    onPressed: widget.onLoopModeCycle,
-                                    icon: Icon(
-                                      midiLoopModeIcon(widget.autoNextMode),
-                                      color:
-                                          midiLoopModeActive(
-                                            widget.autoNextMode,
-                                          )
-                                          ? colors.primary
-                                          : colors.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ],
-                              );
-
-                              final labelStyle = Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                    letterSpacing: 0.1,
-                                  );
-
-                              return Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Transpose / Tempo / Instrument / Loop',
-                                    style: labelStyle,
-                                  ),
-                                  const SizedBox(height: 6),
-                                  SingleChildScrollView(
-                                    key: const ValueKey('midi-control-row'),
-                                    scrollDirection: Axis.horizontal,
-                                    child: Row(
-                                      children: [
-                                        transposeControl,
-                                        const SizedBox(width: 8),
-                                        tempoControl,
-                                        const SizedBox(width: 6),
-                                        iconActions,
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
+                              ),
+                            ],
+                          );
+                        },
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
