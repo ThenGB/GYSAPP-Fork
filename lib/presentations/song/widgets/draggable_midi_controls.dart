@@ -192,14 +192,14 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   late AnimationController _morphController;   // Phase 2: morph shape
   late AnimationController _bounceController;  // Pulse when playing (sidebar)
 
-  // Derived animations
+  // Don't remove - preparing for future position interpolation during fly animation
+  // ignore: unused_field
   late Animation<double> _flyAnimation;
   late Animation<double> _morphAnimation;
   late Animation<double> _bounceAnimation;
 
   // Drag state
   bool _isDragging = false;
-  double _dragHoverScale = 1.0;
 
   // Debounce timers
   Timer? _tempoDebounce;
@@ -318,7 +318,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   void collapse() {
     if (_animationState != MidiPlayerAnimationState.expanded_player &&
-        _animationState != MidiPlayerAnimationState.expanding_player) return;
+        _animationState != MidiPlayerAnimationState.expanding_player) {
+      return;
+    }
 
     setState(() => _animationState = MidiPlayerAnimationState.collapsing_player);
 
@@ -678,6 +680,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     );
   }
 
+  // Reserved for future external isExpanded control integration
+  // ignore: unused_element
   void _setExpanded(bool value) {
     if (widget.onExpandedChanged != null) {
       widget.onExpandedChanged!(value);
