@@ -151,7 +151,8 @@ double dashboardBottomNavItemHeight({
   required double labelFontSize,
   required double iconLabelGap,
 }) {
-  final rawHeight = (outerVerticalPadding * 2) +
+  final rawHeight =
+      (outerVerticalPadding * 2) +
       (innerVerticalPadding * 2) +
       iconSize +
       iconLabelGap +
@@ -283,151 +284,154 @@ class _DashboardViewState extends State<DashboardView> {
           }
           // ignore: deprecated_member_use
           return WillPopScope(
-              onWillPop: () async {
-                if (tabRouter?.activeIndex != 0) {
-                  context.read<BibleCubit>().stopSpeaking();
-                  var mustBeNot = [
-                    context.read<BibleCubit>().isSelectingBible,
-                    context.read<SongCubit>().isSelectingSong,
-                    context.read<FaithCubit>().isSelectingFaith,
-                  ];
-                  var isContainTrue = mustBeNot.contains(true);
-                  if (isContainTrue) {
-                    context.read<BibleCubit>().removeSelection();
-                    context.read<SongCubit>().removeSelection();
-                    context.read<FaithCubit>().removeSelection();
-                    return false;
-                  }
-                  tabRouter?.setActiveIndex(0);
+            onWillPop: () async {
+              if (tabRouter?.activeIndex != 0) {
+                context.read<BibleCubit>().stopSpeaking();
+                var mustBeNot = [
+                  context.read<BibleCubit>().isSelectingBible,
+                  context.read<SongCubit>().isSelectingSong,
+                  context.read<FaithCubit>().isSelectingFaith,
+                ];
+                var isContainTrue = mustBeNot.contains(true);
+                if (isContainTrue) {
+                  context.read<BibleCubit>().removeSelection();
+                  context.read<SongCubit>().removeSelection();
+                  context.read<FaithCubit>().removeSelection();
                   return false;
                 }
+                tabRouter?.setActiveIndex(0);
+                return false;
+              }
 
-                return true;
-              },
-              child: BlocBuilder<SongCubit, SongState>(
-                builder: (context, songState) => AutoTabsRouter(
-                  routes: pages.map((e) => e.page).toList(),
-                  transitionBuilder: (context, child, animation) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  builder: (context, child) {
-                    final tabsRouter = AutoTabsRouter.of(context);
-                    tabRouter = tabsRouter;
-                    final isLandscape =
-                        MediaQuery.orientationOf(context) ==
-                        Orientation.landscape;
-                    final bottomInset = MediaQuery.paddingOf(context).bottom;
-                    final navHeight = isLandscape
-                        ? kDashboardLandscapeBottomNavHeight
-                        : kDashboardPortraitBottomNavHeight;
-                    final bodyBottomPadding = navHeight + bottomInset;
+              return true;
+            },
+            child: BlocBuilder<SongCubit, SongState>(
+              builder: (context, songState) => AutoTabsRouter(
+                routes: pages.map((e) => e.page).toList(),
+                transitionBuilder: (context, child, animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                builder: (context, child) {
+                  final tabsRouter = AutoTabsRouter.of(context);
+                  tabRouter = tabsRouter;
+                  final isLandscape =
+                      MediaQuery.orientationOf(context) ==
+                      Orientation.landscape;
+                  final bottomInset = MediaQuery.paddingOf(context).bottom;
+                  final navHeight = isLandscape
+                      ? kDashboardLandscapeBottomNavHeight
+                      : kDashboardPortraitBottomNavHeight;
+                  final bodyBottomPadding = navHeight + bottomInset;
 
-                    final bottomNavItemCount = bottomNavPages.length;
-                    final safeSelectedIndex = tabsRouter.activeIndex.clamp(0, bottomNavItemCount - 1);
+                  final bottomNavItemCount = bottomNavPages.length;
+                  final safeSelectedIndex = tabsRouter.activeIndex.clamp(
+                    0,
+                    bottomNavItemCount - 1,
+                  );
 
-                    return Scaffold(
-                      key: dashboardScaffoldKey,
-                      backgroundColor: context.colorScheme.surface,
-                      extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
-                      drawer: const _DashboardDrawer(),
-                      body: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: context.colorScheme.surface,
+                  return Scaffold(
+                    key: dashboardScaffoldKey,
+                    backgroundColor: context.colorScheme.surface,
+                    extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
+                    drawer: const _DashboardDrawer(),
+                    body: Stack(
+                      children: [
+                        Positioned.fill(
+                          child: DecoratedBox(
+                            decoration: BoxDecoration(
+                              color: context.colorScheme.surface,
+                            ),
+                            child: AnimatedPadding(
+                              duration: const Duration(milliseconds: 220),
+                              curve: Curves.easeOutCubic,
+                              padding: EdgeInsets.only(
+                                bottom: bodyBottomPadding,
                               ),
-                              child: AnimatedPadding(
-                                duration: const Duration(milliseconds: 220),
-                                curve: Curves.easeOutCubic,
-                                padding: EdgeInsets.only(
-                                  bottom: bodyBottomPadding,
-                                ),
-                                child: child,
-                              ),
+                              child: child,
                             ),
                           ),
-                          // Global MIDI Player as an Overlay
-                          if (songState.showAudio)
-                            AnimatedBuilder(
-                              animation: context.read<SongCubit>().midiEngine,
-                              builder: (context, _) {
-                                final cubit = context.read<SongCubit>();
-                                final songState = cubit.state;
-                                final midiState = cubit.midiEngine.state;
+                        ),
+                        // Global MIDI Player as an Overlay
+                        if (songState.showAudio)
+                          AnimatedBuilder(
+                            animation: context.read<SongCubit>().midiEngine,
+                            builder: (context, _) {
+                              final cubit = context.read<SongCubit>();
+                              final songState = cubit.state;
+                              final midiState = cubit.midiEngine.state;
 
-                                return DraggableMidiControls(
-                                  key: const ValueKey('global-midi-player'),
+                              return DraggableMidiControls(
+                                key: const ValueKey('global-midi-player'),
+                                isExpanded: _globalMidiExpanded,
+                                onExpandedChanged: (value) {
+                                  if (_globalMidiExpanded == value) return;
+                                  setState(() => _globalMidiExpanded = value);
+                                },
+                                onPreviousSong: cubit.goToPreviousSong,
+                                onNextSong: cubit.goToNextSong,
+                                usePositioned: true,
+                                isPlaying: midiState.isPlaying,
+                                isLoading: midiState.isLoading,
+                                position: midiState.position,
+                                duration: midiState.duration,
+                                transposeStep: songState.transposeStep,
+                                currentKey: songState.activeKeyLabel,
+                                availableKeys: songState.transposeKeyOptions,
+                                tempoBpm: songState.tempoBpm,
+                                midiInstrument: songState.midiInstrument,
+                                soundFont: songState.soundFont,
+                                availableSoundFonts: const [
+                                  'GeneralUser-GS.sf2',
+                                  'TimGM6mb.sf2',
+                                ],
+                                availableInstruments:
+                                    cubit.midiEngine.instruments,
+                                autoNextMode: songState.playlistAutoNextMode,
+                                onPlayPause: cubit.togglePlayPause,
+                                onLoopModeCycle: cubit.cycleLoopMode,
+                                onSeek: (seconds) => cubit.seek(
+                                  Duration(seconds: seconds.toInt()),
+                                ),
+                                onTranspose: cubit.setTranspose,
+                                onKeySelected: cubit.setTransposeKey,
+                                onTempo: cubit.setTempo,
+                                onInstrument: cubit.setMidiInstrument,
+                                onSoundFont: cubit.setSoundFont,
+                                nowPlayingTitle: songState.getSongTitleAt(
+                                  songState.pageIndex,
+                                ),
+                                runningFamilyChord:
+                                    songState.originalFamilyChord != null
+                                    ? ChordService.formatChordForDisplay(
+                                        songState.originalFamilyChord!,
+                                        accidentalMode:
+                                            songState.chordAccidentalMode,
+                                        baseTransposeOffset:
+                                            songState.baseTransposeOffset,
+                                      )
+                                    : null,
+                                bottomOffset: dashboardMiniPlayerBottomOffset(
                                   isExpanded: _globalMidiExpanded,
-                                  onExpandedChanged: (value) {
-                                    if (_globalMidiExpanded == value) return;
-                                    setState(() => _globalMidiExpanded = value);
-                                  },
-                                  onPreviousSong: cubit.goToPreviousSong,
-                                  onNextSong: cubit.goToNextSong,
-                                  usePositioned: true,
-                                  isPlaying: midiState.isPlaying,
-                                  isLoading: midiState.isLoading,
-                                  position: midiState.position,
-                                  duration: midiState.duration,
-                                  transposeStep: songState.transposeStep,
-                                  currentKey: songState.activeKeyLabel,
-                                  availableKeys: songState.transposeKeyOptions,
-                                  tempoBpm: songState.tempoBpm,
-                                  midiInstrument: songState.midiInstrument,
-                                  soundFont: songState.soundFont,
-                                  availableSoundFonts: const [
-                                    'GeneralUser-GS.sf2',
-                                    'TimGM6mb.sf2',
-                                  ],
-                                  availableInstruments:
-                                      cubit.midiEngine.instruments,
-                                  autoNextMode: songState.playlistAutoNextMode,
-                                  onPlayPause: cubit.togglePlayPause,
-                                  onLoopModeCycle: cubit.cycleLoopMode,
-                                  onSeek: (seconds) => cubit.seek(
-                                    Duration(seconds: seconds.toInt()),
-                                  ),
-                                  onTranspose: cubit.setTranspose,
-                                  onKeySelected: cubit.setTransposeKey,
-                                  onTempo: cubit.setTempo,
-                                  onInstrument: cubit.setMidiInstrument,
-                                  onSoundFont: cubit.setSoundFont,
-                                  nowPlayingTitle: songState.getSongTitleAt(
-                                    songState.pageIndex,
-                                  ),
-                                  runningFamilyChord:
-                                      songState.originalFamilyChord != null
-                                      ? ChordService.formatChordForDisplay(
-                                          songState.originalFamilyChord!,
-                                          accidentalMode:
-                                              songState.chordAccidentalMode,
-                                          baseTransposeOffset:
-                                              songState.baseTransposeOffset,
-                                        )
-                                      : null,
-                                  bottomOffset: dashboardMiniPlayerBottomOffset(
-                                    isExpanded: _globalMidiExpanded,
-                                    navHeight: navHeight + bottomInset,
-                                  ),
-                                );
-                              },
-                            ),
-                        ],
-                      ),
-                      bottomNavigationBar: _DashboardBottomNavBar(
-                        selectedIndex: safeSelectedIndex,
-                        onDestinationSelected: (value) {
-                          context.read<BibleCubit>().stopSpeaking();
-                          tabsRouter.setActiveIndex(value);
-                        },
-                        destinations: bottomNavPages,
-                      ),
-                    );
-                  },
-                ),
+                                  navHeight: navHeight + bottomInset,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                    bottomNavigationBar: _DashboardBottomNavBar(
+                      selectedIndex: safeSelectedIndex,
+                      onDestinationSelected: (value) {
+                        context.read<BibleCubit>().stopSpeaking();
+                        tabsRouter.setActiveIndex(value);
+                      },
+                      destinations: bottomNavPages,
+                    ),
+                  );
+                },
               ),
-            );
+            ),
+          );
         },
       ),
     );
@@ -979,14 +983,16 @@ class _DashboardBottomNavBarState extends State<_DashboardBottomNavBar>
       ),
     );
     _scaleAnimations = _scaleControllers.map((ctrl) {
-      return Tween<double>(begin: 1.0, end: 0.88).animate(
-        CurvedAnimation(parent: ctrl, curve: Curves.easeInOut),
-      );
+      return Tween<double>(
+        begin: 1.0,
+        end: 0.88,
+      ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeInOut));
     }).toList();
     _highlightAnimations = _highlightControllers.map((ctrl) {
-      return Tween<double>(begin: 0.0, end: 1.0).animate(
-        CurvedAnimation(parent: ctrl, curve: Curves.easeOut),
-      );
+      return Tween<double>(
+        begin: 0.0,
+        end: 1.0,
+      ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOut));
     }).toList();
   }
 
@@ -1141,8 +1147,9 @@ class _NavItem extends StatelessWidget {
                     style: TextStyle(
                       color: effectiveColor,
                       fontSize: 12,
-                      fontWeight:
-                          isSelected ? FontWeight.w600 : FontWeight.w500,
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.w500,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1156,4 +1163,3 @@ class _NavItem extends StatelessWidget {
     );
   }
 }
-
