@@ -281,17 +281,8 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             );
           }
-          return MultiBlocListener(
-            listeners: [
-              BlocListener<DashboardCubit, DashboardState>(
-                listener: (context, state) {},
-                // listenWhen: (previous, current) {
-                //   return previous.isSyncing != current.isSyncing;
-                // },
-              ),
-            ],
-            // ignore: deprecated_member_use
-            child: WillPopScope(
+          // ignore: deprecated_member_use
+          return WillPopScope(
               onWillPop: () async {
                 if (tabRouter?.activeIndex != 0) {
                   context.read<BibleCubit>().stopSpeaking();
@@ -436,8 +427,7 @@ class _DashboardViewState extends State<DashboardView> {
                   },
                 ),
               ),
-            ),
-          );
+            );
         },
       ),
     );
