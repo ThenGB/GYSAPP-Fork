@@ -1122,6 +1122,7 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   Future<void> _pruneSourceCache() async {
+    final futures = <Future<void>>[];
     while (_cacheOrder.length > _maxCachedSources) {
       final cacheKey = _cacheOrder.removeAt(0);
       final source = _sourceCache[cacheKey];
@@ -1132,10 +1133,13 @@ class MidiEngineService extends ChangeNotifier {
       }
       _sourceCache.remove(cacheKey);
       if (source != null) {
-        await SoLoud.instance.disposeSource(source);
+        futures.add(SoLoud.instance.disposeSource(source));
       }
       // Keep rendered WAV files on disk as a warm cache; memory pruning should
       // not force expensive MIDI rendering on later revisits.
+    }
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
     }
   }
 
@@ -1158,9 +1162,9 @@ class MidiEngineService extends ChangeNotifier {
     _streamPumpTimer?.cancel();
     await _stopCurrentHandle(emit: false);
     _stopStreamSource(disposeSource: true);
-    for (final source in _sourceCache.values) {
-      await SoLoud.instance.disposeSource(source);
-    }
+    await Future.wait(
+      _sourceCache.values.map((s) => SoLoud.instance.disposeSource(s)),
+    );
     _sourceCache.clear();
     _cacheOrder.clear();
     await _stateController.close();

@@ -98,7 +98,11 @@ class LocalBibleAssetService {
       final parts = entry.key.split('-');
       final bookId = int.parse(parts[0]);
       final chapterId = int.parse(parts[1]);
-      final chapter = await getVerses(code, bookId: bookId, chapterId: chapterId);
+      final chapter = await getVerses(
+        code,
+        bookId: bookId,
+        chapterId: chapterId,
+      );
       return MapEntry(entry.key, chapter);
     });
 
@@ -109,10 +113,8 @@ class LocalBibleAssetService {
     final verses = <Verse>[];
     for (final entry in chaptersToFetch.entries) {
       final chapter = chapterMap[entry.key] ?? [];
-      for (final id in entry.value) {
-        final verse = chapter.where((item) => item.id == id).firstOrNull;
-        if (verse != null) verses.add(verse);
-      }
+      final idSet = entry.value.toSet();
+      verses.addAll(chapter.where((item) => idSet.contains(item.id)));
     }
     return verses;
   }
@@ -142,7 +144,9 @@ class LocalBibleAssetService {
 
     // Collect all chapter pairs to fetch in parallel
     final books = await getBooks(code);
-    final filteredBooks = books.where((book) => selectedBookIds.contains(book.id)).toList();
+    final filteredBooks = books
+        .where((book) => selectedBookIds.contains(book.id))
+        .toList();
 
     // Create list of all (bookId, chapterId) pairs
     final chapterPairs = <MapEntry<int, int>>[];
@@ -154,20 +158,19 @@ class LocalBibleAssetService {
 
     // Fetch all chapters in parallel
     final chapterResults = await Future.wait(
-      chapterPairs.map((pair) => getVerses(code, bookId: pair.key, chapterId: pair.value)),
+      chapterPairs.map(
+        (pair) => getVerses(code, bookId: pair.key, chapterId: pair.value),
+      ),
     );
 
     // Search through all fetched verses
-    final results = <Verse>[];
-    for (final verses in chapterResults) {
-      for (final verse in verses) {
-        final text = (verse.verse ?? '').toLowerCase();
-        final matchesPhrases = phrases.every(text.contains);
-        final matchesWords = words.every(text.contains);
-        if (matchesPhrases && matchesWords) results.add(verse);
-      }
-    }
-    return results;
+    return chapterResults.expand((verses) => verses).where((verse) {
+      final text = verse.verse;
+      if (text == null || text.isEmpty) return false;
+      final lowerText = text.toLowerCase();
+      return phrases.every(lowerText.contains) &&
+          words.every(lowerText.contains);
+    }).toList();
   }
 
   Future<String?> getBibleTitle(
@@ -194,8 +197,10 @@ class LocalBibleAssetService {
 
     final verseNumbers = _groupVerseNumbers(verseIds);
     final parsedVerse = verseNumbers
-        .map((group) =>
-            '${group.first}${group.last == group.first ? '' : '-${group.last}'}')
+        .map(
+          (group) =>
+              '${group.first}${group.last == group.first ? '' : '-${group.last}'}',
+        )
         .join(', ');
     return '$bookName $chapter:$parsedVerse';
   }
@@ -280,6 +285,3 @@ class LocalBibleAssetService {
   }
 }
 
-extension _FirstOrNullExtension<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
-}

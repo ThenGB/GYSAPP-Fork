@@ -532,16 +532,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
       initTts();
     }
 
-    // getBooks();
     getContent(state.currentBible);
   }
-
-  // getBooks() {
-  //   bibleDb!.query('book').then((value) {
-  //     List<BibleBook> books = value.map((e) => BibleBook.fromJson(e)).toList();
-  //     emit(state.copyWith(books: books));
-  //   });
-  // }
 
   void selectBook(BibleBook book) {
     emit(state.copyWith(currentBook: book));
@@ -1025,8 +1017,8 @@ Future<String?> convertIDtoNameAlkitab(
 
   if (id1 != null) {
     id1Val = id1;
-    query = 'select bs,bl from book where id = ($id1/1000000)';
-    var data = await bibleDb.rawQuery(query);
+    query = 'select bs,bl from book where id = (?/1000000)';
+    var data = await bibleDb.rawQuery(query, [id1]);
     zb1 = StringUtil.castToString(data.first['bs']);
     if (isLong) {
       zb1 = StringUtil.castToString(data.first['bl']);
@@ -1048,8 +1040,8 @@ Future<String?> convertIDtoNameAlkitab(
 
       if (((id1Val / 1000000) - (id2 / 1000000)) < 0) {
         //second book
-        query = 'select bs, bl from book where id = ($id2/1000000)';
-        var data = await bibleDb.rawQuery(query);
+        query = 'select bs, bl from book where id = (?/1000000)';
+        var data = await bibleDb.rawQuery(query, [id2]);
         zb2 = StringUtil.castToString(data.first['bs']);
         if (isLong) {
           zb2 = StringUtil.castToString(data.first['bl']);
@@ -1131,7 +1123,7 @@ Future<String?> convertIDsToNameAlkitab(
 
   // Query
   final data = await bibleDb.rawQuery(
-    'SELECT bs, bl FROM book WHERE id = $bookId',
+    'SELECT bs, bl FROM book WHERE id = ?', [bookId]
   );
 
   if (data.isEmpty) {
@@ -1187,61 +1179,6 @@ Future<String?> convertIDsToNameAlkitab(
   }
 }
 
-/*
-Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
-    {bool isLong = false,
-    bool withVerse = true,
-    required Database bibleDb}) async {
-  String bookName = '-';
-  String chapter = '-';
-
-  verseIds.sort();
-
-  String query =
-      'select bs,bl from book where id = (${verseIds.first}/1000000)';
-  var data = await bibleDb.rawQuery(query);
-  bookName = StringUtil.castToString(data.first['bs']);
-  if (isLong) {
-    bookName = StringUtil.castToString(data.first['bl']);
-  }
-  chapter = verseIds.first.toString();
-  chapter = int.parse(chapter.substring(chapter.length - 6, chapter.length - 3))
-      .toString();
-  int? prevVerseNumber;
-  List<int> tempVerseNumbers = [];
-  List<List<int>> verseNumbers = [];
-  for (var verseId in verseIds) {
-    int verseNumber = int.tryParse(verseId.toString().substring(
-            verseId.toString().length - 3, verseId.toString().length)) ??
-        0;
-    if (prevVerseNumber == null) {
-      tempVerseNumbers.add(verseNumber);
-    } else {
-      if (prevVerseNumber + 1 == verseNumber) {
-        /// if the verseNumber not jumped;
-        tempVerseNumbers.add(verseNumber);
-      } else {
-        /// if jumped
-        verseNumbers.add(List.from(tempVerseNumbers));
-        tempVerseNumbers.clear();
-        tempVerseNumbers.add(verseNumber);
-      }
-    }
-    prevVerseNumber = verseNumber;
-  }
-  if (tempVerseNumbers.isNotEmpty) {
-    verseNumbers.add(List.from(tempVerseNumbers));
-  }
-  if (withVerse) {
-    String parsedVerse = verseNumbers
-        .map((e) => '${e.first}${e.last == e.first ? '' : '-${e.last}'}')
-        .join(', ');
-    return '$bookName $chapter:$parsedVerse';
-  } else {
-    return '$bookName $chapter';
-  }
-}
-*/
 String? convertZeroNumber(String? number) {
   if (number != null) {
     if (number.isNotEmpty) {
