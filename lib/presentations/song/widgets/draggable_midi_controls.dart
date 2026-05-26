@@ -722,19 +722,6 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     );
   }
 
-  // Reserved for future external isExpanded control integration
-  // ignore: unused_element
-  void _setExpanded(bool value) {
-    if (widget.onExpandedChanged != null) {
-      widget.onExpandedChanged!(value);
-    }
-    if (value) {
-      expand();
-    } else {
-      collapse();
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
