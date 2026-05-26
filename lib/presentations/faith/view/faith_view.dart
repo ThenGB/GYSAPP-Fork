@@ -172,44 +172,13 @@ class _FaithViewState extends State<FaithView> {
                 ),
               ),
             ),
-            // const SizedBox(
-            //   width: 16,
-            // ),
           ],
         ),
 
-        // bottomNavigationBar: Container(
-        //   padding: const EdgeInsets.all(16),
-        //   color: context.colorScheme.background,
-        //   child: Row(
-        //     children: [
-        //       IconButton(
-        //         onPressed: () {
-        //           pageController.previousPage(
-        //               duration: kThemeAnimationDuration, curve: Curves.easeOut);
-        //         },
-        //         icon: const CircleAvatar(child: Icon(Icons.chevron_left_rounded)),
-        //       ),
-        //       const Spacer(),
-        //       Text('${currentPage + 1} / ${currentData.length}'),
-        //       const Spacer(),
-        //       IconButton(
-        //         onPressed: () {
-        //           pageController.nextPage(
-        //               duration: kThemeAnimationDuration, curve: Curves.easeOut);
-        //         },
-        //         icon:
-        //             const CircleAvatar(child: Icon(Icons.chevron_right_rounded)),
-        //       ),
-        //     ],
-        //   ),
-        // ),
         body: !isInitialized
             ? const Center(child: CircularProgressIndicator())
             : DecoratedBox(
-                decoration: BoxDecoration(
-                  color: context.colorScheme.surface,
-                ),
+                decoration: BoxDecoration(color: context.colorScheme.surface),
                 child: Column(
                   children: [
                     Expanded(
@@ -596,8 +565,7 @@ class SelectedFaithMenu extends StatelessWidget {
                     TextButton(
                       style: TextButton.styleFrom(
                         backgroundColor: context.colorScheme.primaryContainer,
-                        foregroundColor:
-                            context.colorScheme.onPrimaryContainer,
+                        foregroundColor: context.colorScheme.onPrimaryContainer,
                       ),
                       onPressed: () {
                         router.push(
