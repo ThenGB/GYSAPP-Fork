@@ -96,9 +96,30 @@ void main() {
     expect(manifest.packages.single.code, 'HYMNE');
     expect(manifest.packages.single.installFileName, 'hymne_master.pdf');
   });
+
+  test(
+    'fetchLatestManifest falls back to releases API on 404 stable manifest',
+    () async {
+      final dio = Dio()
+        ..httpClientAdapter = _FakeGitHubAdapter(return404ForStable: true);
+      final client = GitHubReleaseAssetClient(dio);
+
+      final manifest = await client.fetchLatestManifest(
+        AssetReleaseTrack.hymnals,
+      );
+
+      expect(manifest, isNotNull);
+      expect(manifest!.releaseTag, 'hymnals-2026.05.21');
+      expect(manifest.packages.single.code, 'HYMNE_FALLBACK');
+    },
+  );
 }
 
 class _FakeGitHubAdapter implements HttpClientAdapter {
+  _FakeGitHubAdapter({this.return404ForStable = false});
+
+  final bool return404ForStable;
+
   @override
   void close({bool force = false}) {}
 
@@ -110,6 +131,9 @@ class _FakeGitHubAdapter implements HttpClientAdapter {
   ) async {
     if (options.path ==
         'https://raw.githubusercontent.com/ThenGB/GYSApp-Data/main/latest/hymnals-manifest.json') {
+      if (return404ForStable) {
+        return ResponseBody.fromString('Not found', 404);
+      }
       return ResponseBody.fromString(
         jsonEncode({
           'track': 'hymnals',
@@ -150,6 +174,30 @@ class _FakeGitHubAdapter implements HttpClientAdapter {
             ],
           },
         ]),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json'],
+        },
+      );
+    }
+
+    if (options.path == 'https://example.com/hymnals-manifest.json') {
+      return ResponseBody.fromString(
+        jsonEncode({
+          'track': 'hymnals',
+          'releaseTag': 'hymnals-2026.05.21',
+          'publishedAt': '2026-05-21T10:00:00Z',
+          'packages': [
+            {
+              'code': 'HYMNE_FALLBACK',
+              'version': '2026.05.21',
+              'fileName': 'hymne_fallback.gyspkg',
+              'downloadUrl': 'https://example.com/hymne_fallback.gyspkg',
+              'installFileName': 'hymne_fallback.pdf',
+              'sizeBytes': 123,
+            },
+          ],
+        }),
         200,
         headers: {
           Headers.contentTypeHeader: ['application/json'],
