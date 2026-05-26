@@ -93,30 +93,38 @@ class SettingsCubit extends HydratedCubit<SettingsState> {
         .toList();
     var json = await AppConfigStore.jsonConfig('notifikasi_bible');
     var lang = router.navigatorKey.currentContext?.locale.languageCode ?? '';
+    final notificationFutures = <Future>[];
     for (int weekDay in days.keys) {
-      await AwesomeNotifications().createNotification(
-        content: NotificationContent(
-          id: 321000 + weekDay,
-          channelKey: 'gys',
-          title: json['title'][lang],
-          body: json['body'][lang],
-          bigPicture: json['imageUrl'],
-          notificationLayout: NotificationLayout.BigPicture,
-        ),
-        schedule: NotificationCalendar(
-          repeats: true,
-          allowWhileIdle: true,
-          weekday: weekDay,
-          hour: days[weekDay]!.hour,
-          minute: days[weekDay]!.minute,
-          second: days[weekDay]!.second,
+      notificationFutures.add(
+        AwesomeNotifications().createNotification(
+          content: NotificationContent(
+            id: 321000 + weekDay,
+            channelKey: 'gys',
+            title: json['title'][lang],
+            body: json['body'][lang],
+            bigPicture: json['imageUrl'],
+            notificationLayout: NotificationLayout.BigPicture,
+          ),
+          schedule: NotificationCalendar(
+            repeats: true,
+            allowWhileIdle: true,
+            weekday: weekDay,
+            hour: days[weekDay]!.hour,
+            minute: days[weekDay]!.minute,
+            second: days[weekDay]!.second,
+          ),
         ),
       );
     }
+    await Future.wait(notificationFutures);
+
     await Future.delayed(Duration(milliseconds: 200));
+
+    final cancelFutures = <Future>[];
     for (int weekDay in unactiveDays) {
-      await AwesomeNotifications().cancel(321000 + weekDay);
+      cancelFutures.add(AwesomeNotifications().cancel(321000 + weekDay));
     }
+    await Future.wait(cancelFutures);
 
     emit(
       state.copyWith(
