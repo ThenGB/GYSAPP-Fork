@@ -13,7 +13,8 @@ extension ListRearrangeExtension<T> on List<T?> {
     }
 
     // Clear the original list and add the rearranged items
-    return List<T>.from(rearrangedList..remove(null));
+    rearrangedList.removeWhere((item) => item == null);
+    return List<T>.from(rearrangedList);
   }
 }
 
