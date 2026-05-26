@@ -202,6 +202,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   // Drag state
   bool _isDragging = false;
+  double _storedSnapX = 1.0;  // Stored snap target for animation
 
   // Debounce timers
   Timer? _tempoDebounce;
@@ -243,6 +244,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _morphController.addListener(_onAnimationTick);
 
     // Determine initial state based on isExpanded
+    // When isExpanded is null, widget controls its own state (starts collapsed)
     final initiallyExpanded = widget.isExpanded ?? false;
     if (initiallyExpanded) {
       // Start in expanded state - set controllers to final values
@@ -250,6 +252,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       _flyController.value = 1.0;
       _morphController.value = 1.0;
     } else {
+      // Start collapsed - circle at sidebar position
       _animationState = MidiPlayerAnimationState.sidebar_circle;
       _flyController.value = 0.0;
       _morphController.value = 0.0;
@@ -263,6 +266,39 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void _onAnimationTick() {
     if (mounted) {
       setState(() {});
+    }
+  }
+
+  /// Handle tap on the widget - expand if not expanded
+  void _handleTap() {
+    switch (_animationState) {
+      case MidiPlayerAnimationState.sidebar_circle:
+        expand();
+        break;
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        // While flying to sidebar, cancel and expand
+        _flyController.stop();
+        expand();
+        break;
+      case MidiPlayerAnimationState.expanded_player:
+        // Can collapse from expanded
+        collapse();
+        break;
+      case MidiPlayerAnimationState.flying_to_player:
+        // While flying to player, cancel and collapse directly to sidebar
+        _morphController.stop();
+        if (_morphController.value > 0) {
+          _morphController.reverse(from: _morphController.value);
+        }
+        setState(() => _animationState = MidiPlayerAnimationState.flying_to_sidebar);
+        _flyController.reverse(from: 1 - _flyController.value).then((_) {
+          setState(() => _animationState = MidiPlayerAnimationState.sidebar_circle);
+        });
+        break;
+      case MidiPlayerAnimationState.expanding_player:
+      case MidiPlayerAnimationState.collapsing_player:
+        // During morph - ignore
+        break;
     }
   }
 
@@ -301,8 +337,13 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   }
 
   void expand() {
-    if (_animationState != MidiPlayerAnimationState.sidebar_circle) return;
+    if (_animationState != MidiPlayerAnimationState.sidebar_circle &&
+        _animationState != MidiPlayerAnimationState.flying_to_sidebar) {
+      return;
+    }
 
+    // Store current snap position for when we collapse
+    _storedSnapX = _targetSnapX;
     setState(() => _animationState = MidiPlayerAnimationState.flying_to_player);
     _bounceController.stop();
 
@@ -324,6 +365,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
 
     setState(() => _animationState = MidiPlayerAnimationState.collapsing_player);
+
+    // Store snap position before animation
+    _storedSnapX = _targetSnapX;
 
     // Phase 1: Morph to circle
     _morphController.reverse(from: 1).then((_) {
@@ -355,11 +399,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     return centerX < _screenCenterX ? 0.0 : 1.0;
   }
 
-  /// Circle position when collapsed (sidebar)
+  /// Circle position when collapsed (sidebar) - uses stored snap X for animation targets
   Offset get _sidebarPosition {
     final maxLeft = _screenWidth - kMidiCircleSize - kMidiCircleMargin;
     final minLeft = kMidiCircleMargin;
-    final left = minLeft + (_targetSnapX * (maxLeft - minLeft));
+    final left = minLeft + (_storedSnapX * (maxLeft - minLeft));
 
     final maxBottom = _screenHeight * 0.75;
     final minBottom = kMidiCircleMargin + _bottomInset;
@@ -388,11 +432,13 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   Offset get _currentPosition {
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
-      case MidiPlayerAnimationState.flying_to_sidebar:
         return _sidebarPosition;
       case MidiPlayerAnimationState.flying_to_player:
         // Interpolate position during fly animation
         return Offset.lerp(_sidebarPosition, _playerPosition, _flyAnimation.value)!;
+      case MidiPlayerAnimationState.flying_to_sidebar:
+        // Interpolate position from player to sidebar during fly animation
+        return Offset.lerp(_playerPosition, _sidebarPosition, _flyAnimation.value)!;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.collapsing_player:
       case MidiPlayerAnimationState.expanded_player:
@@ -718,11 +764,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           left: position.dx,
           bottom: position.dy,
           child: GestureDetector(
-            onTap: () {
-              if (_animationState == MidiPlayerAnimationState.sidebar_circle) {
-                expand();
-              }
-            },
+            onTap: _handleTap,
             onPanStart: (_) {
               setState(() => _isDragging = true);
             },
