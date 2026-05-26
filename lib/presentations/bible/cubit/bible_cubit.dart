@@ -1179,61 +1179,6 @@ Future<String?> convertIDsToNameAlkitab(
   }
 }
 
-/*
-Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
-    {bool isLong = false,
-    bool withVerse = true,
-    required Database bibleDb}) async {
-  String bookName = '-';
-  String chapter = '-';
-
-  verseIds.sort();
-
-  String query =
-      'select bs,bl from book where id = (?/1000000)';
-  var data = await bibleDb.rawQuery(query, [verseIds.first]);
-  bookName = StringUtil.castToString(data.first['bs']);
-  if (isLong) {
-    bookName = StringUtil.castToString(data.first['bl']);
-  }
-  chapter = verseIds.first.toString();
-  chapter = int.parse(chapter.substring(chapter.length - 6, chapter.length - 3))
-      .toString();
-  int? prevVerseNumber;
-  List<int> tempVerseNumbers = [];
-  List<List<int>> verseNumbers = [];
-  for (var verseId in verseIds) {
-    int verseNumber = int.tryParse(verseId.toString().substring(
-            verseId.toString().length - 3, verseId.toString().length)) ??
-        0;
-    if (prevVerseNumber == null) {
-      tempVerseNumbers.add(verseNumber);
-    } else {
-      if (prevVerseNumber + 1 == verseNumber) {
-        /// if the verseNumber not jumped;
-        tempVerseNumbers.add(verseNumber);
-      } else {
-        /// if jumped
-        verseNumbers.add(List.from(tempVerseNumbers));
-        tempVerseNumbers.clear();
-        tempVerseNumbers.add(verseNumber);
-      }
-    }
-    prevVerseNumber = verseNumber;
-  }
-  if (tempVerseNumbers.isNotEmpty) {
-    verseNumbers.add(List.from(tempVerseNumbers));
-  }
-  if (withVerse) {
-    String parsedVerse = verseNumbers
-        .map((e) => '${e.first}${e.last == e.first ? '' : '-${e.last}'}')
-        .join(', ');
-    return '$bookName $chapter:$parsedVerse';
-  } else {
-    return '$bookName $chapter';
-  }
-}
-*/
 String? convertZeroNumber(String? number) {
   if (number != null) {
     if (number.isNotEmpty) {
