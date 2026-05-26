@@ -16,8 +16,8 @@ class BibleRepositoryImpl implements BibleRepository {
     String query = 'SELECT * FROM bible';
     List<Verse> bibles = [];
     try {
-      query += ' WHERE b = $bookId AND c = $chapterId ORDER BY id asc';
-      var result = await db.rawQuery(query);
+      query += ' WHERE b = ? AND c = ? ORDER BY id asc';
+      var result = await db.rawQuery(query, [bookId, chapterId]);
       bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
@@ -30,10 +30,12 @@ class BibleRepositoryImpl implements BibleRepository {
     String query = 'SELECT * FROM book';
     List<BibleBook> books = [];
     try {
+      List<Object> args = [];
       if (bookId != null) {
-        query += ' WHERE id = $bookId';
+        query += ' WHERE id = ?';
+        args.add(bookId);
       }
-      var result = await db.rawQuery(query);
+      var result = await db.rawQuery(query, args);
       for (var element in result) {
         books.add(BibleBook.fromJson(element));
       }
@@ -49,8 +51,8 @@ class BibleRepositoryImpl implements BibleRepository {
     List<Pericope> pericopes = [];
     String query = 'SELECT * FROM pericope';
     try {
-      query += ' WHERE b = $bookId AND c = $chapterId';
-      var result = await db.rawQuery(query);
+      query += ' WHERE b = ? AND c = ?';
+      var result = await db.rawQuery(query, [bookId, chapterId]);
       pericopes = result.map((e) => Pericope.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getPericope');
@@ -64,8 +66,8 @@ class BibleRepositoryImpl implements BibleRepository {
     List<PericopeParalel> pericopesParalels = [];
     String query = 'SELECT * FROM pericope_paralel';
     try {
-      query += ' WHERE (CAST(id as varchar(10)) LIKE \'$bc%\')';
-      var result = await db.rawQuery(query);
+      query += ' WHERE (CAST(id as varchar(10)) LIKE ?)';
+      var result = await db.rawQuery(query, ['$bc%']);
       pericopesParalels =
           result.map((e) => PericopeParalel.fromJson(e)).toList();
     } catch (e) {
@@ -79,8 +81,8 @@ class BibleRepositoryImpl implements BibleRepository {
     List<BibleRef> bibleRef = [];
     String query = 'SELECT * FROM ref';
     try {
-      query += ' WHERE (CAST(id as varchar(10)) LIKE \'$bc%\') order by id, sv';
-      var result = await db.rawQuery(query);
+      query += ' WHERE (CAST(id as varchar(10)) LIKE ?) order by id, sv';
+      var result = await db.rawQuery(query, ['$bc%']);
       bibleRef = result.map((e) => BibleRef.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getPericopeParalel');
@@ -98,13 +100,15 @@ class BibleRepositoryImpl implements BibleRepository {
     toId ??= fromId;
     List<Verse> bibles = [];
     try {
+      List<Object> args = [];
       for (var id = fromId; id <= toId; id++) {
-        query += 'id = $id ';
+        query += 'id = ? ';
+        args.add(id);
         if (id < toId) {
           query += 'or ';
         }
       }
-      var result = await db.rawQuery(query);
+      var result = await db.rawQuery(query, args);
       bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
@@ -143,7 +147,7 @@ class BibleRepositoryImpl implements BibleRepository {
 
       final String inOrderQuery = inOrderPhrases.isEmpty
           ? ''
-          : ' AND t LIKE \'%${inOrderPhrases.join(' ')}%\'';
+          : ' AND t LIKE ?';
 
       final String randomOrderQuery = randomOrderWords.isEmpty
           ? ''
@@ -152,14 +156,17 @@ class BibleRepositoryImpl implements BibleRepository {
       final List<int> selectedBookIds =
           selectedBooks.map((book) => book.id).toList();
       final String selectedBooksQuery =
-          ' AND b IN (${selectedBookIds.join(', ')})';
+          ' AND b IN (${List.filled(selectedBookIds.length, '?').join(', ')})';
 
       final String query =
           'SELECT * FROM bible WHERE 1=1 $inOrderQuery $randomOrderQuery$selectedBooksQuery';
 
-      final List<String> whereArgs = randomOrderWords
-          .map((text) => '%$text%')
-          .toList(); // Generate wildcard search strings
+      final List<Object> whereArgs = [];
+      if (inOrderPhrases.isNotEmpty) {
+        whereArgs.add('%${inOrderPhrases.join(' ')}%');
+      }
+      whereArgs.addAll(randomOrderWords.map((text) => '%$text%'));
+      whereArgs.addAll(selectedBookIds);
 
       final List<Map<String, dynamic>> maps =
           await db.rawQuery(query, whereArgs);
@@ -175,4 +182,3 @@ class BibleRepositoryImpl implements BibleRepository {
     }
   }
 }
-
