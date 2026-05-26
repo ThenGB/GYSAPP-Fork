@@ -1017,8 +1017,8 @@ Future<String?> convertIDtoNameAlkitab(
 
   if (id1 != null) {
     id1Val = id1;
-    query = 'select bs,bl from book where id = (?/1000000)';
-    var data = await bibleDb.rawQuery(query, [id1]);
+    query = 'SELECT bs, bl FROM book WHERE id = ?';
+    var data = await bibleDb.rawQuery(query, [(id1 / 1000000).floor()]);
     zb1 = StringUtil.castToString(data.first['bs']);
     if (isLong) {
       zb1 = StringUtil.castToString(data.first['bl']);
@@ -1040,8 +1040,8 @@ Future<String?> convertIDtoNameAlkitab(
 
       if (((id1Val / 1000000) - (id2 / 1000000)) < 0) {
         //second book
-        query = 'select bs, bl from book where id = (?/1000000)';
-        var data = await bibleDb.rawQuery(query, [id2]);
+        query = 'SELECT bs, bl FROM book WHERE id = ?';
+        var data = await bibleDb.rawQuery(query, [(id2 / 1000000).floor()]);
         zb2 = StringUtil.castToString(data.first['bs']);
         if (isLong) {
           zb2 = StringUtil.castToString(data.first['bl']);
@@ -1122,9 +1122,9 @@ Future<String?> convertIDsToNameAlkitab(
   final bookId = firstId ~/ 1000000;
 
   // Query
-  final data = await bibleDb.rawQuery(
-    'SELECT bs, bl FROM book WHERE id = ?', [bookId]
-  );
+  final data = await bibleDb.rawQuery('SELECT bs, bl FROM book WHERE id = ?', [
+    bookId,
+  ]);
 
   if (data.isEmpty) {
     // Tidak ada record
@@ -1190,8 +1190,8 @@ Future<String?> convertIDsToNameAlkitab(List<int> verseIds,
   verseIds.sort();
 
   String query =
-      'select bs,bl from book where id = (?/1000000)';
-  var data = await bibleDb.rawQuery(query, [verseIds.first]);
+      'SELECT bs, bl FROM book WHERE id = ?';
+  var data = await bibleDb.rawQuery(query, [(verseIds.first / 1000000).floor()]);
   bookName = StringUtil.castToString(data.first['bs']);
   if (isLong) {
     bookName = StringUtil.castToString(data.first['bl']);
