@@ -118,6 +118,7 @@ dev_dependencies:
   build_runner: ^2.3.3
   freezed: ^3.2.5
   json_serializable: ^6.13.2
+  bloc_test: ^10.0.0
 dependency_overrides:
   dart_melty_soundfont:
     path: third_party/dart_melty_soundfont
