@@ -11,13 +11,16 @@ import '../../domain/repository/bible_repository.dart';
 
 class BibleRepositoryImpl implements BibleRepository {
   @override
-  Future<List<Verse>> getVerses(Database db,
-      {required int bookId, required int chapterId}) async {
+  Future<List<Verse>> getVerses(
+    Database db, {
+    required int bookId,
+    required int chapterId,
+  }) async {
     String query = 'SELECT * FROM bible';
     List<Verse> bibles = [];
     try {
-      query += ' WHERE b = $bookId AND c = $chapterId ORDER BY id asc';
-      var result = await db.rawQuery(query);
+      query += ' WHERE b = ? AND c = ? ORDER BY id asc';
+      var result = await db.rawQuery(query, [bookId, chapterId]);
       bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
@@ -31,11 +34,16 @@ class BibleRepositoryImpl implements BibleRepository {
     List<BibleBook> books = [];
     try {
       if (bookId != null) {
-        query += ' WHERE id = $bookId';
-      }
-      var result = await db.rawQuery(query);
-      for (var element in result) {
-        books.add(BibleBook.fromJson(element));
+        query += ' WHERE id = ?';
+        var result = await db.rawQuery(query, [bookId]);
+        for (var element in result) {
+          books.add(BibleBook.fromJson(element));
+        }
+      } else {
+        var result = await db.rawQuery(query);
+        for (var element in result) {
+          books.add(BibleBook.fromJson(element));
+        }
       }
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBooks');
@@ -44,13 +52,16 @@ class BibleRepositoryImpl implements BibleRepository {
   }
 
   @override
-  Future<List<Pericope>> getPericope(Database db,
-      {required int bookId, required int chapterId}) async {
+  Future<List<Pericope>> getPericope(
+    Database db, {
+    required int bookId,
+    required int chapterId,
+  }) async {
     List<Pericope> pericopes = [];
     String query = 'SELECT * FROM pericope';
     try {
-      query += ' WHERE b = $bookId AND c = $chapterId';
-      var result = await db.rawQuery(query);
+      query += ' WHERE b = ? AND c = ?';
+      var result = await db.rawQuery(query, [bookId, chapterId]);
       pericopes = result.map((e) => Pericope.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getPericope');
@@ -59,15 +70,18 @@ class BibleRepositoryImpl implements BibleRepository {
   }
 
   @override
-  Future<List<PericopeParalel>> getPericopeParalel(Database db,
-      {required int bc}) async {
+  Future<List<PericopeParalel>> getPericopeParalel(
+    Database db, {
+    required int bc,
+  }) async {
     List<PericopeParalel> pericopesParalels = [];
     String query = 'SELECT * FROM pericope_paralel';
     try {
-      query += ' WHERE (CAST(id as varchar(10)) LIKE \'$bc%\')';
-      var result = await db.rawQuery(query);
-      pericopesParalels =
-          result.map((e) => PericopeParalel.fromJson(e)).toList();
+      query += ' WHERE (CAST(id as varchar(10)) LIKE ?)';
+      var result = await db.rawQuery(query, ['$bc%']);
+      pericopesParalels = result
+          .map((e) => PericopeParalel.fromJson(e))
+          .toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getPericopeParalel');
     }
@@ -79,8 +93,8 @@ class BibleRepositoryImpl implements BibleRepository {
     List<BibleRef> bibleRef = [];
     String query = 'SELECT * FROM ref';
     try {
-      query += ' WHERE (CAST(id as varchar(10)) LIKE \'$bc%\') order by id, sv';
-      var result = await db.rawQuery(query);
+      query += ' WHERE (CAST(id as varchar(10)) LIKE ?) order by id, sv';
+      var result = await db.rawQuery(query, ['$bc%']);
       bibleRef = result.map((e) => BibleRef.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getPericopeParalel');
@@ -89,8 +103,11 @@ class BibleRepositoryImpl implements BibleRepository {
   }
 
   @override
-  Future<List<Verse>> getVersesByIdRange(Database db,
-      {required int fromId, required int? toId}) async {
+  Future<List<Verse>> getVersesByIdRange(
+    Database db, {
+    required int fromId,
+    required int? toId,
+  }) async {
     String query = 'SELECT * FROM bible where ';
     if (toId == 0) {
       toId = null;
@@ -98,13 +115,8 @@ class BibleRepositoryImpl implements BibleRepository {
     toId ??= fromId;
     List<Verse> bibles = [];
     try {
-      for (var id = fromId; id <= toId; id++) {
-        query += 'id = $id ';
-        if (id < toId) {
-          query += 'or ';
-        }
-      }
-      var result = await db.rawQuery(query);
+      query += 'id >= ? AND id <= ?';
+      var result = await db.rawQuery(query, [fromId, toId]);
       bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
@@ -114,7 +126,10 @@ class BibleRepositoryImpl implements BibleRepository {
 
   @override
   Future<List<Verse>> search(
-      Database db, String searchText, List<BibleBook> selectedBooks) async {
+    Database db,
+    String searchText,
+    List<BibleBook> selectedBooks,
+  ) async {
     if (selectedBooks.isEmpty) {
       return []; // Return an empty list if selectedBooks is empty
     }
@@ -135,34 +150,43 @@ class BibleRepositoryImpl implements BibleRepository {
         final String matchText = match.group(1)!;
         inOrderPhrases.add(matchText);
         searchText = searchText.replaceFirst(
-            '"$matchText"', ''); // Remove the processed phrase from searchText
+          '"$matchText"',
+          '',
+        ); // Remove the processed phrase from searchText
       }
 
       randomOrderWords.addAll(searchText.split(' '));
       randomOrderWords.removeWhere((element) => element.isEmpty);
 
-      final String inOrderQuery = inOrderPhrases.isEmpty
-          ? ''
-          : ' AND t LIKE \'%${inOrderPhrases.join(' ')}%\'';
+      final List<Object?> queryArgs = [];
+
+      final String inOrderQuery = inOrderPhrases.isEmpty ? '' : ' AND t LIKE ?';
+      if (inOrderPhrases.isNotEmpty) {
+        queryArgs.add('%${inOrderPhrases.join(' ')}%');
+      }
 
       final String randomOrderQuery = randomOrderWords.isEmpty
           ? ''
           : ' AND ${List.generate(randomOrderWords.length, (index) => 't LIKE ?').join(' AND ')}';
+      queryArgs.addAll(randomOrderWords.map((text) => '%$text%'));
 
-      final List<int> selectedBookIds =
-          selectedBooks.map((book) => book.id).toList();
-      final String selectedBooksQuery =
-          ' AND b IN (${selectedBookIds.join(', ')})';
+      final List<int> selectedBookIds = selectedBooks
+          .map((book) => book.id)
+          .toList();
+      final String selectedBooksQuery = selectedBookIds.isEmpty
+          ? ''
+          : ' AND b IN (${List.generate(selectedBookIds.length, (index) => '?').join(', ')})';
+      queryArgs.addAll(selectedBookIds);
 
       final String query =
           'SELECT * FROM bible WHERE 1=1 $inOrderQuery $randomOrderQuery$selectedBooksQuery';
 
-      final List<String> whereArgs = randomOrderWords
-          .map((text) => '%$text%')
-          .toList(); // Generate wildcard search strings
+      final List<Object?> whereArgs = queryArgs;
 
-      final List<Map<String, dynamic>> maps =
-          await db.rawQuery(query, whereArgs);
+      final List<Map<String, dynamic>> maps = await db.rawQuery(
+        query,
+        whereArgs,
+      );
 
       for (var map in maps) {
         listData.add(Verse.fromJson(map));
@@ -175,4 +199,3 @@ class BibleRepositoryImpl implements BibleRepository {
     }
   }
 }
-
