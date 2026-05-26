@@ -532,16 +532,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
       initTts();
     }
 
-    // getBooks();
     getContent(state.currentBible);
   }
-
-  // getBooks() {
-  //   bibleDb!.query('book').then((value) {
-  //     List<BibleBook> books = value.map((e) => BibleBook.fromJson(e)).toList();
-  //     emit(state.copyWith(books: books));
-  //   });
-  // }
 
   void selectBook(BibleBook book) {
     emit(state.copyWith(currentBook: book));
