@@ -33,9 +33,12 @@ class BibleRepositoryImpl implements BibleRepository {
     String query = 'SELECT * FROM book';
     List<BibleBook> books = [];
     try {
-      var result = bookId != null
-          ? await db.rawQuery('$query WHERE id = ?', [bookId])
-          : await db.rawQuery(query);
+      final List<Object?> args = [];
+      if (bookId != null) {
+        query += ' WHERE id = ?';
+        args.add(bookId);
+      }
+      var result = await db.rawQuery(query, args);
       for (var element in result) {
         books.add(BibleBook.fromJson(element));
       }
@@ -109,15 +112,8 @@ class BibleRepositoryImpl implements BibleRepository {
     toId ??= fromId;
     List<Verse> bibles = [];
     try {
-      List<Object> args = [];
-      for (var id = fromId; id <= toId; id++) {
-        query += 'id = ? ';
-        args.add(id);
-        if (id < toId) {
-          query += 'or ';
-        }
-      }
-      var result = await db.rawQuery(query, args);
+      query += 'id >= ? AND id <= ?';
+      var result = await db.rawQuery(query, [fromId, toId]);
       bibles = result.map((e) => Verse.fromJson(e)).toList();
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBible');
@@ -159,32 +155,29 @@ class BibleRepositoryImpl implements BibleRepository {
       randomOrderWords.addAll(searchText.split(' '));
       randomOrderWords.removeWhere((element) => element.isEmpty);
 
+      final List<Object?> queryArgs = [];
       String inOrderQuery = '';
-      List<Object> allArgs = [];
-
       if (inOrderPhrases.isNotEmpty) {
         inOrderQuery = ' AND t LIKE ?';
-        allArgs.add('%${inOrderPhrases.join(' ')}%');
+        queryArgs.add('%${inOrderPhrases.join(' ')}%');
       }
 
       final String randomOrderQuery = randomOrderWords.isEmpty
           ? ''
           : ' AND ${List.generate(randomOrderWords.length, (index) => 't LIKE ?').join(' AND ')}';
-
-      allArgs.addAll(randomOrderWords.map((text) => '%$text%'));
+      queryArgs.addAll(randomOrderWords.map((text) => '%$text%'));
 
       final List<int> selectedBookIds = selectedBooks
           .map((book) => book.id)
           .toList();
+      queryArgs.addAll(selectedBookIds);
       final String selectedBooksQuery =
           ' AND b IN (${List.generate(selectedBookIds.length, (index) => '?').join(', ')})';
-
-      allArgs.addAll(selectedBookIds);
 
       final String query =
           'SELECT * FROM bible WHERE 1=1 $inOrderQuery $randomOrderQuery$selectedBooksQuery';
 
-      final List<Map<String, dynamic>> maps = await db.rawQuery(query, allArgs);
+      final List<Map<String, dynamic>> maps = await db.rawQuery(query, queryArgs);
 
       for (var map in maps) {
         listData.add(Verse.fromJson(map));
