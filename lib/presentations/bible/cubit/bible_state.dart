@@ -145,9 +145,11 @@ abstract class BibleState with _$BibleState {
     Map<String, BibleNote> filtered = {};
 
     /// generate the title of the note first
-    for (var note in notes) {
-      var title = await getTitle(note.verses);
-      mapped['$title|${note.id}'] = note;
+    final titles = await Future.wait(
+      notes.map((note) => getTitle(note.verses)),
+    );
+    for (var i = 0; i < notes.length; i++) {
+      mapped['${titles[i]}|${notes[i].id}'] = notes[i];
     }
 
     /// return all immediately if the filter is empty to show all
