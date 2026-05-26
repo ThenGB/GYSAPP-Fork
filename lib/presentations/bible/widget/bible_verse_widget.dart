@@ -195,43 +195,6 @@ class VerseWidgetState extends State<VerseWidget>
                   sentence = sentence.replaceAll('<pb/>', '    ');
                   sentence = sentence.replaceAll('<t>', '');
                   sentence = sentence.replaceAll('</t>', '');
-                  // var startIndex =
-                  //     context.read<BibleCubit>().state.currentStartWord;
-                  // var endIndex = context.read<BibleCubit>().state.currentEndWord;
-                  // if (widget.hasPericope) {
-                  //   startIndex = startIndex -
-                  //       (widget.pericope
-                  //               .map((e) => '${e.title}')
-                  //               .join('. ')
-                  //               .length +
-                  //           1);
-                  //   endIndex = endIndex -
-                  //       (widget.pericope
-                  //           .map((e) => '${e.title}')
-                  //           .join('. ')
-                  //           .length);
-                  //   if (startIndex < 0) startIndex = 0;
-                  //   if (endIndex < 0) endIndex = 0;
-                  // }
-                  // String beforeWord = '';
-                  // String highlightedWord = '';
-                  // String afterWord = '';
-                  // if (context.read<BibleCubit>().state.isSpeaking &&
-                  //     context.read<BibleCubit>().state.currentBible ==
-                  //         widget.verse) {
-                  //   try {
-                  //     beforeWord = sentence.substring(
-                  //         0, (startIndex).clamp(0, sentence.length - 1));
-                  //     highlightedWord = sentence.substring(
-                  //         startIndex, (endIndex).clamp(0, sentence.length - 1));
-                  //     afterWord = sentence
-                  //         .substring((endIndex).clamp(0, sentence.length - 1));
-                  //   } catch (e) {
-                  //     beforeWord = '';
-                  //     highlightedWord = '';
-                  //     afterWord = '';
-                  //   }
-                  // }
 
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
