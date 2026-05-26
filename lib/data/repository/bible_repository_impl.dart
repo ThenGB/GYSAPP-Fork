@@ -33,17 +33,14 @@ class BibleRepositoryImpl implements BibleRepository {
     String query = 'SELECT * FROM book';
     List<BibleBook> books = [];
     try {
+      final List<Object?> args = [];
       if (bookId != null) {
         query += ' WHERE id = ?';
-        var result = await db.rawQuery(query, [bookId]);
-        for (var element in result) {
-          books.add(BibleBook.fromJson(element));
-        }
-      } else {
-        var result = await db.rawQuery(query);
-        for (var element in result) {
-          books.add(BibleBook.fromJson(element));
-        }
+        args.add(bookId);
+      }
+      var result = await db.rawQuery(query, args);
+      for (var element in result) {
+        books.add(BibleBook.fromJson(element));
       }
     } catch (e) {
       log('Error: $e', name: 'BibleRepositoryImpl - getBooks');
@@ -159,9 +156,9 @@ class BibleRepositoryImpl implements BibleRepository {
       randomOrderWords.removeWhere((element) => element.isEmpty);
 
       final List<Object?> queryArgs = [];
-
-      final String inOrderQuery = inOrderPhrases.isEmpty ? '' : ' AND t LIKE ?';
+      String inOrderQuery = '';
       if (inOrderPhrases.isNotEmpty) {
+        inOrderQuery = ' AND t LIKE ?';
         queryArgs.add('%${inOrderPhrases.join(' ')}%');
       }
 
@@ -173,20 +170,14 @@ class BibleRepositoryImpl implements BibleRepository {
       final List<int> selectedBookIds = selectedBooks
           .map((book) => book.id)
           .toList();
-      final String selectedBooksQuery = selectedBookIds.isEmpty
-          ? ''
-          : ' AND b IN (${List.generate(selectedBookIds.length, (index) => '?').join(', ')})';
       queryArgs.addAll(selectedBookIds);
+      final String selectedBooksQuery =
+          ' AND b IN (${List.generate(selectedBookIds.length, (index) => '?').join(', ')})';
 
       final String query =
           'SELECT * FROM bible WHERE 1=1 $inOrderQuery $randomOrderQuery$selectedBooksQuery';
 
-      final List<Object?> whereArgs = queryArgs;
-
-      final List<Map<String, dynamic>> maps = await db.rawQuery(
-        query,
-        whereArgs,
-      );
+      final List<Map<String, dynamic>> maps = await db.rawQuery(query, queryArgs);
 
       for (var map in maps) {
         listData.add(Verse.fromJson(map));
