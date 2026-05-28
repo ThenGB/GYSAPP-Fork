@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:rxdart/rxdart.dart';
 
+import '../../../data/services/ourmanna_service.dart';
 import '../../../data/utilities/app_config_store.dart';
 import '../../../domain/entity/banner/banner.dart';
 import '../../../domain/entity/menulink/menulink_entity.dart';
@@ -14,12 +15,13 @@ export 'home_state.dart';
 
 class HomeCubit extends HydratedCubit<HomeState> {
   final ScrapperRepository repository;
+  final OurMannnaService ourMannnaService;
 
   late BehaviorSubject<List<ImageBanner>> rxBanner =
       BehaviorSubject<List<ImageBanner>>.seeded([]);
 
   ValueStream<List<ImageBanner>> get bannerObservable => rxBanner.stream;
-  HomeCubit(this.repository) : super(const HomeState()) {
+  HomeCubit(this.repository, this.ourMannnaService) : super(const HomeState()) {
     final freshSauhs = freshSauhCacheForToday(state.sauhs);
     if (freshSauhs.length != state.sauhs.length) {
       emit(state.copyWith(sauhs: freshSauhs));
@@ -28,6 +30,16 @@ class HomeCubit extends HydratedCubit<HomeState> {
     scrappTrueVoice();
     getMenu();
     getPrimaryMenuStatus();
+    fetchTodayVerse();
+  }
+
+  Future<void> fetchTodayVerse() async {
+    final verse = await ourMannnaService.getVerse();
+    if (verse != null) {
+      emit(state.copyWith(
+        todayVerse: OurMannaVerse(text: verse.text, reference: verse.reference),
+      ));
+    }
   }
 
   void refresh() {
