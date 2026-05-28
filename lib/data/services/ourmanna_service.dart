@@ -25,12 +25,10 @@ class OurMannnaService {
       );
 
       if (response.statusCode == 200) {
-        final data = response.data;
-        final verse = OurMannaVerse(
-          text: data['verse'] ?? '',
-          reference: data['reference'] ?? '',
-        );
-        if (verse.text.isNotEmpty) {
+        // API returns plain text: "Verse text - Reference (Version)"
+        final responseText = response.data.toString();
+        final verse = _parseVerseResponse(responseText);
+        if (verse != null && verse.text.isNotEmpty) {
           await _cacheVerse(verse);
           return verse;
         }
@@ -39,6 +37,33 @@ class OurMannnaService {
       // Return null on error - card will be hidden
     }
     return null;
+  }
+
+  /// Parses the API response which is in format:
+  /// "Verse text - Reference (Version)"
+  /// Example: "You are my refuge and my shield; I have put my hope in your word. - Psalm 119:114 (NIV)"
+  OurMannaVerse? _parseVerseResponse(String response) {
+    try {
+      // Split by " - " to separate verse text from reference
+      final parts = response.split(' - ');
+      if (parts.length < 2) return null;
+
+      final text = parts[0].trim();
+      final refWithVersion = parts.sublist(1).join(' - ').trim();
+
+      // Remove version in parentheses, e.g., " (NIV)"
+      String reference = refWithVersion;
+      final versionMatch = RegExp(r'\s*\([^)]+\)\s*$').firstMatch(refWithVersion);
+      if (versionMatch != null) {
+        reference = refWithVersion.substring(0, versionMatch.start).trim();
+      }
+
+      if (text.isEmpty || reference.isEmpty) return null;
+
+      return OurMannaVerse(text: text, reference: reference);
+    } catch (e) {
+      return null;
+    }
   }
 
   Future<OurMannaVerse?> _getCachedVerse() async {
