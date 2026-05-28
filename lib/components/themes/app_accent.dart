@@ -185,6 +185,7 @@ const appAccentOptions = [
     seed: Color(0xFF7B2E1E),
     container: Color(0xFF99513B),
     fixed: Color(0xFFF7E2D7),
+    surface: Color(0xFFF7E2D7),
     darkSurface: Color(0xFF1F0F0F),
     darkContainer: Color(0xFF3D2020),
     darkOnSurface: Color(0xFFF5E0D8),

@@ -1,3 +1,4 @@
+
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -23,71 +24,68 @@ class InitialCubit extends HydratedCubit<InitialState> {
 
   Future<void> initState() async {
     emit(state.copyWith(message: 'Initiating...'));
-    await di.allReady();
-    log('Initiating application state');
-    var result = (await internetChecker.isHostReachable(
-      defaultAddress,
-    )).isSuccess;
-    if (!result && state.isFreshInstall) {
-      emit(
-        state.copyWith(
-          isFailed: true,
-          message:
-              'First time installation failed. Please connect to the internet and try again.',
-          isLoading: false,
-          isLoaded: false,
-        ),
-      );
-    } else {
-      final assetService = di<LocalAssetService>();
+
+    // Emit loaded immediately so the app navigates to Dashboard without blocking.
+    // All heavy work (internet check, PDF prep, config) happens in the background.
+    emit(state.copyWith(
+      isFailed: false,
+      isFreshInstall: false,
+      isLoading: false,
+      isLoaded: true,
+      message: 'Ready',
+    ));
+
+    // Background initialization — does not block the UI
+    _backgroundInit();
+  }
+
+  Future<void> _backgroundInit() async {
+    try {
+      await di.allReady();
+      log('Initiating application state (background)');
+
+      // Internet check with timeout
       try {
+        final result = await internetChecker
+            .isHostReachable(defaultAddress)
+            .timeout(const Duration(seconds: 8));
+        if (!result.isSuccess && state.isFreshInstall) {
+          log('Internet check failed on fresh install');
+        }
+      } catch (e) {
+        log('Internet check timed out or failed: $e');
+      }
+
+      // PDF preparation
+      try {
+        final assetService = di<LocalAssetService>();
         if (await assetService.needsPdfPreparation('KR', '001')) {
-          emit(
-            state.copyWith(
-              isFailed: false,
-              isLoading: true,
-              isLoaded: false,
-              message: startupKrPreparationMessage,
-            ),
-          );
+          emit(state.copyWith(
+            isLoading: false,
+            message: startupKrPreparationMessage,
+          ));
           await assetService.getPdfPath('KR', '001');
         }
       } catch (e, st) {
-        log(
-          'Startup KR preparation failed',
-          name: 'InitialCubit',
-          error: e,
-          stackTrace: st,
-        );
+        log('Startup KR preparation failed', name: 'InitialCubit', error: e, stackTrace: st);
       }
 
-      emit(
-        state.copyWith(
-          isFailed: false,
-          message: 'Syncing...',
-          isFreshInstall: false,
-          isLoading: false,
-          isLoaded: true,
-        ),
-      );
+      // Config fetch policy
+      try {
+        final configFetchPolicy = await AppConfigStore.jsonConfig('config_fetch_policy');
+        emit(state.copyWith(
+          configFetchTimeoutSeconds: configFetchPolicy['fetch_timeout'] ?? state.configFetchTimeoutSeconds,
+          configFetchIntervalSeconds: configFetchPolicy['fetch_interval'] ?? state.configFetchIntervalSeconds,
+        ));
+      } catch (e) {
+        log('Failed to load config fetch policy: $e');
+      }
+
+      // Theme preferences
+      await _loadThemePreferences();
+    } catch (e, st) {
+      log('Background init failed', name: 'InitialCubit', error: e, stackTrace: st);
     }
-
-    var configFetchPolicy = await AppConfigStore.jsonConfig(
-      'config_fetch_policy',
-    );
-    emit(
-      state.copyWith(
-        configFetchTimeoutSeconds:
-            configFetchPolicy['fetch_timeout'] ??
-            state.configFetchTimeoutSeconds,
-        configFetchIntervalSeconds:
-            configFetchPolicy['fetch_interval'] ??
-            state.configFetchIntervalSeconds,
-      ),
-    );
-
-    // Load theme preferences
-    await _loadThemePreferences();
   }
 
   Future<void> _loadThemePreferences() async {

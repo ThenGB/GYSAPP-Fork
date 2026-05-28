@@ -19,8 +19,8 @@ ThemeData darkTheme(String defaultFont, {String accentKey = defaultAccentKey}) {
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: _HymnalPageTransitionsBuilder(),
-        TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-        TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
+        TargetPlatform.iOS: _HymnalPageTransitionsBuilder(),
+        TargetPlatform.macOS: _HymnalPageTransitionsBuilder(),
         TargetPlatform.windows: _HymnalPageTransitionsBuilder(),
         TargetPlatform.linux: _HymnalPageTransitionsBuilder(),
       },

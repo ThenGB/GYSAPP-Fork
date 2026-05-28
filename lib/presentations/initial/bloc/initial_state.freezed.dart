@@ -229,7 +229,7 @@ return $default(_that.isLoading,_that.isLoaded,_that.isFailed,_that.message,_tha
 @JsonSerializable()
 
 class _InitialState extends InitialState {
-  const _InitialState({this.isLoading = false, this.isLoaded = false, this.isFailed = false, this.message = '', this.isFreshInstall = true, this.themeMode = 'light', this.configFetchTimeoutSeconds = 5, this.configFetchIntervalSeconds = 10, this.defaultTextScale = 1.2, this.defaultFont = 'Roboto', this.accentKey = 'maroon', this.themePreferences = const ThemePreferences()}): super._();
+  const _InitialState({this.isLoading = false, this.isLoaded = false, this.isFailed = false, this.message = '', this.isFreshInstall = true, this.themeMode = 'light', this.configFetchTimeoutSeconds = 5, this.configFetchIntervalSeconds = 10, this.defaultTextScale = 1.0, this.defaultFont = 'Roboto', this.accentKey = 'maroon', this.themePreferences = const ThemePreferences()}): super._();
   factory _InitialState.fromJson(Map<String, dynamic> json) => _$InitialStateFromJson(json);
 
 @override@JsonKey() final  bool isLoading;

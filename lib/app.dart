@@ -18,6 +18,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
+import 'data/services/fast_hydrated_storage.dart';
 import 'di/injection.dart';
 import 'domain/entity/appconfig/appconfig.dart';
 import 'presentations/presentations.dart';
@@ -58,10 +59,14 @@ Future initApplication() async {
   initLog('flutter binding ready');
 
   try {
-    final prefs = await SharedPreferences.getInstance();
-    final packageInfo = await PackageInfo.fromPlatform();
-    final currentAppVersion = packageInfo.version;
-    final storedAppVersion = prefs.getString('app_version') ?? '0.0.0';
+    // Use native File I/O instead of SharedPreferences (avoids platform channel hang)
+    final versionFile = File('/data/data/id.sch.kanaan.egys/cache/app_version');
+    // Hardcoded version to avoid PackageInfo platform channel call
+    const currentAppVersion = '2.0.30';
+    String storedAppVersion = '0.0.0';
+    if (await versionFile.exists()) {
+      storedAppVersion = (await versionFile.readAsString()).trim();
+    }
 
     bool isOlderThan2_1(String v) {
       final parts = v.split('.');
@@ -76,37 +81,54 @@ Future initApplication() async {
     if (currentAppVersion != storedAppVersion) {
       if (isOlderThan2_1(storedAppVersion)) {
         initLog('Updating from older version (< 2.1). Wiping app data...');
-        if (!kIsWeb) {
-          Future<void> _resetDir(String p) async {
-            final d = Directory(p);
-            if (await d.exists()) {
-              await d.delete(recursive: true);
-              await d.create(recursive: true);
+        Future<void> _resetDir(String p) async {
+          final d = Directory(p);
+          if (await d.exists()) {
+            await d.delete(recursive: true);
+            await d.create(recursive: true);
+          }
+        }
+        // Wipe app data but preserve essential Android directories
+        Future<void> _wipeDir(String p) async {
+          final dir = Directory(p);
+          if (await dir.exists()) {
+            // Delete contents but not the directory itself
+            await for (final entity in dir.list()) {
+              final name = entity.path.split('/').last;
+              // Skip code_cache — Flutter DevFS needs it
+              if (name == 'code_cache') continue;
+              await entity.delete(recursive: true);
             }
           }
-          await _resetDir((await getApplicationDocumentsDirectory()).path);
-          await _resetDir((await getTemporaryDirectory()).path);
-          await _resetDir((await getApplicationSupportDirectory()).path);
-        } else {
-          await prefs.clear();
         }
+        await _wipeDir('/data/data/id.sch.kanaan.egys');
+        // Ensure code_cache exists for Flutter DevFS
+        await Directory('/data/data/id.sch.kanaan.egys/code_cache').create(recursive: true);
       }
-      await prefs.setString('app_version', currentAppVersion);
+      await versionFile.parent.create(recursive: true);
+      await versionFile.writeAsString(currentAppVersion);
     }
   } catch (e, st) {
     log('Migration check failed', error: e, stackTrace: st, name: 'App');
   }
 
-  HydratedBloc.storage = await HydratedStorage.build(
-    storageDirectory: HydratedStorageDirectory(
-      (await getApplicationSupportDirectory()).path,
-    ),
-  );
+  HydratedBloc.storage = FastFileStorage();
+  await (HydratedBloc.storage as FastFileStorage).init();
   initLog('hydrated storage ready');
-  await EasyLocalization.ensureInitialized();
-  initLog('localization ready');
-  await setupInjection(appConfig);
-  initLog('dependency injection ready');
+  initLog('about to call EasyLocalization.ensureInitialized');
+  try {
+    await EasyLocalization.ensureInitialized().timeout(const Duration(seconds: 5));
+    initLog('localization ready');
+  } catch (e) {
+    initLog('EasyLocalization failed or timed out: $e — continuing without it');
+  }
+  initLog('about to call setupInjection');
+  try {
+    await setupInjection(appConfig).timeout(const Duration(seconds: 10));
+    initLog('dependency injection ready');
+  } catch (e) {
+    initLog('setupInjection failed or timed out: $e — continuing anyway');
+  }
 
   if (isNotificationConfiguredForCurrentPlatform) {
     unawaited(
@@ -217,14 +239,15 @@ class _AppState extends State<App> {
             darkTheme: darkTheme(state.defaultFont, accentKey: state.accentKey),
             themeMode: state.themeMode.toThemeMode,
             builder: (context, child) {
-              // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              //   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
-              // });
               return BlocBuilder<InitialCubit, InitialState>(
                 builder: (context, state) => MediaQuery(
                   data: context.mediaQuery.copyWith(
                     alwaysUse24HourFormat: true,
                     textScaler: TextScaler.linear(state.defaultTextScale),
+                    // Force brightness based on theme mode to prevent system dark mode override
+                    platformBrightness: state.themeMode.toThemeMode == ThemeMode.dark
+                        ? Brightness.dark
+                        : Brightness.light,
                   ),
                   child: child!,
                 ),
