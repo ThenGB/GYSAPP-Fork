@@ -25,6 +25,9 @@ _HomeState _$HomeStateFromJson(Map<String, dynamic> json) => _HomeState(
       const [],
   isSuaraSejatiEnabled: json['isSuaraSejatiEnabled'] as bool? ?? true,
   isSauhEnabled: json['isSauhEnabled'] as bool? ?? true,
+  todayVerse: json['todayVerse'] == null
+      ? null
+      : OurMannaVerse.fromJson(json['todayVerse'] as Map<String, dynamic>),
 );
 
 Map<String, dynamic> _$HomeStateToJson(_HomeState instance) =>
@@ -35,4 +38,5 @@ Map<String, dynamic> _$HomeStateToJson(_HomeState instance) =>
       'menuLinks': instance.menuLinks,
       'isSuaraSejatiEnabled': instance.isSuaraSejatiEnabled,
       'isSauhEnabled': instance.isSauhEnabled,
+      'todayVerse': instance.todayVerse,
     };

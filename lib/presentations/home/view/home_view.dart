@@ -7,9 +7,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
@@ -879,110 +877,103 @@ class _DailyVerseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return BlocBuilder<HomeCubit, HomeState>(
+      builder: (context, state) {
+        // Only show if verse is available
+        if (!state.hasTodayVerse) {
+          return const SizedBox.shrink();
+        }
 
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
-      child: Container(
-        decoration: BoxDecoration(
-          // Soft gradient for daily verse
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: isDark
-                ? [
-                    colors.secondaryContainer.withValues(alpha: 0.5),
-                    colors.tertiaryContainer.withValues(alpha: 0.3),
-                  ]
-                : [
-                    colors.secondaryContainer.withValues(alpha: 0.35),
-                    colors.secondaryContainer.withValues(alpha: 0.15),
-                  ],
-          ),
-          borderRadius: BorderRadius.circular(16),
-          boxShadow: [
-            BoxShadow(
-              color: colors.secondary.withValues(alpha: 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Softer label with icon
-            Row(
-              children: [
-                Icon(
-                  Icons.format_quote_rounded,
-                  color: colors.onSecondaryContainer.withValues(alpha: 0.6),
-                  size: 14,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'TODAY VERSE',
-                  style: context.textTheme.labelSmall?.copyWith(
-                    color: colors.onSecondaryContainer.withValues(alpha: 0.7),
-                    letterSpacing: 1.5,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Text(
-              '"Berbahagialah orang yang suci hatinya, karena mereka akan melihat Allah."',
-              style: context.textTheme.bodyLarge?.copyWith(
-                fontWeight: FontWeight.w500,
-                color: colors.onSecondaryContainer,
-                height: 1.55,
-                fontStyle: FontStyle.italic,
+        final verse = state.todayVerse!;
+        final colors = context.colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        colors.secondaryContainer.withValues(alpha: 0.5),
+                        colors.tertiaryContainer.withValues(alpha: 0.3),
+                      ]
+                    : [
+                        colors.secondaryContainer.withValues(alpha: 0.35),
+                        colors.secondaryContainer.withValues(alpha: 0.15),
+                      ],
               ),
-            ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                // Softer reference badge
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.primary.withValues(alpha: isDark ? 0.25 : 0.15),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Matius 5:8',
-                    style: context.textTheme.labelMedium?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
-                ),
-                const Spacer(),
-                // Soft share icon
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: colors.onSecondaryContainer.withValues(alpha: 0.08),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    Icons.ios_share_rounded,
-                    size: 14,
-                    color: colors.onSecondaryContainer.withValues(alpha: 0.6),
-                  ),
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: colors.secondary.withValues(alpha: 0.08),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
                 ),
               ],
             ),
-          ],
-        ),
-      ),
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(
+                      Icons.format_quote_rounded,
+                      color: colors.onSecondaryContainer.withValues(alpha: 0.6),
+                      size: 14,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'TODAY VERSE',
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: colors.onSecondaryContainer.withValues(alpha: 0.7),
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  '"${verse.text}"',
+                  style: context.textTheme.bodyLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: colors.onSecondaryContainer,
+                    height: 1.55,
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primary.withValues(alpha: isDark ? 0.25 : 0.15),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        verse.reference,
+                        style: context.textTheme.labelMedium?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.3,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

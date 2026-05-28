@@ -17,10 +17,28 @@ abstract class HomeState with _$HomeState {
     @Default([]) List<Menulink> menuLinks,
     @Default(true) bool isSuaraSejatiEnabled,
     @Default(true) bool isSauhEnabled,
+    OurMannaVerse? todayVerse,
   }) = _HomeState;
 
   bool get isSauhEmpty => sauhs.isEmpty;
+  bool get hasTodayVerse => todayVerse != null && todayVerse!.text.isNotEmpty;
 
   factory HomeState.fromJson(Map<String, dynamic> json) =>
       _$HomeStateFromJson(json);
+}
+
+class OurMannaVerse {
+  final String text;
+  final String reference;
+
+  OurMannaVerse({required this.text, required this.reference});
+
+  factory OurMannaVerse.fromJson(Map<String, dynamic> json) {
+    return OurMannaVerse(
+      text: json['text'] as String? ?? '',
+      reference: json['reference'] as String? ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() => {'text': text, 'reference': reference};
 }

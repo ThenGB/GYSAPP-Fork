@@ -5,7 +5,6 @@ import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
-import 'package:path_provider/path_provider.dart';
 
 import '../data/data.dart';
 
@@ -24,7 +23,7 @@ Future<void> setupInjection(AppConfig config) async {
 }
 
 void _blocs() {
-  di.registerFactory(() => HomeCubit(di()));
+  di.registerFactory(() => HomeCubit(di(), di()));
   di.registerFactory(() => InitialCubit());
   di.registerFactory(() => DashboardCubit(di()));
   di.registerFactory(() => BibleCubit());
@@ -90,6 +89,7 @@ void _services() {
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
   );
+  di.registerLazySingleton(() => OurMannnaService(di<Dio>()));
 }
 
 void _repositories() {
