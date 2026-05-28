@@ -93,7 +93,13 @@ class InitialCubit extends HydratedCubit<InitialState> {
       final themeRepo = di<ThemePreferencesRepository>();
       await themeRepo.init();
       final prefs = themeRepo.preferences;
-      emit(state.copyWith(themePreferences: prefs));
+      final savedThemeMode = themeRepo.themeMode;
+      log('[InitialCubit] _loadThemePreferences: accentKey=${prefs.accentKey}, themeMode=$savedThemeMode');
+      emit(state.copyWith(
+        themePreferences: prefs,
+        accentKey: prefs.accentKey,
+        themeMode: savedThemeMode,
+      ));
     } catch (e) {
       log('Failed to load theme preferences', name: 'InitialCubit', error: e);
       // Fallback to defaults if loading fails
@@ -102,7 +108,9 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
-    emit(state.copyWith(themeMode: themeMode.toThemeString));
+    final themeModeStr = themeMode.toThemeString;
+    emit(state.copyWith(themeMode: themeModeStr));
+    _persistThemeMode(themeModeStr);
     Future.delayed(kThemeChangeDuration, () {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         SystemChrome.setSystemUIOverlayStyle(
@@ -122,6 +130,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
 
   void changeAccentColor(String accentKey) {
     emit(state.copyWith(accentKey: accentKey));
+    _persistAccentKey(accentKey);
   }
 
   void changeDensity(DisplayDensity density) {
@@ -148,6 +157,24 @@ class InitialCubit extends HydratedCubit<InitialState> {
       await themeRepo.savePreferences(state.themePreferences);
     } catch (e) {
       log('Failed to save theme preferences', name: 'InitialCubit', error: e);
+    }
+  }
+
+  Future<void> _persistAccentKey(String accentKey) async {
+    try {
+      final themeRepo = di<ThemePreferencesRepository>();
+      await themeRepo.updateAccentKey(accentKey);
+    } catch (e) {
+      log('Failed to persist accent key', name: 'InitialCubit', error: e);
+    }
+  }
+
+  Future<void> _persistThemeMode(String themeMode) async {
+    try {
+      final themeRepo = di<ThemePreferencesRepository>();
+      await themeRepo.saveThemeMode(themeMode);
+    } catch (e) {
+      log('Failed to persist theme mode', name: 'InitialCubit', error: e);
     }
   }
 

@@ -887,9 +887,10 @@ class _DailyVerseCard extends StatelessWidget {
         final verse = state.todayVerse!;
         final colors = context.colorScheme;
         final isDark = Theme.of(context).brightness == Brightness.dark;
+        final homeCubit = context.read<HomeCubit>();
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -967,6 +968,41 @@ class _DailyVerseCard extends StatelessWidget {
                         ),
                       ),
                     ),
+                    if (verse.bibleCodeName != null) ...[
+                      const SizedBox(width: 6),
+                      GestureDetector(
+                        onTap: () => _showBibleVersionPicker(context, homeCubit),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.tertiary.withValues(alpha: isDark ? 0.25 : 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                verse.bibleCodeName!,
+                                style: context.textTheme.labelMedium?.copyWith(
+                                  color: colors.tertiary,
+                                  fontWeight: FontWeight.w600,
+                                  letterSpacing: 0.3,
+                                ),
+                              ),
+                              const SizedBox(width: 2),
+                              Icon(
+                                Icons.arrow_drop_down,
+                                size: 16,
+                                color: colors.tertiary,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -974,6 +1010,22 @@ class _DailyVerseCard extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  void _showBibleVersionPicker(BuildContext context, HomeCubit homeCubit) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: false,
+      builder: (_) => BibleSelectWidget(
+        bibleCodes: homeCubit.bibleCodes,
+        onTap: (index) {
+          final code = homeCubit.bibleCodes[index].split('.').first;
+          homeCubit.switchTodayVerseBible(code);
+          Navigator.of(context).pop();
+        },
+      ),
     );
   }
 }

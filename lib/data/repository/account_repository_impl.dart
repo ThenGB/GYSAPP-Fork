@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../domain/entity/account/account_entity.dart';
 import '../../domain/repository/account_repository.dart';
@@ -17,8 +18,21 @@ class AccountRepositoryImpl implements AccountRepository {
     late Account data;
     late Failure failure;
     try {
-      http.options.headers[HttpHeaders.authorizationHeader] = 'bearer $token';
+      if (token.contains('=') && token.contains(';')) {
+        http.options.headers.remove(HttpHeaders.authorizationHeader);
+        http.options.headers[HttpHeaders.cookieHeader] = token;
+        debugPrint('[AccountRepository] Using Cookie auth method');
+      } else {
+        http.options.headers.remove(HttpHeaders.cookieHeader);
+        http.options.headers[HttpHeaders.authorizationHeader] = 'bearer $token';
+        debugPrint('[AccountRepository] Using Bearer auth method');
+      }
+      final url = '${http.options.baseUrl}/users/profile';
+      debugPrint('[AccountRepository] GET $url');
       final response = await http.get('/users/profile');
+      final responseData = response.data.toString();
+      debugPrint('[AccountRepository] Response status: ${response.statusCode}');
+      debugPrint('[AccountRepository] Response data: ${responseData.length > 200 ? responseData.substring(0, 200) : responseData}');
       if (!response.data['error']) {
         data = Account.fromJson((response.data['data'] as List<dynamic>).first);
       } else {
@@ -26,6 +40,7 @@ class AccountRepositoryImpl implements AccountRepository {
         throw "${err['type'] ?? 'Unknown'}: ${err['message']}";
       }
     } catch (e) {
+      debugPrint('[AccountRepository] Error: $e');
       hasError = true;
       failure = Failure.fromError(e);
     }

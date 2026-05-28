@@ -25,6 +25,15 @@ abstract class DashboardState with _$DashboardState {
     Account? account,
   }) = _DashboardState;
 
+  bool get isLoggedIn {
+    if (idToken == null || idToken!.isEmpty) return false;
+    if (isSessionCookie(idToken!) && account == null) return false;
+    return true;
+  }
+
+  static bool isSessionCookie(String token) =>
+      token.contains('=') && token.contains(';');
+
   factory DashboardState.fromJson(Map<String, dynamic> json) =>
       _$DashboardStateFromJson(json);
 }

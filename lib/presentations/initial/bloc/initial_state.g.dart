@@ -20,7 +20,7 @@ _InitialState _$InitialStateFromJson(Map<String, dynamic> json) =>
           (json['configFetchIntervalSeconds'] as num?)?.toInt() ?? 10,
       defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.0,
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
-      accentKey: json['accentKey'] as String? ?? 'maroon',
+      accentKey: json['accentKey'] as String? ?? 'skyBlue',
       themePreferences: json['themePreferences'] == null
           ? const ThemePreferences()
           : ThemePreferences.fromJson(

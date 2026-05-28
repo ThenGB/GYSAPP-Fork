@@ -11,10 +11,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
-import 'package:package_info_plus/package_info_plus.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -81,13 +78,6 @@ Future initApplication() async {
     if (currentAppVersion != storedAppVersion) {
       if (isOlderThan2_1(storedAppVersion)) {
         initLog('Updating from older version (< 2.1). Wiping app data...');
-        Future<void> _resetDir(String p) async {
-          final d = Directory(p);
-          if (await d.exists()) {
-            await d.delete(recursive: true);
-            await d.create(recursive: true);
-          }
-        }
         // Wipe app data but preserve essential Android directories
         Future<void> _wipeDir(String p) async {
           final dir = Directory(p);

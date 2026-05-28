@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../data/utilities/app_config_store.dart';
@@ -12,21 +13,17 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
 
   DashboardCubit(this.accountRepository) : super(const DashboardState()) {
     initConfig();
+    _validatePersistedAuth();
   }
 
   Future<void> loginSuccessCallback(String? token) async {
     final short = token != null ? '${token.substring(0, token.length.clamp(0, 40))}...' : 'null';
-    print('[DashboardCubit] loginSuccessCallback token=$short');
+    debugPrint('[DashboardCubit] loginSuccessCallback token=$short');
     final newState = state.copyWith(idToken: token);
-    print('[DashboardCubit] idToken ${state.idToken != null} -> ${newState.idToken != null}');
+    debugPrint('[DashboardCubit] idToken ${state.idToken != null} -> ${newState.idToken != null}');
     emit(newState);
+    debugPrint('[DashboardCubit] state.isLoggedIn after emit: ${state.isLoggedIn}');
     if (token != null) {
-      // Session cookies (from WebView OAuth) contain '=' and ';'
-      // They can't be used as Bearer tokens, so skip profile fetch
-      if (token.contains('=') && token.contains(';')) {
-        print('[DashboardCubit] session cookie, skipping profile');
-        return;
-      }
       await getProfile(token);
     } else {
       emit(state.copyWith(account: null));
@@ -34,12 +31,16 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<void> getProfile(String token) async {
+    final short = token.substring(0, token.length.clamp(0, 40));
+    debugPrint('[DashboardCubit] getProfile called with token=$short...');
     final response = await accountRepository.getProfile(token);
     response.fold(
       (failure) {
+        debugPrint('[DashboardCubit] getProfile FAILED: $failure');
         emit(state.copyWith(idToken: null, account: null));
       },
       (res) {
+        debugPrint('[DashboardCubit] getProfile SUCCESS: account=${res.name}');
         emit(state.copyWith(account: res));
       },
     );
@@ -50,7 +51,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       final json = await AppConfigStore.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));
     } catch (e) {
-      print('[DashboardCubit] setConfigLiterature error: $e');
+      debugPrint('[DashboardCubit] setConfigLiterature error: $e');
     }
   }
 
@@ -58,8 +59,13 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     try {
       await setConfigLiterature();
     } catch (e) {
-      print('[DashboardCubit] initConfig error: $e');
+      debugPrint('[DashboardCubit] initConfig error: $e');
     }
+  }
+
+  Future<void> _validatePersistedAuth() async {
+    if (state.idToken == null || state.idToken!.isEmpty) return;
+    await getProfile(state.idToken!);
   }
 
   @override

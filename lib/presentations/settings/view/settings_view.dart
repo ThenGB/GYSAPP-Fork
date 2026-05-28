@@ -108,7 +108,7 @@ class SettingsView extends StatelessWidget {
                           builder: (context, constraints) {
                             final compact = constraints.maxWidth < 560;
                             final profileSection = Expanded(
-                              child: state.idToken == null
+                              child: !state.isLoggedIn
                                   ? Text(
                                       'register_button_text'.tr(),
                                       style: context.textTheme.bodyMedium
@@ -144,10 +144,10 @@ class SettingsView extends StatelessWidget {
                             );
                             final authButton = ElevatedButton(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: state.idToken == null
+                                backgroundColor: !state.isLoggedIn
                                     ? context.colorScheme.primary
                                     : context.colorScheme.errorContainer,
-                                foregroundColor: state.idToken == null
+                                foregroundColor: !state.isLoggedIn
                                     ? context.colorScheme.onPrimary
                                     : context.colorScheme.onErrorContainer,
                                 shape: RoundedRectangleBorder(
@@ -155,22 +155,24 @@ class SettingsView extends StatelessWidget {
                                 ),
                               ),
                               onPressed: () async {
-                                if (context
-                                        .read<DashboardCubit>()
-                                        .state
-                                        .idToken ==
-                                    null) {
+                                final cubit = context.read<DashboardCubit>();
+                                if (!cubit.state.isLoggedIn) {
                                   router.push(
                                     LoginRoute(
                                       onLoggedIn: (token) {
-                                        router.maybePop();
-                                        context
-                                            .read<DashboardCubit>()
-                                            .loginSuccessCallback(token);
-                                        Fluttertoast.cancel();
-                                        Fluttertoast.showToast(
-                                          msg: 'BERHASIL LOGIN!',
-                                        );
+                                        try {
+                                          debugPrint('[SettingsView] onLoggedIn callback received, token length=${token.length}');
+                                          debugPrint('[SettingsView] cubit obtained, calling loginSuccessCallback');
+                                          router.maybePop();
+                                          cubit.loginSuccessCallback(token);
+                                          debugPrint('[SettingsView] loginSuccessCallback called');
+                                          Fluttertoast.cancel();
+                                          Fluttertoast.showToast(
+                                            msg: 'BERHASIL LOGIN!',
+                                          );
+                                        } catch (e, st) {
+                                          debugPrint('[SettingsView] onLoggedIn ERROR: $e\n$st');
+                                        }
                                       },
                                     ),
                                   );
@@ -181,13 +183,11 @@ class SettingsView extends StatelessWidget {
                                   if (!context.mounted || !yes) {
                                     return;
                                   }
-                                  context
-                                      .read<DashboardCubit>()
-                                      .loginSuccessCallback(null);
+                                  cubit.loginSuccessCallback(null);
                                 }
                               },
                               child: Text(
-                                (state.idToken == null ? 'Login' : 'Logout')
+                                (!state.isLoggedIn ? 'Login' : 'Logout')
                                     .tr(),
                               ),
                             );
@@ -210,7 +210,7 @@ class SettingsView extends StatelessWidget {
                                 ],
                               ),
                               child: ClipOval(
-                                child: state.idToken == null
+                                child: !state.isLoggedIn
                                     ? Image.asset(Assets.assetsImagesAppicon)
                                     : CachedNetworkImage(
                                         imageUrl:
@@ -751,28 +751,26 @@ class SettingsView extends StatelessWidget {
                                           'label': 'Report'.tr(),
                                           'desc': 'report_desc'.tr(),
                                           'onTap': () {
+                                            final cubit = context.read<DashboardCubit>();
                                             router.push(
                                               ReportRoute(
-                                                account: context
-                                                    .read<DashboardCubit>()
-                                                    .state
-                                                    .account,
+                                                account: cubit.state.account,
                                                 onLoggedIn: (token) async {
-                                                  await context
-                                                      .read<DashboardCubit>()
-                                                      .loginSuccessCallback(
-                                                        token,
-                                                      );
-                                                  router.maybePop();
-                                                  Fluttertoast.cancel();
-                                                  Fluttertoast.showToast(
-                                                    msg: 'BERHASIL LOGIN!',
-                                                  );
-                                                  // ignore: use_build_context_synchronously
-                                                  return context
-                                                      .read<DashboardCubit>()
-                                                      .state
-                                                      .account;
+                                                  try {
+                                                    debugPrint('[SettingsView] onLoggedIn callback received (async), token length=${token.length}');
+                                                    debugPrint('[SettingsView] cubit obtained, calling loginSuccessCallback');
+                                                    await cubit.loginSuccessCallback(token);
+                                                    debugPrint('[SettingsView] loginSuccessCallback completed');
+                                                    router.maybePop();
+                                                    Fluttertoast.cancel();
+                                                    Fluttertoast.showToast(
+                                                      msg: 'BERHASIL LOGIN!',
+                                                    );
+                                                    return cubit.state.account;
+                                                  } catch (e, st) {
+                                                    debugPrint('[SettingsView] onLoggedIn ERROR: $e\n$st');
+                                                    rethrow;
+                                                  }
                                                 },
                                               ),
                                             );
