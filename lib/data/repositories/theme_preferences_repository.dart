@@ -4,6 +4,7 @@ import '../models/theme_preferences.dart';
 class ThemePreferencesRepository {
   static const String _boxName = 'theme_preferences';
   static const String _key = 'preferences';
+  static const String _themeModeKey = 'themeMode';
 
   Box? _box;
 
@@ -24,9 +25,19 @@ class ThemePreferencesRepository {
     return ThemePreferences.fromJson(Map<String, dynamic>.from(data));
   }
 
+  String get themeMode {
+    if (_box == null) return 'light';
+    return _box!.get(_themeModeKey, defaultValue: 'light') as String;
+  }
+
   Future<void> savePreferences(ThemePreferences prefs) async {
     if (_box == null) return;
     await _box!.put(_key, prefs.toJson());
+  }
+
+  Future<void> saveThemeMode(String mode) async {
+    if (_box == null) return;
+    await _box!.put(_themeModeKey, mode);
   }
 
   Future<void> updateAccentKey(String key) async {

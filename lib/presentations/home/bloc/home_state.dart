@@ -30,15 +30,19 @@ abstract class HomeState with _$HomeState {
 class OurMannaVerse {
   final String text;
   final String reference;
+  final String? bibleCodeName;
+  final String? originalReference;
 
-  OurMannaVerse({required this.text, required this.reference});
+  OurMannaVerse({required this.text, required this.reference, this.bibleCodeName, this.originalReference});
 
   factory OurMannaVerse.fromJson(Map<String, dynamic> json) {
     return OurMannaVerse(
       text: json['text'] as String? ?? '',
       reference: json['reference'] as String? ?? '',
+      bibleCodeName: json['bibleCodeName'] as String?,
+      originalReference: json['originalReference'] as String?,
     );
   }
 
-  Map<String, dynamic> toJson() => {'text': text, 'reference': reference};
+  Map<String, dynamic> toJson() => {'text': text, 'reference': reference, 'bibleCodeName': bibleCodeName, 'originalReference': originalReference};
 }

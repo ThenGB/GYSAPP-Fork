@@ -17,6 +17,8 @@ class HomeCubit extends HydratedCubit<HomeState> {
   final ScrapperRepository repository;
   final OurMannnaService ourMannnaService;
 
+  List<String> bibleCodes = [];
+
   late BehaviorSubject<List<ImageBanner>> rxBanner =
       BehaviorSubject<List<ImageBanner>>.seeded([]);
 
@@ -34,11 +36,34 @@ class HomeCubit extends HydratedCubit<HomeState> {
   }
 
   Future<void> fetchTodayVerse() async {
-    final verse = await ourMannnaService.getVerse();
+    String? bibleCode;
+    try {
+      final data = HydratedBloc.storage.read('BibleCubit') as Map<String, dynamic>?;
+      if (data != null) {
+        bibleCode = data['currentBibleCode'] as String?;
+        final codes = data['bibleCodes'];
+        if (codes is List) {
+          bibleCodes = codes.cast<String>().toList();
+        }
+        log('TodayVerse: bibleCode=$bibleCode, bibleCodes=$bibleCodes', name: 'HomeCubit');
+      } else {
+        log('TodayVerse: BibleCubit not found in HydratedStorage', name: 'HomeCubit');
+      }
+    } catch (e) {
+      log('TodayVerse: Error reading bibleCode: $e', name: 'HomeCubit');
+    }
+
+    final verse = await ourMannnaService.getVerse(bibleCode: bibleCode);
     if (verse != null) {
-      emit(state.copyWith(
-        todayVerse: OurMannaVerse(text: verse.text, reference: verse.reference),
-      ));
+      log('TodayVerse: text=${verse.text.substring(0, 50)}..., ref=${verse.reference}, codeName=${verse.bibleCodeName}', name: 'HomeCubit');
+      emit(state.copyWith(todayVerse: verse));
+    }
+  }
+
+  Future<void> switchTodayVerseBible(String bibleCode) async {
+    final verse = await ourMannnaService.getVerse(bibleCode: bibleCode);
+    if (verse != null) {
+      emit(state.copyWith(todayVerse: verse));
     }
   }
 

@@ -89,7 +89,7 @@ void _services() {
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
   );
-  di.registerLazySingleton(() => OurMannnaService(di<Dio>()));
+  di.registerLazySingleton(() => OurMannnaService(di<Dio>(), di(), di(), di<AppDirectory>()));
 }
 
 void _repositories() {

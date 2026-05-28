@@ -29,3 +29,57 @@ doc/api/
 # FVM Version Cache
 .fvm/
 
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# AI Agent configs & tools
+.kilo/
+.claude/
+.codex/
+.opencode/
+.superpowers/
+.devin/
+.serena/
+.playwright-mcp/
+marionette-mcp/
+
+# Kilo / Codex / Marionette logs
+*.log
+.codex-reset-debug*.err.log
+.codex-reset-debug*.out.log
+.marionette_windows_run*.log
+
+# Debug and temp files
+null
+submit_command.json
+commit_message.txt
+deps.txt
+test_script.py
+
+# Stitch generated designs
+stitch_kidung_rohani_gys/
+
+# Screenshots (not part of app)
+screenshots/
+*.png
+
+# Original PDF and DB sources
+Original Alkitab DB/
+Original PDF/
+
+# Docs folder
+docs/
+
+# Google Fonts (downloaded)
+google_fonts/
+
+# macOS metadata
+.metadata
+devtools_options.yaml
+church.iml
+
+# Android Kotlin errors
+android/.kotlin/
+

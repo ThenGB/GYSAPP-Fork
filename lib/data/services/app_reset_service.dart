@@ -7,23 +7,18 @@ import '../../di/injection.dart';
 import '../utilities/platform_utils.dart';
 import 'fast_hydrated_storage.dart';
 
-typedef HydratedStorageBuilder = Future<Storage> Function(String supportPath);
-
 class AppResetService {
   AppResetService({
     required this.appDirectory,
     Storage? storage,
     Future<void> Function()? cancelNotifications,
-    HydratedStorageBuilder? reopenStorage,
   }) : _storage = storage ?? HydratedBloc.storage,
        _cancelNotifications =
-           cancelNotifications ?? _defaultCancelNotifications,
-       _reopenStorage = reopenStorage ?? _defaultReopenStorage;
+           cancelNotifications ?? _defaultCancelNotifications;
 
   final AppDirectory appDirectory;
   final Storage _storage;
   final Future<void> Function() _cancelNotifications;
-  final HydratedStorageBuilder _reopenStorage;
 
   Future<void> wipeEverything() async {
     await _cancelNotifications();
@@ -52,11 +47,5 @@ class AppResetService {
       return;
     }
     await AwesomeNotifications().cancelAll();
-  }
-
-  static Future<Storage> _defaultReopenStorage(String supportPath) async {
-    final storage = FastFileStorage();
-    await storage.init();
-    return storage;
   }
 }

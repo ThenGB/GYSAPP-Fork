@@ -220,8 +220,8 @@ class _DashboardViewState extends State<DashboardView> {
     return MultiBlocProvider(
       providers: [
         BlocProvider<DashboardCubit>(create: (context) => di(), lazy: false),
+        BlocProvider<BibleCubit>(create: (context) => di(), lazy: false),
         BlocProvider<HomeCubit>(create: (context) => di()),
-        BlocProvider<BibleCubit>(create: (context) => di()),
         BlocProvider<FaithCubit>(create: (context) => di()),
         BlocProvider<SettingsCubit>(create: (context) => di()),
         BlocProvider<AssetManagementCubit>(create: (context) => di()),

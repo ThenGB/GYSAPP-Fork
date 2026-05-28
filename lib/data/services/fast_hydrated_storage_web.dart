@@ -1,3 +1,4 @@
+// ignore_for_file: use_build_context_synchronously, deprecated_member_use, avoid_web_libraries_in_flutter, override_on_non_overriding_member
 import 'dart:convert';
 import 'dart:html' as html;
 
@@ -45,7 +46,7 @@ class FastFileStorage implements Storage {
   }
 
   @override
-  Future<dynamic> read(String key) async {
+  dynamic read(String key) {
     final cached = _memoryCache[key];
     if (cached != null) {
       try { return jsonDecode(cached); } catch (_) { return cached; }

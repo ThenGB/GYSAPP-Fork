@@ -20,7 +20,7 @@ abstract class InitialState with _$InitialState {
     @Default(10) int configFetchIntervalSeconds,
     @Default(1.0) double defaultTextScale,
     @Default('Roboto') String defaultFont,
-    @Default('maroon') String accentKey,
+    @Default('skyBlue') String accentKey,
     @Default(ThemePreferences()) ThemePreferences themePreferences,
   }) = _InitialState;
 

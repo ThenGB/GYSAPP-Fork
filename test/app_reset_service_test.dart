@@ -9,9 +9,7 @@ void main() {
   late Directory rootDir;
   late AppDirectory appDirectory;
   late _MemoryStorage storage;
-  late _MemoryStorage reopenedStorage;
   late bool notificationsCancelled;
-  late String? reopenedSupportPath;
 
   setUp(() async {
     rootDir = await Directory.systemTemp.createTemp('church_app_reset_test_');
@@ -21,9 +19,7 @@ void main() {
       '${rootDir.path}/support',
     );
     storage = _MemoryStorage();
-    reopenedStorage = _MemoryStorage();
     notificationsCancelled = false;
-    reopenedSupportPath = null;
   });
 
   tearDown(() async {
@@ -40,10 +36,6 @@ void main() {
         storage: storage,
         cancelNotifications: () async {
           notificationsCancelled = true;
-        },
-        reopenStorage: (supportPath) async {
-          reopenedSupportPath = supportPath;
-          return reopenedStorage;
         },
       );
 
@@ -74,8 +66,6 @@ void main() {
       expect(storage.clearCalls, 1);
       expect(storage.closeCalls, 1);
       expect(notificationsCancelled, isTrue);
-      expect(reopenedSupportPath, appDirectory.support);
-      expect(HydratedBloc.storage, same(reopenedStorage));
       expect(await preparedMaster.exists(), isFalse);
       expect(await installedBible.exists(), isFalse);
       expect(await installedHymnal.exists(), isFalse);

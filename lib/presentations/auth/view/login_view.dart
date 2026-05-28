@@ -151,9 +151,15 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _handleGoogleNative() async {
     debugPrint('[LoginView] Starting native GIS...');
     try {
-      await GoogleSignIn.instance.initialize(serverClientId: _serverClientId);
-      debugPrint('[LoginView] GIS initialized, authenticating...');
-      final account = await GoogleSignIn.instance.authenticate();
+      final googleSignIn = GoogleSignIn(
+        serverClientId: _serverClientId,
+      );
+      debugPrint('[LoginView] GIS instance created, signing in...');
+      final account = await googleSignIn.signIn();
+      if (account == null) {
+        debugPrint('[LoginView] GIS signIn returned null (cancelled)');
+        return;
+      }
       debugPrint('[LoginView] GIS account: ${account.email}');
       final auth = await account.authentication;
       final idToken = auth.idToken;
@@ -271,10 +277,8 @@ class _LoginViewState extends State<LoginView> {
                     handlerName: 'mobile',
                     callback: (arguments) {
                       debugPrint('[LoginView] mobile: $arguments');
-                      final json =
-                          (arguments as List).firstOrNull
-                              as Map<String, dynamic>;
-                      if (json != null) _handleToken(json);
+                      final json = (arguments as List).firstOrNull as Map<String, dynamic>;
+                      _handleToken(json);
                     },
                   );
                 },
