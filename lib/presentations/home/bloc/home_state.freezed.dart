@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$HomeState {
 
- bool get isLoading; List<Sauh> get sauhs; List<TrueVoice> get trueVoices; List<Menulink> get menuLinks; bool get isSuaraSejatiEnabled; bool get isSauhEnabled;
+ bool get isLoading; List<Sauh> get sauhs; List<TrueVoice> get trueVoices; List<Menulink> get menuLinks; bool get isSuaraSejatiEnabled; bool get isSauhEnabled; OurMannaVerse? get todayVerse;
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +28,16 @@ $HomeStateCopyWith<HomeState> get copyWith => _$HomeStateCopyWithImpl<HomeState>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&const DeepCollectionEquality().equals(other.sauhs, sauhs)&&const DeepCollectionEquality().equals(other.trueVoices, trueVoices)&&const DeepCollectionEquality().equals(other.menuLinks, menuLinks)&&(identical(other.isSuaraSejatiEnabled, isSuaraSejatiEnabled) || other.isSuaraSejatiEnabled == isSuaraSejatiEnabled)&&(identical(other.isSauhEnabled, isSauhEnabled) || other.isSauhEnabled == isSauhEnabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is HomeState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&const DeepCollectionEquality().equals(other.sauhs, sauhs)&&const DeepCollectionEquality().equals(other.trueVoices, trueVoices)&&const DeepCollectionEquality().equals(other.menuLinks, menuLinks)&&(identical(other.isSuaraSejatiEnabled, isSuaraSejatiEnabled) || other.isSuaraSejatiEnabled == isSuaraSejatiEnabled)&&(identical(other.isSauhEnabled, isSauhEnabled) || other.isSauhEnabled == isSauhEnabled)&&(identical(other.todayVerse, todayVerse) || other.todayVerse == todayVerse));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,const DeepCollectionEquality().hash(sauhs),const DeepCollectionEquality().hash(trueVoices),const DeepCollectionEquality().hash(menuLinks),isSuaraSejatiEnabled,isSauhEnabled);
+int get hashCode => Object.hash(runtimeType,isLoading,const DeepCollectionEquality().hash(sauhs),const DeepCollectionEquality().hash(trueVoices),const DeepCollectionEquality().hash(menuLinks),isSuaraSejatiEnabled,isSauhEnabled,todayVerse);
 
 @override
 String toString() {
-  return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks, isSuaraSejatiEnabled: $isSuaraSejatiEnabled, isSauhEnabled: $isSauhEnabled)';
+  return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks, isSuaraSejatiEnabled: $isSuaraSejatiEnabled, isSauhEnabled: $isSauhEnabled, todayVerse: $todayVerse)';
 }
 
 
@@ -48,7 +48,7 @@ abstract mixin class $HomeStateCopyWith<$Res>  {
   factory $HomeStateCopyWith(HomeState value, $Res Function(HomeState) _then) = _$HomeStateCopyWithImpl;
 @useResult
 $Res call({
- bool isLoading, List<Sauh> sauhs, List<TrueVoice> trueVoices, List<Menulink> menuLinks, bool isSuaraSejatiEnabled, bool isSauhEnabled
+ bool isLoading, List<Sauh> sauhs, List<TrueVoice> trueVoices, List<Menulink> menuLinks, bool isSuaraSejatiEnabled, bool isSauhEnabled, OurMannaVerse? todayVerse
 });
 
 
@@ -65,7 +65,7 @@ class _$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? sauhs = null,Object? trueVoices = null,Object? menuLinks = null,Object? isSuaraSejatiEnabled = null,Object? isSauhEnabled = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? isLoading = null,Object? sauhs = null,Object? trueVoices = null,Object? menuLinks = null,Object? isSuaraSejatiEnabled = null,Object? isSauhEnabled = null,Object? todayVerse = freezed,}) {
   return _then(_self.copyWith(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,sauhs: null == sauhs ? _self.sauhs : sauhs // ignore: cast_nullable_to_non_nullable
@@ -73,7 +73,8 @@ as List<Sauh>,trueVoices: null == trueVoices ? _self.trueVoices : trueVoices // 
 as List<TrueVoice>,menuLinks: null == menuLinks ? _self.menuLinks : menuLinks // ignore: cast_nullable_to_non_nullable
 as List<Menulink>,isSuaraSejatiEnabled: null == isSuaraSejatiEnabled ? _self.isSuaraSejatiEnabled : isSuaraSejatiEnabled // ignore: cast_nullable_to_non_nullable
 as bool,isSauhEnabled: null == isSauhEnabled ? _self.isSauhEnabled : isSauhEnabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,todayVerse: freezed == todayVerse ? _self.todayVerse : todayVerse // ignore: cast_nullable_to_non_nullable
+as OurMannaVerse?,
   ));
 }
 
@@ -158,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled,  OurMannaVerse? todayVerse)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled);case _:
+return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled,_that.todayVerse);case _:
   return orElse();
 
 }
@@ -179,10 +180,10 @@ return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled,  OurMannaVerse? todayVerse)  $default,) {final _that = this;
 switch (_that) {
 case _HomeState():
-return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled);case _:
+return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled,_that.todayVerse);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +200,10 @@ return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( bool isLoading,  List<Sauh> sauhs,  List<TrueVoice> trueVoices,  List<Menulink> menuLinks,  bool isSuaraSejatiEnabled,  bool isSauhEnabled,  OurMannaVerse? todayVerse)?  $default,) {final _that = this;
 switch (_that) {
 case _HomeState() when $default != null:
-return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled);case _:
+return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_that.isSuaraSejatiEnabled,_that.isSauhEnabled,_that.todayVerse);case _:
   return null;
 
 }
@@ -214,7 +215,7 @@ return $default(_that.isLoading,_that.sauhs,_that.trueVoices,_that.menuLinks,_th
 @JsonSerializable()
 
 class _HomeState extends HomeState {
-  const _HomeState({this.isLoading = false, final  List<Sauh> sauhs = const [], final  List<TrueVoice> trueVoices = const [], final  List<Menulink> menuLinks = const [], this.isSuaraSejatiEnabled = true, this.isSauhEnabled = true}): _sauhs = sauhs,_trueVoices = trueVoices,_menuLinks = menuLinks,super._();
+  const _HomeState({this.isLoading = false, final  List<Sauh> sauhs = const [], final  List<TrueVoice> trueVoices = const [], final  List<Menulink> menuLinks = const [], this.isSuaraSejatiEnabled = true, this.isSauhEnabled = true, this.todayVerse}): _sauhs = sauhs,_trueVoices = trueVoices,_menuLinks = menuLinks,super._();
   factory _HomeState.fromJson(Map<String, dynamic> json) => _$HomeStateFromJson(json);
 
 @override@JsonKey() final  bool isLoading;
@@ -241,6 +242,7 @@ class _HomeState extends HomeState {
 
 @override@JsonKey() final  bool isSuaraSejatiEnabled;
 @override@JsonKey() final  bool isSauhEnabled;
+@override final  OurMannaVerse? todayVerse;
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
@@ -255,16 +257,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&const DeepCollectionEquality().equals(other._sauhs, _sauhs)&&const DeepCollectionEquality().equals(other._trueVoices, _trueVoices)&&const DeepCollectionEquality().equals(other._menuLinks, _menuLinks)&&(identical(other.isSuaraSejatiEnabled, isSuaraSejatiEnabled) || other.isSuaraSejatiEnabled == isSuaraSejatiEnabled)&&(identical(other.isSauhEnabled, isSauhEnabled) || other.isSauhEnabled == isSauhEnabled));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _HomeState&&(identical(other.isLoading, isLoading) || other.isLoading == isLoading)&&const DeepCollectionEquality().equals(other._sauhs, _sauhs)&&const DeepCollectionEquality().equals(other._trueVoices, _trueVoices)&&const DeepCollectionEquality().equals(other._menuLinks, _menuLinks)&&(identical(other.isSuaraSejatiEnabled, isSuaraSejatiEnabled) || other.isSuaraSejatiEnabled == isSuaraSejatiEnabled)&&(identical(other.isSauhEnabled, isSauhEnabled) || other.isSauhEnabled == isSauhEnabled)&&(identical(other.todayVerse, todayVerse) || other.todayVerse == todayVerse));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,isLoading,const DeepCollectionEquality().hash(_sauhs),const DeepCollectionEquality().hash(_trueVoices),const DeepCollectionEquality().hash(_menuLinks),isSuaraSejatiEnabled,isSauhEnabled);
+int get hashCode => Object.hash(runtimeType,isLoading,const DeepCollectionEquality().hash(_sauhs),const DeepCollectionEquality().hash(_trueVoices),const DeepCollectionEquality().hash(_menuLinks),isSuaraSejatiEnabled,isSauhEnabled,todayVerse);
 
 @override
 String toString() {
-  return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks, isSuaraSejatiEnabled: $isSuaraSejatiEnabled, isSauhEnabled: $isSauhEnabled)';
+  return 'HomeState(isLoading: $isLoading, sauhs: $sauhs, trueVoices: $trueVoices, menuLinks: $menuLinks, isSuaraSejatiEnabled: $isSuaraSejatiEnabled, isSauhEnabled: $isSauhEnabled, todayVerse: $todayVerse)';
 }
 
 
@@ -275,7 +277,7 @@ abstract mixin class _$HomeStateCopyWith<$Res> implements $HomeStateCopyWith<$Re
   factory _$HomeStateCopyWith(_HomeState value, $Res Function(_HomeState) _then) = __$HomeStateCopyWithImpl;
 @override @useResult
 $Res call({
- bool isLoading, List<Sauh> sauhs, List<TrueVoice> trueVoices, List<Menulink> menuLinks, bool isSuaraSejatiEnabled, bool isSauhEnabled
+ bool isLoading, List<Sauh> sauhs, List<TrueVoice> trueVoices, List<Menulink> menuLinks, bool isSuaraSejatiEnabled, bool isSauhEnabled, OurMannaVerse? todayVerse
 });
 
 
@@ -292,7 +294,7 @@ class __$HomeStateCopyWithImpl<$Res>
 
 /// Create a copy of HomeState
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? sauhs = null,Object? trueVoices = null,Object? menuLinks = null,Object? isSuaraSejatiEnabled = null,Object? isSauhEnabled = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? isLoading = null,Object? sauhs = null,Object? trueVoices = null,Object? menuLinks = null,Object? isSuaraSejatiEnabled = null,Object? isSauhEnabled = null,Object? todayVerse = freezed,}) {
   return _then(_HomeState(
 isLoading: null == isLoading ? _self.isLoading : isLoading // ignore: cast_nullable_to_non_nullable
 as bool,sauhs: null == sauhs ? _self._sauhs : sauhs // ignore: cast_nullable_to_non_nullable
@@ -300,7 +302,8 @@ as List<Sauh>,trueVoices: null == trueVoices ? _self._trueVoices : trueVoices //
 as List<TrueVoice>,menuLinks: null == menuLinks ? _self._menuLinks : menuLinks // ignore: cast_nullable_to_non_nullable
 as List<Menulink>,isSuaraSejatiEnabled: null == isSuaraSejatiEnabled ? _self.isSuaraSejatiEnabled : isSuaraSejatiEnabled // ignore: cast_nullable_to_non_nullable
 as bool,isSauhEnabled: null == isSauhEnabled ? _self.isSauhEnabled : isSauhEnabled // ignore: cast_nullable_to_non_nullable
-as bool,
+as bool,todayVerse: freezed == todayVerse ? _self.todayVerse : todayVerse // ignore: cast_nullable_to_non_nullable
+as OurMannaVerse?,
   ));
 }
 
