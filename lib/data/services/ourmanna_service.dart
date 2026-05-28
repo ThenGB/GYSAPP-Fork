@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../presentations/home/bloc/home_state.dart';
+
 class OurMannnaService {
   static const String _cacheKey = 'ourmanna_verse';
   static const String _cacheTimestampKey = 'ourmanna_verse_timestamp';
@@ -9,7 +11,7 @@ class OurMannnaService {
 
   final Dio _dio;
 
-  OurMannaService(this._dio);
+  OurMannnaService(this._dio);
 
   Future<OurMannaVerse?> getVerse() async {
     // Check cache first
@@ -72,20 +74,4 @@ class OurMannnaService {
       // Ignore cache errors
     }
   }
-}
-
-class OurMannaVerse {
-  final String text;
-  final String reference;
-
-  OurMannaVerse({required this.text, required this.reference});
-
-  factory OurMannaVerse.fromJson(Map<String, dynamic> json) {
-    return OurMannaVerse(
-      text: json['text'] as String? ?? '',
-      reference: json['reference'] as String? ?? '',
-    );
-  }
-
-  Map<String, dynamic> toJson() => {'text': text, 'reference': reference};
 }
