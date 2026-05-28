@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../data/utilities/app_config_store.dart';
@@ -17,8 +15,18 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<void> loginSuccessCallback(String? token) async {
-    emit(state.copyWith(idToken: token));
+    final short = token != null ? '${token.substring(0, token.length.clamp(0, 40))}...' : 'null';
+    print('[DashboardCubit] loginSuccessCallback token=$short');
+    final newState = state.copyWith(idToken: token);
+    print('[DashboardCubit] idToken ${state.idToken != null} -> ${newState.idToken != null}');
+    emit(newState);
     if (token != null) {
+      // Session cookies (from WebView OAuth) contain '=' and ';'
+      // They can't be used as Bearer tokens, so skip profile fetch
+      if (token.contains('=') && token.contains(';')) {
+        print('[DashboardCubit] session cookie, skipping profile');
+        return;
+      }
       await getProfile(token);
     } else {
       emit(state.copyWith(account: null));
@@ -42,7 +50,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       final json = await AppConfigStore.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));
     } catch (e) {
-      log(e.toString());
+      print('[DashboardCubit] setConfigLiterature error: $e');
     }
   }
 
@@ -50,7 +58,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     try {
       await setConfigLiterature();
     } catch (e) {
-      log(e.toString());
+      print('[DashboardCubit] initConfig error: $e');
     }
   }
 

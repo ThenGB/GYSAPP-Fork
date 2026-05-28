@@ -14,7 +14,7 @@ class FastFileStorage implements Storage {
 
   Future<void> init() async {
     if (_initialized) return;
-    _cacheDir = Directory('/data/data/id.sch.kanaan.egys/cache/bloc_state');
+    _cacheDir = Directory('/data/data/id.sch.kanaan.egys/files/bloc_state');
     if (!await _cacheDir!.exists()) {
       await _cacheDir!.create(recursive: true);
     }
