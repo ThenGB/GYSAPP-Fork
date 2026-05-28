@@ -18,7 +18,7 @@ abstract class InitialState with _$InitialState {
     @Default('light') String themeMode,
     @Default(5) int configFetchTimeoutSeconds,
     @Default(10) int configFetchIntervalSeconds,
-    @Default(1.2) double defaultTextScale,
+    @Default(1.0) double defaultTextScale,
     @Default('Roboto') String defaultFont,
     @Default('maroon') String accentKey,
     @Default(ThemePreferences()) ThemePreferences themePreferences,

@@ -41,15 +41,11 @@ void _blocs() {
 }
 
 Future<void> _utils(AppConfig appConfig) async {
-  final directories = await Future.wait([
-    getApplicationDocumentsDirectory(),
-    getTemporaryDirectory(),
-    getApplicationSupportDirectory(),
-  ]);
-  // Safe bounds check for directory access
-  var document = directories.isNotEmpty ? directories[0].path : '';
-  var cache = directories.length > 1 ? directories[1].path : '';
-  var support = directories.length > 2 ? directories[2].path : '';
+  // Use hardcoded paths instead of platform channel calls (avoids hang)
+  const base = '/data/data/id.sch.kanaan.egys';
+  final document = '$base/files';
+  final cache = '$base/cache';
+  final support = '$base/files';
   di.registerSingleton(AppDirectory(document, cache, support));
   di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());

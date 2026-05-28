@@ -18,7 +18,7 @@ _InitialState _$InitialStateFromJson(Map<String, dynamic> json) =>
           (json['configFetchTimeoutSeconds'] as num?)?.toInt() ?? 5,
       configFetchIntervalSeconds:
           (json['configFetchIntervalSeconds'] as num?)?.toInt() ?? 10,
-      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
+      defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.0,
       defaultFont: json['defaultFont'] as String? ?? 'Roboto',
       accentKey: json['accentKey'] as String? ?? 'maroon',
       themePreferences: json['themePreferences'] == null
