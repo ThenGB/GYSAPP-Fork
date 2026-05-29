@@ -198,9 +198,24 @@ class OurMannnaService {
     try {
       final parsed = _parseReference(reference);
       log('TodayVerse: _localizeVerse ref=$reference, bibleCode=$bibleCode, parsed=$parsed', name: 'OurMannnaService');
-      if (parsed == null) return null;
 
-      final (bookId, chapterId, verseId) = parsed;
+      int? bookId;
+      int? chapterId;
+      int? verseId;
+
+      if (parsed != null) {
+        (bookId, chapterId, verseId) = parsed;
+      } else {
+        final fallback = await _findBookFromLocal(reference, bibleCode);
+        if (fallback != null) {
+          (bookId, chapterId, verseId) = fallback;
+          log('TodayVerse: fuzzy match found bookId=$bookId', name: 'OurMannnaService');
+        } else {
+          log('TodayVerse: could not parse reference: $reference', name: 'OurMannnaService');
+          return null;
+        }
+      }
+
       final isBundled = _localBibleAssetService.isBundledCode(bibleCode);
       log('TodayVerse: bookId=$bookId, chapterId=$chapterId, verseId=$verseId, isBundled=$isBundled', name: 'OurMannnaService');
 
@@ -220,13 +235,14 @@ class OurMannnaService {
           log('TodayVerse: found verse text: ${verseText?.substring(0, 30)}...', name: 'OurMannnaService');
         }
 
-        final books = await _localBibleAssetService.getBooks(
-          bibleCode,
-          bookId: bookId,
-        );
-        if (books.isNotEmpty) {
-          localBookName = books.first.longName ?? books.first.shortName;
-          log('TodayVerse: localBookName=$localBookName', name: 'OurMannnaService');
+        final allBooks = await _localBibleAssetService.getBooks(bibleCode);
+        log('TodayVerse: allBooks count=${allBooks.length}', name: 'OurMannnaService');
+        final found = allBooks.where((b) => b.id == bookId).toList();
+        if (found.isNotEmpty) {
+          localBookName = found.first.longName ?? found.first.shortName;
+          log('TodayVerse: localBookName=$localBookName (long=${found.first.longName}, short=${found.first.shortName}, id=${found.first.id})', name: 'OurMannnaService');
+        } else {
+          log('TodayVerse: bookId=$bookId not found in allBooks!', name: 'OurMannnaService');
         }
       } else {
         final dbPath = p.join(_appDirectory.bibleFolder, '$bibleCode.db');
@@ -240,11 +256,7 @@ class OurMannnaService {
         Database? db;
         try {
           db = await openDatabase(dbPath, readOnly: true);
-          final verses = await _bibleRepository.getVerses(
-            db,
-            bookId: bookId,
-            chapterId: chapterId,
-          );
+          final verses = await _bibleRepository.getVerses(db, bookId: bookId, chapterId: chapterId);
           log('TodayVerse: got ${verses.length} verses from sqlite', name: 'OurMannnaService');
           final match = verses.where((v) => v.verseId == verseId).toList();
           if (match.isNotEmpty) {
@@ -252,10 +264,11 @@ class OurMannnaService {
             log('TodayVerse: found verse text: ${verseText?.substring(0, 30)}...', name: 'OurMannnaService');
           }
 
-          final books = await _bibleRepository.getBooks(db, bookId: bookId);
-          if (books.isNotEmpty) {
-            localBookName = books.first.longName ?? books.first.shortName;
-            log('TodayVerse: localBookName=$localBookName', name: 'OurMannnaService');
+          final allBooks = await _bibleRepository.getBooks(db);
+          final found = allBooks.where((b) => b.id == bookId).toList();
+          if (found.isNotEmpty) {
+            localBookName = found.first.longName ?? found.first.shortName;
+            log('TodayVerse: localBookName=$localBookName (long=${found.first.longName}, short=${found.first.shortName})', name: 'OurMannnaService');
           }
         } finally {
           await db?.close();
@@ -273,6 +286,55 @@ class OurMannnaService {
       log('TodayVerse: verseText is null or empty, falling back', name: 'OurMannnaService');
     } catch (e, st) {
       log('Failed to localize verse: $e\n$st', name: 'OurMannnaService');
+    }
+    return null;
+  }
+
+  Future<(int, int, int)?> _findBookFromLocal(String reference, String bibleCode) async {
+    try {
+      final lastSpace = reference.lastIndexOf(' ');
+      if (lastSpace == -1) return null;
+
+      final bookPart = reference.substring(0, lastSpace).trim().toLowerCase();
+      final chapterVerse = reference.substring(lastSpace + 1).trim();
+      final cvParts = chapterVerse.split(':');
+      if (cvParts.length != 2) return null;
+
+      final chapterId = int.tryParse(cvParts[0]);
+      final verseId = int.tryParse(cvParts[1]);
+      if (chapterId == null || verseId == null) return null;
+
+      final isBundled = _localBibleAssetService.isBundledCode(bibleCode);
+
+      if (isBundled) {
+        final allBooks = await _localBibleAssetService.getBooks(bibleCode);
+        for (final book in allBooks) {
+          final bs = (book.shortName ?? '').toLowerCase();
+          final bl = (book.longName ?? '').toLowerCase();
+          if (bookPart == bs || bookPart == bl) {
+            return (book.id, chapterId, verseId);
+          }
+        }
+      } else {
+        final dbPath = p.join(_appDirectory.bibleFolder, '$bibleCode.db');
+        if (!_fileExists(dbPath)) return null;
+        Database? db;
+        try {
+          db = await openDatabase(dbPath, readOnly: true);
+          final allBooks = await _bibleRepository.getBooks(db);
+          for (final book in allBooks) {
+            final bs = (book.shortName ?? '').toLowerCase();
+            final bl = (book.longName ?? '').toLowerCase();
+            if (bookPart == bs || bookPart == bl) {
+              return (book.id, chapterId, verseId);
+            }
+          }
+        } finally {
+          await db?.close();
+        }
+      }
+    } catch (e) {
+      log('TodayVerse: _findBookFromLocal error: $e', name: 'OurMannnaService');
     }
     return null;
   }
@@ -331,7 +393,13 @@ class OurMannnaService {
       if (cachedJson == null) return null;
 
       final data = jsonDecode(cachedJson);
-      return OurMannaVerse.fromJson(data);
+      final verse = OurMannaVerse.fromJson(data);
+      if (verse.originalReference == null) {
+        await prefs.remove(_cacheKey);
+        await prefs.remove(_cacheTimestampKey);
+        return null;
+      }
+      return verse;
     } catch (e) {
       return null;
     }

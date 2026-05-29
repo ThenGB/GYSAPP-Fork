@@ -37,6 +37,7 @@ class _LoginViewState extends State<LoginView> {
       '705603488262-70g3bcfan59307rrk610m32n4uhf2tge.apps.googleusercontent.com';
 
   void _handleToken(Map<String, dynamic> msg) {
+    debugPrint('[LoginView] _handleToken msg=$msg, _loginHandled=$_loginHandled');
     debugPrint('[LoginView] CMD: ${msg['cmd']}');
     final cmd = msg['cmd'];
     if (cmd == 'googlelogin' && !_loginHandled) {
@@ -49,7 +50,9 @@ class _LoginViewState extends State<LoginView> {
     }
     if ((cmd == 'googlelogged' || cmd == 'applelogged') && !_loginHandled) {
       _loginHandled = true;
-      widget.onLoggedIn(msg['token'] ?? '');
+      final t = msg['token'] ?? '';
+      debugPrint('[LoginView] Calling onLoggedIn with token=${t.length > 40 ? t.substring(0, 40) : t}...');
+      widget.onLoggedIn(t);
     }
   }
 
@@ -67,7 +70,7 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _tryExtractToken(InAppWebViewController controller) async {
     if (_loginHandled) return;
-    debugPrint('[LoginView] Checking login status after OAuth redirect...');
+    debugPrint('[LoginView] _tryExtractToken called, _loginHandled=$_loginHandled');
 
     // 1. Try localStorage/sessionStorage for a real token
     final jsToken = await controller.evaluateJavascript(source: '''
@@ -88,6 +91,7 @@ class _LoginViewState extends State<LoginView> {
         jsToken is String &&
         jsToken.isNotEmpty &&
         jsToken != 'null') {
+      debugPrint('[LoginView] jsToken from localStorage: ${jsToken.substring(0, jsToken.length.clamp(0, 40))}...');
       debugPrint('[LoginView] Token from localStorage');
       _handleToken({'cmd': 'googlelogged', 'token': jsToken});
       return;
@@ -120,28 +124,43 @@ class _LoginViewState extends State<LoginView> {
     debugPrint('[LoginView] Session cookies: ${cookies.length} cookies');
 
     if (isLoggedIn == true && cookieHeader.isNotEmpty) {
-      debugPrint('[LoginView] User is logged in on website, passing session cookies as token');
+      // Try to get a real JWT token from /users/profile using cookies
+      try {
+        final resp = await http.get(
+          Uri.parse('https://e.gys.or.id/users/profile'),
+          headers: {'Cookie': cookieHeader},
+        );
+        debugPrint('[LoginView] Profile API: ${resp.statusCode}');
+        if (resp.statusCode == 200) {
+          debugPrint('[LoginView] Profile API body preview: ${resp.body.substring(0, resp.body.length.clamp(0, 200))}');
+          try {
+            final data = json.decode(resp.body);
+            if (data is Map && data['token'] != null && !_loginHandled) {
+              debugPrint('[LoginView] Got JWT from /users/profile');
+              _loginHandled = true;
+              widget.onLoggedIn(data['token']);
+              return;
+            }
+          } catch (_) {
+            final tokenMatch = RegExp(r'(?:token|jwt|access_token)["\s:=]+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)').firstMatch(resp.body);
+            if (tokenMatch != null) {
+              final token = tokenMatch.group(1)!;
+              debugPrint('[LoginView] Extracted JWT from HTML response');
+              _loginHandled = true;
+              widget.onLoggedIn(token);
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        debugPrint('[LoginView] Profile API error: $e');
+      }
+
+      // Fallback: pass session cookies as token (limited functionality)
+      debugPrint('[LoginView] No JWT from API, passing session cookies as token');
       _loginHandled = true;
       widget.onLoggedIn(cookieHeader);
       return;
-    }
-
-    // 4. Fallback: try /users/profile with cookies (the actual API endpoint)
-    try {
-      final resp = await http.get(
-        Uri.parse('https://e.gys.or.id/users/profile'),
-        headers: {'Cookie': cookieHeader},
-      );
-      debugPrint('[LoginView] Profile API: ${resp.statusCode}');
-      if (resp.statusCode == 200) {
-        final data = json.decode(resp.body);
-        if (data['token'] != null) {
-          _handleToken({'cmd': 'googlelogged', 'token': data['token']});
-          return;
-        }
-      }
-    } catch (e) {
-      debugPrint('[LoginView] Profile API error: $e');
     }
 
     debugPrint('[LoginView] No login detected after OAuth redirect');
@@ -180,8 +199,10 @@ class _LoginViewState extends State<LoginView> {
       debugPrint('[LoginView] callbackgis response: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final res = json.decode(response.body);
-        if (res['token'] != null && !_loginHandled) {
-          debugPrint('[LoginView] Got app token! Calling onLoggedIn');
+        final hasToken = res['token'] != null;
+        debugPrint('[LoginView] callbackgis status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
+        if (hasToken && !_loginHandled) {
+          debugPrint('[LoginView] Got app token! Calling onLoggedIn with token=${res['token'].toString().substring(0, res['token'].toString().length.clamp(0, 40))}...');
           _loginHandled = true;
           widget.onLoggedIn(res['token']);
         } else {
@@ -238,7 +259,7 @@ class _LoginViewState extends State<LoginView> {
                       '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
                 ),
                 onConsoleMessage: (controller, consoleMessage) {
-                  debugPrint('[WebViewConsole] consoleMessage.message');
+                  debugPrint('[WebViewConsole] ${consoleMessage.message}');
                 },
                 onCreateWindow: (controller, createWindowAction) async {
                   debugPrint('[LoginView] onCreateWindow: ${createWindowAction.request.url}');

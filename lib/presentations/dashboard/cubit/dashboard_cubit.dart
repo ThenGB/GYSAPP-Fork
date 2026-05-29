@@ -13,6 +13,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
 
   DashboardCubit(this.accountRepository) : super(const DashboardState()) {
     initConfig();
+    _validatePersistedAuth();
   }
 
   Future<void> loginSuccessCallback(String? token) async {
@@ -21,13 +22,8 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     final newState = state.copyWith(idToken: token);
     debugPrint('[DashboardCubit] idToken ${state.idToken != null} -> ${newState.idToken != null}');
     emit(newState);
+    debugPrint('[DashboardCubit] state.isLoggedIn after emit: ${state.isLoggedIn}');
     if (token != null) {
-      // Session cookies (from WebView OAuth) contain '=' and ';'
-      // They can't be used as Bearer tokens, so skip profile fetch
-      if (token.contains('=') && token.contains(';')) {
-        debugPrint('[DashboardCubit] session cookie, skipping profile');
-        return;
-      }
       await getProfile(token);
     } else {
       emit(state.copyWith(account: null));
@@ -35,12 +31,16 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<void> getProfile(String token) async {
+    final short = token.substring(0, token.length.clamp(0, 40));
+    debugPrint('[DashboardCubit] getProfile called with token=$short...');
     final response = await accountRepository.getProfile(token);
     response.fold(
       (failure) {
+        debugPrint('[DashboardCubit] getProfile FAILED: $failure');
         emit(state.copyWith(idToken: null, account: null));
       },
       (res) {
+        debugPrint('[DashboardCubit] getProfile SUCCESS: account=${res.name}');
         emit(state.copyWith(account: res));
       },
     );
@@ -61,6 +61,11 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     } catch (e) {
       debugPrint('[DashboardCubit] initConfig error: $e');
     }
+  }
+
+  Future<void> _validatePersistedAuth() async {
+    if (state.idToken == null || state.idToken!.isEmpty) return;
+    await getProfile(state.idToken!);
   }
 
   @override

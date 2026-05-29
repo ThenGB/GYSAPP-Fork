@@ -566,31 +566,36 @@ class _DashboardDrawer extends StatelessWidget {
                             ),
                           ),
                           onPressed: () {
+                            final cubit = context.read<DashboardCubit>();
                             Navigator.of(context).maybePop();
-                            if (state.idToken == null) {
+                            debugPrint('[DashboardView] Login button tapped, isLoggedIn=${state.isLoggedIn}, idToken=${state.idToken != null}');
+                            if (!state.isLoggedIn) {
                               router.push(
                                 LoginRoute(
                                   onLoggedIn: (token) {
-                                    router.maybePop();
-                                    context
-                                        .read<DashboardCubit>()
-                                        .loginSuccessCallback(token);
+                                    try {
+                                      debugPrint('[DashboardView] onLoggedIn callback received, token length=${token.length}');
+                                      debugPrint('[DashboardView] cubit obtained, calling loginSuccessCallback');
+                                      router.maybePop();
+                                      cubit.loginSuccessCallback(token);
+                                      debugPrint('[DashboardView] loginSuccessCallback called');
+                                    } catch (e, st) {
+                                      debugPrint('[DashboardView] onLoggedIn ERROR: $e\n$st');
+                                    }
                                   },
                                 ),
                               );
                             } else {
-                              context
-                                  .read<DashboardCubit>()
-                                  .loginSuccessCallback(null);
+                              cubit.loginSuccessCallback(null);
                             }
                           },
                           icon: Icon(
-                            state.idToken == null
+                            !state.isLoggedIn
                                 ? Icons.login_rounded
                                 : Icons.logout_rounded,
                           ),
                           label: Text(
-                            (state.idToken == null ? 'Login' : 'Keluar').tr(),
+                            (!state.isLoggedIn ? 'Login' : 'Keluar').tr(),
                           ),
                         ),
                         const SizedBox(height: 12),
@@ -685,7 +690,7 @@ class _DrawerHeader extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        state.idToken == null
+                        !state.isLoggedIn
                             ? 'Akun e-GYS'
                             : state.account?.email ?? 'Akun e-GYS',
                         maxLines: 1,

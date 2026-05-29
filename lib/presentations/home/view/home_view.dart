@@ -890,7 +890,7 @@ class _DailyVerseCard extends StatelessWidget {
         final homeCubit = context.read<HomeCubit>();
 
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
           child: Container(
             decoration: BoxDecoration(
               gradient: LinearGradient(
@@ -1017,6 +1017,7 @@ class _DailyVerseCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      showDragHandle: false,
       builder: (_) => BibleSelectWidget(
         bibleCodes: homeCubit.bibleCodes,
         onTap: (index) {
