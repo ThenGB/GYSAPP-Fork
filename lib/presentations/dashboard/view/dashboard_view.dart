@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -44,7 +45,8 @@ const dashboardNavigationDestinations = [
     page: BibleRoute(),
   ),
   DashboardNavigationDestination(
-    icon: Icons.music_note_rounded,
+    icon: Icons.music_note_outlined,
+    selectedIcon: Icons.music_note_rounded,
     label: 'Hymnal',
     page: SongRoute(),
   ),
@@ -70,14 +72,14 @@ const dashboardBottomNavigationDestinations = [
     page: HomeRoute(),
   ),
   DashboardNavigationDestination(
-    icon: Icons.book_outlined,
-    selectedIcon: Icons.book_rounded,
+    icon: Icons.menu_book_outlined,
+    selectedIcon: Icons.menu_book_rounded,
     label: 'Bible',
     page: BibleRoute(),
   ),
   DashboardNavigationDestination(
-    icon: Icons.library_music_outlined,
-    selectedIcon: Icons.library_music_rounded,
+    icon: Icons.music_note_outlined,
+    selectedIcon: Icons.music_note_rounded,
     label: 'Hymnal',
     page: SongRoute(),
   ),
@@ -175,8 +177,6 @@ class DashboardView extends StatefulWidget {
 }
 
 class _DashboardViewState extends State<DashboardView> {
-  bool _globalMidiExpanded = true;
-
   @override
   void dispose() {
     if (Platform.isAndroid) {
@@ -324,10 +324,10 @@ class _DashboardViewState extends State<DashboardView> {
                   final bodyBottomPadding = navHeight + bottomInset;
 
                   final bottomNavItemCount = bottomNavPages.length;
-                  final safeSelectedIndex = tabsRouter.activeIndex.clamp(
-                    0,
-                    bottomNavItemCount - 1,
-                  );
+                  final isBeyondBottomNav = tabsRouter.activeIndex >= bottomNavItemCount;
+                  final safeSelectedIndex = isBeyondBottomNav
+                      ? -1
+                      : tabsRouter.activeIndex;
 
                   return Scaffold(
                     key: dashboardScaffoldKey,
@@ -351,75 +351,9 @@ class _DashboardViewState extends State<DashboardView> {
                             ),
                           ),
                         ),
-                        // Global MIDI Player as an Overlay
-                        if (songState.showAudio)
-                          AnimatedBuilder(
-                            animation: context.read<SongCubit>().midiEngine,
-                            builder: (context, _) {
-                              final cubit = context.read<SongCubit>();
-                              final songState = cubit.state;
-                              final midiState = cubit.midiEngine.state;
-
-                              return DraggableMidiControls(
-                                key: const ValueKey('global-midi-player'),
-                                isExpanded: _globalMidiExpanded,
-                                onExpandedChanged: (value) {
-                                  if (_globalMidiExpanded == value) return;
-                                  setState(() => _globalMidiExpanded = value);
-                                },
-                                onPreviousSong: cubit.goToPreviousSong,
-                                onNextSong: cubit.goToNextSong,
-                                usePositioned: true,
-                                isPlaying: midiState.isPlaying,
-                                isLoading: midiState.isLoading,
-                                position: midiState.position,
-                                duration: midiState.duration,
-                                transposeStep: songState.transposeStep,
-                                currentKey: songState.activeKeyLabel,
-                                availableKeys: songState.transposeKeyOptions,
-                                tempoBpm: songState.tempoBpm,
-                                midiInstrument: songState.midiInstrument,
-                                soundFont: songState.soundFont,
-                                availableSoundFonts: const [
-                                  'GeneralUser-GS.sf2',
-                                  'TimGM6mb.sf2',
-                                ],
-                                availableInstruments:
-                                    cubit.midiEngine.instruments,
-                                autoNextMode: songState.playlistAutoNextMode,
-                                onPlayPause: cubit.togglePlayPause,
-                                onLoopModeCycle: cubit.cycleLoopMode,
-                                onSeek: (seconds) => cubit.seek(
-                                  Duration(seconds: seconds.toInt()),
-                                ),
-                                onTranspose: cubit.setTranspose,
-                                onKeySelected: cubit.setTransposeKey,
-                                onTempo: cubit.setTempo,
-                                onInstrument: cubit.setMidiInstrument,
-                                onSoundFont: cubit.setSoundFont,
-                                nowPlayingTitle: songState.getSongTitleAt(
-                                  songState.pageIndex,
-                                ),
-                                runningFamilyChord:
-                                    songState.originalFamilyChord != null
-                                    ? ChordService.formatChordForDisplay(
-                                        songState.originalFamilyChord!,
-                                        accidentalMode:
-                                            songState.chordAccidentalMode,
-                                        baseTransposeOffset:
-                                            songState.baseTransposeOffset,
-                                      )
-                                    : null,
-                                bottomOffset: dashboardMiniPlayerBottomOffset(
-                                  isExpanded: _globalMidiExpanded,
-                                  navHeight: navHeight + bottomInset,
-                                ),
-                              );
-                            },
-                          ),
                       ],
                     ),
-                    bottomNavigationBar: _DashboardBottomNavBar(
+                    bottomNavigationBar: _AnimatedRoundedNavBar(
                       selectedIndex: safeSelectedIndex,
                       onDestinationSelected: (value) {
                         context.read<BibleCubit>().stopSpeaking();
@@ -461,158 +395,176 @@ class _DashboardDrawer extends StatelessWidget {
               ],
             ),
           ),
-          child: BlocBuilder<DashboardCubit, DashboardState>(
-            builder: (context, state) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _DrawerHeader(state: state),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Divider(
-                              color: colors.outlineVariant.withValues(
-                                alpha: 0.42,
-                              ),
-                            ),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
-                            child: Text(
-                              'AKTIVITAS CEPAT',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 1.5,
-                                  ),
-                            ),
-                          ),
-                          Builder(
-                            builder: (context) {
-                              final songCubit = context.read<SongCubit>();
-                              final lastSong = songCubit.state.lastOpenedSong;
-                              return _DrawerActivityTile(
-                                icon: Icons.music_note_rounded,
-                                label: 'Terakhir dibuka',
-                                value: lastSong != null
-                                    ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
-                                    : 'Belum ada riwayat',
-                                onTap: lastSong != null
-                                    ? () {
-                                        Navigator.of(context).maybePop();
-                                        AutoTabsRouter.of(
-                                          context,
-                                        ).setActiveIndex(2);
-                                        songCubit.openSong(lastSong);
-                                      }
-                                    : null,
-                              );
-                            },
-                          ),
-                          const _DrawerProgressTile(),
-                          const SizedBox(height: 10),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 14),
-                            child: Divider(
-                              color: colors.outlineVariant.withValues(
-                                alpha: 0.42,
-                              ),
-                            ),
-                          ),
-                          ListTile(
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 24,
-                            ),
-                            leading: Icon(
-                              Icons.settings_outlined,
-                              color: colors.onSurfaceVariant,
-                            ),
-                            title: Text(
-                              'Pengaturan',
-                              style: Theme.of(context).textTheme.titleLarge
-                                  ?.copyWith(
-                                    fontFamily: 'Lato',
-                                    color: colors.onSurfaceVariant,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                            ),
-                            onTap: () {
-                              Navigator.of(context).maybePop();
-                              AutoTabsRouter.of(context).setActiveIndex(4);
-                            },
-                          ),
-                        ],
-                      ),
-                    ),
+          child: BlocBuilder<InitialCubit, InitialState>(
+            builder: (context, initialState) {
+              return Theme(
+                data: Theme.of(context).copyWith(
+                  textTheme: Theme.of(context).textTheme.apply(
+                    fontFamily: initialState.defaultFont,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                ),
+                child: BlocBuilder<DashboardCubit, DashboardState>(
+                  builder: (context, state) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        FilledButton.icon(
-                          style: FilledButton.styleFrom(
-                            backgroundColor: colors.primary,
-                            foregroundColor: colors.onPrimary,
-                            minimumSize: const Size.fromHeight(56),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          onPressed: () {
-                            final cubit = context.read<DashboardCubit>();
-                            Navigator.of(context).maybePop();
-                            debugPrint('[DashboardView] Login button tapped, isLoggedIn=${state.isLoggedIn}, idToken=${state.idToken != null}');
-                            if (!state.isLoggedIn) {
-                              router.push(
-                                LoginRoute(
-                                  onLoggedIn: (token) {
-                                    try {
-                                      debugPrint('[DashboardView] onLoggedIn callback received, token length=${token.length}');
-                                      debugPrint('[DashboardView] cubit obtained, calling loginSuccessCallback');
-                                      router.maybePop();
-                                      cubit.loginSuccessCallback(token);
-                                      debugPrint('[DashboardView] loginSuccessCallback called');
-                                    } catch (e, st) {
-                                      debugPrint('[DashboardView] onLoggedIn ERROR: $e\n$st');
-                                    }
+                        Expanded(
+                          child: SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                _DrawerHeader(state: state),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  child: Divider(
+                                    color: colors.outlineVariant.withValues(
+                                      alpha: 0.42,
+                                    ),
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                                  child: Text(
+                                    'AKTIVITAS CEPAT',
+                                    style: Theme.of(context).textTheme.labelSmall
+                                        ?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                          fontWeight: FontWeight.w800,
+                                          letterSpacing: 1.5,
+                                        ),
+                                  ),
+                                ),
+                                Builder(
+                                  builder: (context) {
+                                    final songCubit = context.read<SongCubit>();
+                                    final lastSong = songCubit.state.lastOpenedSong;
+                                    return _DrawerActivityTile(
+                                      icon: Icons.music_note_rounded,
+                                      label: 'Terakhir dibuka',
+                                      value: lastSong != null
+                                          ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
+                                          : 'Belum ada riwayat',
+                                      onTap: lastSong != null
+                                          ? () {
+                                              Navigator.of(context).maybePop();
+                                              AutoTabsRouter.of(
+                                                context,
+                                              ).setActiveIndex(2);
+                                              songCubit.openSong(lastSong);
+                                            }
+                                          : null,
+                                    );
                                   },
                                 ),
-                              );
-                            } else {
-                              cubit.loginSuccessCallback(null);
-                            }
-                          },
-                          icon: Icon(
-                            !state.isLoggedIn
-                                ? Icons.login_rounded
-                                : Icons.logout_rounded,
-                          ),
-                          label: Text(
-                            (!state.isLoggedIn ? 'Login' : 'Keluar').tr(),
+                                const _DrawerProgressTile(),
+                                const SizedBox(height: 10),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                                  child: Divider(
+                                    color: colors.outlineVariant.withValues(
+                                      alpha: 0.42,
+                                    ),
+                                  ),
+                                ),
+                                ListTile(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
+                                  leading: Icon(
+                                    Icons.settings_outlined,
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                  title: Text(
+                                    'Pengaturan',
+                                    style: Theme.of(context).textTheme.titleLarge
+                                        ?.copyWith(
+                                          color: colors.onSurfaceVariant,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                  ),
+                                  onTap: () {
+                                    Navigator.of(context).maybePop();
+                                    AutoTabsRouter.of(context).setActiveIndex(4);
+                                  },
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 12),
-                        Text(
-                          'Versi 1.0.0',
-                          style: Theme.of(context).textTheme.labelSmall
-                              ?.copyWith(
-                                color: colors.onSurfaceVariant.withValues(
-                                  alpha: 0.75,
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (!state.isLoggedIn)
+                                FilledButton.icon(
+                                  style: FilledButton.styleFrom(
+                                    backgroundColor: colors.primary,
+                                    foregroundColor: colors.onPrimary,
+                                    minimumSize: const Size.fromHeight(56),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    final cubit = context.read<DashboardCubit>();
+                                    Navigator.of(context).maybePop();
+                                    router.push(
+                                      LoginRoute(
+                                        onLoggedIn: (token) {
+                                          try {
+                                            router.maybePop();
+                                            cubit.loginSuccessCallback(token);
+                                          } catch (e, st) {
+                                            debugPrint('[DashboardView] onLoggedIn ERROR: $e\n$st');
+                                          }
+                                        },
+                                      ),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.login_rounded),
+                                  label: Text('Login'.tr()),
                                 ),
-                                letterSpacing: 1.5,
+                              OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  side: BorderSide(color: colors.outlineVariant),
+                                  minimumSize: const Size.fromHeight(46),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  Navigator.of(context).maybePop();
+                                  SystemNavigator.pop();
+                                },
+                                icon: Icon(Icons.exit_to_app_rounded, color: colors.onSurfaceVariant),
+                                label: Text(
+                                  'Keluar'.tr(),
+                                  style: TextStyle(color: colors.onSurfaceVariant),
+                                ),
                               ),
+                              const SizedBox(height: 8),
+                              FutureBuilder<PackageInfo>(
+                                future: PackageInfo.fromPlatform(),
+                                builder: (context, snapshot) {
+                                  final version = snapshot.data?.version ?? '';
+                                  return Text(
+                                    'v$version',
+                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                      color: colors.onSurfaceVariant.withValues(alpha: 0.4),
+                                      fontSize: 10,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ],
-                    ),
-                  ),
-                ],
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -644,9 +596,9 @@ class _DrawerHeader extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  width: 64,
-                  height: 64,
-                  padding: const EdgeInsets.all(4),
+                  width: 52,
+                  height: 52,
+                  padding: const EdgeInsets.all(3),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(
@@ -672,7 +624,7 @@ class _DrawerHeader extends StatelessWidget {
                           ),
                   ),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -681,72 +633,98 @@ class _DrawerHeader extends StatelessWidget {
                         state.account?.name ?? 'Gereja Yesus Sejati',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.headlineSmall
-                            ?.copyWith(
-                              color: colors.onSurface,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            ),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: colors.onSurface,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         !state.isLoggedIn
-                            ? 'Akun e-GYS'
-                            : state.account?.email ?? 'Akun e-GYS',
+                            ? 'Belum login'
+                            : state.account?.email ?? '',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: colors.onSurfaceVariant,
                         ),
                       ),
+                      if (state.isLoggedIn) ...[
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.primaryContainer,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            state.account?.memberType ?? 'Jemaat',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colors.onPrimaryContainer,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.tertiaryContainer,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _formatBranchName(state.account?.branchName ?? ''),
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: colors.onTertiaryContainer,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 14),
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow.withValues(alpha: 0.88),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.56),
+          if (state.isLoggedIn) ...[
+            const SizedBox(height: 14),
+            OutlinedButton.icon(
+              onPressed: () {
+                Navigator.of(context).maybePop();
+                context.router.push(
+                  WebpageRoute(url: 'https://e.gys.or.id'),
+                );
+              },
+              icon: const Icon(Icons.open_in_new_rounded, size: 16),
+              label: const Text('Buka e-GYS'),
+              style: OutlinedButton.styleFrom(
+                side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
+                minimumSize: const Size.fromHeight(46),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
-            child: Column(
-              children: [
-                _DrawerProfileRow(
-                  label: 'ID JEMAAT',
-                  value: state.account?.name == null
-                      ? '-'
-                      : 'GYS-${state.account!.name.hashCode.abs().toString().padLeft(5, '0').substring(0, 5)}',
-                ),
-                const SizedBox(height: 10),
-                const _DrawerProfileRow(
-                  label: 'WILAYAH',
-                  value: 'Jakarta Pusat',
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: () {
-              Navigator.of(context).maybePop();
-              AutoTabsRouter.of(context).setActiveIndex(4);
-            },
-            icon: const Icon(Icons.settings_rounded, size: 16),
-            label: const Text('Buka Workspace Settings'),
-            style: OutlinedButton.styleFrom(
-              side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
-              minimumSize: const Size.fromHeight(46),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(14),
+            const SizedBox(height: 10),
+            TextButton(
+              onPressed: () {
+                final cubit = context.read<DashboardCubit>();
+                Navigator.of(context).maybePop();
+                cubit.loginSuccessCallback(null);
+              },
+              child: Text(
+                'Log Out',
+                style: TextStyle(color: colors.error),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -803,13 +781,16 @@ class _DrawerActivityTile extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    value,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: colors.onSurface,
+                  FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      value,
+                      maxLines: 1,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.onSurface,
+                      ),
                     ),
                   ),
                 ],
@@ -910,261 +891,289 @@ class _DrawerProgressTile extends StatelessWidget {
   }
 }
 
-class _DrawerProfileRow extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _DrawerProfileRow({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Text(
-          label,
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-            color: context.colorScheme.onSurfaceVariant,
-            fontWeight: FontWeight.w800,
-            letterSpacing: 1.5,
-          ),
-        ),
-        const Spacer(),
-        Flexible(
-          child: Text(
-            value,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.end,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    );
-  }
+String _formatBranchName(String name) {
+  if (name.isEmpty) return name;
+  final parts = name.split(' ');
+  if (parts.length == 1) return parts[0].toUpperCase();
+  return '${parts[0].toUpperCase()} ${parts.sublist(1).map((w) => w[0].toUpperCase() + w.substring(1).toLowerCase()).join(' ')}';
 }
 
-/// Custom bottom navigation bar with enhanced press animation and full tap targets.
-class _DashboardBottomNavBar extends StatefulWidget {
+class _AnimatedRoundedNavBar extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<DashboardNavigationDestination> destinations;
 
-  const _DashboardBottomNavBar({
+  const _AnimatedRoundedNavBar({
     required this.selectedIndex,
     required this.onDestinationSelected,
     required this.destinations,
   });
 
   @override
-  State<_DashboardBottomNavBar> createState() => _DashboardBottomNavBarState();
+  State<_AnimatedRoundedNavBar> createState() => _AnimatedRoundedNavBarState();
 }
 
-class _DashboardBottomNavBarState extends State<_DashboardBottomNavBar>
-    with TickerProviderStateMixin {
-  int? _pressedIndex;
-  late final List<AnimationController> _scaleControllers;
-  late final List<AnimationController> _highlightControllers;
-  late final List<Animation<double>> _scaleAnimations;
-  late final List<Animation<double>> _highlightAnimations;
+class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late Animation<double> _notchAnimation;
+  int _previousIndex = 0;
+  static const double _navBarHeight = 72;
+  static const double _circleSize = 56;
+  static const double _notchDepth = 24;
+  static const double _notchWidth = 80;
+  static const double _circleGap = 6;
+
+  bool get _hasSelection => widget.selectedIndex >= 0;
 
   @override
   void initState() {
     super.initState();
-    final count = widget.destinations.length;
-    _scaleControllers = List.generate(
-      count,
-      (_) => AnimationController(
-        duration: const Duration(milliseconds: 150),
-        vsync: this,
-      ),
+    _previousIndex = widget.selectedIndex >= 0 ? widget.selectedIndex : 0;
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
     );
-    _highlightControllers = List.generate(
-      count,
-      (_) => AnimationController(
-        duration: const Duration(milliseconds: 200),
-        vsync: this,
-      ),
-    );
-    _scaleAnimations = _scaleControllers.map((ctrl) {
-      return Tween<double>(
-        begin: 1.0,
-        end: 0.88,
-      ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeInOut));
-    }).toList();
-    _highlightAnimations = _highlightControllers.map((ctrl) {
-      return Tween<double>(
-        begin: 0.0,
-        end: 1.0,
-      ).animate(CurvedAnimation(parent: ctrl, curve: Curves.easeOut));
-    }).toList();
+    final idx = _previousIndex.toDouble();
+    _notchAnimation = Tween<double>(
+      begin: idx,
+      end: idx,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeInOutCubic,
+    ));
+  }
+
+  @override
+  void didUpdateWidget(_AnimatedRoundedNavBar oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedIndex != widget.selectedIndex) {
+      _previousIndex = oldWidget.selectedIndex >= 0 ? oldWidget.selectedIndex : _previousIndex;
+      final beginIdx = _previousIndex.toDouble();
+      final endIdx = widget.selectedIndex >= 0 ? widget.selectedIndex.toDouble() : beginIdx;
+      _notchAnimation = Tween<double>(
+        begin: beginIdx,
+        end: endIdx,
+      ).animate(CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeInOutCubic,
+      ));
+      _controller.forward(from: 0);
+    }
   }
 
   @override
   void dispose() {
-    for (final ctrl in _scaleControllers) {
-      ctrl.dispose();
-    }
-    for (final ctrl in _highlightControllers) {
-      ctrl.dispose();
-    }
+    _controller.dispose();
     super.dispose();
-  }
-
-  void _onTapDown(int index) {
-    setState(() => _pressedIndex = index);
-    _scaleControllers[index].forward();
-    _highlightControllers[index].forward();
-  }
-
-  void _onTapUp(int index) {
-    setState(() => _pressedIndex = null);
-    _scaleControllers[index].reverse();
-    _highlightControllers[index].reverse();
-    widget.onDestinationSelected(index);
-  }
-
-  void _onTapCancel(int index) {
-    setState(() => _pressedIndex = null);
-    _scaleControllers[index].reverse();
-    _highlightControllers[index].reverse();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final count = widget.destinations.length;
+    final navBarColor = colors.surfaceContainerHighest;
+    final circleColor = colors.primary;
+    final iconColor = colors.onPrimary;
+    final unselectedIconColor = colors.onSurfaceVariant;
 
     return Container(
-      decoration: BoxDecoration(
-        color: colors.surface,
-        border: Border(
-          top: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.4),
-            width: 0.5,
-          ),
-        ),
-      ),
-      child: SafeArea(
-        top: false,
-        child: SizedBox(
-          height: kDashboardPortraitBottomNavHeight,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: List.generate(count, (index) {
-              final dest = widget.destinations[index];
-              final isSelected = index == widget.selectedIndex;
-              final isPressed = index == _pressedIndex;
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          final itemWidth = width / count;
 
-              return Expanded(
-                child: _NavItem(
-                  icon: dest.icon,
-                  selectedIcon: dest.selectedIcon ?? dest.icon,
-                  label: dest.label.tr(),
-                  isSelected: isSelected,
-                  isPressed: isPressed,
-                  scaleAnimation: _scaleAnimations[index],
-                  highlightAnimation: _highlightAnimations[index],
-                  selectedColor: colors.primary,
-                  unselectedColor: colors.onSurfaceVariant,
-                  onTapDown: () => _onTapDown(index),
-                  onTapUp: () => _onTapUp(index),
-                  onTapCancel: () => _onTapCancel(index),
-                ),
+          return AnimatedBuilder(
+            animation: _notchAnimation,
+            builder: (context, child) {
+              final animatedIndex = _notchAnimation.value;
+              final notchCenterX = (animatedIndex + 0.5) * itemWidth;
+
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  CustomPaint(
+                    size: Size(width, _navBarHeight),
+                    painter: _NavBarPainter(
+                      notchCenterX: notchCenterX,
+                      notchWidth: _notchWidth,
+                      notchDepth: _notchDepth,
+                      color: navBarColor,
+                      shadowColor: Colors.black.withValues(alpha: 0.15),
+                    ),
+                    child: SizedBox(
+                      height: _navBarHeight,
+                      child: Row(
+                        children: List.generate(count, (index) {
+                          final dest = widget.destinations[index];
+                          final isSelected = _hasSelection && index == widget.selectedIndex;
+
+                          return Expanded(
+                            child: GestureDetector(
+                              onTap: () => widget.onDestinationSelected(index),
+                              behavior: HitTestBehavior.opaque,
+                              child: SizedBox(
+                                height: _navBarHeight,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: isSelected
+                                      ? [
+                                          Icon(
+                                            dest.selectedIcon ?? dest.icon,
+                                            color: Colors.transparent,
+                                            size: 22,
+                                          ),
+                                        ]
+                                      : [
+                                          Icon(
+                                            dest.icon,
+                                            color: unselectedIconColor,
+                                            size: 22,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            dest.label.tr(),
+                                            style: TextStyle(
+                                              color: unselectedIconColor
+                                                  .withValues(alpha: 0.7),
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ),
+                  if (_hasSelection)
+                  Positioned(
+                    top: _notchDepth - _circleSize / 2 - _circleGap,
+                    left: notchCenterX - _circleSize / 2,
+                    child: Container(
+                      width: _circleSize,
+                      height: _circleSize,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: circleColor,
+                        boxShadow: [
+                          BoxShadow(
+                            color: circleColor.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: Icon(
+                        widget.destinations[widget.selectedIndex].selectedIcon ??
+                            widget.destinations[widget.selectedIndex].icon,
+                        color: iconColor,
+                        size: 26,
+                      ),
+                    ),
+                  ),
+                ],
               );
-            }),
-          ),
-        ),
+            },
+          );
+        },
       ),
     );
   }
 }
 
-class _NavItem extends StatelessWidget {
-  final IconData icon;
-  final IconData selectedIcon;
-  final String label;
-  final bool isSelected;
-  final bool isPressed;
-  final Animation<double> scaleAnimation;
-  final Animation<double> highlightAnimation;
-  final Color selectedColor;
-  final Color unselectedColor;
-  final VoidCallback onTapDown;
-  final VoidCallback onTapUp;
-  final VoidCallback onTapCancel;
+class _NavBarPainter extends CustomPainter {
+  final double notchCenterX;
+  final double notchWidth;
+  final double notchDepth;
+  final Color color;
+  final Color shadowColor;
 
-  const _NavItem({
-    required this.icon,
-    required this.selectedIcon,
-    required this.label,
-    required this.isSelected,
-    required this.isPressed,
-    required this.scaleAnimation,
-    required this.highlightAnimation,
-    required this.selectedColor,
-    required this.unselectedColor,
-    required this.onTapDown,
-    required this.onTapUp,
-    required this.onTapCancel,
+  _NavBarPainter({
+    required this.notchCenterX,
+    required this.notchWidth,
+    required this.notchDepth,
+    required this.color,
+    required this.shadowColor,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final effectiveColor = isSelected ? selectedColor : unselectedColor;
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+    final cornerRadius = 20.0;
+    final halfNotch = notchWidth / 2;
+    final w = size.width;
+    final h = size.height;
 
-    return GestureDetector(
-      onTapDown: (_) => onTapDown(),
-      onTapUp: (_) => onTapUp(),
-      onTapCancel: onTapCancel,
-      behavior: HitTestBehavior.opaque,
-      child: AnimatedBuilder(
-        animation: Listenable.merge([scaleAnimation, highlightAnimation]),
-        builder: (context, child) {
-          final scale = scaleAnimation.value;
-          final highlight = highlightAnimation.value;
+    final path = Path();
 
-          return Transform.scale(
-            scale: scale,
-            child: Container(
-              color: Color.lerp(
-                Colors.transparent,
-                selectedColor.withValues(alpha: 0.12),
-                highlight,
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    isSelected ? selectedIcon : icon,
-                    color: Color.lerp(
-                      unselectedColor,
-                      selectedColor,
-                      highlight,
-                    ),
-                    size: 24,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    label,
-                    style: TextStyle(
-                      color: effectiveColor,
-                      fontSize: 12,
-                      fontWeight: isSelected
-                          ? FontWeight.w600
-                          : FontWeight.w500,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
+    path.moveTo(cornerRadius, 0);
+
+    final notchStart = notchCenterX - halfNotch;
+    final notchEnd = notchCenterX + halfNotch;
+
+    if (notchStart > cornerRadius) {
+      path.lineTo(notchStart, 0);
+    }
+
+    path.cubicTo(
+      notchCenterX - halfNotch * 0.65, 0,
+      notchCenterX - halfNotch * 0.3, notchDepth * 0.85,
+      notchCenterX, notchDepth,
     );
+    path.cubicTo(
+      notchCenterX + halfNotch * 0.3, notchDepth * 0.85,
+      notchCenterX + halfNotch * 0.65, 0,
+      notchEnd, 0,
+    );
+
+    if (notchEnd < w - cornerRadius) {
+      path.lineTo(w - cornerRadius, 0);
+    }
+
+    path.arcToPoint(
+      Offset(w, cornerRadius),
+      radius: Radius.circular(cornerRadius),
+    );
+    path.lineTo(w, h - cornerRadius);
+    path.arcToPoint(
+      Offset(w - cornerRadius, h),
+      radius: Radius.circular(cornerRadius),
+    );
+    path.lineTo(cornerRadius, h);
+    path.arcToPoint(
+      Offset(0, h - cornerRadius),
+      radius: Radius.circular(cornerRadius),
+    );
+    path.lineTo(0, cornerRadius);
+    path.arcToPoint(
+      Offset(cornerRadius, 0),
+      radius: Radius.circular(cornerRadius),
+    );
+
+    path.close();
+
+    final shadowPaint = Paint()
+      ..color = shadowColor
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12);
+    canvas.drawPath(path.shift(const Offset(0, 3)), shadowPaint);
+
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _NavBarPainter oldDelegate) {
+    return oldDelegate.notchCenterX != notchCenterX ||
+        oldDelegate.color != color;
   }
 }

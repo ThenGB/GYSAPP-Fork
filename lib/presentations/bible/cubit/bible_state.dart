@@ -31,10 +31,10 @@ abstract class BibleState with _$BibleState {
     @Default([]) List<BibleBook> books,
     @Default([]) List<BibleBook> booksSplit,
     @Default([]) List<Verse> verses,
+    @Default([]) List<Verse> versesSplit,
     @Default([]) List<BibleBookmark> bookmarks,
     @Default([]) List<BibleRef> references,
     @Default([]) List<BibleRef> referencesSplit,
-    @Default([]) List<Verse> versesSplit,
     @Default({}) Map<DateTime, Verse> histories,
     @Default([]) List<Pericope> pericopes,
     @Default([]) List<Pericope> pericopesSplit,
@@ -47,9 +47,10 @@ abstract class BibleState with _$BibleState {
     @Default([]) List<Verse> hightlightedVerse,
     Verse? todayReading,
     DateTime? lastOpenBible,
-    @Default('Roboto') String defaultFont,
+    @Default('EB Garamond') String defaultFont,
     @Default(1.2) double defaultTextScale,
     @Default(1.5) double defaultTextHeight,
+    @Default(true) bool followGlobalFontSettings,
     @Default('Newest') String sortNotesBy,
     @Default(false) bool enableAudio,
     @Default(false) bool isSpeaking,
@@ -110,8 +111,11 @@ abstract class BibleState with _$BibleState {
   }
 
   TextTheme get defaultTextTheme {
-    var result = GoogleFonts.robotoTextTheme();
+    var result = GoogleFonts.ebGaramondTextTheme();
     switch (defaultFont) {
+      case 'EB Garamond':
+        result = GoogleFonts.ebGaramondTextTheme();
+        break;
       case 'Roboto':
         result = GoogleFonts.robotoTextTheme();
         break;
@@ -128,7 +132,7 @@ abstract class BibleState with _$BibleState {
         result = GoogleFonts.ptSansTextTheme();
         break;
       default:
-        result = GoogleFonts.robotoTextTheme();
+        result = GoogleFonts.ebGaramondTextTheme();
         break;
     }
     return result.apply(
@@ -205,7 +209,7 @@ abstract class BibleState with _$BibleState {
   }
 
   List<String> get availableFonts {
-    return ['Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
+    return ['EB Garamond', 'Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
   }
 
   Future<String> get currentBibleCodeName async {

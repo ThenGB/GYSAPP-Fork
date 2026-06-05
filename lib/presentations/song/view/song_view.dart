@@ -183,7 +183,7 @@ class _SongViewState extends State<SongView> {
               ),
               actions: [
                 IconButton(
-                  icon: const Icon(Icons.menu_rounded),
+                  icon: const Icon(Icons.menu_outlined),
                   tooltip: 'Menu',
                   onPressed: openDashboardDrawer,
                 ),

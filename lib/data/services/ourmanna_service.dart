@@ -13,9 +13,8 @@ import '../../presentations/home/bloc/home_state.dart';
 import 'local_bible_asset_service.dart';
 
 class OurMannnaService {
-  static const String _cacheKey = 'ourmanna_verse';
-  static const String _cacheTimestampKey = 'ourmanna_verse_timestamp';
-  static const Duration _cacheDuration = Duration(hours: 24);
+  static const String _cacheKeyPrefix = 'ourmanna_verse_';
+  static const String _cacheDateKeyPrefix = 'ourmanna_verse_date_';
 
   final Dio _dio;
   final LocalBibleAssetService _localBibleAssetService;
@@ -120,7 +119,8 @@ class OurMannnaService {
       if (cvParts.length != 2) return null;
 
       final chapterId = int.tryParse(cvParts[0]);
-      final verseId = int.tryParse(cvParts[1]);
+      final verseMatch = RegExp(r'(\d+)').firstMatch(cvParts[1]);
+      final verseId = verseMatch != null ? int.tryParse(verseMatch.group(1)!) : null;
       if (chapterId == null || verseId == null) return null;
 
       final bookId = _bookNameToId[bookName.toLowerCase()];
@@ -132,31 +132,27 @@ class OurMannnaService {
     }
   }
 
+  String _cacheKey(String bibleCode) => '$_cacheKeyPrefix$bibleCode';
+  String _cacheDateKey(String bibleCode) => '$_cacheDateKeyPrefix$bibleCode';
+
   Future<OurMannaVerse?> getVerse({String? bibleCode}) async {
     log('TodayVerse: getVerse called with bibleCode=$bibleCode', name: 'OurMannnaService');
-    final cached = await _getCachedVerse();
+    final effectiveCode = (bibleCode != null && bibleCode.isNotEmpty) ? bibleCode : 'b_tb';
+
+    // 1. Check per-bibleCode cache
+    final cached = await _getCachedVerse(effectiveCode);
     if (cached != null) {
-      log('TodayVerse: cached verse found: ref=${cached.reference}', name: 'OurMannnaService');
-      if (bibleCode != null && bibleCode.isNotEmpty) {
-        final refToLocalize = cached.originalReference ?? cached.reference;
-        final localized = await _localizeVerse(refToLocalize, bibleCode);
-        if (localized != null) {
-          log('TodayVerse: localized cached verse: ${localized.text.substring(0, 30)}...', name: 'OurMannnaService');
-          await _cacheVerse(localized);
-          return localized;
-        }
-        log('TodayVerse: localization of cached verse failed, returning cached', name: 'OurMannnaService');
-      }
-      return _ensureCleanVerse(cached);
+      log('TodayVerse: cached verse for $effectiveCode: ref=${cached.reference}', name: 'OurMannnaService');
+      return cached;
     }
 
-    log('TodayVerse: no cache, fetching from API', name: 'OurMannnaService');
+    // 2. No cache for this bibleCode — fetch from API
+    log('TodayVerse: no cache for $effectiveCode, fetching from API', name: 'OurMannnaService');
     OurMannaVerse? apiVerse;
     try {
       final response = await _dio.get(
         'https://beta.ourmanna.com/api/v1/get',
       );
-
       if (response.statusCode == 200) {
         final responseText = response.data.toString();
         apiVerse = _parseVerseResponse(responseText);
@@ -168,27 +164,16 @@ class OurMannnaService {
     if (apiVerse == null || apiVerse.text.isEmpty) return null;
 
     log('TodayVerse: API verse: ref=${apiVerse.reference}', name: 'OurMannnaService');
-    if (bibleCode != null && bibleCode.isNotEmpty) {
-      final localized = await _localizeVerse(apiVerse.reference, bibleCode);
-      if (localized != null) {
-        await _cacheVerse(localized);
-        return localized;
-      }
+
+    // 3. Localize against the requested bible
+    final localized = await _localizeVerse(apiVerse.reference, effectiveCode);
+    if (localized != null) {
+      await _cacheVerse(localized, effectiveCode);
+      return localized;
     }
 
-    await _cacheVerse(apiVerse);
+    // 4. Localization failed — return English API text (no cache)
     return apiVerse;
-  }
-
-  OurMannaVerse _ensureCleanVerse(OurMannaVerse verse) {
-    final cleaned = _stripBibleTags(verse.text);
-    if (cleaned == verse.text) return verse;
-    return OurMannaVerse(
-      text: cleaned,
-      reference: verse.reference,
-      bibleCodeName: verse.bibleCodeName,
-      originalReference: verse.originalReference,
-    );
   }
 
   Future<OurMannaVerse?> _localizeVerse(
@@ -301,7 +286,8 @@ class OurMannnaService {
       if (cvParts.length != 2) return null;
 
       final chapterId = int.tryParse(cvParts[0]);
-      final verseId = int.tryParse(cvParts[1]);
+      final verseMatch = RegExp(r'(\d+)').firstMatch(cvParts[1]);
+      final verseId = verseMatch != null ? int.tryParse(verseMatch.group(1)!) : null;
       if (chapterId == null || verseId == null) return null;
 
       final isBundled = _localBibleAssetService.isBundledCode(bibleCode);
@@ -378,25 +364,36 @@ class OurMannnaService {
     }
   }
 
-  Future<OurMannaVerse?> _getCachedVerse() async {
+  String _todayDateString() {
+    final now = DateTime.now();
+    return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  Future<OurMannaVerse?> _getCachedVerse(String bibleCode) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final timestamp = prefs.getInt(_cacheTimestampKey);
-      if (timestamp == null) return null;
+      final key = _cacheKey(bibleCode);
+      final dateKey = _cacheDateKey(bibleCode);
+      final cachedDate = prefs.getString(dateKey);
+      final todayStr = _todayDateString();
 
-      final cachedTime = DateTime.fromMillisecondsSinceEpoch(timestamp);
-      if (DateTime.now().difference(cachedTime) > _cacheDuration) {
+      // Invalidate cache if the date has changed (new day = new verse from OurManna)
+      if (cachedDate != todayStr) {
+        if (cachedDate != null) {
+          await prefs.remove(key);
+          await prefs.remove(dateKey);
+        }
         return null;
       }
 
-      final cachedJson = prefs.getString(_cacheKey);
+      final cachedJson = prefs.getString(key);
       if (cachedJson == null) return null;
 
       final data = jsonDecode(cachedJson);
       final verse = OurMannaVerse.fromJson(data);
       if (verse.originalReference == null) {
-        await prefs.remove(_cacheKey);
-        await prefs.remove(_cacheTimestampKey);
+        await prefs.remove(key);
+        await prefs.remove(dateKey);
         return null;
       }
       return verse;
@@ -405,14 +402,11 @@ class OurMannnaService {
     }
   }
 
-  Future<void> _cacheVerse(OurMannaVerse verse) async {
+  Future<void> _cacheVerse(OurMannaVerse verse, String bibleCode) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_cacheKey, jsonEncode(verse.toJson()));
-      await prefs.setInt(
-        _cacheTimestampKey,
-        DateTime.now().millisecondsSinceEpoch,
-      );
+      await prefs.setString(_cacheKey(bibleCode), jsonEncode(verse.toJson()));
+      await prefs.setString(_cacheDateKey(bibleCode), _todayDateString());
     } catch (e) {
       // Ignore cache errors
     }

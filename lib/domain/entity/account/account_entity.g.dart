@@ -15,6 +15,12 @@ _Account _$AccountFromJson(Map<String, dynamic> json) => _Account(
   profilePicture: json['profilepicture'] as String?,
   status: json['status'] as String?,
   branchId: (json['branchid'] as num?)?.toInt() ?? 0,
+  baptized: json['baptized'],
+  memberType: json['member_type'] as String?,
+  jenisAnggota: json['jenis_anggota'] as String?,
+  wilayah: json['wilayah'] as String?,
+  branchName: json['branchname'] as String?,
+  branch: json['branch'] as String?,
 );
 
 Map<String, dynamic> _$AccountToJson(_Account instance) => <String, dynamic>{
@@ -26,4 +32,10 @@ Map<String, dynamic> _$AccountToJson(_Account instance) => <String, dynamic>{
   'profilepicture': instance.profilePicture,
   'status': instance.status,
   'branchid': instance.branchId,
+  'baptized': instance.baptized,
+  'member_type': instance.memberType,
+  'jenis_anggota': instance.jenisAnggota,
+  'wilayah': instance.wilayah,
+  'branchname': instance.branchName,
+  'branch': instance.branch,
 };

@@ -22,7 +22,24 @@ class _FontSettingViewState extends State<FontSettingView> {
       .read<InitialCubit>()
       .state
       .defaultTextScale;
+  late double defaultTextHeight = context
+      .read<InitialCubit>()
+      .state
+      .defaultTextHeight;
   late String defaultFontStyle = context.read<InitialCubit>().state.defaultFont;
+
+  static const _availableFonts = [
+    'Roboto',
+    'Roboto Serif',
+    'Open Sans',
+    'Gentium Basic',
+    'Arial',
+    'EB Garamond',
+    'Lato',
+    'Quicksand',
+    'Inter',
+  ];
+
   @override
   Widget build(BuildContext context) {
     return MediaQuery(
@@ -33,7 +50,7 @@ class _FontSettingViewState extends State<FontSettingView> {
           shape: Border(
             bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
-          title: const Text('Kidung Rohani'),
+          title: const Text('Pengaturan Font'),
           centerTitle: true,
         ),
         bottomNavigationBar: BottomAppBar(
@@ -54,6 +71,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                 return;
               }
               context.read<InitialCubit>().changeTextScale(defaultTextScale);
+              context.read<InitialCubit>().changeTextHeight(defaultTextHeight);
               context.read<InitialCubit>().changeFontStyle(defaultFontStyle);
               Fluttertoast.cancel();
               Fluttertoast.showToast(msg: 'Settings saved'.tr());
@@ -80,7 +98,10 @@ class _FontSettingViewState extends State<FontSettingView> {
                               child: Text(
                                 'font_size_placeholder'.tr(),
                                 textScaler: TextScaler.linear(defaultTextScale),
-                                style: TextStyle(fontFamily: defaultFontStyle),
+                                style: TextStyle(
+                                  fontFamily: defaultFontStyle,
+                                  height: defaultTextHeight,
+                                ),
                               ),
                             ),
                           ),
@@ -109,21 +130,20 @@ class _FontSettingViewState extends State<FontSettingView> {
                                       ),
                                     ),
                                   ),
-                                  items:
-                                      ['Roboto', 'Lato', 'Quicksand', 'Inter']
-                                          .map(
-                                            (e) => DropdownMenuItem(
-                                              value: e,
-                                              child: Text(
-                                                e,
-                                                style: TextStyle(
-                                                  fontSize: 12,
-                                                  fontFamily: e,
-                                                ),
-                                              ),
+                                  items: _availableFonts
+                                      .map(
+                                        (e) => DropdownMenuItem(
+                                          value: e,
+                                          child: Text(
+                                            e,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              fontFamily: e,
                                             ),
-                                          )
-                                          .toList(),
+                                          ),
+                                        ),
+                                      )
+                                      .toList(),
                                   onChanged: (value) {
                                     defaultFontStyle = value!;
                                     setState(() {});
@@ -131,44 +151,81 @@ class _FontSettingViewState extends State<FontSettingView> {
                                   isExpanded: true,
                                   alignment: Alignment.centerLeft,
                                   iconSize: 12,
-                                  selectedItemBuilder: (context) => [
-                                    ...[
-                                      'Roboto',
-                                      'Lato',
-                                      'Quicksand',
-                                      'Inter',
-                                    ].map(
-                                      (e) => Text(
-                                        e,
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.normal,
-                                          fontSize: 12,
-                                          fontFamily: e,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
+                                  selectedItemBuilder: (context) =>
+                                      _availableFonts
+                                          .map(
+                                            (e) => Text(
+                                              e,
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.normal,
+                                                fontSize: 12,
+                                                fontFamily: e,
+                                              ),
+                                            ),
+                                          )
+                                          .toList(),
                                 ),
                               ),
                             ),
                             Expanded(
                               flex: 2,
-                              child: Slider(
-                                value: convertToPercentage(
-                                  defaultTextScale,
-                                  .7,
-                                  1.7,
-                                ),
-                                onChanged: (value) {
-                                  defaultTextScale = convertToValue(
-                                    value,
-                                    .7,
-                                    1.7,
-                                  );
-                                  setState(() {});
-                                },
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.text_fields,
+                                        size: 16,
+                                        color: context.colorScheme.primary,
+                                      ),
+                                      Expanded(
+                                        child: Slider(
+                                          value: convertToPercentage(
+                                            defaultTextScale,
+                                            .7,
+                                            1.7,
+                                          ),
+                                          onChanged: (value) {
+                                            defaultTextScale = convertToValue(
+                                              value,
+                                              .7,
+                                              1.7,
+                                            );
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.format_line_spacing,
+                                        size: 16,
+                                        color: context.colorScheme.primary,
+                                      ),
+                                      Expanded(
+                                        child: Slider(
+                                          value: convertToPercentage(
+                                            defaultTextHeight,
+                                            1.0,
+                                            2.5,
+                                          ),
+                                          onChanged: (value) {
+                                            defaultTextHeight = convertToValue(
+                                              value,
+                                              1.0,
+                                              2.5,
+                                            );
+                                            setState(() {});
+                                          },
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
                           ],

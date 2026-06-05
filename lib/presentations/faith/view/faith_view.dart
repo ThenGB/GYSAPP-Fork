@@ -78,12 +78,6 @@ class _FaithViewState extends State<FaithView> {
   }
 
   int currentPage = 0;
-  late double _currentScale = context.read<FaithCubit>().state.defaultTextScale;
-  late double _baseScale = context.read<FaithCubit>().state.defaultTextScale;
-  double get scale => _currentScale.clamp(.8, 2);
-
-  bool onScaling = false;
-  Set<int> touches = {};
 
   final GlobalKey selectedFaithMenuKey = GlobalKey();
 
@@ -98,13 +92,13 @@ class _FaithViewState extends State<FaithView> {
 
         appBar: AppBar(
           backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
-          title: const Text('Beliefs'),
+          title: const Text('Dasar Kepercayaan'),
           automaticallyImplyLeading: false,
           toolbarHeight: 74,
           leading: IconButton(
             tooltip: 'Menu',
             onPressed: openDashboardDrawer,
-            icon: const Icon(Icons.auto_stories_rounded),
+            icon: const Icon(Icons.menu_outlined),
           ),
           actions: [
             IconButton(
@@ -130,37 +124,10 @@ class _FaithViewState extends State<FaithView> {
                   );
                 } else if (value == 'See all notes') {
                   router.push(FaithNoteListRoute(cubit: context.read()));
-                } else if (value == 'Font Settings') {
-                  openDefaultBottomSheet(
-                    context,
-                    builder: (c) => BlocProvider<FaithCubit>.value(
-                      value: context.read(),
-                      child: BlocBuilder<FaithCubit, FaithState>(
-                        builder: (context, state) => FontSettingWidget(
-                          selectedFont: state.defaultFont,
-                          getTextStyle: (font) =>
-                              state.getTextThemeByFontName(font).bodyMedium!,
-                          availableFonts: state.availableFonts,
-                          textHeight: state.defaultTextHeight,
-                          textScale: state.defaultTextScale,
-                          onTextHeightChanged: (value) {
-                            context.read<FaithCubit>().changeTextHeight(value);
-                          },
-                          onTextScaleChanged: (value) {
-                            _currentScale = value;
-                            context.read<FaithCubit>().changeTextScale(value);
-                          },
-                          onFontSelected: (font) {
-                            context.read<FaithCubit>().changeFont(font);
-                          },
-                        ),
-                      ),
-                    ),
-                  );
                 }
               },
               itemBuilder: (context) {
-                return ['Language', 'Font Settings', 'See all notes']
+                return ['Language', 'See all notes']
                     .map((e) => PopupMenuItem(value: e, child: Text(e.tr())))
                     .toList();
               },
@@ -182,109 +149,41 @@ class _FaithViewState extends State<FaithView> {
                 child: Column(
                   children: [
                     Expanded(
-                      child: Listener(
-                        onPointerUp: (event) {
-                          touches.remove(event.pointer);
-                          if (touches.length <= 1) {
-                            if (onScaling) {
-                              setState(() {
-                                onScaling = false;
-                              });
-                            }
-                          }
-                        },
-                        onPointerDown: (event) {
-                          touches.add(event.pointer);
-                          if (touches.length > 1) {
-                            if (!onScaling) {
-                              setState(() {
-                                onScaling = true;
-                              });
-                            }
-                          }
-                        },
-                        onPointerCancel: (event) {
-                          touches.remove(event.pointer);
-                          if (touches.length <= 1) {
-                            if (onScaling) {
-                              setState(() {
-                                onScaling = false;
-                              });
-                            }
-                          }
-                        },
-                        child: GestureDetector(
-                          onScaleStart: (ScaleStartDetails details) {
-                            _baseScale = _currentScale;
-                          },
-                          onScaleUpdate: (ScaleUpdateDetails details) {
-                            setState(() {
-                              _currentScale = (_baseScale * details.scale)
-                                  .clamp(.8, 2);
-                            });
-                          },
-                          onScaleEnd: (details) {
-                            context.read<FaithCubit>().changeTextScale(
-                              _currentScale,
-                            );
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            child: IgnorePointer(
-                              ignoring: onScaling,
-                              child: ListView.builder(
-                                itemCount: currentData.length + 1,
-                                physics: onScaling
-                                    ? NeverScrollableScrollPhysics()
-                                    : AlwaysScrollableScrollPhysics(),
-                                itemBuilder: (context, index) {
-                                  if (index == 0) {
-                                    return Align(
-                                      alignment: Alignment.topCenter,
-                                      child: ConstrainedBox(
-                                        constraints: const BoxConstraints(
-                                          maxWidth: _faithMaxContentWidth,
-                                        ),
-                                        child: _FaithHeader(
-                                          title: currentTitle,
-                                        ),
-                                      ),
-                                    );
-                                  }
-                                  final faithIndex = index - 1;
-                                  var item = currentData[faithIndex];
-                                  return Align(
-                                    alignment: Alignment.topCenter,
-                                    child: ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        maxWidth: _faithMaxContentWidth,
-                                      ),
-                                      child: DefaultTextStyle.merge(
-                                        style: TextStyle(
-                                          fontWeight:
-                                              context
-                                                  .read<FaithCubit>()
-                                                  .state
-                                                  .locale
-                                                  .languageCode
-                                                  .contains('zh')
-                                              ? FontWeight.w700
-                                              : null,
-                                        ),
-                                        child: FaithWidget(
-                                          fontHeight: state.defaultTextHeight,
-                                          index: faithIndex,
-                                          item: item,
-                                          scale: scale,
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
+                      child: ListView.builder(
+                        itemCount: currentData.length,
+                        physics: AlwaysScrollableScrollPhysics(),
+                        itemBuilder: (context, index) {
+                          final faithIndex = index;
+                          var item = currentData[faithIndex];
+                          final initialCubit = context.read<InitialCubit>();
+                          return Align(
+                            alignment: Alignment.topCenter,
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(
+                                maxWidth: _faithMaxContentWidth,
+                              ),
+                              child: DefaultTextStyle.merge(
+                                style: TextStyle(
+                                  fontWeight:
+                                      context
+                                          .read<FaithCubit>()
+                                          .state
+                                          .locale
+                                          .languageCode
+                                          .contains('zh')
+                                      ? FontWeight.w700
+                                      : null,
+                                ),
+                                child: FaithWidget(
+                                  fontHeight: initialCubit.state.defaultTextHeight,
+                                  index: faithIndex,
+                                  item: item,
+                                  scale: initialCubit.state.defaultTextScale,
+                                ),
                               ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
                     AnimatedSize(
@@ -358,6 +257,7 @@ class FaithWidget extends StatelessWidget {
             final cardPadding = compact ? 18.0 : 24.0;
             final markerSize = compact ? 104.0 : 140.0;
             final numberGap = compact ? 12.0 : 16.0;
+            final initialCubit = context.read<InitialCubit>();
             return AnimatedContainer(
               duration: const Duration(milliseconds: 250),
               curve: Curves.easeOut,
@@ -415,12 +315,12 @@ class FaithWidget extends StatelessWidget {
                             Text.rich(
                               TextSpan(text: item['text'].toString()),
                               textScaler: TextScaler.linear(scale),
-                              style: state.defaultTextTheme.bodyMedium
-                                  ?.copyWith(
-                                    height: fontHeight,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                  ),
+                              style: TextStyle(
+                                fontFamily: initialCubit.state.defaultFont,
+                                height: fontHeight,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 14,
+                              ),
                             ),
                           ],
                         ),
@@ -431,60 +331,6 @@ class FaithWidget extends StatelessWidget {
               ),
             );
           },
-        ),
-      ),
-    );
-  }
-}
-
-class _FaithHeader extends StatelessWidget {
-  final String title;
-
-  const _FaithHeader({required this.title});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 14),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(18, 18, 18, 16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              context.colorScheme.primaryContainer.withValues(alpha: 0.4),
-              context.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.86,
-              ),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: context.colorScheme.primary.withValues(alpha: 0.24),
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: context.textTheme.headlineLarge?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: context.colorScheme.primary,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Sepuluh pilar iman yang menjadi pondasi kerohanian Gereja Yesus Sejati.',
-              textAlign: TextAlign.center,
-              style: context.textTheme.bodyMedium?.copyWith(
-                color: context.colorScheme.onSurfaceVariant,
-                height: 1.45,
-              ),
-            ),
-          ],
         ),
       ),
     );

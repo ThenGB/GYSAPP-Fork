@@ -1,5 +1,6 @@
 import 'dart:collection';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -9,6 +10,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
@@ -41,11 +43,7 @@ class _LoginViewState extends State<LoginView> {
     debugPrint('[LoginView] CMD: ${msg['cmd']}');
     final cmd = msg['cmd'];
     if (cmd == 'googlelogin' && !_loginHandled) {
-      if (kDebugMode) {
-        _handleGoogleViaWebView();
-      } else {
-        _handleGoogleNative();
-      }
+      _dispatchLogin();
       return;
     }
     if ((cmd == 'googlelogged' || cmd == 'applelogged') && !_loginHandled) {
@@ -53,6 +51,20 @@ class _LoginViewState extends State<LoginView> {
       final t = msg['token'] ?? '';
       debugPrint('[LoginView] Calling onLoggedIn with token=${t.length > 40 ? t.substring(0, 40) : t}...');
       widget.onLoggedIn(t);
+    }
+  }
+
+  void _dispatchLogin() {
+    if (kDebugMode) {
+      _handleGoogleViaWebView();
+      return;
+    }
+    if (Platform.isAndroid) {
+      _handleGoogleNative();
+    } else if (Platform.isIOS || Platform.isMacOS) {
+      _handleAppleNative();
+    } else {
+      _handleGoogleViaWebView();
     }
   }
 
@@ -170,21 +182,19 @@ class _LoginViewState extends State<LoginView> {
   Future<void> _handleGoogleNative() async {
     debugPrint('[LoginView] Starting native GIS...');
     try {
-      final googleSignIn = GoogleSignIn(
+      final googleSignIn = GoogleSignIn.instance;
+      await googleSignIn.initialize(
         serverClientId: _serverClientId,
       );
-      debugPrint('[LoginView] GIS instance created, signing in...');
-      final account = await googleSignIn.signIn();
-      if (account == null) {
-        debugPrint('[LoginView] GIS signIn returned null (cancelled)');
-        return;
-      }
+      debugPrint('[LoginView] GIS instance initialized, authenticating...');
+      final account = await googleSignIn.authenticate();
       debugPrint('[LoginView] GIS account: ${account.email}');
-      final auth = await account.authentication;
+      final auth = account.authentication;
       final idToken = auth.idToken;
       debugPrint('[LoginView] GIS idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
       if (idToken == null || idToken.isEmpty) {
-        debugPrint('[LoginView] ERROR: idToken is null/empty');
+        debugPrint('[LoginView] ERROR: idToken is null/empty, falling back to WebView');
+        _handleGoogleViaWebView();
         return;
       }
       debugPrint('[LoginView] Posting to /auth/google/callbackgis...');
@@ -213,6 +223,65 @@ class _LoginViewState extends State<LoginView> {
       }
     } catch (e, st) {
       debugPrint('[LoginView] Google sign-in error: $e\n$st');
+      debugPrint('[LoginView] Falling back to WebView');
+      _handleGoogleViaWebView();
+    }
+  }
+
+  // ── Native Apple Sign-In ────────────────────────────────────────────
+  Future<void> _handleAppleNative() async {
+    debugPrint('[LoginView] Starting native Apple Sign-In...');
+    try {
+      final available = await SignInWithApple.isAvailable();
+      if (!available) {
+        debugPrint('[LoginView] Apple Sign-In not available, falling back to WebView');
+        _handleGoogleViaWebView();
+        return;
+      }
+      debugPrint('[LoginView] Apple Sign-In available, requesting credentials...');
+      final appleCredential = await SignInWithApple.getAppleIDCredential(
+        scopes: [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+      );
+      final idToken = appleCredential.identityToken;
+      debugPrint('[LoginView] Apple idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
+      if (idToken == null || idToken.isEmpty) {
+        debugPrint('[LoginView] ERROR: Apple idToken is null/empty, falling back to WebView');
+        _handleGoogleViaWebView();
+        return;
+      }
+      debugPrint('[LoginView] Posting to /auth/apple/callback...');
+      final response = await http.post(
+        Uri.parse('https://e.gys.or.id/auth/apple/callback'),
+        body: {
+          'identity_token': idToken,
+          'code': appleCredential.authorizationCode,
+          if (appleCredential.email != null) 'email': appleCredential.email,
+          if (appleCredential.givenName != null) 'first_name': appleCredential.givenName,
+          if (appleCredential.familyName != null) 'last_name': appleCredential.familyName,
+        },
+      );
+      debugPrint('[LoginView] Apple callback response: ${response.statusCode} ${response.body}');
+      if (response.statusCode == 200) {
+        final res = json.decode(response.body);
+        final hasToken = res['token'] != null;
+        debugPrint('[LoginView] Apple callback status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
+        if (hasToken && !_loginHandled) {
+          debugPrint('[LoginView] Got app token from Apple! Calling onLoggedIn');
+          _loginHandled = true;
+          widget.onLoggedIn(res['token']);
+        } else {
+          debugPrint('[LoginView] No token in Apple response: $res');
+        }
+      } else {
+        debugPrint('[LoginView] Apple callback failed: ${response.statusCode}');
+      }
+    } catch (e, st) {
+      debugPrint('[LoginView] Apple sign-in error: $e\n$st');
+      debugPrint('[LoginView] Falling back to WebView');
+      _handleGoogleViaWebView();
     }
   }
 

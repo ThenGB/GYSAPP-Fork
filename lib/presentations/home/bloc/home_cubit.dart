@@ -53,9 +53,18 @@ class HomeCubit extends HydratedCubit<HomeState> {
       log('TodayVerse: Error reading bibleCode: $e', name: 'HomeCubit');
     }
 
+    if (bibleCode == null ||
+        bibleCode.isEmpty ||
+        !bibleCodes.contains(bibleCode)) {
+      bibleCode = 'b_tb';
+    }
+
     final verse = await ourMannnaService.getVerse(bibleCode: bibleCode);
     if (verse != null) {
-      log('TodayVerse: text=${verse.text.substring(0, 50)}..., ref=${verse.reference}, codeName=${verse.bibleCodeName}', name: 'HomeCubit');
+      final preview = verse.text.length > 50
+          ? '${verse.text.substring(0, 50)}...'
+          : verse.text;
+      log('TodayVerse: text=$preview, ref=${verse.reference}, codeName=${verse.bibleCodeName}', name: 'HomeCubit');
       emit(state.copyWith(todayVerse: verse));
     }
   }
@@ -72,6 +81,7 @@ class HomeCubit extends HydratedCubit<HomeState> {
     scrappTrueVoice();
     getMenu();
     getPrimaryMenuStatus();
+    fetchTodayVerse();
   }
 
   Future<void> getMenu() async {
