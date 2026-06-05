@@ -15,6 +15,12 @@ abstract class Account with _$Account {
     @JsonKey(name: 'profilepicture') String? profilePicture,
     @JsonKey(name: 'status') String? status,
     @JsonKey(name: 'branchid') @Default(0) int branchId,
+    @JsonKey(name: 'baptized') dynamic baptized,
+    @JsonKey(name: 'member_type') String? memberType,
+    @JsonKey(name: 'jenis_anggota') String? jenisAnggota,
+    @JsonKey(name: 'wilayah') String? wilayah,
+    @JsonKey(name: 'branchname') String? branchName,
+    @JsonKey(name: 'branch') String? branch,
   }) = _Account;
 
   factory Account.fromJson(Map<String, dynamic> json) =>

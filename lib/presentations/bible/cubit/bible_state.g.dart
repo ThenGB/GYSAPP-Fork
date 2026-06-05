@@ -41,6 +41,11 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
           ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
+  versesSplit:
+      (json['versesSplit'] as List<dynamic>?)
+          ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+      const [],
   bookmarks:
       (json['bookmarks'] as List<dynamic>?)
           ?.map((e) => BibleBookmark.fromJson(e as Map<String, dynamic>))
@@ -54,11 +59,6 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
   referencesSplit:
       (json['referencesSplit'] as List<dynamic>?)
           ?.map((e) => BibleRef.fromJson(e as Map<String, dynamic>))
-          .toList() ??
-      const [],
-  versesSplit:
-      (json['versesSplit'] as List<dynamic>?)
-          ?.map((e) => Verse.fromJson(e as Map<String, dynamic>))
           .toList() ??
       const [],
   histories:
@@ -116,9 +116,10 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
   lastOpenBible: json['lastOpenBible'] == null
       ? null
       : DateTime.parse(json['lastOpenBible'] as String),
-  defaultFont: json['defaultFont'] as String? ?? 'Roboto',
+  defaultFont: json['defaultFont'] as String? ?? 'EB Garamond',
   defaultTextScale: (json['defaultTextScale'] as num?)?.toDouble() ?? 1.2,
   defaultTextHeight: (json['defaultTextHeight'] as num?)?.toDouble() ?? 1.5,
+  followGlobalFontSettings: json['followGlobalFontSettings'] as bool? ?? true,
   sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
   enableAudio: json['enableAudio'] as bool? ?? false,
   isSpeaking: json['isSpeaking'] as bool? ?? false,
@@ -151,10 +152,10 @@ Map<String, dynamic> _$BibleStateToJson(_BibleState instance) =>
       'books': instance.books,
       'booksSplit': instance.booksSplit,
       'verses': instance.verses,
+      'versesSplit': instance.versesSplit,
       'bookmarks': instance.bookmarks,
       'references': instance.references,
       'referencesSplit': instance.referencesSplit,
-      'versesSplit': instance.versesSplit,
       'histories': instance.histories.map(
         (k, e) => MapEntry(k.toIso8601String(), e),
       ),
@@ -172,6 +173,7 @@ Map<String, dynamic> _$BibleStateToJson(_BibleState instance) =>
       'defaultFont': instance.defaultFont,
       'defaultTextScale': instance.defaultTextScale,
       'defaultTextHeight': instance.defaultTextHeight,
+      'followGlobalFontSettings': instance.followGlobalFontSettings,
       'sortNotesBy': instance.sortNotesBy,
       'enableAudio': instance.enableAudio,
       'isSpeaking': instance.isSpeaking,

@@ -803,14 +803,14 @@ class _HomeHeaderState extends State<HomeHeader> {
           IconButton(
             tooltip: 'Menu',
             onPressed: openDashboardDrawer,
-            icon: const Icon(Icons.widgets_rounded),
+            icon: const Icon(Icons.menu_outlined),
           ),
           Expanded(
             child: Image.asset(
               isDark
                   ? Assets.assetsImagesLogoIndonesiaWhite
                   : Assets.assetsImagesLogoIndonesiaColor,
-              height: 28,
+              height: 20,
               fit: BoxFit.contain,
             ),
           ),
@@ -843,31 +843,36 @@ class _HomeWelcomeSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<DashboardCubit, DashboardState>(
-      builder: (context, state) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Shalom,',
-              style: context.textTheme.titleMedium?.copyWith(
-                color: context.colorScheme.primary,
-                fontWeight: FontWeight.w700,
+      builder: (context, state) {
+        final isLoggedIn = state.isLoggedIn;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                isLoggedIn ? 'Shalom,' : 'Shalom',
+                style: context.textTheme.titleMedium?.copyWith(
+                  color: context.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              state.account?.name?.trim().isNotEmpty == true
-                  ? state.account!.name!
-                  : 'Jemaat Terkasih',
-              style: context.textTheme.headlineMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-                color: context.colorScheme.onSurface,
-              ),
-            ),
-          ],
-        ),
-      ),
+              if (isLoggedIn) ...[
+                const SizedBox(height: 2),
+                Text(
+                  state.account?.name?.trim().isNotEmpty == true
+                      ? state.account!.name!
+                      : 'Jemaat Terkasih',
+                  style: context.textTheme.headlineMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: context.colorScheme.onSurface,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 }

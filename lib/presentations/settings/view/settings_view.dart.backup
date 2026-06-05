@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -81,25 +82,197 @@ class SettingsView extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
+                    const _SettingsHeader(),
+                    BlocBuilder<DashboardCubit, DashboardState>(
+                      builder: (context, state) => Container(
+                        margin: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              context.colorScheme.surfaceContainerHighest
+                                  .withValues(alpha: 0.84),
+                              context.colorScheme.surfaceContainerLow
+                                  .withValues(alpha: 0.84),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: context.colorScheme.outlineVariant
+                                .withValues(alpha: 0.6),
+                          ),
+                        ),
+                        child: LayoutBuilder(
+                          builder: (context, constraints) {
+                            final compact = constraints.maxWidth < 560;
+                            final profileSection = Expanded(
+                              child: !state.isLoggedIn
+                                  ? Text(
+                                      'register_button_text'.tr(),
+                                      style: context.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    )
+                                  : Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          state.account?.name ?? 'Unknown'.tr(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: context.textTheme.headlineSmall
+                                              ?.copyWith(fontSize: 20),
+                                        ),
+                                        Text(
+                                          state.account?.email ??
+                                              'Unknown'.tr(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: context.textTheme.bodySmall
+                                              ?.copyWith(
+                                                color: context
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                        ),
+                                      ],
+                                    ),
+                            );
+                            final authButton = ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: !state.isLoggedIn
+                                    ? context.colorScheme.primary
+                                    : context.colorScheme.errorContainer,
+                                foregroundColor: !state.isLoggedIn
+                                    ? context.colorScheme.onPrimary
+                                    : context.colorScheme.onErrorContainer,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              onPressed: () async {
+                                final cubit = context.read<DashboardCubit>();
+                                if (!cubit.state.isLoggedIn) {
+                                  router.push(
+                                    LoginRoute(
+                                      onLoggedIn: (token) {
+                                        try {
+                                          debugPrint('[SettingsView] onLoggedIn callback received, token length=${token.length}');
+                                          debugPrint('[SettingsView] cubit obtained, calling loginSuccessCallback');
+                                          router.maybePop();
+                                          cubit.loginSuccessCallback(token);
+                                          debugPrint('[SettingsView] loginSuccessCallback called');
+                                          Fluttertoast.cancel();
+                                          Fluttertoast.showToast(
+                                            msg: 'BERHASIL LOGIN!',
+                                          );
+                                        } catch (e, st) {
+                                          debugPrint('[SettingsView] onLoggedIn ERROR: $e\n$st');
+                                        }
+                                      },
+                                    ),
+                                  );
+                                } else {
+                                  final yes = await context.showConfirmation(
+                                    'Are you sure want to logout?'.tr(),
+                                  );
+                                  if (!context.mounted || !yes) {
+                                    return;
+                                  }
+                                  cubit.loginSuccessCallback(null);
+                                }
+                              },
+                              child: Text(
+                                (!state.isLoggedIn ? 'Login' : 'Logout')
+                                    .tr(),
+                              ),
+                            );
+                            final avatar = Container(
+                              width: 58,
+                              height: 58,
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: context.colorScheme.outlineVariant,
+                                  width: 1.5,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.12),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: ClipOval(
+                                child: !state.isLoggedIn
+                                    ? Image.asset(Assets.assetsImagesAppicon)
+                                    : CachedNetworkImage(
+                                        imageUrl:
+                                            state.account?.profilePicture ?? '',
+                                        fit: BoxFit.cover,
+                                        errorWidget: (context, url, error) =>
+                                            Image.asset(
+                                              Assets.assetsImagesAppicon,
+                                            ),
+                                      ),
+                              ),
+                            );
+
+                            if (compact) {
+                              return Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      avatar,
+                                      const SizedBox(width: 16),
+                                      profileSection,
+                                    ],
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: authButton,
+                                  ),
+                                ],
+                              );
+                            }
+
+                            return Row(
+                              children: [
+                                avatar,
+                                const SizedBox(width: 16),
+                                profileSection,
+                                const SizedBox(width: 12),
+                                authButton,
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                    ),
                     const _AssetDistributionSection(),
                     Column(
                       children: [
                         BlocBuilder<BibleCubit, BibleState>(
                           builder: (context, state) => Section(
                             label: 'Verse'.tr(),
-                            child: (gap) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: gap),
-                              child: Material(
-                                color: context.colorScheme.surfaceContainerLowest,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: context.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.55),
-                                  ),
+                            child: (gap) => Material(
+                              color: context.colorScheme.surfaceContainerLowest,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                                side: BorderSide(
+                                  color: context.colorScheme.outlineVariant
+                                      .withValues(alpha: 0.55),
                                 ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Column(
+                              ),
+                              clipBehavior: Clip.antiAlias,
+                              child: Column(
                                 children:
                                     [
                                           {
@@ -363,23 +536,20 @@ class SettingsView extends StatelessWidget {
                             ),
                           ),
                         ),
-                      ),
-                      const _SongSettingsSection(),
+                        const _SongSettingsSection(),
                         Section(
                           label: 'Notification'.tr(),
-                          child: (gap) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: gap),
-                            child: Material(
-                              color: context.colorScheme.surfaceContainerLowest,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: context.colorScheme.outlineVariant
-                                      .withValues(alpha: 0.55),
-                                ),
+                          child: (gap) => Material(
+                            color: context.colorScheme.surfaceContainerLowest,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: context.colorScheme.outlineVariant
+                                    .withValues(alpha: 0.55),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
                               children:
                                   [
                                         {
@@ -440,26 +610,23 @@ class SettingsView extends StatelessWidget {
                                         ),
                                       )
                                       .toList(),
-                              ),
                             ),
                           ),
                         ),
                         const _ThemeSettingsSection(),
                         Section(
                           label: 'Others'.tr(),
-                          child: (gap) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: gap),
-                            child: Material(
-                              color: context.colorScheme.surfaceContainerLowest,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: context.colorScheme.outlineVariant
-                                      .withValues(alpha: 0.55),
-                                ),
+                          child: (gap) => Material(
+                            color: context.colorScheme.surfaceContainerLowest,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: BorderSide(
+                                color: context.colorScheme.outlineVariant
+                                    .withValues(alpha: 0.55),
                               ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Column(
                               children:
                                   [
                                         {
@@ -628,7 +795,6 @@ class SettingsView extends StatelessWidget {
                                         ),
                                       )
                                       .toList(),
-                              ),
                             ),
                           ),
                         ),
@@ -639,6 +805,58 @@ class SettingsView extends StatelessWidget {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SettingsHeader extends StatelessWidget {
+  const _SettingsHeader();
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.colorScheme.primaryContainer.withValues(alpha: 0.44),
+              context.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.9,
+              ),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: context.colorScheme.primary.withValues(alpha: 0.24),
+          ),
+        ),
+        child: Column(
+          children: [
+            Text(
+              'Kontrol Aplikasi Gereja'.tr(),
+              textAlign: TextAlign.center,
+              style: context.textTheme.headlineMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: context.colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Kelola Bible, Hymnal, tampilan, sinkronisasi, pengingat, dan akun dalam satu tempat.',
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: context.colorScheme.onSurfaceVariant,
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -663,6 +881,8 @@ class _SettingsTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final compactTrailing =
+        trailing != null && MediaQuery.sizeOf(context).width < 420;
     return Material(
       color: Colors.transparent,
       child: InkWell(
@@ -670,56 +890,97 @@ class _SettingsTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Container(
-                width: 38,
-                height: 38,
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: colors.primary.withValues(alpha: 0.32),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: colors.shadow.withValues(alpha: 0.08),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
+          child: compactTrailing
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: colors.primaryContainer.withValues(
+                              alpha: 0.6,
+                            ),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: colors.primary.withValues(alpha: 0.32),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: colors.shadow.withValues(alpha: 0.08),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Icon(icon, size: 20, color: colors.primary),
+                        ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: _SettingsTileText(
+                            title: title,
+                            description: description,
+                          ),
+                        ),
+                      ],
                     ),
+                    const SizedBox(height: 10),
+                    Align(alignment: Alignment.centerRight, child: trailing),
+                  ],
+                )
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: colors.primary.withValues(alpha: 0.32),
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: colors.shadow.withValues(alpha: 0.08),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Icon(icon, size: 20, color: colors.primary),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: _SettingsTileText(
+                        title: title,
+                        description: description,
+                      ),
+                    ),
+                    if (trailing != null) ...[
+                      const SizedBox(width: 10),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxWidth: MediaQuery.sizeOf(context).width < 560
+                              ? 120
+                              : 164,
+                        ),
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: Alignment.centerRight,
+                          child: trailing,
+                        ),
+                      ),
+                    ] else
+                      Icon(
+                        Icons.chevron_right_rounded,
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.8),
+                      ),
                   ],
                 ),
-                child: Icon(icon, size: 20, color: colors.primary),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: _SettingsTileText(
-                  title: title,
-                  description: description,
-                ),
-              ),
-              if (trailing != null) ...[
-                const SizedBox(width: 10),
-                ConstrainedBox(
-                  constraints: BoxConstraints(
-                    maxWidth: MediaQuery.sizeOf(context).width < 560
-                        ? 120
-                        : 164,
-                  ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerRight,
-                    child: trailing,
-                  ),
-                ),
-              ] else
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: colors.onSurfaceVariant.withValues(alpha: 0.8),
-                ),
-            ],
-          ),
         ),
       ),
     );
@@ -841,17 +1102,22 @@ class _SongSettingsSection extends StatelessWidget {
         final songCubit = context.read<SongCubit>();
         return Section(
           label: 'Pujian',
-          child: (gap) => Padding(
-            padding: EdgeInsets.symmetric(horizontal: gap),
-            child: Material(
-              color: context.colorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
-                ),
+          child: (gap) => Container(
+            margin: EdgeInsets.symmetric(horizontal: gap),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  context.colorScheme.surfaceContainerLowest,
+                  context.colorScheme.surfaceContainerLow,
+                ],
               ),
-              clipBehavior: Clip.antiAlias,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: context.colorScheme.outlineVariant),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(8),
               child: Column(
                 children: [
                   _SettingsSwitchTile(
@@ -998,21 +1264,11 @@ class _ThemeSettingsSection extends StatelessWidget {
           label: 'Theme',
           child: (gap) => Padding(
             padding: EdgeInsets.symmetric(horizontal: gap),
-            child: Material(
-              color: context.colorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _AccentColorPicker(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 16),
+                _AccentColorPicker(
                   selectedKey: state.accentKey,
                   onSelected: (key) {
                     context.read<InitialCubit>().changeAccentColor(key);
@@ -1049,9 +1305,7 @@ class _ThemeSettingsSection extends StatelessWidget {
               ],
             ),
           ),
-        ),
-      ),
-    );
+        );
       },
     );
   }

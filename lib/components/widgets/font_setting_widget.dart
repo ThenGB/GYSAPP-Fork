@@ -124,6 +124,7 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
         return Container(
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             boxShadow: [
               BoxShadow(
                 blurRadius: 160,
@@ -142,7 +143,16 @@ class _FontSettingWidgetState extends State<FontSettingWidget> {
                   padding: context.mediaQuery.viewPadding,
                   child: Column(
                     children: [
-                      SizedBox(height: 24),
+                      const SizedBox(height: 10),
+                      Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: context.colorScheme.outlineVariant,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                      ),
+                      const SizedBox(height: 14),
                       if (isSelectingFont) ...[
                         ListTile(
                           dense: true,

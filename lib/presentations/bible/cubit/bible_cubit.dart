@@ -953,15 +953,29 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   void changeFont(String font) {
-    emit(state.copyWith(defaultFont: font));
+    emit(state.copyWith(defaultFont: font, followGlobalFontSettings: false));
   }
 
   void changeTextScale(double value) {
-    emit(state.copyWith(defaultTextScale: value));
+    emit(state.copyWith(defaultTextScale: value, followGlobalFontSettings: false));
   }
 
   void changeTextHeight(double value) {
-    emit(state.copyWith(defaultTextHeight: value));
+    emit(state.copyWith(defaultTextHeight: value, followGlobalFontSettings: false));
+  }
+
+  void toggleFollowGlobalFontSettings(bool value) {
+    emit(state.copyWith(followGlobalFontSettings: value));
+  }
+
+  void syncFromGlobalFontSettings(String font, double scale, double height) {
+    if (state.followGlobalFontSettings) {
+      emit(state.copyWith(
+        defaultFont: font,
+        defaultTextScale: scale,
+        defaultTextHeight: height,
+      ));
+    }
   }
 
   void saveNote(BibleNote data) {

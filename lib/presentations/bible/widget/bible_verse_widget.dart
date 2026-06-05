@@ -108,7 +108,7 @@ class VerseWidgetState extends State<VerseWidget>
                           return TextSpan(
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 16,
+                              fontSize: 13,
                               height: context
                                   .read<BibleCubit>()
                                   .state
@@ -184,7 +184,7 @@ class VerseWidgetState extends State<VerseWidget>
                       widget.isSpeaking
                   ? context.colorScheme.surfaceContainerHigh
                   : animation.value,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 3),
               child: Builder(
                 builder: (context) {
                   var sentence = (widget.verse.verse ?? '').replaceAll(
@@ -247,7 +247,7 @@ class VerseWidgetState extends State<VerseWidget>
                                     0.7 * widget.textScale,
                                   ),
                                   style: TextStyle(
-                                    fontFamily: 'EB Garamond',
+                                    fontFamily: context.read<BibleCubit>().state.defaultFont,
                                     fontWeight: FontWeight.w700,
                                     fontSize: 14,
                                     color: widget.hasNote
@@ -269,9 +269,10 @@ class VerseWidgetState extends State<VerseWidget>
                               .defaultTextTheme
                               .bodyMedium
                               ?.copyWith(
-                                fontFamily: 'EB Garamond',
-                                fontSize: 20,
-                                height: 1.55,
+                                fontFamily: context.read<BibleCubit>().state.defaultFont,
+                                fontSize: 17,
+                                fontWeight: FontWeight.w400,
+                                height: 1.35,
                                 color: context.colorScheme.onSurface,
                               ),
                           textScaler: TextScaler.linear(widget.textScale),
@@ -334,11 +335,11 @@ class VerseWidgetState extends State<VerseWidget>
                                                 overflow: TextOverflow.visible,
                                                 //superscript is usually smaller in size
                                                 textScaler:
-                                                    const TextScaler.linear(
-                                                      0.7,
+                                                    TextScaler.linear(
+                                                      0.7 * widget.textScale,
                                                     ),
                                                 style: TextStyle(
-                                                  fontFamily: 'EB Garamond',
+                                                  fontFamily: context.read<BibleCubit>().state.defaultFont,
                                                   fontWeight: FontWeight.w700,
                                                   fontSize: 14,
                                                   color: widget.hasNote

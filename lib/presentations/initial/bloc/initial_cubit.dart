@@ -124,6 +124,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
     emit(state.copyWith(defaultTextScale: newScale));
   }
 
+  void changeTextHeight(double newHeight) {
+    emit(state.copyWith(defaultTextHeight: newHeight));
+  }
+
   void changeFontStyle(String newValue) {
     emit(state.copyWith(defaultFont: newValue));
   }

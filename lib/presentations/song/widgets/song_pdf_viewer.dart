@@ -624,7 +624,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           _onViewerReady(document, ctrl, requestGeneration, request.sourceId),
       pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
       // Use faster rendering settings
-      maxScale: 3.5,
+      sizeDelegateProvider: pdfrx.PdfViewerSizeDelegateProviderLegacy(
+        maxScale: 3.5,
+      ),
     );
 
     // Force recreation when the requested range changes so pdfrx applies
