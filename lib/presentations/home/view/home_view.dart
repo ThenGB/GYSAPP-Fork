@@ -50,6 +50,8 @@ Widget _safeNetworkImage(
     fit: fit,
     height: height,
     width: width,
+    memCacheWidth: width != null && width.isFinite ? (width * 2.5).round() : 800,
+    memCacheHeight: height != null && height.isFinite ? (height * 2.5).round() : 360,
     placeholder: (context, url) =>
         const Center(child: CircularProgressIndicator()),
     errorWidget: (context, url, error) => fallbackWidget,
