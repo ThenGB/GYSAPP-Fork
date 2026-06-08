@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -616,10 +617,14 @@ class _DrawerHeader extends StatelessWidget {
                   child: ClipOval(
                     child: state.account?.profilePicture == null
                         ? Image.asset(Assets.assetsImagesAppicon)
-                        : Image.network(
-                            state.account!.profilePicture!,
+                        : CachedNetworkImage(
+                            imageUrl: state.account!.profilePicture!,
                             fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) =>
+                            memCacheWidth: 120,
+                            memCacheHeight: 120,
+                            placeholder: (context, url) =>
+                                Image.asset(Assets.assetsImagesAppicon),
+                            errorWidget: (context, url, error) =>
                                 Image.asset(Assets.assetsImagesAppicon),
                           ),
                   ),

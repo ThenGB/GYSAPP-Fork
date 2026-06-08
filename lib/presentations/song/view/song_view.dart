@@ -10,8 +10,10 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../data/services/chord_service.dart';
+import '../../../data/services/midi_engine_service.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
+import '../widgets/draggable_midi_controls.dart';
 import '../../presentations.dart';
 import '../widgets/song_pdf_viewer.dart';
 
@@ -138,9 +140,8 @@ class _SongViewState extends State<SongView> {
       child: BlocBuilder<SongCubit, SongState>(
         buildWhen: (previous, current) =>
             previous.isImageMode != current.isImageMode ||
-            previous.bookCode !=
-                current
-                    .bookCode, // Only rebuild Scaffold if mode or book changes
+            previous.bookCode != current.bookCode ||
+            previous.showAudio != current.showAudio,
         builder: (context, state) {
           final textMode = state.isImageMode == true;
           final colors = Theme.of(context).colorScheme;
@@ -455,6 +456,48 @@ class _SongViewState extends State<SongView> {
                     );
                   },
                 ),
+                if (state.showAudio)
+                  BlocBuilder<SongCubit, SongState>(
+                    buildWhen: (prev, curr) =>
+                        prev.isAudioPlaying != curr.isAudioPlaying ||
+                        prev.isAudioLoading != curr.isAudioLoading ||
+                        prev.transposeStep != curr.transposeStep ||
+                        prev.tempoBpm != curr.tempoBpm ||
+                        prev.playlistAutoNextMode != curr.playlistAutoNextMode,
+                    builder: (context, midiState) {
+                      return StreamBuilder<MidiPlaybackState>(
+                        stream: cubit.midiEngine.stateStream,
+                        initialData: const MidiPlaybackState(),
+                        builder: (context, snapshot) {
+                          final ms = snapshot.data ?? const MidiPlaybackState();
+                          return DraggableMidiControls(
+                            key: const ValueKey('midi_overlay'),
+                            isPlaying: midiState.isAudioPlaying || ms.isPlaying,
+                            isLoading: midiState.isAudioLoading || ms.isLoading,
+                            position: ms.position,
+                            duration: ms.duration,
+                            transposeStep: midiState.transposeStep,
+                            currentKey: midiState.activeKeyLabel,
+                            availableKeys: midiState.transposeKeyOptions,
+                            tempoBpm: midiState.tempoBpm,
+                            autoNextMode: midiState.playlistAutoNextMode,
+                            onPlayPause: () => cubit.togglePlayPause(),
+                            onLoopModeCycle: () => cubit.cycleLoopMode(),
+                            onSeek: (v) => cubit.seek(
+                              Duration(milliseconds: (v * 1000).round()),
+                            ),
+                            onTranspose: (v) => cubit.setTranspose(v),
+                            onKeySelected: (v) => cubit.setTransposeKey(v),
+                            onTempo: (v) => cubit.setTempo(v),
+                            onInstrument: (v) {},
+                            onSoundFont: (v) => cubit.setSoundFont(v),
+                            onPreviousSong: _goToPreviousSong,
+                            onNextSong: _goToNextSong,
+                          );
+                        },
+                      );
+                    },
+                  ),
               ],
             ),
           );
