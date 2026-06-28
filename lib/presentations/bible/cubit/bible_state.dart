@@ -54,6 +54,7 @@ abstract class BibleState with _$BibleState {
     @Default('Newest') String sortNotesBy,
     @Default(false) bool enableAudio,
     @Default(false) bool isSpeaking,
+    @Default(false) bool isSplitContentLoading,
     @Default('') String currentWord,
     @Default(0) int currentStartWord,
     @Default(0) int currentEndWord,

@@ -64,7 +64,7 @@ class _SongListViewState extends State<SongListView>
 
   void searchListener() {
     _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 150), () {
+    _debounce = Timer(const Duration(milliseconds: 250), () {
       setState(() {});
     });
   }
@@ -622,8 +622,21 @@ class _PlaylistTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<SongCubit, SongState>(
+      buildWhen: (prev, curr) =>
+          prev.playlists != curr.playlists ||
+          prev.playlistAutoNextMode != curr.playlistAutoNextMode ||
+          prev.isPlaylistLoopModeActive != curr.isPlaylistLoopModeActive ||
+          prev.activePlaylistId != curr.activePlaylistId ||
+          prev.songBook != curr.songBook,
       builder: (context, state) {
         final cubit = context.read<SongCubit>();
+        // Build the song→map lookup once per rebuild instead of per card.
+        final songMap = <String, Song>{};
+        for (final book in books()) {
+          for (final song in book.songs) {
+            songMap['${book.code}:${song.number}'] = song;
+          }
+        }
         if (state.playlists.isEmpty) {
           return Align(
             alignment: Alignment.topCenter,
@@ -675,17 +688,19 @@ class _PlaylistTab extends StatelessWidget {
             }
             final playlist = state.playlists[index - 1];
             return frame(
-              _PlaylistCard(
-                playlist: playlist,
-                active:
-                    state.isPlaylistLoopModeActive &&
-                    playlist.id == state.activePlaylistId,
-                books: books,
-                onActivate: () => cubit.setActivePlaylist(playlist.id),
-                onDelete: () => cubit.deletePlaylist(playlist.id),
-                onRemoveSong: (index) =>
-                    cubit.removeSongFromPlaylist(playlist.id, index),
-                onOpenSong: onOpenSong,
+              RepaintBoundary(
+                child: _PlaylistCard(
+                  playlist: playlist,
+                  active:
+                      state.isPlaylistLoopModeActive &&
+                      playlist.id == state.activePlaylistId,
+                  songMap: songMap,
+                  onActivate: () => cubit.setActivePlaylist(playlist.id),
+                  onDelete: () => cubit.deletePlaylist(playlist.id),
+                  onRemoveSong: (index) =>
+                      cubit.removeSongFromPlaylist(playlist.id, index),
+                  onOpenSong: onOpenSong,
+                ),
               ),
             );
           },
@@ -743,7 +758,7 @@ class _AutoNextModeSelector extends StatelessWidget {
 class _PlaylistCard extends StatelessWidget {
   final SongPlaylist playlist;
   final bool active;
-  final List<SongBook> Function() books;
+  final Map<String, Song> songMap;
   final VoidCallback onActivate;
   final VoidCallback onDelete;
   final ValueChanged<int> onRemoveSong;
@@ -752,7 +767,7 @@ class _PlaylistCard extends StatelessWidget {
   const _PlaylistCard({
     required this.playlist,
     required this.active,
-    required this.books,
+    required this.songMap,
     required this.onActivate,
     required this.onDelete,
     required this.onRemoveSong,
@@ -761,14 +776,6 @@ class _PlaylistCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final songMap = <String, Song>{};
-    for (final book in books()) {
-      for (final song in book.songs) {
-        final key = '${book.code}:${song.number}';
-        songMap[key] = song;
-      }
-    }
-
     final songs = playlist.songs
         .map((item) => songMap['${item.code}:${item.number}'])
         .whereType<Song>()

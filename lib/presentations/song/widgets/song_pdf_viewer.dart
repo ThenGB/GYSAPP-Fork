@@ -72,9 +72,6 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
   /// Global service for note extraction and caching.
   final _noteService = PdfNoteService();
-  // Historical compatibility note:
-  // _fallbackPositions used to supply a native chord placement fallback when
-  // notePositions != null && notePositions.isNotEmpty was false.
 
   PdfDocumentRequest? _pdfRequest;
 
@@ -938,6 +935,21 @@ class _ChordOverlayState extends State<_ChordOverlay> {
   Future<_NoteExtractionResult>? _extractionFuture;
   String _extractionSourceId = '';
 
+  // Cache for _extractRows to avoid O(n²) row clustering on every rebuild.
+  List<NoteInfo>? _cachedRowsKey;
+  List<_NoteRow>? _cachedRows;
+
+  /// Returns cached row extraction result, recomputing only when the
+  /// underlying note-infos list changes identity.
+  List<_NoteRow> _extractRowsCached(List<NoteInfo> noteInfos) {
+    if (identical(_cachedRowsKey, noteInfos) && _cachedRows != null) {
+      return _cachedRows!;
+    }
+    _cachedRowsKey = noteInfos;
+    _cachedRows = _extractRows(noteInfos);
+    return _cachedRows!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1040,7 +1052,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
               yPct: lastPos.yPct,
             );
 
-            for (final row in _extractRows(infos)) {
+            for (final row in _extractRowsCached(infos)) {
               effectivePositions[_noteIdxForRowStart(row.rowIndex)] = (
                 xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0),
                 yPct: row.first.yPct,
@@ -1065,18 +1077,22 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 
           // In edit mode, also render note targets using the same data
           if (widget.isEditMode) {
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Note targets (clickable in edit mode)
-                ..._buildNoteTargets(infos),
-                // Chord badges
-                ...chordBadges,
-              ],
+            return RepaintBoundary(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Note targets (clickable in edit mode)
+                  ..._buildNoteTargets(infos),
+                  // Chord badges
+                  ...chordBadges,
+                ],
+              ),
             );
           }
 
-          return Stack(clipBehavior: Clip.none, children: chordBadges);
+          return RepaintBoundary(
+            child: Stack(clipBehavior: Clip.none, children: chordBadges),
+          );
         },
       ),
     );
@@ -1124,7 +1140,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     }
 
     // Add per-row sentinels so each line can have starter/ending chords.
-    for (final row in _extractRows(noteInfos)) {
+    for (final row in _extractRowsCached(noteInfos)) {
       final rowStartXPct = (row.first.xPct - 2.5).clamp(1.0, 99.0);
       final rowEndXPct = (row.last.xPct + 2.5).clamp(1.0, 99.0);
       targets.add(

@@ -306,65 +306,66 @@ class _DashboardViewState extends State<DashboardView> {
 
               return true;
             },
-            child: BlocBuilder<SongCubit, SongState>(
-              builder: (context, songState) => AutoTabsRouter(
-                routes: pages.map((e) => e.page).toList(),
-                transitionBuilder: (context, child, animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                builder: (context, child) {
-                  final tabsRouter = AutoTabsRouter.of(context);
-                  tabRouter = tabsRouter;
-                  final isLandscape =
-                      MediaQuery.orientationOf(context) ==
-                      Orientation.landscape;
-                  final bottomInset = MediaQuery.paddingOf(context).bottom;
-                  final navHeight = isLandscape
-                      ? kDashboardLandscapeBottomNavHeight
-                      : kDashboardPortraitBottomNavHeight;
-                  final bodyBottomPadding = navHeight + bottomInset;
+            child: AutoTabsRouter(
+              routes: pages.map((e) => e.page).toList(),
+              transitionBuilder: (context, child, animation) {
+                return FadeTransition(opacity: animation, child: child);
+              },
+              builder: (context, child) {
+                final tabsRouter = AutoTabsRouter.of(context);
+                tabRouter = tabsRouter;
+                final isLandscape =
+                    MediaQuery.orientationOf(context) ==
+                    Orientation.landscape;
+                // viewPadding (hardware safe area) is stable; padding
+                // changes on keyboard open/close which is needless work.
+                final bottomInset =
+                    MediaQuery.viewPaddingOf(context).bottom;
+                final navHeight = isLandscape
+                    ? kDashboardLandscapeBottomNavHeight
+                    : kDashboardPortraitBottomNavHeight;
+                final bodyBottomPadding = navHeight + bottomInset;
 
-                  final bottomNavItemCount = bottomNavPages.length;
-                  final isBeyondBottomNav = tabsRouter.activeIndex >= bottomNavItemCount;
-                  final safeSelectedIndex = isBeyondBottomNav
-                      ? -1
-                      : tabsRouter.activeIndex;
+                final bottomNavItemCount = bottomNavPages.length;
+                final isBeyondBottomNav = tabsRouter.activeIndex >= bottomNavItemCount;
+                final safeSelectedIndex = isBeyondBottomNav
+                    ? -1
+                    : tabsRouter.activeIndex;
 
-                  return Scaffold(
-                    key: dashboardScaffoldKey,
-                    backgroundColor: context.colorScheme.surface,
-                    extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
-                    drawer: const _DashboardDrawer(),
-                    body: Stack(
-                      children: [
-                        Positioned.fill(
-                          child: DecoratedBox(
-                            decoration: BoxDecoration(
-                              color: context.colorScheme.surface,
+                return Scaffold(
+                  key: dashboardScaffoldKey,
+                  backgroundColor: context.colorScheme.surface,
+                  extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
+                  drawer: const _DashboardDrawer(),
+                  body: Stack(
+                    children: [
+                      Positioned.fill(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            color: context.colorScheme.surface,
+                          ),
+                          child: AnimatedPadding(
+                            duration: const Duration(milliseconds: 220),
+                            curve: Curves.easeOutCubic,
+                            padding: EdgeInsets.only(
+                              bottom: bodyBottomPadding,
                             ),
-                            child: AnimatedPadding(
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeOutCubic,
-                              padding: EdgeInsets.only(
-                                bottom: bodyBottomPadding,
-                              ),
-                              child: child,
-                            ),
+                            child: child,
                           ),
                         ),
-                      ],
-                    ),
-                    bottomNavigationBar: _AnimatedRoundedNavBar(
-                      selectedIndex: safeSelectedIndex,
-                      onDestinationSelected: (value) {
-                        context.read<BibleCubit>().stopSpeaking();
-                        tabsRouter.setActiveIndex(value);
-                      },
-                      destinations: bottomNavPages,
-                    ),
-                  );
-                },
-              ),
+                      ),
+                    ],
+                  ),
+                  bottomNavigationBar: _AnimatedRoundedNavBar(
+                    selectedIndex: safeSelectedIndex,
+                    onDestinationSelected: (value) {
+                      context.read<BibleCubit>().stopSpeaking();
+                      tabsRouter.setActiveIndex(value);
+                    },
+                    destinations: bottomNavPages,
+                  ),
+                );
+              },
             ),
           );
         },

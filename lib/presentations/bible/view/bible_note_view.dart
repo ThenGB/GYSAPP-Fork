@@ -196,7 +196,12 @@ class _BibleNoteViewState extends State<BibleNoteView> {
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
                 ? null
-                : Container(
+                // Builder isolates viewInsets read so only the toolbar
+                // subtree rebuilds on keyboard, not the entire page.
+                : Builder(
+                    builder: (inner) {
+                      final insets = MediaQuery.viewInsetsOf(inner);
+                      return Container(
                     decoration: BoxDecoration(
                       color: context.colorScheme.surface,
                       border: Border(
@@ -207,14 +212,14 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                         ),
                       ),
                     ),
-                    margin:
-                        context.mediaQuery.viewPadding +
-                        context.mediaQuery.viewInsets,
+                    margin: context.mediaQuery.viewPadding + insets,
                     child: quill.QuillSimpleToolbar(
                       controller: controller,
                       config: const quill.QuillSimpleToolbarConfig(),
                     ),
-                  ),
+                  );
+                },
+              ),
           ),
         ),
       ),

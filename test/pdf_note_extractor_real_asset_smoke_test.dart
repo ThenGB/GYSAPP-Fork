@@ -13,25 +13,25 @@ void main() {
       final cases = <({String book, String relativePath, int page, bool expectHold})>[
         (
           book: 'MDR',
-          relativePath: 'assets/data/pdf/mdr/MDR.pdf',
+          relativePath: 'assets/data/pdf/mdr/mdr_master.pdf',
           page: 17,
           expectHold: true,
         ),
         (
           book: 'ASM-I',
-          relativePath: 'assets/data/pdf/asm_i/ASM-I.pdf',
+          relativePath: 'assets/data/pdf/asm_i/asm_i_master.pdf',
           page: 1,
           expectHold: false,
         ),
         (
           book: 'ASM-M',
-          relativePath: 'assets/data/pdf/asm_m/ASM-M.pdf',
+          relativePath: 'assets/data/pdf/asm_m/asm_m_master.pdf',
           page: 8,
           expectHold: true,
         ),
         (
           book: 'ASM-P',
-          relativePath: 'assets/data/pdf/asm_p/ASM-P.pdf',
+          relativePath: 'assets/data/pdf/asm_p/asm_p_master.pdf',
           page: 1,
           expectHold: false,
         ),

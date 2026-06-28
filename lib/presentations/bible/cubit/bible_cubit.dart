@@ -605,10 +605,19 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future getContent(Verse? bible, {VerseMode mode = VerseMode.both}) async {
-    if ([VerseMode.both, VerseMode.bottomOnly].contains(mode)) {
-      getContent2(bible);
+    final shouldSyncBottom = [VerseMode.both, VerseMode.bottomOnly].contains(
+      mode,
+    );
+    if (shouldSyncBottom) {
+      emit(state.copyWith(isSplitContentLoading: true));
+    }
+    if (shouldSyncBottom) {
+      await getContent2(bible);
     }
     if (mode == VerseMode.bottomOnly) {
+      if (shouldSyncBottom) {
+        emit(state.copyWith(isSplitContentLoading: false));
+      }
       return;
     }
     emit(state.copyWith(selectedVerse: []));
@@ -719,6 +728,9 @@ class BibleCubit extends HydratedCubit<BibleState> {
         lastOpenBible: DateTime.now(),
       ),
     );
+    if (shouldSyncBottom) {
+      emit(state.copyWith(isSplitContentLoading: false));
+    }
   }
 
   Future getContent2(Verse? bible) async {

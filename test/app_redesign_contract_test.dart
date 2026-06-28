@@ -43,9 +43,9 @@ void main() {
       'lib/components/design_system/design_system.dart',
     ).readAsStringSync();
 
-    expect(section, contains('AnimatedContainer'));
+    expect(section, contains('MediaQuery.sizeOf(context).width'));
     expect(designSystem, contains('static const double radiusMd = 8'));
-    expect(section, contains('borderRadius: BorderRadius.circular(radius)'));
+    expect(section, contains('horizontalMargin'));
     expect(section, contains('child(innerGap)'));
   });
 }

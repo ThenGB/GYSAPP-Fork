@@ -164,9 +164,11 @@ class _SongViewState extends State<SongView> {
               title: BlocBuilder<SongCubit, SongState>(
                 buildWhen: (prev, curr) =>
                     prev.pageIndex != curr.pageIndex ||
+                    prev.bookCode != curr.bookCode ||
+                    prev.songs != curr.songs ||
                     prev.originalFamilyChord != curr.originalFamilyChord ||
                     prev.originalPdfKey != curr.originalPdfKey ||
-                    prev.transposeStep != curr.transposeStep ||
+                    prev.chordAccidentalMode != curr.chordAccidentalMode ||
                     prev.baseTransposeOffset != curr.baseTransposeOffset,
                 builder: (context, state) => _SongHeaderTitle(
                   number: state.getSongNumberAt(currentPageIndex),
@@ -325,6 +327,7 @@ class _SongViewState extends State<SongView> {
                   BlocBuilder<SongCubit, SongState>(
                     buildWhen: (prev, curr) =>
                         prev.pageIndex != curr.pageIndex ||
+                        prev.bookCode != curr.bookCode ||
                         prev.defaultFont != curr.defaultFont ||
                         prev.defaultTextScale != curr.defaultTextScale ||
                         prev.defaultTextHeight != curr.defaultTextHeight ||
@@ -489,8 +492,6 @@ class _SongViewState extends State<SongView> {
                             onTranspose: (v) => cubit.setTranspose(v),
                             onKeySelected: (v) => cubit.setTransposeKey(v),
                             onTempo: (v) => cubit.setTempo(v),
-                            onInstrument: (v) {},
-                            onSoundFont: (v) => cubit.setSoundFont(v),
                             onPreviousSong: _goToPreviousSong,
                             onNextSong: _goToNextSong,
                           );
@@ -529,6 +530,13 @@ class _SongViewState extends State<SongView> {
       builder: (context) {
         return BlocBuilder<SongCubit, SongState>(
           bloc: cubit,
+          buildWhen: (prev, curr) =>
+              prev.defaultFont != curr.defaultFont ||
+              prev.defaultTextScale != curr.defaultTextScale ||
+              prev.defaultTextHeight != curr.defaultTextHeight ||
+              prev.lyricsTextAlign != curr.lyricsTextAlign ||
+              prev.lyricsVerticalAlign != curr.lyricsVerticalAlign ||
+              prev.availableFonts != curr.availableFonts,
           builder: (context, state) {
             final colors = Theme.of(context).colorScheme;
             return ListView(
@@ -766,6 +774,13 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
   DateTime? _lastTapTime;
   static const int _requiredTaps = 10;
   static const Duration _tapWindow = Duration(milliseconds: 2000);
+  double _screenWidth = 0;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _screenWidth = MediaQuery.sizeOf(context).width;
+  }
 
   void _handleTap() {
     final now = DateTime.now();
@@ -799,8 +814,8 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final compact = screenWidth < 420;
+    final screenWidth = _screenWidth;
+    final compact = screenWidth < 430;
     final titleMaxWidth = screenWidth < 420
         ? screenWidth * 0.42
         : screenWidth < 600

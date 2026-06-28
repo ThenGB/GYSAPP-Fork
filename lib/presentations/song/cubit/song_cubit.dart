@@ -29,7 +29,6 @@ class SongCubit extends HydratedCubit<SongState> {
   MidiEngineService get midiEngine => _midiEngine;
 
   bool get isSelectingSong => state.selectedSong != null;
-  bool get isWarmUpEnabled => state.midiPreloadEnabled;
 
   void toggleWarmUp([bool? value]) {
     final newValue = value ?? !state.midiPreloadEnabled;
