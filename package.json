@@ -1,0 +1,8 @@
+{
+  "name": "church-opencode",
+  "private": true,
+  "description": "OpenCode configuration for GYS Church App",
+  "dependencies": {
+    "ecc-universal": "^2.0.0"
+  }
+}

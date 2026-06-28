@@ -34,16 +34,18 @@ doc/api/
 *.iml
 .vscode/
 
-# AI Agent configs & tools
+# AI Agent configs & tools (non-opencode, already removed from project)
 .kilo/
 .claude/
 .codex/
-.opencode/
 .superpowers/
 .devin/
 .serena/
 .playwright-mcp/
 marionette-mcp/
+
+# Node.js (ECC plugin for opencode)
+node_modules/
 
 # Kilo / Codex / Marionette logs
 *.log

@@ -14,127 +14,11 @@ import '../../presentations/song/cubit/song_preload_key.dart';
 
 const String defaultMidiSoundFont = 'GeneralUser-GS.sf2';
 
-/// Stream-based playback that renders audio chunks in real-time.
-/// This provides instant playback without waiting for full render.
-class MidiStreamingController {
-  final List<int> _leftSamples = [];
-  final List<int> _rightSamples = [];
-  bool _isComplete = false;
-
-  void addChunk(Float32List left, Float32List right) {
-    for (var i = 0; i < left.length; i++) {
-      _leftSamples.add((left[i] * 32767).round().clamp(-32768, 32767));
-      _rightSamples.add((right[i] * 32767).round().clamp(-32768, 32767));
-    }
-  }
-
-  void setComplete() => _isComplete = true;
-
-  bool get isComplete => _isComplete;
-
-  Uint8List getWavBytes({int? maxMs}) {
-    final targetSamples = maxMs != null
-        ? (maxMs * nativeMidiSampleRate / 1000).round().clamp(
-            0,
-            _leftSamples.length,
-          )
-        : _leftSamples.length;
-
-    final pcmBytes = Uint8List(targetSamples * 4);
-    for (var i = 0; i < targetSamples; i++) {
-      final byteData = ByteData(4);
-      byteData.setInt16(
-        i * 4,
-        _leftSamples[i].clamp(-32768, 32767),
-        Endian.little,
-      );
-      byteData.setInt16(
-        i * 4 + 2,
-        _rightSamples[i].clamp(-32768, 32767),
-        Endian.little,
-      );
-      pcmBytes.setRange(i * 4, i * 4 + 4, byteData.buffer.asUint8List());
-    }
-
-    return _encodePcm16Wav(
-      pcmBytes,
-      sampleRate: nativeMidiSampleRate,
-      channels: 2,
-    );
-  }
-
-  static Uint8List _encodePcm16Wav(
-    Uint8List pcmBytes, {
-    required int sampleRate,
-    required int channels,
-  }) {
-    final byteRate = sampleRate * channels * 2;
-    final blockAlign = channels * 2;
-    final output = _StringBuffer();
-    final header = ByteData(44);
-
-    void writeAscii(ByteData data, int offset, String value) {
-      for (var i = 0; i < value.length; i++) {
-        data.setUint8(offset + i, value.codeUnitAt(i));
-      }
-    }
-
-    writeAscii(header, 0, 'RIFF');
-    header.setUint32(4, 36 + pcmBytes.length, Endian.little);
-    writeAscii(header, 8, 'WAVE');
-    writeAscii(header, 12, 'fmt ');
-    header.setUint32(16, 16, Endian.little);
-    header.setUint16(20, 1, Endian.little);
-    header.setUint16(22, channels, Endian.little);
-    header.setUint32(24, sampleRate, Endian.little);
-    header.setUint32(28, byteRate, Endian.little);
-    header.setUint16(32, blockAlign, Endian.little);
-    header.setUint16(34, 16, Endian.little);
-    writeAscii(header, 36, 'data');
-    header.setUint32(40, pcmBytes.length, Endian.little);
-
-    output.add(header.buffer.asUint8List());
-    output.add(pcmBytes);
-    return output.toBytes();
-  }
-}
-
-/// Simple BytesBuilder replacement to avoid deprecation warning.
-class _StringBuffer {
-  final List<Uint8List> _chunks = [];
-
-  void add(Uint8List bytes) => _chunks.add(bytes);
-
-  Uint8List toBytes() {
-    final totalLength = _chunks.fold(0, (sum, chunk) => sum + chunk.length);
-    final result = Uint8List(totalLength);
-    var offset = 0;
-    for (final chunk in _chunks) {
-      result.setRange(offset, offset + chunk.length, chunk);
-      offset += chunk.length;
-    }
-    return result;
-  }
-}
-
-@visibleForTesting
-Uint8List interleaveFloat32Stereo(Float32List left, Float32List right) {
-  final frames = left.length < right.length ? left.length : right.length;
-  final interleaved = Float32List(frames * 2);
-  for (var i = 0; i < frames; i++) {
-    final outputIndex = i * 2;
-    interleaved[outputIndex] = left[i];
-    interleaved[outputIndex + 1] = right[i];
-  }
-  return interleaved.buffer.asUint8List();
-}
-
 class MidiPlaybackState {
   final bool isPlaying;
   final double position;
   final double duration;
   final bool isLoading;
-  final double loadProgress;
   final String? currentSong;
 
   const MidiPlaybackState({
@@ -142,7 +26,6 @@ class MidiPlaybackState {
     this.position = 0,
     this.duration = 0,
     this.isLoading = false,
-    this.loadProgress = 0,
     this.currentSong,
   });
 
@@ -151,23 +34,42 @@ class MidiPlaybackState {
     double? position,
     double? duration,
     bool? isLoading,
-    double? loadProgress,
     Object? currentSong = _sentinel,
   }) {
-    return MidiPlaybackState(
+    final next = MidiPlaybackState(
       isPlaying: isPlaying ?? this.isPlaying,
       position: position ?? this.position,
       duration: duration ?? this.duration,
       isLoading: isLoading ?? this.isLoading,
-      loadProgress: loadProgress ?? this.loadProgress,
       currentSong: identical(currentSong, _sentinel)
           ? this.currentSong
           : currentSong as String?,
     );
+    return next;
   }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    return other is MidiPlaybackState &&
+        other.isPlaying == isPlaying &&
+        other.position == position &&
+        other.duration == duration &&
+        other.isLoading == isLoading &&
+        other.currentSong == currentSong;
+  }
+
+  @override
+  int get hashCode => Object.hash(
+        isPlaying,
+        position,
+        duration,
+        isLoading,
+        currentSong,
+      );
 }
 
-class MidiEngineService extends ChangeNotifier {
+class MidiEngineService {
   static const int _defaultMaxCachedSources = 12;
   static const int _streamChunkFrames = nativeMidiSampleRate ~/ 4;
   static const int _initialStreamChunks = 4;
@@ -204,12 +106,9 @@ class MidiEngineService extends ChangeNotifier {
 
   MidiPlaybackState _state = const MidiPlaybackState();
 
-  List<List<dynamic>> _instruments = [];
-  List<List<dynamic>> get instruments =>
-      _instruments.isEmpty ? _generalMidiInstruments : _instruments;
-
   final _stateController = StreamController<MidiPlaybackState>.broadcast();
   Stream<MidiPlaybackState> get stateStream => _stateController.stream;
+  MidiPlaybackState? _lastBroadcast;
 
   MidiPlaybackState get state => _state;
   bool get isInitialized => _initialized;
@@ -429,7 +328,6 @@ class MidiEngineService extends ChangeNotifier {
       _state.copyWith(
         isPlaying: false,
         isLoading: true,
-        loadProgress: 0.05,
         currentSong: midiPath,
         position: startSeconds,
         duration: previousDuration,
@@ -459,7 +357,6 @@ class MidiEngineService extends ChangeNotifier {
           _setState(
             _state.copyWith(
               isLoading: false,
-              loadProgress: 1,
               duration: duration,
             ),
           );
@@ -476,13 +373,11 @@ class MidiEngineService extends ChangeNotifier {
         _loadSoundFontBytes(_settings.soundFont),
       ]);
 
-      _setState(_state.copyWith(loadProgress: 0.2));
       final results = await loadFuture;
       if (_disposed || generation != _renderGeneration) return;
 
       final midiBytes = results[0];
       final soundFontBytes = results[1];
-      _setState(_state.copyWith(loadProgress: 0.4));
 
       // FAST PATH 2: feed rendered chunks into a SoLoud buffer stream.
       final worker = MidiWorker();
@@ -508,7 +403,6 @@ class MidiEngineService extends ChangeNotifier {
       _streamSource = streamSource;
       _setCurrentSource(streamSource, startOffsetSeconds: startSeconds);
       _streamEnded = false;
-      _instruments = streamInfo.instruments;
 
       for (var i = 0; i < _initialStreamChunks; i++) {
         final keepStreaming = await _appendNextStreamChunk(
@@ -522,7 +416,6 @@ class MidiEngineService extends ChangeNotifier {
       _setState(
         _state.copyWith(
           isLoading: false,
-          loadProgress: 0.65,
           duration: streamInfo.duration.inMilliseconds / 1000,
           position: startAt.inMilliseconds / 1000,
         ),
@@ -598,7 +491,6 @@ class MidiEngineService extends ChangeNotifier {
       _setState(
         _state.copyWith(
           isLoading: false,
-          loadProgress: 1,
           duration: totalDuration,
           position: position,
         ),
@@ -632,7 +524,7 @@ class MidiEngineService extends ChangeNotifier {
 
     SoLoud.instance.addAudioDataStream(
       source,
-      interleaveFloat32Stereo(chunk.left, chunk.right),
+      _interleaveFloat32Stereo(chunk.left, chunk.right),
     );
 
     if (chunk.isEnded) {
@@ -946,7 +838,6 @@ class MidiEngineService extends ChangeNotifier {
         isPlaying: false,
         position: clamped,
         isLoading: true,
-        loadProgress: 0.05,
         currentSong: midiPath,
       ),
     );
@@ -985,8 +876,6 @@ class MidiEngineService extends ChangeNotifier {
   void setSoundFont(String soundFontFileName) {
     _soundFont = _normaliseSoundFontFileName(soundFontFileName);
     _settings = _settings.copyWith(soundFont: _soundFont).normalized;
-    _instruments = [];
-    if (!_disposed) notifyListeners();
   }
 
   Future<void> changeSoundFont(String soundFontFileName) async {
@@ -1149,10 +1038,15 @@ class MidiEngineService extends ChangeNotifier {
   }
 
   void _emitState() {
-    if (!_stateController.isClosed) {
-      _stateController.add(_state);
-    }
-    if (!_disposed) notifyListeners();
+    if (_stateController.isClosed) return;
+    // Compare with the previously broadcast snapshot and skip the add if
+    // nothing actually changed.  Avoids per-tick (4 Hz) wakeups for the
+    // position timer when neither isPlaying/isLoading nor the song path
+    // has changed.
+    final last = _lastBroadcast;
+    if (last != null && last == _state) return;
+    _lastBroadcast = _state;
+    _stateController.add(_state);
   }
 
   Future<void> disposeEngine() async {
@@ -1168,139 +1062,23 @@ class MidiEngineService extends ChangeNotifier {
     _sourceCache.clear();
     _cacheOrder.clear();
     await _stateController.close();
-    super.dispose();
+  }
+
+  /// Interleaves a left/right [Float32List] pair into a single stereo
+  /// PCM byte stream ready for [SoLoud.addAudioDataStream].
+  static Uint8List _interleaveFloat32Stereo(
+    Float32List left,
+    Float32List right,
+  ) {
+    final frames = left.length < right.length ? left.length : right.length;
+    final interleaved = Float32List(frames * 2);
+    for (var i = 0; i < frames; i++) {
+      final outputIndex = i * 2;
+      interleaved[outputIndex] = left[i];
+      interleaved[outputIndex + 1] = right[i];
+    }
+    return interleaved.buffer.asUint8List();
   }
 }
 
 const Object _sentinel = Object();
-
-const List<List<dynamic>> _generalMidiInstruments = [
-  [0, 'Acoustic Grand Piano'],
-  [1, 'Bright Acoustic Piano'],
-  [2, 'Electric Grand Piano'],
-  [3, 'Honky-tonk Piano'],
-  [4, 'Electric Piano 1'],
-  [5, 'Electric Piano 2'],
-  [6, 'Harpsichord'],
-  [7, 'Clavinet'],
-  [8, 'Celesta'],
-  [9, 'Glockenspiel'],
-  [10, 'Music Box'],
-  [11, 'Vibraphone'],
-  [12, 'Marimba'],
-  [13, 'Xylophone'],
-  [14, 'Tubular Bells'],
-  [15, 'Dulcimer'],
-  [16, 'Drawbar Organ'],
-  [17, 'Percussive Organ'],
-  [18, 'Rock Organ'],
-  [19, 'Church Organ'],
-  [20, 'Reed Organ'],
-  [21, 'Accordion'],
-  [22, 'Harmonica'],
-  [23, 'Tango Accordion'],
-  [24, 'Acoustic Guitar nylon'],
-  [25, 'Acoustic Guitar steel'],
-  [26, 'Electric Guitar jazz'],
-  [27, 'Electric Guitar clean'],
-  [28, 'Electric Guitar muted'],
-  [29, 'Overdriven Guitar'],
-  [30, 'Distortion Guitar'],
-  [31, 'Guitar Harmonics'],
-  [32, 'Acoustic Bass'],
-  [33, 'Electric Bass finger'],
-  [34, 'Electric Bass pick'],
-  [35, 'Fretless Bass'],
-  [36, 'Slap Bass 1'],
-  [37, 'Slap Bass 2'],
-  [38, 'Synth Bass 1'],
-  [39, 'Synth Bass 2'],
-  [40, 'Violin'],
-  [41, 'Viola'],
-  [42, 'Cello'],
-  [43, 'Contrabass'],
-  [44, 'Tremolo Strings'],
-  [45, 'Pizzicato Strings'],
-  [46, 'Orchestral Harp'],
-  [47, 'Timpani'],
-  [48, 'String Ensemble 1'],
-  [49, 'String Ensemble 2'],
-  [50, 'Synth Strings 1'],
-  [51, 'Synth Strings 2'],
-  [52, 'Choir Aahs'],
-  [53, 'Voice Oohs'],
-  [54, 'Synth Voice'],
-  [55, 'Orchestra Hit'],
-  [56, 'Trumpet'],
-  [57, 'Trombone'],
-  [58, 'Tuba'],
-  [59, 'Muted Trumpet'],
-  [60, 'French Horn'],
-  [61, 'Brass Section'],
-  [62, 'Synth Brass 1'],
-  [63, 'Synth Brass 2'],
-  [64, 'Soprano Sax'],
-  [65, 'Alto Sax'],
-  [66, 'Tenor Sax'],
-  [67, 'Baritone Sax'],
-  [68, 'Oboe'],
-  [69, 'English Horn'],
-  [70, 'Bassoon'],
-  [71, 'Clarinet'],
-  [72, 'Piccolo'],
-  [73, 'Flute'],
-  [74, 'Recorder'],
-  [75, 'Pan Flute'],
-  [76, 'Blown Bottle'],
-  [77, 'Shakuhachi'],
-  [78, 'Whistle'],
-  [79, 'Ocarina'],
-  [80, 'Lead 1 square'],
-  [81, 'Lead 2 sawtooth'],
-  [82, 'Lead 3 calliope'],
-  [83, 'Lead 4 chiff'],
-  [84, 'Lead 5 charang'],
-  [85, 'Lead 6 voice'],
-  [86, 'Lead 7 fifths'],
-  [87, 'Lead 8 bass lead'],
-  [88, 'Pad 1 new age'],
-  [89, 'Pad 2 warm'],
-  [90, 'Pad 3 polysynth'],
-  [91, 'Pad 4 choir'],
-  [92, 'Pad 5 bowed'],
-  [93, 'Pad 6 metallic'],
-  [94, 'Pad 7 halo'],
-  [95, 'Pad 8 sweep'],
-  [96, 'FX 1 rain'],
-  [97, 'FX 2 soundtrack'],
-  [98, 'FX 3 crystal'],
-  [99, 'FX 4 atmosphere'],
-  [100, 'FX 5 brightness'],
-  [101, 'FX 6'],
-  [102, 'FX 7 echoes'],
-  [103, 'FX 8 sci-fi'],
-  [104, 'Sitar'],
-  [105, 'Banjo'],
-  [106, 'Shamisen'],
-  [107, 'Koto'],
-  [108, 'Kalimba'],
-  [109, 'Bag Pipe'],
-  [110, 'Fiddle'],
-  [111, 'Shanai'],
-  [112, 'Tinkle Bell'],
-  [113, 'Agogo'],
-  [114, 'Steel Drums'],
-  [115, 'Woodblock'],
-  [116, 'Taiko Drum'],
-  [117, 'Melodic Tom'],
-  [118, 'Synth Drum'],
-  [119, 'Reverse Cymbal'],
-  [120, 'Guitar Fret Noise'],
-  [121, 'Breath Noise'],
-  [122, 'Seashore'],
-  [123, 'Bird Tweet'],
-  [124, 'Telephone Ring'],
-  [125, 'Helicopter'],
-  [126, 'Applause'],
-  [127, 'Gunshot'],
-];

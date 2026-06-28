@@ -137,8 +137,18 @@ class _BibleViewState extends State<BibleView> {
       builder: (c) => BlocProvider<BibleCubit>.value(
         value: context.read(),
         child: BlocBuilder<BibleCubit, BibleState>(
+          buildWhen: (prev, curr) =>
+              prev.defaultFont != curr.defaultFont ||
+              prev.defaultTextScale != curr.defaultTextScale ||
+              prev.defaultTextHeight != curr.defaultTextHeight ||
+              prev.followGlobalFontSettings !=
+                  curr.followGlobalFontSettings,
           builder: (context, state) => BlocBuilder<InitialCubit, InitialState>(
             bloc: context.read<InitialCubit>(),
+            buildWhen: (prev, curr) =>
+                prev.defaultFont != curr.defaultFont ||
+                prev.defaultTextScale != curr.defaultTextScale ||
+                prev.defaultTextHeight != curr.defaultTextHeight,
             builder: (context, globalState) => _BibleFontSettingsSheet(
               bibleState: state,
               globalState: globalState,
@@ -210,6 +220,7 @@ class _BibleViewState extends State<BibleView> {
   void handleScrollBottom(int index, Size size, double visiblePercentage) {
     if (_activeSplitPane != _BibleSplitPane.bottom) return;
     if (!splitModeEnable || !lockScroll) return;
+    if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(bottomVisibleIndexes, index, visiblePercentage);
 
@@ -247,6 +258,7 @@ class _BibleViewState extends State<BibleView> {
   void handleScrollTop(int index, Size size, double visiblePercentage) {
     if (_activeSplitPane != _BibleSplitPane.top) return;
     if (!splitModeEnable || !lockScroll) return;
+    if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(topVisibleIndexes, index, visiblePercentage);
 
@@ -282,6 +294,9 @@ class _BibleViewState extends State<BibleView> {
     required double verseHeight,
   }) async {
     if (!lockScroll || !splitModeEnable || _isSyncingSplitScroll) {
+      return;
+    }
+    if (context.read<BibleCubit>().state.isSplitContentLoading) {
       return;
     }
 
@@ -405,6 +420,8 @@ class _BibleViewState extends State<BibleView> {
         return BlocProvider<BibleCubit>.value(
           value: context.read(),
           child: BlocBuilder<BibleCubit, BibleState>(
+            buildWhen: (prev, curr) =>
+                prev.histories != curr.histories,
             builder: (context, state) => Dialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -480,6 +497,10 @@ class _BibleViewState extends State<BibleView> {
       useSafeArea: true,
       builder: (context) {
         return BlocBuilder<BibleCubit, BibleState>(
+          buildWhen: (prev, curr) =>
+              prev.bibleCodes != curr.bibleCodes ||
+              prev.currentBibleCode != curr.currentBibleCode ||
+              prev.splitBibleCode != curr.splitBibleCode,
           builder: (context, state) => ListView(
             shrinkWrap: true,
             children: [
@@ -857,6 +878,8 @@ class _BibleViewState extends State<BibleView> {
                   children: [
                     Flexible(
                       child: BlocBuilder<BibleCubit, BibleState>(
+                        buildWhen: (prev, curr) =>
+                            prev.currentBible != curr.currentBible,
                         builder: (context, bibleState) {
                           final verses = splitModeEnable
                               ? [bibleState.currentBible]

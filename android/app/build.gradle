@@ -31,9 +31,9 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace "com.itmandiri.church"
-    compileSdkVersion 36
-    ndkVersion "28.2.13676358"
+    namespace = "com.itmandiri.church"
+    compileSdk = 36
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -49,11 +49,11 @@ android {
     }
 
     defaultConfig {
-        applicationId "id.sch.kanaan.egys"
-        minSdkVersion 24
-        targetSdkVersion 35
-        versionCode flutterVersionCode.toInteger()
-        versionName flutterVersionName
+        applicationId = "id.sch.kanaan.egys"
+        minSdk = 24
+        targetSdk = 35
+        versionCode = flutterVersionCode.toInteger()
+        versionName = flutterVersionName
         resConfigs "en", "id", "zh"
         manifestPlaceholders += [
             'appAuthRedirectScheme': 'com.googleusercontent.apps.705603488262-nngndk9jgsqjtn9uaadg5aqmtrcl5l5h'
@@ -77,14 +77,14 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
-            shrinkResources true
+            minifyEnabled = true
+            shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
+            signingConfig = hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
 }
 
 flutter {
-    source '../..'
+    source = '../..'
 }

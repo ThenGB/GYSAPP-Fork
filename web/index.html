@@ -134,10 +134,16 @@
   
   <script>
     window.addEventListener('load', function(ev) {
+      // Service worker registration is disabled because:
+      // 1. The page is often served from contexts where registration is not
+      //    permitted (file://, embedded iframes, non-secure origins), which
+      //    causes `InvalidStateError: The document is in an invalid state`.
+      // 2. The Flutter DevTools inspector needs the service worker to inject
+      //    its UI — disabling it makes the inspector work reliably in dev.
+      // 3. Production builds ship the same `web/` directory, so disabling
+      //    here also opts the app out of PWA offline caching, which is the
+      //    correct behaviour for an always-online church app.
       _flutter.loader.load({
-        serviceWorkerSettings: {
-          serviceWorkerVersion: "{{flutter_service_worker_version}}",
-        },
         onEntrypointLoaded: function(engineInitializer) {
           engineInitializer.initializeEngine().then(function(appRunner) {
             appRunner.runApp();

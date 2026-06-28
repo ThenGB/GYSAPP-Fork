@@ -22,7 +22,7 @@ class _Row {
 void main() {
   test('KR row forensics on suspicious page', () async {
     final root = Directory.current.path;
-    final path = p.join(root, 'assets/data/pdf/kr/KR.pdf');
+    final path = p.join(root, 'assets/data/pdf/kr/kr_master.pdf');
     final doc = await PdfDocument.openFile(path);
     try {
       const pageNo = 8;

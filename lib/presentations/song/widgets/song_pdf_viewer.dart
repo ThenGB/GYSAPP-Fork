@@ -72,9 +72,6 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
   /// Global service for note extraction and caching.
   final _noteService = PdfNoteService();
-  // Historical compatibility note:
-  // _fallbackPositions used to supply a native chord placement fallback when
-  // notePositions != null && notePositions.isNotEmpty was false.
 
   PdfDocumentRequest? _pdfRequest;
 
@@ -113,6 +110,15 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// Controls whether the PDF should be visible (true) or hidden (false).
   /// PDF stays hidden until fit-to-page completes, then animates to visible.
   bool _pdfFullyVisible = false;
+
+  /// Two-page mode: the 0-based index of the first page in the visible pair.
+  /// When twoPageMode is true and the PDF has more than 2 pages, only the
+  /// pair starting at this offset is shown. Navigation via buttons or swipe
+  /// moves between pairs.
+  int _twoPagePairStart = 0;
+
+  /// Total page count of the currently loaded document, for pair navigation.
+  int _totalPageCount = 0;
 
   @override
   void initState() {
@@ -190,6 +196,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       _viewerReadyWatchdog?.cancel();
       _pdfFullyVisible = false;
       _isTransitioning = true; // Start transition
+      _twoPagePairStart = 0;
+      _totalPageCount = 0;
       // Quick fade out
       _navFadeCtrl.value = 1.0;
       _navFadeCtrl.duration = const Duration(milliseconds: 150);
@@ -222,6 +230,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     _metadataPrimedSourceId = null;
     _noteStatsLogged.clear();
     _isTransitioning = true;
+    _twoPagePairStart = 0;
+    _totalPageCount = 0;
 
     // Clear note extraction cache when PDF changes
     _NoteExtractionCache.clear();
@@ -376,6 +386,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
     _viewerReadyGeneration = generation;
     _viewerReadyWatchdog?.cancel();
+    _totalPageCount = document.pages.length;
+    _twoPagePairStart = 0;
     _primeDetectedMetadataFromFirstPage(document, request);
 
     // Use a more robust way to wait for the viewer to have a valid size.
@@ -661,7 +673,114 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           // Only show the PDF when _pdfFullyVisible is true.
           // Before that, keep it hidden (opacity 0).
           final opacity = _pdfFullyVisible ? _navOpacity.value : 0.0;
-          return Opacity(opacity: opacity, child: child);
+          final pdfWidget = Opacity(opacity: opacity, child: child);
+
+          // In two-page mode with >2 pages, add navigation controls.
+          if (widget.twoPageMode && _totalPageCount > 2) {
+            final pairCount = (_totalPageCount / 2).ceil();
+            final currentPair = (_twoPagePairStart / 2).floor() + 1;
+            final canGoPrev = _twoPagePairStart > 0;
+            final canGoNext = _twoPagePairStart + 2 < _totalPageCount;
+            return Stack(
+              fit: StackFit.expand,
+              children: [
+                GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    final v = details.primaryVelocity ?? 0;
+                    if (v < -160 && canGoNext) {
+                      setState(() {
+                        _twoPagePairStart = (_twoPagePairStart + 2)
+                            .clamp(0, _totalPageCount - 1);
+                        _cachedLayout = null;
+                        _cachedLayoutKey = null;
+                      });
+                      _fitToPageInstant();
+                    } else if (v > 160 && canGoPrev) {
+                      setState(() {
+                        _twoPagePairStart = (_twoPagePairStart - 2)
+                            .clamp(0, _totalPageCount - 1);
+                        _cachedLayout = null;
+                        _cachedLayoutKey = null;
+                      });
+                      _fitToPageInstant();
+                    }
+                  },
+                  child: pdfWidget,
+                ),
+                Positioned(
+                  bottom: 8,
+                  left: 0,
+                  right: 0,
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 360),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surfaceContainerHighest
+                              .withValues(alpha: 0.92),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(
+                            color: theme.colorScheme.outlineVariant
+                                .withValues(alpha: 0.4),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.chevron_left_rounded),
+                              onPressed: canGoPrev
+                                  ? () {
+                                      setState(() {
+                                        _twoPagePairStart = (_twoPagePairStart - 2)
+                                            .clamp(0, _totalPageCount - 1);
+                                        _cachedLayout = null;
+                                        _cachedLayoutKey = null;
+                                      });
+                                      _fitToPageInstant();
+                                    }
+                                  : null,
+                              tooltip: 'Halaman sebelumnya',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            Text(
+                              '$currentPair / $pairCount',
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.chevron_right_rounded),
+                              onPressed: canGoNext
+                                  ? () {
+                                      setState(() {
+                                        _twoPagePairStart = (_twoPagePairStart + 2)
+                                            .clamp(0, _totalPageCount - 1);
+                                        _cachedLayout = null;
+                                        _cachedLayoutKey = null;
+                                      });
+                                      _fitToPageInstant();
+                                    }
+                                  : null,
+                              tooltip: 'Halaman berikutnya',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            );
+          }
+
+          return pdfWidget;
         },
       ),
     );
@@ -724,31 +843,36 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       }
       documentSize = Size(width, y);
     } else if (widget.twoPageMode) {
-      double x = margin;
-      double maxHeight = 0.0;
-      for (int i = 0; i < visiblePages.length; i += 2) {
-        final left = visiblePages[i];
-        final right = i + 1 < visiblePages.length ? visiblePages[i + 1] : null;
+      // In two-page mode, show only the current pair of pages (not all
+      // pages). This lets the user navigate pair-by-pair via swipe/buttons.
+      final pairStart = _twoPagePairStart.clamp(0, visiblePages.length);
+      final pairPages = <pdfrx.PdfPage>[];
+      for (int i = pairStart; i < pairStart + 2 && i < visiblePages.length; i++) {
+        pairPages.add(visiblePages[i]);
+      }
+      if (pairPages.isEmpty) {
+        documentSize = const Size(100, 100);
+      } else {
+        final left = pairPages[0];
+        final right = pairPages.length > 1 ? pairPages[1] : null;
         final pairWidth = left.width + (right?.width ?? left.width) + margin;
         final pairHeight = max(left.height, right?.height ?? 0.0);
         visibleRects[left.pageNumber] = Rect.fromLTWH(
-          x,
+          margin,
           margin,
           left.width,
           left.height,
         );
         if (right != null) {
           visibleRects[right.pageNumber] = Rect.fromLTWH(
-            x + left.width + margin,
+            margin + left.width + margin,
             margin,
             right.width,
             right.height,
           );
         }
-        x += pairWidth + margin;
-        maxHeight = max(maxHeight, pairHeight);
+        documentSize = Size(pairWidth + margin, pairHeight + margin * 2);
       }
-      documentSize = Size(x, maxHeight + margin * 2);
     } else {
       // Default: horizontal single-page layout.
       final height =
@@ -938,6 +1062,21 @@ class _ChordOverlayState extends State<_ChordOverlay> {
   Future<_NoteExtractionResult>? _extractionFuture;
   String _extractionSourceId = '';
 
+  // Cache for _extractRows to avoid O(n²) row clustering on every rebuild.
+  List<NoteInfo>? _cachedRowsKey;
+  List<_NoteRow>? _cachedRows;
+
+  /// Returns cached row extraction result, recomputing only when the
+  /// underlying note-infos list changes identity.
+  List<_NoteRow> _extractRowsCached(List<NoteInfo> noteInfos) {
+    if (identical(_cachedRowsKey, noteInfos) && _cachedRows != null) {
+      return _cachedRows!;
+    }
+    _cachedRowsKey = noteInfos;
+    _cachedRows = _extractRows(noteInfos);
+    return _cachedRows!;
+  }
+
   @override
   void initState() {
     super.initState();
@@ -1040,7 +1179,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
               yPct: lastPos.yPct,
             );
 
-            for (final row in _extractRows(infos)) {
+            for (final row in _extractRowsCached(infos)) {
               effectivePositions[_noteIdxForRowStart(row.rowIndex)] = (
                 xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0),
                 yPct: row.first.yPct,
@@ -1065,18 +1204,22 @@ class _ChordOverlayState extends State<_ChordOverlay> {
 
           // In edit mode, also render note targets using the same data
           if (widget.isEditMode) {
-            return Stack(
-              clipBehavior: Clip.none,
-              children: [
-                // Note targets (clickable in edit mode)
-                ..._buildNoteTargets(infos),
-                // Chord badges
-                ...chordBadges,
-              ],
+            return RepaintBoundary(
+              child: Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  // Note targets (clickable in edit mode)
+                  ..._buildNoteTargets(infos),
+                  // Chord badges
+                  ...chordBadges,
+                ],
+              ),
             );
           }
 
-          return Stack(clipBehavior: Clip.none, children: chordBadges);
+          return RepaintBoundary(
+            child: Stack(clipBehavior: Clip.none, children: chordBadges),
+          );
         },
       ),
     );
@@ -1124,7 +1267,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     }
 
     // Add per-row sentinels so each line can have starter/ending chords.
-    for (final row in _extractRows(noteInfos)) {
+    for (final row in _extractRowsCached(noteInfos)) {
       final rowStartXPct = (row.first.xPct - 2.5).clamp(1.0, 99.0);
       final rowEndXPct = (row.last.xPct + 2.5).clamp(1.0, 99.0);
       targets.add(

@@ -192,22 +192,6 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> {
-  StreamSubscription<InternetConnectionStatus>? connectivitySubscription;
-  @override
-  void initState() {
-    // connectivitySubscription = internetChecker.onStatusChange
-    //     .listen((InternetConnectionStatus status) {
-    //   log('status $status');
-    // });
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    connectivitySubscription?.cancel();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -216,7 +200,15 @@ class _AppState extends State<App> {
         BlocProvider<BackupCubit>(create: (context) => di()),
         BlocProvider<SongCubit>(create: (context) => di()),
       ],
+      // Only rebuild the MaterialApp.router when theme-defining fields
+      // change.  Text scale and theme mode are picked up in a tighter
+      // builder below so the router does not reconfigure while the user
+      // is dragging the text scale slider.
       child: BlocBuilder<InitialCubit, InitialState>(
+        buildWhen: (prev, curr) =>
+            prev.defaultFont != curr.defaultFont ||
+            prev.accentKey != curr.accentKey ||
+            prev.themeMode != curr.themeMode,
         builder: (context, state) {
           return MaterialApp.router(
             title: 'Gereja Yesus Sejati',
@@ -228,19 +220,28 @@ class _AppState extends State<App> {
             debugShowCheckedModeBanner: false,
             darkTheme: darkTheme(state.defaultFont, accentKey: state.accentKey),
             themeMode: state.themeMode.toThemeMode,
+            // Tighter rebuild for MediaQuery overrides — only text scale and
+            // theme mode drive this wrapper.
             builder: (context, child) {
               return BlocBuilder<InitialCubit, InitialState>(
-                builder: (context, state) => MediaQuery(
-                  data: context.mediaQuery.copyWith(
-                    alwaysUse24HourFormat: true,
-                    textScaler: TextScaler.linear(state.defaultTextScale),
-                    // Force brightness based on theme mode to prevent system dark mode override
-                    platformBrightness: state.themeMode.toThemeMode == ThemeMode.dark
-                        ? Brightness.dark
-                        : Brightness.light,
-                  ),
-                  child: child!,
-                ),
+                buildWhen: (prev, curr) =>
+                    prev.defaultTextScale != curr.defaultTextScale ||
+                    prev.themeMode != curr.themeMode,
+                builder: (context, state) {
+                  return MediaQuery(
+                    data: context.mediaQuery.copyWith(
+                      alwaysUse24HourFormat: true,
+                      textScaler: TextScaler.linear(state.defaultTextScale),
+                      // Force brightness based on theme mode to prevent
+                      // system dark mode override.
+                      platformBrightness:
+                          state.themeMode.toThemeMode == ThemeMode.dark
+                              ? Brightness.dark
+                              : Brightness.light,
+                    ),
+                    child: child!,
+                  );
+                },
               );
             },
           );

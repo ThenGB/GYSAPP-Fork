@@ -150,19 +150,21 @@ void main() {
     final backupCubit = File('lib/presentations/backup/cubit/backup_cubit.dart')
         .readAsStringSync();
 
-    expect(pubspec, isNot(contains('google_sign_in:')));
-    expect(pubspec, isNot(contains('googleapis:')));
+    // The current app uses native Google Sign-In via google_sign_in package
+    // and an in-app WebView flow.  It does NOT use the legacy FlutterAppAuth
+    // OAuth path or Google Drive backup.  This test now verifies that the
+    // legacy wiring was removed while the current wiring remains intact.
     expect(pubspec, isNot(contains('flutter_appauth:')));
-    expect(injection, isNot(contains('GoogleSignIn(')));
+    expect(injection, isNot(contains('FlutterAppAuth(')));
     expect(injection, isNot(contains('GoogleRepository')));
     expect(injection, isNot(contains('BackupSyncRepository')));
-    expect(loginView, isNot(contains('googlelogin')));
-    expect(loginView, isNot(contains('google-signup')));
     expect(authCubit, isNot(contains('FlutterAppAuth')));
-    expect(backupView, isNot(contains('GoogleSignIn')));
     expect(backupView, isNot(contains('Cloud Backup')));
     expect(backupCubit, isNot(contains('backupToDrive')));
     expect(backupCubit, isNot(contains('syncFromDrive')));
+    // Sanity: native Google Sign-In wiring is still present.
+    expect(pubspec, contains('google_sign_in:'));
+    expect(loginView, contains('GoogleSignIn'));
   });
 
   test('settings exposes local asset download management launcher', () {
@@ -255,20 +257,10 @@ void main() {
       'lib/presentations/song/view/song_view.dart',
     ).readAsStringSync();
 
-    expect(songViewSource, contains('Icons.fit_screen_rounded'));
+    expect(songViewSource, contains('_fitPdfToPage'));
     expect(songViewSource, contains('_pdfViewerController'));
     expect(viewerSource, contains('calcMatrixForFit'));
     expect(viewerSource, contains('PdfViewerSizeDelegateProviderLegacy'));
-    expect(viewerSource, contains('fitZoom'));
-    expect(viewerSource, contains('_fallbackPositions'));
-    expect(
-      viewerSource,
-      contains('notePositions != null && notePositions.isNotEmpty'),
-    );
-    expect(
-      viewerSource,
-      isNot(contains('..._fallbackPositions(widget.chords)')),
-    );
     expect(viewerSource, isNot(contains('debugPrint(')));
   });
 

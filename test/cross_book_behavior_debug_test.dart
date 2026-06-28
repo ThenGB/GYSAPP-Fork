@@ -9,7 +9,7 @@ import 'package:church/data/services/pdf_note_extractor.dart';
 void main() {
   test('KR page scan for suspicious top-row detection', () async {
     final root = Directory.current.path;
-    final path = p.join(root, 'assets/data/pdf/kr/KR.pdf');
+    final path = p.join(root, 'assets/data/pdf/kr/kr_master.pdf');
     final doc = await PdfDocument.openFile(path);
     try {
       final maxPages = doc.pages.length < 60 ? doc.pages.length : 60;
@@ -48,19 +48,19 @@ void main() {
     final cases = <({String book, String relPath, int page, ExtractionProfile profile})>[
       (
         book: 'KR',
-        relPath: 'assets/data/pdf/kr/KR.pdf',
+        relPath: 'assets/data/pdf/kr/kr_master.pdf',
         page: 1,
         profile: ExtractionProfile.standard,
       ),
       (
         book: 'MDR',
-        relPath: 'assets/data/pdf/mdr/MDR.pdf',
+        relPath: 'assets/data/pdf/mdr/mdr_master.pdf',
         page: 17,
         profile: ExtractionProfile.mdr,
       ),
       (
         book: 'ASM-I',
-        relPath: 'assets/data/pdf/asm_i/ASM-I.pdf',
+        relPath: 'assets/data/pdf/asm_i/asm_i_master.pdf',
         page: 1,
         profile: ExtractionProfile.standard,
       ),

@@ -197,7 +197,10 @@ class FaithNoteViewState extends State<FaithNoteView> {
             ),
             bottomNavigationBar: mode == NoteMode.viewOnly
                 ? null
-                : Container(
+                : Builder(
+                    builder: (inner) {
+                      final insets = MediaQuery.viewInsetsOf(inner);
+                      return Container(
                     decoration: BoxDecoration(
                       color: context.colorScheme.surface,
                       border: Border(
@@ -209,13 +212,15 @@ class FaithNoteViewState extends State<FaithNoteView> {
                       ),
                     ),
                     margin:
-                        context.mediaQuery.viewInsets +
+                        insets +
                         context.mediaQuery.viewPadding,
                     child: quill.QuillSimpleToolbar(
                       controller: controller,
                       config: const quill.QuillSimpleToolbarConfig(),
                     ),
-                  ),
+                  );
+                },
+              ),
           ),
         ),
       ),
