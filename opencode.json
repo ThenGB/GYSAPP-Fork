@@ -5,9 +5,6 @@
     "AGENTS.md",
     ".opencode/instructions/INSTRUCTIONS.md"
   ],
-  "plugin": [
-    "./.opencode/dist/index.js"
-  ],
   "skills": {
     "paths": [
       "node_modules/ecc-universal/skills"

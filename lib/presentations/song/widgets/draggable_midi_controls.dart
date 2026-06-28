@@ -114,6 +114,11 @@ class DraggableMidiControls extends StatefulWidget {
   final VoidCallback? onPreviousSong;
   final VoidCallback? onNextSong;
 
+  /// Chord viewer control: toggle chord overlay visibility from the panel.
+  final bool showChord;
+  final bool chordToggleEnabled;
+  final VoidCallback? onToggleChord;
+
   /// Whether to wrap the panel in a [Positioned] widget.  Set to `false` when
   /// the caller already handles positioning (e.g. the Dashboard).
   final bool usePositioned;
@@ -144,6 +149,9 @@ class DraggableMidiControls extends StatefulWidget {
     this.onExpandedChanged,
     this.onPreviousSong,
     this.onNextSong,
+    this.showChord = false,
+    this.chordToggleEnabled = true,
+    this.onToggleChord,
     this.usePositioned = true,
     this.leftMargin = kMidiOverlayHorizontalMargin,
     this.rightMargin = kMidiOverlayHorizontalMargin,
@@ -822,19 +830,36 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
-  void _handlePanEnd(DragEndDetails _) {
+  void _handlePanEnd(DragEndDetails details) {
     if (!_isDragging) return;
     _isDragging = false;
-    // Release pop-up (snaps back to normal size).
+    // Release pop-up: reverse so the circle settles back down smoothly.
     _dragPopController.reverse();
-    _snapToEdge();
+    // Velocity-based fling if the user flicked toward an edge.
+    final velocityX = details.velocity.pixelsPerSecond.dx;
+    if (velocityX.abs() > 200 && _screenWidth > 0) {
+      final targetX = velocityX > 0 ? 1.0 : 0.0;
+      _snapFromX = _sidebarX.value;
+      _snapFromY = _sidebarY.value;
+      _snapToX = targetX;
+      _snapToY = _sidebarY.value;
+      _snapController
+        ..stop()
+        ..value = 0
+        ..forward();
+    } else {
+      _snapToEdge();
+    }
   }
 
   void _updateDragPosition(Offset delta) {
     if (_screenWidth <= 0 || _screenHeight <= 0) return;
     final dx = delta.dx /
         (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2);
-    final dy = delta.dy / (_screenHeight * 0.75 - kMidiCircleMargin);
+    // Negate dy because Positioned.bottom measures from the bottom of the
+    // parent, while drag deltas use screen coordinates (y grows downward).
+    // Without negation, dragging up moves the circle down (inverted).
+    final dy = -delta.dy / (_screenHeight * 0.75 - kMidiCircleMargin);
 
     _sidebarX.value = (_sidebarX.value + dx).clamp(0.0, 1.0);
     _sidebarY.value = (_sidebarY.value + dy).clamp(0.0, 1.0);
@@ -1153,6 +1178,27 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
+        if (widget.onToggleChord != null && widget.chordToggleEnabled)
+          SizedBox(
+            width: 28,
+            height: 28,
+            child: InkResponse(
+              onTap: widget.onToggleChord,
+              radius: 16,
+              child: Tooltip(
+                message: widget.showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
+                child: Icon(
+                  widget.showChord
+                      ? Icons.music_note_rounded
+                      : Icons.music_off_rounded,
+                  size: 18,
+                  color: widget.showChord
+                      ? colors.primary
+                      : colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ),
         SizedBox(
           key: _instrumentButtonKey,
           width: 28,

@@ -257,7 +257,7 @@ void main() {
       'lib/presentations/song/view/song_view.dart',
     ).readAsStringSync();
 
-    expect(songViewSource, contains('Icons.fit_screen_rounded'));
+    expect(songViewSource, contains('_fitPdfToPage'));
     expect(songViewSource, contains('_pdfViewerController'));
     expect(viewerSource, contains('calcMatrixForFit'));
     expect(viewerSource, contains('PdfViewerSizeDelegateProviderLegacy'));

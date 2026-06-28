@@ -33,21 +33,5 @@
  *
  * @packageDocumentation
  */
-export { ECCHooksPlugin, default } from "./plugins/index.js";
-export * from "./plugins/index.js";
-export declare const VERSION = "1.6.0";
-export declare const metadata: {
-    name: string;
-    version: string;
-    description: string;
-    author: string;
-    features: {
-        agents: number;
-        commands: number;
-        skills: number;
-        configAssets: boolean;
-        hookEvents: string[];
-        customTools: string[];
-    };
-};
+export { default, ECCHooksPlugin } from "./plugins/index.js";
 //# sourceMappingURL=index.d.ts.map

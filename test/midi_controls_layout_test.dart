@@ -577,13 +577,13 @@ void main() {
       // The default centre would put the widget's bottom edge on screen
       // at screenHeight - centreBottom.  If the snap reset Y to 0.5,
       // the widget would be near the vertical centre.  The user dragged
-      // up, so the widget should be significantly higher (larger
+      // up, so the widget should be significantly higher (smaller
       // rect.bottom value since rect.bottom is measured from screen top).
       final centreBottomOnScreen = screenHeight -
           (kMidiCircleMargin +
               0.5 * (screenHeight * 0.75 - kMidiCircleMargin));
       expect(
-        settledRect.bottom > centreBottomOnScreen + 50,
+        settledRect.bottom < centreBottomOnScreen - 50,
         isTrue,
         reason:
             'Snap reset Y to centre instead of preserving release Y: '

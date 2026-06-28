@@ -145,7 +145,6 @@ class _SongViewState extends State<SongView> {
         builder: (context, state) {
           final textMode = state.isImageMode == true;
           final colors = Theme.of(context).colorScheme;
-          final compactToolbar = MediaQuery.sizeOf(context).width < 430;
           final chordToggleEnabled = state.bookCode != 'HYMNE';
 
           return Scaffold(
@@ -155,11 +154,11 @@ class _SongViewState extends State<SongView> {
               backgroundColor: colors.surface.withValues(alpha: 0.88),
               foregroundColor: colors.onSurface,
               surfaceTintColor: Colors.transparent,
-              toolbarHeight: 74,
+              toolbarHeight: 64,
               leading: IconButton(
-                icon: const Icon(Icons.queue_music_rounded),
-                tooltip: 'Selector nomor pujian',
-                onPressed: _openSongSelector,
+                icon: const Icon(Icons.menu_outlined),
+                tooltip: 'Menu',
+                onPressed: openDashboardDrawer,
               ),
               title: BlocBuilder<SongCubit, SongState>(
                 buildWhen: (prev, curr) =>
@@ -181,15 +180,11 @@ class _SongViewState extends State<SongView> {
                   canGoNext: currentPageIndex < state.songs.length - 1,
                   onPrevious: _goToPreviousSong,
                   onNext: _goToNextSong,
+                  onTapTitle: _openSongSelector,
                   onEditTriggered: _toggleChordEditMode,
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.menu_outlined),
-                  tooltip: 'Menu',
-                  onPressed: openDashboardDrawer,
-                ),
                 BlocBuilder<SongCubit, SongState>(
                   buildWhen: (prev, curr) => prev.showAudio != curr.showAudio,
                   builder: (context, state) => IconButton(
@@ -205,27 +200,6 @@ class _SongViewState extends State<SongView> {
                     onPressed: () => cubit.toggleAudio(),
                   ),
                 ),
-                BlocBuilder<SongCubit, SongState>(
-                  buildWhen: (prev, curr) => prev.showChord != curr.showChord,
-                  builder: (context, state) => compactToolbar
-                      ? const SizedBox.shrink()
-                      : !chordToggleEnabled
-                      ? const SizedBox.shrink()
-                      : IconButton(
-                          icon: Icon(
-                            state.showChord
-                                ? Icons.music_note
-                                : Icons.music_off,
-                            color: state.showChord
-                                ? colors.secondary
-                                : colors.onSurface.withValues(alpha: 0.4),
-                          ),
-                          tooltip: state.showChord
-                              ? 'Sembunyikan chord'
-                              : 'Tampilkan chord',
-                          onPressed: () => cubit.toggleChord(),
-                        ),
-                ),
                 IconButton(
                   icon: Icon(
                     textMode
@@ -235,18 +209,6 @@ class _SongViewState extends State<SongView> {
                   tooltip: textMode ? 'Mode PDF' : 'Mode teks',
                   onPressed: cubit.changeMode,
                 ),
-                if (!compactToolbar && !textMode)
-                  IconButton(
-                    icon: const Icon(Icons.fit_screen_rounded),
-                    tooltip: 'Fit halaman',
-                    onPressed: _fitPdfToPage,
-                  ),
-                if (!compactToolbar && textMode)
-                  IconButton(
-                    icon: const Icon(Icons.tune_rounded),
-                    tooltip: 'Pengaturan lirik',
-                    onPressed: _openLyricsSettings,
-                  ),
                 PopupMenuButton<String>(
                   onSelected: (value) {
                     switch (value) {
@@ -270,10 +232,18 @@ class _SongViewState extends State<SongView> {
                       case 'lyrics':
                         _openLyricsSettings();
                         break;
+                      case 'twoPage':
+                        cubit.setPdfTwoPageMode(!state.pdfTwoPageMode);
+                        break;
+                      case 'verticalScroll':
+                        cubit.setPdfVerticalScrolling(
+                          !state.pdfVerticalScrolling,
+                        );
+                        break;
                     }
                   },
                   itemBuilder: (context) => [
-                    if (compactToolbar && chordToggleEnabled)
+                    if (chordToggleEnabled)
                       PopupMenuItem(
                         value: 'toggleChord',
                         child: Text(
@@ -282,12 +252,29 @@ class _SongViewState extends State<SongView> {
                               : 'Tampilkan chord',
                         ),
                       ),
-                    if (compactToolbar && !textMode)
+                    if (!textMode) ...[
                       const PopupMenuItem(
                         value: 'fit',
                         child: Text('Fit halaman'),
                       ),
-                    if (compactToolbar && textMode)
+                      PopupMenuItem(
+                        value: 'twoPage',
+                        child: Text(
+                          state.pdfTwoPageMode
+                              ? 'Mode satu halaman'
+                              : 'Mode dua halaman',
+                        ),
+                      ),
+                      PopupMenuItem(
+                        value: 'verticalScroll',
+                        child: Text(
+                          state.pdfVerticalScrolling
+                              ? 'Scroll horizontal'
+                              : 'Scroll vertikal',
+                        ),
+                      ),
+                    ],
+                    if (textMode)
                       const PopupMenuItem(
                         value: 'lyrics',
                         child: Text('Pengaturan lirik'),
@@ -332,26 +319,31 @@ class _SongViewState extends State<SongView> {
                         prev.defaultTextScale != curr.defaultTextScale ||
                         prev.defaultTextHeight != curr.defaultTextHeight ||
                         prev.lyricsTextAlign != curr.lyricsTextAlign ||
-                        prev.lyricsVerticalAlign != curr.lyricsVerticalAlign,
-                    builder: (context, state) => PageView.builder(
-                      controller: pageController,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: state.songs.length,
-                      itemBuilder: (context, index) {
-                        final song = state.songs[index];
-                        return _SongTextPage(
-                          song: song,
-                          fontFamily: state.defaultFont,
-                          textScale: state.defaultTextScale,
-                          textHeight: state.defaultTextHeight,
-                          fontBold: state.fontBold,
-                          textAlign: state.lyricsTextAlign,
-                          verticalAlign: state.lyricsVerticalAlign,
-                          verseIndex: _currentVerseIndex,
-                          onPreviousVerse: _previousVerse,
-                          onNextVerse: () => _nextVerse(song),
-                        );
-                      },
+                        prev.lyricsVerticalAlign != curr.lyricsVerticalAlign ||
+                        prev.songs != curr.songs,
+                    builder: (context, state) => RepaintBoundary(
+                      child: PageView.builder(
+                        controller: pageController,
+                        physics: const BouncingScrollPhysics(),
+                        itemCount: state.songs.length,
+                        itemBuilder: (context, index) {
+                          final song = state.songs[index];
+                          return RepaintBoundary(
+                            child: _SongTextPage(
+                              song: song,
+                              fontFamily: state.defaultFont,
+                              textScale: state.defaultTextScale,
+                              textHeight: state.defaultTextHeight,
+                              fontBold: state.fontBold,
+                              textAlign: state.lyricsTextAlign,
+                              verticalAlign: state.lyricsVerticalAlign,
+                              verseIndex: _currentVerseIndex,
+                              onPreviousVerse: _previousVerse,
+                              onNextVerse: () => _nextVerse(song),
+                            ),
+                          );
+                        },
+                      ),
                     ),
                   ),
 
@@ -379,25 +371,27 @@ class _SongViewState extends State<SongView> {
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 8),
                         child: SizedBox.expand(
-                          child: SongPdfViewer(
-                            key: const ValueKey('pdf_viewer_instance'),
-                            pdfPath: state.currentPdfPath,
-                            showChord: shouldRenderChordForSongState(state),
-                            chords: state.currentChords,
-                            transposeStep: state.transposeStep,
-                            baseTransposeOffset: state.baseTransposeOffset,
-                            chordAccidentalMode: state.chordAccidentalMode,
-                            twoPageMode: state.pdfTwoPageMode,
-                            verticalScrolling: state.pdfVerticalScrolling,
-                            chordFontSizePercent: state.chordFontSizePercent,
-                            chordFillOpacityPercent:
-                                state.chordFillOpacityPercent,
-                            chordPaddingPercent: state.chordPaddingPercent,
-                            isEditMode: chordToggleEnabled && _isChordEditMode,
-                            onChordsChanged: (updatedChords) {
-                              cubit.detectAndUpdateFamilyChord(updatedChords);
-                            },
-                            viewerController: _pdfViewerController,
+                          child: RepaintBoundary(
+                            child: SongPdfViewer(
+                              key: const ValueKey('pdf_viewer_instance'),
+                              pdfPath: state.currentPdfPath,
+                              showChord: shouldRenderChordForSongState(state),
+                              chords: state.currentChords,
+                              transposeStep: state.transposeStep,
+                              baseTransposeOffset: state.baseTransposeOffset,
+                              chordAccidentalMode: state.chordAccidentalMode,
+                              twoPageMode: state.pdfTwoPageMode,
+                              verticalScrolling: state.pdfVerticalScrolling,
+                              chordFontSizePercent: state.chordFontSizePercent,
+                              chordFillOpacityPercent:
+                                  state.chordFillOpacityPercent,
+                              chordPaddingPercent: state.chordPaddingPercent,
+                              isEditMode: chordToggleEnabled && _isChordEditMode,
+                              onChordsChanged: (updatedChords) {
+                                cubit.detectAndUpdateFamilyChord(updatedChords);
+                              },
+                              viewerController: _pdfViewerController,
+                            ),
                           ),
                         ),
                       );
@@ -494,6 +488,9 @@ class _SongViewState extends State<SongView> {
                             onTempo: (v) => cubit.setTempo(v),
                             onPreviousSong: _goToPreviousSong,
                             onNextSong: _goToNextSong,
+                            showChord: midiState.showChord,
+                            chordToggleEnabled: midiState.bookCode != 'HYMNE',
+                            onToggleChord: () => cubit.toggleChord(),
                           );
                         },
                       );
@@ -749,6 +746,7 @@ class _SongHeaderTitle extends StatefulWidget {
   final bool canGoNext;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
+  final VoidCallback onTapTitle;
   final VoidCallback? onEditTriggered;
 
   const _SongHeaderTitle({
@@ -762,6 +760,7 @@ class _SongHeaderTitle extends StatefulWidget {
     required this.canGoNext,
     required this.onPrevious,
     required this.onNext,
+    required this.onTapTitle,
     this.onEditTriggered,
   });
 
@@ -825,18 +824,17 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Opacity(
-          opacity: widget.canGoPrevious ? 1.0 : 0.0,
-          child: IconButton(
+        if (widget.canGoPrevious)
+          IconButton(
             visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Pujian sebelumnya',
-            onPressed: widget.canGoPrevious ? widget.onPrevious : null,
+            onPressed: widget.onPrevious,
             icon: const Icon(Icons.chevron_left_rounded),
           ),
-        ),
         Flexible(
           child: GestureDetector(
-            onTap: _handleTap,
+            onTap: widget.onTapTitle,
+            onLongPress: _handleTap,
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
               transitionBuilder: (child, animation) {
@@ -898,21 +896,19 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle> {
             ),
           ),
         ),
-        Opacity(
-          opacity: widget.canGoNext ? 1.0 : 0.0,
-          child: IconButton(
+        if (widget.canGoNext)
+          IconButton(
             visualDensity: compact ? VisualDensity.compact : null,
             tooltip: 'Pujian berikutnya',
-            onPressed: widget.canGoNext ? widget.onNext : null,
+            onPressed: widget.onNext,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
-        ),
       ],
     );
   }
 }
 
-class _SongTextPage extends StatelessWidget {
+class _SongTextPage extends StatefulWidget {
   final Song song;
   final String fontFamily;
   final double textScale;
@@ -937,8 +933,53 @@ class _SongTextPage extends StatelessWidget {
     this.onNextVerse,
   });
 
+  @override
+  State<_SongTextPage> createState() => _SongTextPageState();
+}
+
+class _SongTextPageState extends State<_SongTextPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _verseAnimCtrl;
+  late final Animation<double> _verseFadeAnim;
+  late final Animation<Offset> _verseSlideAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _verseAnimCtrl = AnimationController(
+      duration: const Duration(milliseconds: 260),
+      vsync: this,
+    );
+    _verseFadeAnim = CurvedAnimation(
+      parent: _verseAnimCtrl,
+      curve: Curves.easeOut,
+    );
+    _verseSlideAnim = Tween<Offset>(
+      begin: const Offset(0.0, 0.08),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _verseAnimCtrl,
+      curve: Curves.easeOutCubic,
+    ));
+    _verseAnimCtrl.value = 1.0;
+  }
+
+  @override
+  void didUpdateWidget(_SongTextPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.verseIndex != widget.verseIndex) {
+      _verseAnimCtrl.forward(from: 0.0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _verseAnimCtrl.dispose();
+    super.dispose();
+  }
+
   TextAlign _resolveTextAlign() {
-    switch (textAlign) {
+    switch (widget.textAlign) {
       case 'center':
         return TextAlign.center;
       case 'right':
@@ -949,7 +990,7 @@ class _SongTextPage extends StatelessWidget {
   }
 
   MainAxisAlignment _resolveVerticalAlign() {
-    switch (verticalAlign) {
+    switch (widget.verticalAlign) {
       case 'center':
         return MainAxisAlignment.center;
       case 'bottom':
@@ -962,19 +1003,28 @@ class _SongTextPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final verses = song.verses;
+    final verses = widget.song.verses;
     final hasVerses = verses.isNotEmpty;
-    final safeIndex = hasVerses ? verseIndex.clamp(0, verses.length - 1) : 0;
+    final safeIndex =
+        hasVerses ? widget.verseIndex.clamp(0, verses.length - 1) : 0;
     final currentVerse = hasVerses ? verses[safeIndex] : null;
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
+      onHorizontalDragEnd: (details) {
+        final velocity = details.primaryVelocity ?? 0;
+        if (velocity < -160) {
+          widget.onNextVerse?.call();
+        } else if (velocity > 160) {
+          widget.onPreviousVerse?.call();
+        }
+      },
       onVerticalDragEnd: (details) {
         final velocity = details.primaryVelocity ?? 0;
         if (velocity < -160) {
-          onNextVerse?.call();
+          widget.onNextVerse?.call();
         } else if (velocity > 160) {
-          onPreviousVerse?.call();
+          widget.onPreviousVerse?.call();
         }
       },
       child: SelectionArea(
@@ -1038,37 +1088,50 @@ class _SongTextPage extends StatelessWidget {
                                   ),
                                 ),
                                 child: hasVerses
-                                    ? Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.stretch,
-                                        children: [
-                                          Text(
-                                            'Bait ${safeIndex + 1} dari ${verses.length}',
-                                            textAlign: _resolveTextAlign(),
-                                            style: theme.textTheme.bodySmall
-                                                ?.copyWith(
-                                                  color: theme
-                                                      .colorScheme
-                                                      .primary
-                                                      .withValues(alpha: 0.6),
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                                    ? FadeTransition(
+                                        opacity: _verseFadeAnim,
+                                        child: SlideTransition(
+                                          position: _verseSlideAnim,
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.stretch,
+                                            children: [
+                                              Text(
+                                                'Bait ${safeIndex + 1} dari ${verses.length}',
+                                                textAlign: _resolveTextAlign(),
+                                                style: theme
+                                                    .textTheme.bodySmall
+                                                    ?.copyWith(
+                                                      color: theme
+                                                          .colorScheme
+                                                          .primary
+                                                          .withValues(
+                                                              alpha: 0.6),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                              ),
+                                              const SizedBox(height: 16),
+                                              Text(
+                                                currentVerse!,
+                                                textAlign: _resolveTextAlign(),
+                                                style: theme
+                                                    .textTheme.bodyLarge
+                                                    ?.copyWith(
+                                                      fontFamily:
+                                                          widget.fontFamily,
+                                                      fontSize:
+                                                          16 * widget.textScale,
+                                                      height: widget.textHeight,
+                                                      fontWeight: widget
+                                                              .fontBold
+                                                          ? FontWeight.w700
+                                                          : FontWeight.w400,
+                                                    ),
+                                              ),
+                                            ],
                                           ),
-                                          const SizedBox(height: 16),
-                                          Text(
-                                            currentVerse!,
-                                            textAlign: _resolveTextAlign(),
-                                            style: theme.textTheme.bodyLarge
-                                                ?.copyWith(
-                                                  fontFamily: fontFamily,
-                                                  fontSize: 16 * textScale,
-                                                  height: textHeight,
-                                                  fontWeight: fontBold
-                                                      ? FontWeight.w700
-                                                      : FontWeight.w400,
-                                                ),
-                                          ),
-                                        ],
+                                        ),
                                       )
                                     : Text(
                                         'Teks lagu belum tersedia.',
@@ -1096,13 +1159,21 @@ class _SongTextPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton.icon(
-                      onPressed: safeIndex > 0 ? onPreviousVerse : null,
+                      onPressed:
+                          safeIndex > 0 ? widget.onPreviousVerse : null,
                       icon: const Icon(Icons.keyboard_arrow_up, size: 20),
                       label: const Text('Atas'),
                     ),
+                    Text(
+                      '${safeIndex + 1}/${verses.length}',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     TextButton.icon(
                       onPressed: safeIndex < verses.length - 1
-                          ? onNextVerse
+                          ? widget.onNextVerse
                           : null,
                       icon: const Icon(Icons.keyboard_arrow_down, size: 20),
                       label: const Text('Bawah'),
