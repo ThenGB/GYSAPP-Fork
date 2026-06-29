@@ -1,7 +1,11 @@
 {
   "name": "church-opencode",
   "private": true,
-  "description": "OpenCode configuration for GYS Church App",
+  "description": "OpenCode configuration for GYS Church App (ECC plugin + skills + agents)",
+  "scripts": {
+    "build:ecc": "cd .opencode && tsc",
+    "clean:ecc": "cd .opencode && tsc --build --clean"
+  },
   "dependencies": {
     "ecc-universal": "^2.0.0"
   }
