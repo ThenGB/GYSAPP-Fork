@@ -109,10 +109,8 @@ class HomeView extends StatelessWidget {
             ),
             Expanded(
               child: RefreshIndicator(
-                onRefresh: () {
-                  context.read<HomeCubit>().refresh();
-                  return Future.value();
-                },
+                onRefresh: () =>
+                    context.read<HomeCubit>().refresh(),
                 child: SingleChildScrollView(
                   physics: AlwaysScrollableScrollPhysics(),
                   child: Align(
@@ -173,9 +171,7 @@ class HomeView extends StatelessWidget {
                                           horizontal: gap,
                                         ),
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(
-                                            20,
-                                          ),
+                                          borderRadius: context.appRadius(20),
                                           color: context
                                               .colorScheme
                                               .surfaceContainer,
@@ -210,7 +206,7 @@ class HomeView extends StatelessWidget {
                                     );
                                   },
                                   options: CarouselOptions(
-                                    height: 80,
+                                    height: 150,
                                     enlargeFactor: 1,
                                     autoPlay: true,
                                     enlargeStrategy:
@@ -336,7 +332,12 @@ class _LinkGroup extends StatelessWidget {
         child: LayoutBuilder(
           builder: (context, constraints) {
             const spacing = 10.0;
-            final width = (constraints.maxWidth - spacing) / 2;
+            // Guard against a degenerate (0-width) layout pass — e.g. the
+            // first frame after launch or an extreme window resize — which
+            // would otherwise produce a negative SizedBox width and crash
+            // with "BoxConstraints has a negative minimum width".
+            final width = ((constraints.maxWidth - spacing) / 2)
+                .clamp(0.0, double.infinity);
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
@@ -347,16 +348,16 @@ class _LinkGroup extends StatelessWidget {
                       width: width,
                       child: Material(
                         color: context.colorScheme.surfaceContainer,
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: context.appRadius(16),
                         child: InkWell(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: context.appRadius(16),
                           onTap: () => _handleTap(context, link),
                           child: Padding(
                             padding: const EdgeInsets.all(12),
                             child: Row(
                               children: [
                                 ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: context.appRadius(10),
                                   child: Container(
                                     width: 42,
                                     height: 42,
@@ -380,7 +381,7 @@ class _LinkGroup extends StatelessWidget {
                                         style: context.textTheme.titleMedium
                                             ?.copyWith(
                                               fontWeight: FontWeight.w700,
-                                              fontSize: 15,
+                                              fontSize: context.appFontSize(15),
                                             ),
                                       ),
                                       Text(
@@ -399,7 +400,7 @@ class _LinkGroup extends StatelessWidget {
                                               color: context
                                                   .colorScheme
                                                   .onSurfaceVariant,
-                                              fontSize: 12,
+                                              fontSize: context.appFontSize(12),
                                             ),
                                       ),
                                     ],
@@ -591,7 +592,8 @@ class _IbadahPopupState extends State<IbadahPopup> {
                                 WebpageRoute(url: 'https://tjc.org/id/sabat/'),
                               );
                             },
-                            title: Text('⛪ ${'Ibadah online'.tr()}'),
+                            leading: Icon(Icons.church_outlined),
+                            title: Text('Ibadah online'.tr()),
                           ),
                           ListTile(
                             onTap: () {
@@ -601,7 +603,8 @@ class _IbadahPopupState extends State<IbadahPopup> {
                                 ),
                               );
                             },
-                            title: Text('🎤 ${'Audio Khotbah'.tr()}'),
+                            leading: Icon(Icons.headphones_outlined),
+                            title: Text('Audio Khotbah'.tr()),
                           ),
                           ListTile(
                             onTap: () {
@@ -611,7 +614,8 @@ class _IbadahPopupState extends State<IbadahPopup> {
                                 ),
                               );
                             },
-                            title: Text('📹 ${'Video Khotbah'.tr()}'),
+                            leading: Icon(Icons.videocam_outlined),
+                            title: Text('Video Khotbah'.tr()),
                           ),
                         ],
                       ),
@@ -643,7 +647,7 @@ class SauhBagiJiwa extends StatelessWidget {
           clipBehavior: Clip.hardEdge,
           margin: EdgeInsets.symmetric(horizontal: gap),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: context.appRadius(20),
             color: context.colorScheme.surfaceContainer,
           ),
           child: Column(
@@ -651,7 +655,7 @@ class SauhBagiJiwa extends StatelessWidget {
             children: [
               _safeNetworkImage(
                 item.imageUrl,
-                height: 120,
+                height: 150,
                 fit: BoxFit.cover,
                 width: double.infinity,
               ),
@@ -676,7 +680,7 @@ class SauhBagiJiwa extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: context.textTheme.bodyMedium?.copyWith(
                         color: context.colorScheme.onSurfaceVariant,
-                        fontSize: 14,
+                        fontSize: context.appFontSize(14),
                         fontStyle: FontStyle.italic,
                       ),
                     ),
@@ -724,7 +728,7 @@ class _SuaraSejatiState extends State<SuaraSejati> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: context.colorScheme.surfaceContainer,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: context.appRadius(16),
                     ),
                     clipBehavior: Clip.hardEdge,
                     child: Column(
@@ -753,7 +757,7 @@ class _SuaraSejatiState extends State<SuaraSejati> {
                                 style: context.textTheme.titleMedium?.copyWith(
                                   color: context.colorScheme.onSurface,
                                   fontWeight: FontWeight.w700,
-                                  fontSize: 12,
+                                  fontSize: context.appFontSize(12),
                                 ),
                               ),
                               if (item.creator.trim().isNotEmpty) ...[
@@ -764,7 +768,7 @@ class _SuaraSejatiState extends State<SuaraSejati> {
                                   overflow: TextOverflow.ellipsis,
                                   style: context.textTheme.bodySmall?.copyWith(
                                     color: context.colorScheme.onSurfaceVariant,
-                                    fontSize: 10,
+                                    fontSize: context.appFontSize(10),
                                     height: 1.2,
                                   ),
                                 ),
@@ -799,7 +803,7 @@ class _HomeHeaderState extends State<HomeHeader> {
 
     return Container(
       color: context.colorScheme.surface,
-      padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+      padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
       child: Row(
         children: [
           IconButton(
@@ -812,26 +816,9 @@ class _HomeHeaderState extends State<HomeHeader> {
               isDark
                   ? Assets.assetsImagesLogoIndonesiaWhite
                   : Assets.assetsImagesLogoIndonesiaColor,
-              height: 20,
+              height: 26,
               fit: BoxFit.contain,
             ),
-          ),
-          IconButton(
-            tooltip: 'Search'.tr(),
-            onPressed: () {
-              router.push(
-                BibleSearchRoute(
-                  cubit: context.read<BibleCubit>(),
-                  onTap: (item) {
-                    context.read<BibleCubit>().saveToHistory(item);
-                    context.read<BibleCubit>().getContent(item);
-                    router.maybePop();
-                    AutoTabsRouter.of(context).setActiveIndex(1);
-                  },
-                ),
-              );
-            },
-            icon: const Icon(Icons.search_rounded),
           ),
         ],
       ),
@@ -848,7 +835,7 @@ class _HomeWelcomeSection extends StatelessWidget {
       builder: (context, state) {
         final isLoggedIn = state.isLoggedIn;
         return Padding(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+          padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -871,6 +858,16 @@ class _HomeWelcomeSection extends StatelessWidget {
                   ),
                 ),
               ],
+              const SizedBox(height: 4),
+              Text(
+                DateFormat('EEEE, d MMMM yyyy', context.locale.languageCode)
+                    .format(DateTime.now()),
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: context.colorScheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ],
           ),
         );
@@ -913,7 +910,7 @@ class _DailyVerseCard extends StatelessWidget {
                         colors.secondaryContainer.withValues(alpha: 0.15),
                       ],
               ),
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: context.appRadius(20),
               boxShadow: [
                 BoxShadow(
                   color: colors.secondary.withValues(alpha: 0.08),
@@ -922,7 +919,7 @@ class _DailyVerseCard extends StatelessWidget {
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(context.appSpace(18)),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -964,7 +961,7 @@ class _DailyVerseCard extends StatelessWidget {
                       ),
                       decoration: BoxDecoration(
                         color: colors.primary.withValues(alpha: isDark ? 0.25 : 0.15),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: context.appRadius(8),
                       ),
                       child: Text(
                         verse.reference,
@@ -986,7 +983,7 @@ class _DailyVerseCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: colors.tertiary.withValues(alpha: isDark ? 0.25 : 0.15),
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

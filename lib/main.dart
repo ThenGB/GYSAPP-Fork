@@ -5,9 +5,11 @@ import 'dart:io';
 
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:path_provider/path_provider.dart' as paths;
 
 import 'app.dart';
@@ -15,6 +17,11 @@ import 'app.dart';
 void main() async {
   runZonedGuarded(
     () async {
+      if (kDebugMode) {
+        // Marionette: lets AI agents inspect and drive the app at runtime
+        // (VM-service based). Debug builds only.
+        MarionetteBinding.ensureInitialized();
+      }
       // Only ensure initialization - actual binding done in app.dart via initApplication()
       WidgetsFlutterBinding.ensureInitialized();
 
@@ -83,6 +90,25 @@ class SmartNetworkAssetLoader extends AssetLoader {
 
     if (await localTranslationExists(localeName)) {
       string = await loadFromLocalFile(localeName);
+    }
+
+    // Stale-cache guard: after an app update the bundled translations can
+    // contain keys the cached file (fetched days ago) does not have. If the
+    // cached map is missing keys present in the bundle, prefer the bundle —
+    // otherwise users see raw keys like "workspace_settings" in the UI.
+    if (string != '') {
+      try {
+        final bundled = await rootBundle.loadString(
+          '$assetsPath/$localeName.json',
+        );
+        final cachedCount = (json.decode(string) as Map).length;
+        final bundledCount = (json.decode(bundled) as Map).length;
+        if (cachedCount < bundledCount) {
+          string = bundled;
+        }
+      } catch (_) {
+        // Keep the cached file if the bundle can't be read.
+      }
     }
 
     if (string == '') {

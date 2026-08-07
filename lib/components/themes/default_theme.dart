@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../../data/models/theme_preferences.dart';
 import 'app_accent.dart';
+import 'app_theme_extras.dart';
 
 const _hymnalHeadingFont = 'EB Garamond';
 const _hymnalUiFont = 'Manrope';
@@ -9,8 +11,35 @@ const _hymnalUiFont = 'Manrope';
 ThemeData defaultTheme(
   String defaultFont, {
   String accentKey = defaultAccentKey,
+  DisplayDensity density = DisplayDensity.standard,
+  CornerRadiusStyle cornerRadius = CornerRadiusStyle.soft,
+  TypographyScale typographyScale = TypographyScale.normal,
 }) {
   final colorScheme = lightHymnalColorScheme(accentKey);
+
+  final visualDensity = switch (density) {
+    DisplayDensity.compact => VisualDensity.compact,
+    DisplayDensity.standard => VisualDensity.standard,
+    DisplayDensity.comfortable => VisualDensity.comfortable,
+  };
+  final radiusScale = switch (cornerRadius) {
+    CornerRadiusStyle.soft => 1.0,
+    CornerRadiusStyle.medium => 0.6,
+    CornerRadiusStyle.sharp => 0.25,
+  };
+  final fontSizeFactor = switch (typographyScale) {
+    TypographyScale.compact => 0.9,
+    TypographyScale.normal => 1.0,
+    TypographyScale.comfortable => 1.1,
+  };
+  final densityFactor = switch (density) {
+    DisplayDensity.compact => 0.92,
+    DisplayDensity.standard => 1.0,
+    DisplayDensity.comfortable => 1.08,
+  };
+  BorderRadius r(double base) =>
+      BorderRadius.circular((base * radiusScale).roundToDouble());
+  double fs(double base) => base * fontSizeFactor;
 
   return ThemeData(
     useMaterial3: true,
@@ -18,7 +47,14 @@ ThemeData defaultTheme(
     brightness: Brightness.light,
     colorScheme: colorScheme,
     scaffoldBackgroundColor: colorScheme.surface,
-    visualDensity: VisualDensity.standard,
+    extensions: [
+      AppThemeExtras(
+        radiusScale: radiusScale,
+        typographyScale: fontSizeFactor,
+        densityFactor: densityFactor,
+      ),
+    ],
+    visualDensity: visualDensity,
     pageTransitionsTheme: const PageTransitionsTheme(
       builders: {
         TargetPlatform.android: _HymnalPageTransitionsBuilder(),
@@ -47,7 +83,7 @@ ThemeData defaultTheme(
       titleTextStyle: TextStyle(
         fontFamily: _hymnalHeadingFont,
         fontWeight: FontWeight.w700,
-        fontSize: 20,
+        fontSize: fs(20),
         letterSpacing: 0.1,
         color: colorScheme.onSurface,
       ),
@@ -63,56 +99,56 @@ ThemeData defaultTheme(
           headlineLarge: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: 38,
+            fontSize: fs(38),
             height: 1.12,
             color: colorScheme.onSurface,
           ),
           headlineMedium: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: 32,
+            fontSize: fs(32),
             height: 1.16,
             color: colorScheme.onSurface,
           ),
           headlineSmall: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: 27,
+            fontSize: fs(27),
             height: 1.2,
             color: colorScheme.onSurface,
           ),
           titleLarge: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: 23,
+            fontSize: fs(23),
             height: 1.22,
             color: colorScheme.onSurface,
           ),
           titleMedium: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w700,
-            fontSize: 17,
+            fontSize: fs(17),
             height: 1.34,
             color: colorScheme.onSurface,
           ),
           bodyLarge: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w500,
-            fontSize: 16,
+            fontSize: fs(16),
             height: 1.55,
             color: colorScheme.onSurface,
           ),
           bodyMedium: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w500,
-            fontSize: 15,
+            fontSize: fs(15),
             height: 1.5,
             color: colorScheme.onSurface,
           ),
           labelSmall: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w700,
-            fontSize: 12,
+            fontSize: fs(12),
             height: 1.3,
             letterSpacing: 1.0,
             color: colorScheme.onSurfaceVariant,
@@ -129,7 +165,7 @@ ThemeData defaultTheme(
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),  // Reduced from 20
+        borderRadius: r(12),  // Reduced from 20
         side: BorderSide(
           color: colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
@@ -141,12 +177,12 @@ ThemeData defaultTheme(
         foregroundColor: colorScheme.onPrimary,
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: _hymnalUiFont,
-          fontSize: 15,
+          fontSize: fs(15),
           fontWeight: FontWeight.w700,
         ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -155,7 +191,7 @@ ThemeData defaultTheme(
         side: BorderSide(color: colorScheme.outlineVariant),
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
@@ -164,14 +200,14 @@ ThemeData defaultTheme(
         backgroundColor: colorScheme.primaryContainer,
         foregroundColor: colorScheme.onPrimaryContainer,
         minimumSize: const Size(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: colorScheme.primary,
-        textStyle: const TextStyle(
+        textStyle: TextStyle(
           fontFamily: _hymnalUiFont,
           fontWeight: FontWeight.w700,
         ),
@@ -182,15 +218,15 @@ ThemeData defaultTheme(
       fillColor: colorScheme.surfaceContainerLow,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: r(8),
         borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: r(8),
         borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: r(8),
         borderSide: BorderSide(color: colorScheme.primary, width: 1.5),
       ),
       labelStyle: TextStyle(
@@ -208,7 +244,7 @@ ThemeData defaultTheme(
       iconColor: colorScheme.primary,
       textColor: colorScheme.onSurface,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: r(8)),
       minVerticalPadding: 4,
     ),
     iconButtonTheme: IconButtonThemeData(
@@ -217,7 +253,7 @@ ThemeData defaultTheme(
         minimumSize: WidgetStateProperty.all(const Size.square(42)),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: WidgetStateProperty.all(
-          RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          RoundedRectangleBorder(borderRadius: r(14)),
         ),
         foregroundColor: WidgetStateProperty.resolveWith((states) {
           if (states.contains(WidgetState.disabled)) {
@@ -249,7 +285,7 @@ ThemeData defaultTheme(
         final selected = states.contains(WidgetState.selected);
         return TextStyle(
           fontFamily: _hymnalUiFont,
-          fontSize: 11,
+          fontSize: fs(11),
           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
           color: selected
               ? colorScheme.primary
@@ -263,14 +299,14 @@ ThemeData defaultTheme(
       unselectedItemColor: colorScheme.onSurfaceVariant,
       elevation: 0,
       type: BottomNavigationBarType.fixed,
-      selectedLabelStyle: const TextStyle(
+      selectedLabelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
-        fontSize: 11,
+        fontSize: fs(11),
         fontWeight: FontWeight.w700,
       ),
-      unselectedLabelStyle: const TextStyle(
+      unselectedLabelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
-        fontSize: 11,
+        fontSize: fs(11),
         fontWeight: FontWeight.w700,
       ),
     ),
@@ -288,12 +324,12 @@ ThemeData defaultTheme(
     dialogTheme: DialogThemeData(
       backgroundColor: colorScheme.surface,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      shape: RoundedRectangleBorder(borderRadius: r(20)),
     ),
     popupMenuTheme: PopupMenuThemeData(
       color: colorScheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: r(16)),
       elevation: 6,
     ),
     snackBarTheme: SnackBarThemeData(
@@ -304,17 +340,17 @@ ThemeData defaultTheme(
         color: colorScheme.onInverseSurface,
         fontWeight: FontWeight.w700,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: r(16)),
     ),
     chipTheme: ChipThemeData(
       backgroundColor: colorScheme.surfaceContainerLow,
       selectedColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
       side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      shape: RoundedRectangleBorder(borderRadius: r(8)),
       labelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
         fontWeight: FontWeight.w600,
-        fontSize: 13,
+        fontSize: fs(13),
         color: colorScheme.onSurface,
       ),
     ),

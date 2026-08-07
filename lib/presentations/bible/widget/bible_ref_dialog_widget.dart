@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../components/components.dart';
 
 import '../../../data/data.dart';
 import '../../../domain/domain.dart';
@@ -76,7 +77,7 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
               strokeAlign: BorderSide.strokeAlignInside,
               color: Colors.blueGrey.withValues(alpha: .3),
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: context.appRadius(12),
             boxShadow: [
               BoxShadow(
                 blurRadius: 4,
@@ -89,7 +90,7 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
           ),
           child: SimpleDialog(
             shape: BeveledRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: context.appRadius(12),
             ),
             insetPadding: EdgeInsets.zero,
             backgroundColor: context.colorScheme.surface,
@@ -99,7 +100,9 @@ class _BibleRefDialogState extends State<BibleRefDialog> {
             children: [
               Container(width: double.infinity),
               IconTheme(
-                data: IconThemeData(color: Colors.black),
+                data: IconThemeData(
+                  color: context.textColor ?? context.colorScheme.onSurface,
+                ),
                 child: Row(
                   children: [
                     CloseButton(color: context.textColor),

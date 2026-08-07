@@ -50,7 +50,7 @@ class _ReportViewState extends State<ReportView> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: context.colorScheme.primary,
         foregroundColor: context.colorScheme.onPrimary,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        shape: RoundedRectangleBorder(borderRadius: context.appRadius(18)),
         onPressed: isSending
             ? null
             : () async {
@@ -172,7 +172,7 @@ class _ReportViewState extends State<ReportView> {
                                           horizontal: 4,
                                         ),
                                         textStyle: TextStyle(
-                                          fontSize: 10,
+                                          fontSize: context.appFontSize(10),
                                           fontFamily: context
                                               .textTheme
                                               .bodyMedium
@@ -205,7 +205,7 @@ class _ReportViewState extends State<ReportView> {
                             'To receive our replies, kindly log in to your account.'
                                 .tr(),
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: context.appFontSize(12),
                               fontWeight: FontWeight.w700,
                             ),
                           )
@@ -226,7 +226,7 @@ class _ReportViewState extends State<ReportView> {
                                     sendAsAnonymous = !sendAsAnonymous;
                                   });
                                 },
-                                child: Text('Send as Anonymous'),
+                                child: Text('Send as Anonymous'.tr()),
                               ),
                             ],
                           ),

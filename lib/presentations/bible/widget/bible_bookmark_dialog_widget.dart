@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../components/components.dart';
 
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
             ),
             child: Dialog(
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: context.appRadius(8),
               ),
               clipBehavior: Clip.antiAlias,
               child: Column(
@@ -103,9 +104,7 @@ class _BibleBookmarkDialogState extends State<BibleBookmarkDialog> {
                                             color: context
                                                 .colorScheme
                                                 .surfaceContainerLow,
-                                            borderRadius: BorderRadius.circular(
-                                              8,
-                                            ),
+                                            borderRadius: context.appRadius(8),
                                             border: Border.all(
                                               color: context
                                                   .colorScheme

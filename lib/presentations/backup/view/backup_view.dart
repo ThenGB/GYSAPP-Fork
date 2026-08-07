@@ -59,14 +59,14 @@ class _BackupViewState extends State<BackupView> {
                         //   'Backup Your Data'.tr(),
                         //   style: TextStyle(
                         //     fontWeight: FontWeight.bold,
-                        //     fontSize: 16,
+                        //     fontSize: context.appFontSize(16),
                         //   ),
                         // ),
                         // SizedBox(height: 8),
                         Text(
                           'data_backup_desc'.tr(),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: context.appFontSize(12),
                             color: context.textDisplayColor,
                           ),
                         ),
@@ -161,14 +161,14 @@ class _BackupViewState extends State<BackupView> {
                         //   'Backup Your Data'.tr(),
                         //   style: TextStyle(
                         //     fontWeight: FontWeight.bold,
-                        //     fontSize: 16,
+                        //     fontSize: context.appFontSize(16),
                         //   ),
                         // ),
                         // SizedBox(height: 8),
                         Text(
                           'data_sync_desc'.tr(),
                           style: TextStyle(
-                            fontSize: 12,
+                            fontSize: context.appFontSize(12),
                             color: context.textDisplayColor,
                           ),
                         ),
@@ -222,7 +222,7 @@ class _BackupViewState extends State<BackupView> {
                     child: Text(
                       'data_secure_desc'.tr(),
                       style: TextStyle(
-                        fontSize: 12,
+                        fontSize: context.appFontSize(12),
                         color: context.textDisplayColor,
                       ),
                     ),
@@ -236,7 +236,7 @@ class _BackupViewState extends State<BackupView> {
                   'GYS APP ${DateTime.now().year}',
                   textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 12,
+                    fontSize: context.appFontSize(12),
                     color: context.textColor?.withValues(alpha: .45),
                   ),
                 ),

@@ -2,6 +2,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../components/components.dart';
 
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
@@ -79,7 +80,7 @@ class LiteratureRenunganView extends StatelessWidget {
                       onPressed: () {
                         context.read<LiteratureRenunganCubit>().getData();
                       },
-                      child: const Text('Reload'),
+                      child: Text('Reload'.tr()),
                     ),
                   )
                 : Stack(
@@ -92,7 +93,7 @@ class LiteratureRenunganView extends StatelessWidget {
                             clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
                               color: context.colorScheme.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: context.appRadius(18),
                               border: Border.all(
                                 color: context.colorScheme.outlineVariant
                                     .withValues(alpha: 0.55),

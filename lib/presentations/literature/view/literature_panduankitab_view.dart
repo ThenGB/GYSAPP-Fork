@@ -7,6 +7,7 @@ import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
 import '../../../router/router.dart';
 import '../cubit/panduan/literature_panduan_cubit.dart';
+import '../../../components/components.dart';
 
 @RoutePage()
 class LiteraturePanduanKitabView extends StatelessWidget {
@@ -78,7 +79,7 @@ class LiteraturePanduanKitabView extends StatelessWidget {
                       onPressed: () {
                         context.read<LiteraturePanduanCubit>().getData();
                       },
-                      child: const Text('Reload'),
+                      child: Text('Reload'.tr()),
                     ),
                   )
                 : Stack(
@@ -91,7 +92,7 @@ class LiteraturePanduanKitabView extends StatelessWidget {
                             clipBehavior: Clip.antiAlias,
                             decoration: BoxDecoration(
                               color: context.colorScheme.surfaceContainerLowest,
-                              borderRadius: BorderRadius.circular(18),
+                              borderRadius: context.appRadius(18),
                               border: Border.all(
                                 color: context.colorScheme.outlineVariant
                                     .withValues(alpha: 0.55),

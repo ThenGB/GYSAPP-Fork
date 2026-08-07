@@ -1,19 +1,16 @@
+import '../../../components/components.dart';
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../data/services/chord_service.dart';
-import '../../../data/services/midi_engine_service.dart';
+import '../../../data/services/pdf_note_service.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
-import '../widgets/draggable_midi_controls.dart';
 import '../../presentations.dart';
 import '../widgets/song_pdf_viewer.dart';
 
@@ -136,6 +133,27 @@ class _SongViewState extends State<SongView> {
             }
           },
         ),
+        // Separate listener: when the user switches from PDF to text
+        // mode the PageView is (re-)mounted but the PageController
+        // still holds the position from its previous life (or
+        // initialPage if never used).  Schedule a jump to the
+        // current song so the text view opens at the correct hymn.
+        BlocListener<SongCubit, SongState>(
+          listenWhen: (previous, current) =>
+              previous.isImageMode != current.isImageMode &&
+              current.isImageMode,
+          listener: (context, state) {
+            final safePageIndex = state.songs.isEmpty
+                ? 0
+                : state.pageIndex.clamp(0, state.songs.length - 1).toInt();
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (pageController.hasClients &&
+                  pageController.page?.round() != safePageIndex) {
+                pageController.jumpToPage(safePageIndex);
+              }
+            });
+          },
+        ),
       ],
       child: BlocBuilder<SongCubit, SongState>(
         buildWhen: (previous, current) =>
@@ -143,7 +161,7 @@ class _SongViewState extends State<SongView> {
             previous.bookCode != current.bookCode ||
             previous.showAudio != current.showAudio,
         builder: (context, state) {
-          final textMode = state.isImageMode == true;
+          final textMode = state.isImageMode;
           final colors = Theme.of(context).colorScheme;
           final chordToggleEnabled = state.bookCode != 'HYMNE';
 
@@ -155,137 +173,86 @@ class _SongViewState extends State<SongView> {
               foregroundColor: colors.onSurface,
               surfaceTintColor: Colors.transparent,
               toolbarHeight: 64,
+              leadingWidth: 40,
               leading: IconButton(
+                visualDensity: VisualDensity.compact,
                 icon: const Icon(Icons.menu_outlined),
                 tooltip: 'Menu',
                 onPressed: openDashboardDrawer,
               ),
-              title: BlocBuilder<SongCubit, SongState>(
-                buildWhen: (prev, curr) =>
-                    prev.pageIndex != curr.pageIndex ||
-                    prev.bookCode != curr.bookCode ||
-                    prev.songs != curr.songs ||
-                    prev.originalFamilyChord != curr.originalFamilyChord ||
-                    prev.originalPdfKey != curr.originalPdfKey ||
-                    prev.chordAccidentalMode != curr.chordAccidentalMode ||
-                    prev.baseTransposeOffset != curr.baseTransposeOffset,
-                builder: (context, state) => _SongHeaderTitle(
-                  number: state.getSongNumberAt(currentPageIndex),
-                  title: state.getSongTitleAt(currentPageIndex),
-                  familyChord: state.originalFamilyChord,
-                  pdfKey: state.originalPdfKey,
-                  accidentalMode: state.chordAccidentalMode,
-                  baseTransposeOffset: state.baseTransposeOffset,
-                  canGoPrevious: currentPageIndex > 0,
-                  canGoNext: currentPageIndex < state.songs.length - 1,
-                  onPrevious: _goToPreviousSong,
-                  onNext: _goToNextSong,
-                  onTapTitle: _openSongSelector,
-                  onEditTriggered: _toggleChordEditMode,
+              titleSpacing: 0,
+              title: Center(
+                child: BlocBuilder<SongCubit, SongState>(
+                  buildWhen: (prev, curr) =>
+                      prev.pageIndex != curr.pageIndex ||
+                      prev.bookCode != curr.bookCode ||
+                      prev.songs != curr.songs,
+                  builder: (context, state) => _SongHeaderTitle(
+                    number: state.getSongNumberAt(currentPageIndex),
+                    title: state.getSongTitleAt(currentPageIndex),
+                    familyChord: state.originalFamilyChord,
+                    pdfKey: state.originalPdfKey,
+                    accidentalMode: state.chordAccidentalMode,
+                    baseTransposeOffset: state.baseTransposeOffset,
+                    canGoPrevious: currentPageIndex > 0,
+                    canGoNext: currentPageIndex < state.songs.length - 1,
+                    onPrevious: _goToPreviousSong,
+                    onNext: _goToNextSong,
+                    onTapTitle: _openSongSelector,
+                    onEditTriggered: _toggleChordEditMode,
+                  ),
                 ),
               ),
               actions: [
-                BlocBuilder<SongCubit, SongState>(
-                  buildWhen: (prev, curr) => prev.showAudio != curr.showAudio,
-                  builder: (context, state) => IconButton(
-                    icon: Icon(
-                      state.showAudio ? Icons.volume_up : Icons.volume_off,
-                      color: state.showAudio
-                          ? colors.secondary
-                          : colors.onSurface.withValues(alpha: 0.4),
-                    ),
-                    tooltip: state.showAudio
-                        ? 'Sembunyikan MIDI'
-                        : 'Tampilkan MIDI',
-                    onPressed: () => cubit.toggleAudio(),
-                  ),
-                ),
-                IconButton(
-                  icon: Icon(
-                    textMode
-                        ? Icons.picture_as_pdf_rounded
-                        : Icons.article_outlined,
-                  ),
-                  tooltip: textMode ? 'Mode PDF' : 'Mode teks',
-                  onPressed: cubit.changeMode,
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'copy':
-                        _copyCurrentVerse(cubit.state);
-                        break;
-                      case 'share':
-                        _shareCurrentSong(cubit.state);
-                        break;
-                      case 'notes':
-                        router.push(SongNotesListRoute(cubit: context.read()));
-                        break;
-                      case 'toggleChord':
-                        if (chordToggleEnabled) {
-                          cubit.toggleChord();
-                        }
-                        break;
-                      case 'fit':
-                        _fitPdfToPage();
-                        break;
-                      case 'lyrics':
-                        _openLyricsSettings();
-                        break;
-                      case 'twoPage':
-                        cubit.setPdfTwoPageMode(!state.pdfTwoPageMode);
-                        break;
-                      case 'verticalScroll':
-                        cubit.setPdfVerticalScrolling(
-                          !state.pdfVerticalScrolling,
-                        );
-                        break;
+                BlocSelector<SongCubit, SongState, (bool, bool, bool, bool, bool, bool, int?)>(
+                  selector: (state) {
+                    // Parse the current PDF path to get the page count
+                    // from the manifest.  This tells us whether the
+                    // hymn has only 1 page — in which case two-page
+                    // and vertical-scroll modes are meaningless and
+                    // their buttons should be disabled.
+                    int? pageCount;
+                    final pdfPath = state.currentPdfPath;
+                    if (pdfPath != null) {
+                      try {
+                        pageCount =
+                            PdfDocumentRequest.parse(pdfPath).pageCount;
+                      } catch (_) {}
                     }
+                    return (
+                      state.pdfTwoPageMode,
+                      state.pdfVerticalScrolling,
+                      state.showChord,
+                      state.bookCode != 'HYMNE',
+                      state.isImageMode,
+                      state.showAudio,
+                      pageCount,
+                    );
                   },
-                  itemBuilder: (context) => [
-                    if (chordToggleEnabled)
-                      PopupMenuItem(
-                        value: 'toggleChord',
-                        child: Text(
-                          state.showChord
-                              ? 'Sembunyikan chord'
-                              : 'Tampilkan chord',
-                        ),
-                      ),
-                    if (!textMode) ...[
-                      const PopupMenuItem(
-                        value: 'fit',
-                        child: Text('Fit halaman'),
-                      ),
-                      PopupMenuItem(
-                        value: 'twoPage',
-                        child: Text(
-                          state.pdfTwoPageMode
-                              ? 'Mode satu halaman'
-                              : 'Mode dua halaman',
-                        ),
-                      ),
-                      PopupMenuItem(
-                        value: 'verticalScroll',
-                        child: Text(
-                          state.pdfVerticalScrolling
-                              ? 'Scroll horizontal'
-                              : 'Scroll vertikal',
-                        ),
-                      ),
-                    ],
-                    if (textMode)
-                      const PopupMenuItem(
-                        value: 'lyrics',
-                        child: Text('Pengaturan lirik'),
-                      ),
-                    PopupMenuItem(value: 'copy', child: Text('Copy'.tr())),
-                    PopupMenuItem(value: 'share', child: Text('Share'.tr())),
-                    PopupMenuItem(
-                      value: 'notes',
-                      child: Text('See all notes'.tr()),
-                    ),
-                  ],
+                  builder: (context, view) {
+                    final (
+                      isTwoPage,
+                      isVertical,
+                      showChord,
+                      chordEnabled,
+                      isText,
+                      showAudio,
+                      pageCount,
+                    ) = view;
+                    return _PageModeMenuButton(
+                      cubit: cubit,
+                      pdfTwoPageMode: isTwoPage,
+                      pdfVerticalScrolling: isVertical,
+                      showChord: showChord,
+                      chordToggleEnabled: chordEnabled,
+                      textMode: isText,
+                      showAudio: showAudio,
+                      pageCount: pageCount,
+                      onFitPage: _fitPdfToPage,
+                      onShare: () => _shareCurrentSong(cubit.state),
+                      onOpenLyrics: _openLyricsSettings,
+                    );
+                  },
                 ),
               ],
             ),
@@ -368,10 +335,12 @@ class _SongViewState extends State<SongView> {
                       if (state.currentPdfPath == null) {
                         return const SizedBox.shrink();
                       }
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: SizedBox.expand(
-                          child: RepaintBoundary(
+                      // The dashboard body is already padded above the
+                      // 72px dock (bodyBottomPadding), so no extra bottom
+                      // padding is needed here — adding some created a
+                      // visible dark strip between the PDF and the dock.
+                      return SizedBox.expand(
+                        child: RepaintBoundary(
                             child: SongPdfViewer(
                               key: const ValueKey('pdf_viewer_instance'),
                               pdfPath: state.currentPdfPath,
@@ -391,8 +360,9 @@ class _SongViewState extends State<SongView> {
                                 cubit.detectAndUpdateFamilyChord(updatedChords);
                               },
                               viewerController: _pdfViewerController,
+                              onNextSong: _goToNextSong,
+                              onPreviousSong: _goToPreviousSong,
                             ),
-                          ),
                         ),
                       );
                     },
@@ -453,63 +423,14 @@ class _SongViewState extends State<SongView> {
                     );
                   },
                 ),
-                if (state.showAudio)
-                  BlocBuilder<SongCubit, SongState>(
-                    buildWhen: (prev, curr) =>
-                        prev.isAudioPlaying != curr.isAudioPlaying ||
-                        prev.isAudioLoading != curr.isAudioLoading ||
-                        prev.transposeStep != curr.transposeStep ||
-                        prev.tempoBpm != curr.tempoBpm ||
-                        prev.playlistAutoNextMode != curr.playlistAutoNextMode,
-                    builder: (context, midiState) {
-                      return StreamBuilder<MidiPlaybackState>(
-                        stream: cubit.midiEngine.stateStream,
-                        initialData: const MidiPlaybackState(),
-                        builder: (context, snapshot) {
-                          final ms = snapshot.data ?? const MidiPlaybackState();
-                          return DraggableMidiControls(
-                            key: const ValueKey('midi_overlay'),
-                            isPlaying: midiState.isAudioPlaying || ms.isPlaying,
-                            isLoading: midiState.isAudioLoading || ms.isLoading,
-                            position: ms.position,
-                            duration: ms.duration,
-                            transposeStep: midiState.transposeStep,
-                            currentKey: midiState.activeKeyLabel,
-                            availableKeys: midiState.transposeKeyOptions,
-                            tempoBpm: midiState.tempoBpm,
-                            autoNextMode: midiState.playlistAutoNextMode,
-                            onPlayPause: () => cubit.togglePlayPause(),
-                            onLoopModeCycle: () => cubit.cycleLoopMode(),
-                            onSeek: (v) => cubit.seek(
-                              Duration(milliseconds: (v * 1000).round()),
-                            ),
-                            onTranspose: (v) => cubit.setTranspose(v),
-                            onKeySelected: (v) => cubit.setTransposeKey(v),
-                            onTempo: (v) => cubit.setTempo(v),
-                            onPreviousSong: _goToPreviousSong,
-                            onNextSong: _goToNextSong,
-                            showChord: midiState.showChord,
-                            chordToggleEnabled: midiState.bookCode != 'HYMNE',
-                            onToggleChord: () => cubit.toggleChord(),
-                          );
-                        },
-                      );
-                    },
-                  ),
+                // MIDI player overlay is rendered globally by the
+                // dashboard so it stays visible on every tab.
               ],
             ),
           );
         },
       ),
     );
-  }
-
-  Future<void> _copyCurrentVerse(SongState state) async {
-    if (currentPageIndex >= state.songs.length) return;
-    final song = state.songs[currentPageIndex];
-    final text = '${song.number} - ${song.title}';
-    await Clipboard.setData(ClipboardData(text: text));
-    Fluttertoast.showToast(msg: 'Copied to clipboard'.tr());
   }
 
   void _shareCurrentSong(SongState state) {
@@ -551,7 +472,7 @@ class _SongViewState extends State<SongView> {
                         colors.surfaceContainerHighest,
                       ],
                     ),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: context.appRadius(8),
                     border: Border.all(
                       color: colors.outlineVariant.withValues(alpha: 0.65),
                     ),
@@ -768,141 +689,151 @@ class _SongHeaderTitle extends StatefulWidget {
   State<_SongHeaderTitle> createState() => _SongHeaderTitleState();
 }
 
-class _SongHeaderTitleState extends State<_SongHeaderTitle> {
-  int _tapCount = 0;
-  DateTime? _lastTapTime;
-  static const int _requiredTaps = 10;
-  static const Duration _tapWindow = Duration(milliseconds: 2000);
-  double _screenWidth = 0;
+class _SongHeaderTitleState extends State<_SongHeaderTitle>
+    with SingleTickerProviderStateMixin {
+  /// Hold-to-enable duration for the hidden chord editor.  10 s of
+  /// continuous long-press on the title chip flips [SongCubit] into
+  /// chord-edit mode.
+  static const Duration _holdToEditDuration = Duration(seconds: 10);
+
+  late final AnimationController _holdAnim;
+  bool _holding = false;
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _screenWidth = MediaQuery.sizeOf(context).width;
+  void initState() {
+    super.initState();
+    _holdAnim = AnimationController(
+      vsync: this,
+      duration: _holdToEditDuration,
+    )..addStatusListener((status) {
+      if (status == AnimationStatus.completed && _holding) {
+        _holding = false;
+        _holdAnim.reset();
+        widget.onEditTriggered?.call();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Chord edit mode enabled'.tr()),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    });
   }
 
-  void _handleTap() {
-    final now = DateTime.now();
+  @override
+  void dispose() {
+    _holdAnim.dispose();
+    super.dispose();
+  }
 
-    // Reset tap count if too much time has passed
-    if (_lastTapTime != null && now.difference(_lastTapTime!) > _tapWindow) {
-      _tapCount = 0;
-    }
+  void _onHoldStart() {
+    if (widget.onEditTriggered == null) return;
+    _holding = true;
+    _holdAnim.forward(from: 0);
+  }
 
-    _tapCount++;
-    _lastTapTime = now;
-
-    // Check if we've reached the required tap count
-    if (_tapCount >= _requiredTaps) {
-      _tapCount = 0;
-      _lastTapTime = null;
-      widget.onEditTriggered?.call();
-
-      // Show feedback
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Chord edit mode enabled'),
-            duration: Duration(seconds: 2),
-          ),
-        );
-      }
-    }
+  void _onHoldEnd() {
+    if (!_holding) return;
+    _holding = false;
+    _holdAnim.stop();
+    _holdAnim.reset();
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final screenWidth = _screenWidth;
-    final compact = screenWidth < 430;
-    final titleMaxWidth = screenWidth < 420
-        ? screenWidth * 0.42
-        : screenWidth < 600
-        ? screenWidth * 0.52
-        : (screenWidth * 0.58).clamp(260, 520).toDouble();
     return Row(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        if (widget.canGoPrevious)
-          IconButton(
-            visualDensity: compact ? VisualDensity.compact : null,
-            tooltip: 'Pujian sebelumnya',
-            onPressed: widget.onPrevious,
-            icon: const Icon(Icons.chevron_left_rounded),
-          ),
+        // Always reserve space for both chevrons so the title chip
+        // stays centred even when only one (or neither) is visible.
+        SizedBox(
+          width: 48,
+          child: widget.canGoPrevious
+              ? IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Pujian sebelumnya',
+                  onPressed: widget.onPrevious,
+                  icon: const Icon(Icons.chevron_left_rounded),
+                )
+              : null,
+        ),
         Flexible(
           child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
             onTap: widget.onTapTitle,
-            onLongPress: _handleTap,
-            child: AnimatedSwitcher(
-              duration: const Duration(milliseconds: 200),
-              transitionBuilder: (child, animation) {
-                return FadeTransition(opacity: animation, child: child);
-              },
-              child: Container(
-                key: ValueKey('${widget.number}-${widget.title}'),
-                constraints: BoxConstraints(maxWidth: titleMaxWidth),
-                padding: EdgeInsets.symmetric(
-                  horizontal: compact ? 10 : 12,
-                  vertical: compact ? 7 : 8,
-                ),
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      colors.surfaceContainerHighest.withValues(alpha: 0.7),
-                      colors.surfaceContainerLow.withValues(alpha: 0.7),
-                    ],
+            onLongPressStart: (_) => _onHoldStart(),
+            onLongPressEnd: (_) => _onHoldEnd(),
+            onLongPressCancel: _onHoldEnd,
+            child: AnimatedBuilder(
+              animation: _holdAnim,
+              builder: (context, child) {
+                final progress = _holdAnim.value;
+                return Container(
+                  key: ValueKey(widget.title),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
                   ),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: colors.outlineVariant.withValues(alpha: 0.56),
-                  ),
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      [
-                        if ((widget.number ?? '').isNotEmpty) widget.number,
-                        widget.title,
-                      ].whereType<String>().join(' - '),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w800,
-                        fontSize: 15,
-                      ),
+                  decoration: BoxDecoration(
+                    color: colors.surfaceContainerHigh.withValues(alpha: 0.6),
+                    borderRadius: context.appRadius(16),
+                    border: Border.all(
+                      color: colors.outlineVariant.withValues(alpha: 0.56),
                     ),
-                    if (widget.familyChord != null)
-                      Text(
-                        'Family ${ChordService.formatChordForDisplay(widget.familyChord!, accidentalMode: widget.accidentalMode, baseTransposeOffset: widget.baseTransposeOffset)}${widget.pdfKey == null ? '' : ' / PDF ${widget.pdfKey}'}',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: colors.onSurfaceVariant.withValues(
-                            alpha: 0.72,
-                          ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Title only — number prefix is intentionally
+                      // omitted so the title is the visual anchor.
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          widget.title,
+                          maxLines: 1,
+                          softWrap: false,
+                          overflow: TextOverflow.visible,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                fontSize: context.appFontSize(15),
+                              ),
                         ),
                       ),
-                  ],
-                ),
-              ),
+                      if (progress > 0)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: LinearProgressIndicator(
+                            value: progress,
+                            minHeight: 2,
+                            backgroundColor: Colors.transparent,
+                          ),
+                        ),
+                    ],
+                  ),
+                );
+              },
             ),
           ),
         ),
-        if (widget.canGoNext)
-          IconButton(
-            visualDensity: compact ? VisualDensity.compact : null,
-            tooltip: 'Pujian berikutnya',
-            onPressed: widget.onNext,
-            icon: const Icon(Icons.chevron_right_rounded),
-          ),
+        SizedBox(
+          width: 48,
+          child: widget.canGoNext
+              ? IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: 'Pujian berikutnya',
+                  onPressed: widget.onNext,
+                  icon: const Icon(Icons.chevron_right_rounded),
+                )
+              : null,
+        ),
       ],
     );
   }
@@ -1079,7 +1010,7 @@ class _SongTextPageState extends State<_SongTextPage>
                                           .withValues(alpha: 0.82),
                                     ],
                                   ),
-                                  borderRadius: BorderRadius.circular(
+                                  borderRadius: context.appRadius(
                                     compact ? 14 : 18,
                                   ),
                                   border: Border.all(
@@ -1162,7 +1093,7 @@ class _SongTextPageState extends State<_SongTextPage>
                       onPressed:
                           safeIndex > 0 ? widget.onPreviousVerse : null,
                       icon: const Icon(Icons.keyboard_arrow_up, size: 20),
-                      label: const Text('Atas'),
+                      label: Text('Atas'.tr()),
                     ),
                     Text(
                       '${safeIndex + 1}/${verses.length}',
@@ -1176,7 +1107,7 @@ class _SongTextPageState extends State<_SongTextPage>
                           ? widget.onNextVerse
                           : null,
                       icon: const Icon(Icons.keyboard_arrow_down, size: 20),
-                      label: const Text('Bawah'),
+                      label: Text('Bawah'.tr()),
                     ),
                   ],
                 ),
@@ -1273,6 +1204,377 @@ class _LyricsChoiceGroup extends StatelessWidget {
               .toList(),
         ),
       ],
+    );
+  }
+}
+
+/// Dedicated AppBar button for the PDF viewing mode (single page,
+/// two-page spread, vertical scroll).  Tapping it opens a dropdown
+/// with three side-by-side mode buttons so the user can pick the
+/// desired layout in one tap.  The currently-active mode is
+/// highlighted on its button.
+///
+/// Uses [showGeneralDialog] with a fade + scale animation so the
+/// dropdown has a smooth, polished open/close transition.
+class _PageModeMenuButton extends StatefulWidget {
+  const _PageModeMenuButton({
+    required this.cubit,
+    required this.pdfTwoPageMode,
+    required this.pdfVerticalScrolling,
+    required this.showChord,
+    required this.chordToggleEnabled,
+    required this.textMode,
+    required this.showAudio,
+    required this.pageCount,
+    required this.onFitPage,
+    required this.onShare,
+    required this.onOpenLyrics,
+  });
+
+  final SongCubit cubit;
+  final bool pdfTwoPageMode;
+  final bool pdfVerticalScrolling;
+  final bool showChord;
+  final bool chordToggleEnabled;
+  final bool textMode;
+  final bool showAudio;
+  final int? pageCount;
+  final VoidCallback onFitPage;
+  final VoidCallback onShare;
+  final VoidCallback onOpenLyrics;
+
+  @override
+  State<_PageModeMenuButton> createState() => _PageModeMenuButtonState();
+}
+
+class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      visualDensity: VisualDensity.compact,
+      icon: const Icon(Icons.dashboard_rounded),
+      tooltip: 'Mode halaman',
+      onPressed: () => _openMenu(context),
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // Open the menu with a fade + scale animation anchored to the button.
+  // showGeneralDialog gives us full control over the transition curve,
+  // duration, and alignment — something MenuAnchor cannot do.
+  // ------------------------------------------------------------------
+
+  void _openMenu(BuildContext btnContext) {
+    final renderBox = btnContext.findRenderObject() as RenderBox?;
+    final overlayBox =
+        Overlay.of(btnContext).context.findRenderObject() as RenderBox?;
+    if (renderBox == null || overlayBox == null) return;
+
+    final btnSize = renderBox.size;
+    final btnPos =
+        renderBox.localToGlobal(Offset.zero, ancestor: overlayBox);
+
+    showGeneralDialog(
+      context: btnContext,
+      barrierDismissible: true,
+      barrierLabel: 'Tutup',
+      barrierColor: Colors.black26,
+      transitionDuration: const Duration(milliseconds: 220),
+      pageBuilder: (dialogCtx, _, _) {
+        // Wrap in BlocBuilder so the menu body rebuilds when the
+        // cubit state changes (toggle MIDI, Teks, Chord, etc.)
+        // without needing to close and reopen the dialog.
+        return BlocBuilder<SongCubit, SongState>(
+          buildWhen: (prev, curr) =>
+              prev.showChord != curr.showChord ||
+              prev.showAudio != curr.showAudio ||
+              prev.isImageMode != curr.isImageMode ||
+              prev.pdfTwoPageMode != curr.pdfTwoPageMode ||
+              prev.pdfVerticalScrolling != curr.pdfVerticalScrolling ||
+              prev.bookCode != curr.bookCode,
+          builder: (context, state) {
+            return _buildMenuBody(
+              context,
+              state: state,
+              onClose: () => Navigator.pop(dialogCtx),
+            );
+          },
+        );
+      },
+      transitionBuilder: (dialogCtx, animation, secondaryAnimation, child) {
+        final curved = CurvedAnimation(
+          parent: animation,
+          curve: Curves.easeOutCubic,
+          reverseCurve: Curves.easeInCubic,
+        );
+        return Stack(
+          children: [
+            Positioned(
+              top: btnPos.dy + btnSize.height + 4,
+              right: overlayBox.size.width - btnPos.dx - btnSize.width,
+              child: FadeTransition(
+                opacity: curved,
+                child: ScaleTransition(
+                  scale:
+                      Tween<double>(begin: 0.82, end: 1.0).animate(curved),
+                  alignment: Alignment.topRight,
+                  child: child,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // ------------------------------------------------------------------
+  // Menu body — identical layout to the old MenuAnchor version but
+  // every button calls Navigator.pop(dialogContext) via [onClose] to
+  // dismiss the dialog before running its action.
+  // ------------------------------------------------------------------
+
+  Widget _buildMenuBody(BuildContext context, {required SongState state, required VoidCallback onClose}) {
+    final colors = Theme.of(context).colorScheme;
+    final isTwoPage = state.pdfTwoPageMode;
+    final isVertical = state.pdfVerticalScrolling;
+    final isSinglePage = widget.pageCount != null && widget.pageCount! <= 1;
+    final showChord = state.showChord;
+    final chordEnabled = state.bookCode != 'HYMNE';
+    final isText = state.isImageMode;
+    final showAudio = state.showAudio;
+
+    return Material(
+      elevation: 8,
+      shadowColor: Colors.black26,
+      borderRadius: context.appRadius(16),
+      child: Container(
+        width: 232,
+        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 8),
+        decoration: BoxDecoration(
+          color: colors.surfaceContainerHighest,
+          borderRadius: context.appRadius(16),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Row 1 — page layout mode.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ModeButton(
+                  icon: Icons.looks_one_rounded,
+                  label: '1',
+                  tooltip: 'Satu halaman',
+                  selected: !isTwoPage && !isVertical,
+                  onTap: () {
+                    onClose();
+                    widget.cubit.setNormalPdfMode();
+                  },
+                ),
+                _ModeButton(
+                  icon: Icons.looks_two_rounded,
+                  label: '2',
+                  tooltip: isSinglePage
+                      ? 'Hanya 1 halaman'
+                      : 'Dua halaman (putar landscape)',
+                  selected: isTwoPage,
+                  disabled: isSinglePage,
+                  onTap: isSinglePage
+                      ? null
+                      : () {
+                          onClose();
+                          widget.cubit.setPdfTwoPageMode(!isTwoPage);
+                        },
+                ),
+                _ModeButton(
+                  icon: Icons.swap_vert_rounded,
+                  label: '↓',
+                  tooltip: isSinglePage
+                      ? 'Hanya 1 halaman'
+                      : 'Scroll vertikal',
+                  selected: isVertical,
+                  disabled: isSinglePage,
+                  onTap: isSinglePage
+                      ? null
+                      : () {
+                          onClose();
+                          widget.cubit.setPdfVerticalScrolling(!isVertical);
+                        },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Divider(height: 1, thickness: 0.5),
+            const SizedBox(height: 6),
+            // Row 2 — toggle & action buttons.  Toggle buttons
+            // (Chord, MIDI, Teks) do NOT close the dialog so the
+            // user can tap them repeatedly without re-opening.
+            // One-shot actions (Fit, Share, Lirik) close it.
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ModeButton(
+                  icon: showChord
+                      ? Icons.music_note_rounded
+                      : Icons.music_off_rounded,
+                  label: 'Chord',
+                  tooltip: showChord
+                      ? 'Sembunyikan chord'
+                      : 'Tampilkan chord',
+                  selected: showChord,
+                  disabled: !chordEnabled,
+                  onTap: chordEnabled
+                      ? () => widget.cubit.toggleChord()
+                      : null,
+                ),
+                _ModeButton(
+                  icon: Icons.fit_screen_rounded,
+                  label: 'Fit',
+                  tooltip: 'Fit halaman',
+                  selected: false,
+                  disabled: isText,
+                  onTap: isText
+                      ? null
+                      : () {
+                          onClose();
+                          widget.onFitPage();
+                        },
+                ),
+                _ModeButton(
+                  icon: Icons.share_rounded,
+                  label: 'Share',
+                  tooltip: 'Bagikan',
+                  selected: false,
+                  onTap: () {
+                    onClose();
+                    widget.onShare();
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Divider(height: 1, thickness: 0.5),
+            const SizedBox(height: 6),
+            // Row 3 — UI toggles (MIDI, Teks stay open; Lirik closes).
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _ModeButton(
+                  icon: showAudio
+                      ? Icons.volume_up_rounded
+                      : Icons.volume_off_rounded,
+                  label: 'MIDI',
+                  tooltip: showAudio
+                      ? 'Sembunyikan MIDI'
+                      : 'Tampilkan MIDI',
+                  selected: showAudio,
+                  onTap: () => widget.cubit.toggleAudio(),
+                ),
+                _ModeButton(
+                  icon: isText
+                      ? Icons.picture_as_pdf_rounded
+                      : Icons.article_outlined,
+                  label: 'Teks',
+                  tooltip: isText ? 'Mode PDF' : 'Mode teks',
+                  selected: isText,
+                  onTap: () => widget.cubit.changeMode(),
+                ),
+                _ModeButton(
+                  icon: Icons.lyrics_rounded,
+                  label: 'Lirik',
+                  tooltip: 'Pengaturan mode teks',
+                  selected: false,
+                  disabled: !isText,
+                  onTap: isText
+                      ? () {
+                          onClose();
+                          widget.onOpenLyrics();
+                        }
+                      : null,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// One of the side-by-side buttons inside the page-mode dropdown.
+/// The selected mode is highlighted with the primary container
+/// colour; inactive modes have an outline-only tile.  When
+/// [disabled] is true the button is greyed out and does not respond
+/// to taps (used for actions that are not available in the current
+/// state, e.g. "Fit" in text mode or "Chord" for the HYMNE book).
+class _ModeButton extends StatelessWidget {
+  const _ModeButton({
+    required this.icon,
+    required this.label,
+    required this.tooltip,
+    required this.selected,
+    required this.onTap,
+    this.disabled = false,
+  });
+
+  final IconData icon;
+  final String label;
+  final String tooltip;
+  final bool selected;
+  final VoidCallback? onTap;
+  final bool disabled;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final isInactive = disabled;
+    final fg = isInactive
+        ? colors.onSurfaceVariant.withValues(alpha: 0.3)
+        : (selected
+              ? colors.onPrimaryContainer
+              : colors.onSurfaceVariant);
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: isInactive ? null : onTap,
+        borderRadius: context.appRadius(10),
+        child: Container(
+          width: 64,
+          height: 64,
+          decoration: BoxDecoration(
+            color: isInactive
+                ? Colors.transparent
+                : (selected
+                      ? colors.primaryContainer
+                      : colors.surfaceContainerLowest.withValues(alpha: 0.4)),
+            borderRadius: context.appRadius(10),
+            border: Border.all(
+              color: isInactive
+                  ? colors.outlineVariant.withValues(alpha: 0.2)
+                  : (selected
+                      ? colors.primary
+                      : colors.outlineVariant.withValues(alpha: 0.6)),
+              width: selected ? 1.5 : 0.6,
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: fg, size: 22),
+              const SizedBox(height: 2),
+              Text(
+                label,
+                style: TextStyle(
+                  color: fg,
+                  fontSize: context.appFontSize(11),
+                  fontWeight: selected ? FontWeight.w900 : FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

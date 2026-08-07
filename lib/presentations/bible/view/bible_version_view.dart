@@ -1,21 +1,35 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../di/injection.dart';
+import '../../../router/router.dart';
 import '../../presentations.dart';
 
 @RoutePage()
-class BibleVersionView extends StatelessWidget {
+class BibleVersionView extends StatefulWidget {
   final DashboardCubit dashboardCubit;
 
   const BibleVersionView({super.key, required this.dashboardCubit});
 
   @override
-  Widget build(BuildContext context) {
-    final bibleAssetService = di<LocalBibleAssetService>();
+  State<BibleVersionView> createState() => _BibleVersionViewState();
+}
 
+class _BibleVersionViewState extends State<BibleVersionView> {
+  late final AssetManagementCubit _assetCubit = di<AssetManagementCubit>();
+
+  @override
+  void initState() {
+    super.initState();
+    _assetCubit.refresh();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
@@ -25,24 +39,19 @@ class BibleVersionView extends StatelessWidget {
         title: Text('Bible Versions'.tr()),
         centerTitle: true,
       ),
-      body: FutureBuilder<List<String>>(
-        future: bibleAssetService.getBundledBibleCodes(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState != ConnectionState.done) {
+      body: BlocBuilder<AssetManagementCubit, AssetManagementState>(
+        bloc: _assetCubit,
+        builder: (context, state) {
+          if (state.isLoading && state.statuses.isEmpty) {
             return const Center(child: CircularProgressIndicator());
           }
-
-          if (snapshot.hasError) {
-            return Center(
-              child: NoDataFound(
-                title: 'Error',
-                description: snapshot.error.toString(),
-              ),
-            );
-          }
-
-          final codes = snapshot.data ?? const <String>[];
-          if (codes.isEmpty) {
+          final bibles = state.statuses
+              .where(
+                (s) =>
+                    s.definition.kind == DistributedAssetKind.bible,
+              )
+              .toList();
+          if (bibles.isEmpty) {
             return Center(
               child: NoDataFound(
                 title: 'No Data',
@@ -50,54 +59,26 @@ class BibleVersionView extends StatelessWidget {
               ),
             );
           }
-
+          final currentCode = di<BibleCubit>().state.currentBibleCode;
           return ListView.separated(
-            itemCount: codes.length,
+            itemCount: bibles.length,
             separatorBuilder: (_, _) => Divider(
               height: 1,
               color: context.colorScheme.outlineVariant,
             ),
             itemBuilder: (context, index) {
-              final code = codes[index];
-              return FutureBuilder<String>(
-                future: getBibleCodeName(code),
-                builder: (context, nameSnapshot) {
-                  final displayName = nameSnapshot.data ?? code.toUpperCase();
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    leading: CircleAvatar(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                      child: const Icon(Icons.offline_pin_rounded),
-                    ),
-                    title: Text(
-                      displayName,
-                      style: const TextStyle(fontWeight: FontWeight.w700),
-                    ),
-                    subtitle: Text(
-                      'Bundled locally with the app for offline reading.'.tr(),
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: context.colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'Ready'.tr(),
-                        style: TextStyle(
-                          color: context.colorScheme.onPrimaryContainer,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  );
+              final status = bibles[index];
+              final code = status.definition.code;
+              final isActive = code == currentCode;
+              return DistributedAssetTile(
+                status: status,
+                cubit: _assetCubit,
+                isActive: isActive,
+                onSelect: () async {
+                  final cubit = di<BibleCubit>();
+                  await cubit.selectBibleCodeByName(code);
+                  if (!context.mounted) return;
+                  router.maybePop();
                 },
               );
             },

@@ -156,15 +156,33 @@ class LocalBibleAssetService {
       }
     }
 
-    // Fetch all chapters in parallel
-    final chapterResults = await Future.wait(
-      chapterPairs.map(
-        (pair) => getVerses(code, bookId: pair.key, chapterId: pair.value),
-      ),
-    );
+    // Fetch chapters with a bounded worker pool. Fetching all ~1,189
+    // chapters of the Bible in parallel (as Future.wait over every pair)
+    // spawned a thousand simultaneous asset loads + JSON parses — a memory
+    // bomb on mobile. 8 workers keeps the search fast without the spike.
+    const maxConcurrent = 8;
+    final results = List<List<Verse>?>.filled(chapterPairs.length, null);
+    var nextPair = 0;
+    Future<void> worker() async {
+      while (true) {
+        final pairIndex = nextPair++;
+        if (pairIndex >= chapterPairs.length) return;
+        final pair = chapterPairs[pairIndex];
+        results[pairIndex] = await getVerses(
+          code,
+          bookId: pair.key,
+          chapterId: pair.value,
+        );
+      }
+    }
+
+    await Future.wait(List.generate(maxConcurrent, (_) => worker()));
 
     // Search through all fetched verses
-    return chapterResults.expand((verses) => verses).where((verse) {
+    return results
+        .whereType<List<Verse>>()
+        .expand((verses) => verses)
+        .where((verse) {
       final text = verse.verse;
       if (text == null || text.isEmpty) return false;
       final lowerText = text.toLowerCase();

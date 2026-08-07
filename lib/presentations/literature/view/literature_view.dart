@@ -1,4 +1,5 @@
 import 'dart:developer';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -55,7 +56,7 @@ class _LiteratureViewState extends State<LiteratureView> {
                   height: 4,
                   decoration: BoxDecoration(
                     color: context.colorScheme.outlineVariant,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: context.appRadius(999),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -94,7 +95,7 @@ class _LiteratureViewState extends State<LiteratureView> {
         const LiteraturePanduanKitabRoute(),
       ),
       (
-        'Kumpulan Renungan',
+        'Kumpulan Renungan'.tr(),
         Assets.assetsImagesKumpulanrenungan,
         const LiteratureRenunganRoute(),
       ),
@@ -117,7 +118,7 @@ class _LiteratureViewState extends State<LiteratureView> {
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             clipBehavior: Clip.antiAlias,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: context.appRadius(18),
               border: Border.all(
                 color: context.colorScheme.outlineVariant.withValues(
                   alpha: 0.55,
@@ -146,9 +147,9 @@ class _LiteratureViewState extends State<LiteratureView> {
                     ),
                     child: Text(
                       e.$1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
-                        fontSize: 17,
+                        fontSize: context.appFontSize(17),
                         color: Colors.white,
                       ),
                     ),

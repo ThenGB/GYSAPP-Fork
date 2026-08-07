@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -116,7 +117,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                     ),
                     onPressed: onSave,
                     icon: const Icon(Icons.save_rounded, size: 18),
-                    label: const Text('Save'),
+                    label: Text('Save'.tr()),
                   ),
                 ] else ...[
                   IconButton(
@@ -152,7 +153,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                       // );
                     },
                     icon: const Icon(Icons.edit_rounded, size: 18),
-                    label: const Text('Edit'),
+                    label: Text('Edit'.tr()),
                   ),
                 ],
                 SizedBox(width: 16),
@@ -170,7 +171,7 @@ class _BibleNoteViewState extends State<BibleNoteView> {
                       context.colorScheme.surfaceContainerLow,
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: context.appRadius(8),
                   border: Border.all(
                     color: context.colorScheme.outlineVariant.withValues(
                       alpha: 0.55,

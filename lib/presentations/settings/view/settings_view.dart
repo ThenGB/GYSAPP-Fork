@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -7,10 +5,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../../../components/widgets/drag_handler.dart';
-import '../../../components/widgets/section.dart';
+import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../data/models/theme_preferences.dart';
+import '../../../di/injection.dart';
 import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
@@ -41,606 +39,83 @@ class SettingsView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SettingsCubit, SettingsState>(
-      builder: (context, state) => Scaffold(
-        backgroundColor: context.colorScheme.surface,
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
-          toolbarHeight: 74,
-          leading: IconButton(
-            tooltip: 'Menu',
-            onPressed: openDashboardDrawer,
-            icon: const Icon(Icons.tune_rounded),
-          ),
-          title: const Text('Workspace Settings'),
-          centerTitle: true,
-          actions: const [SizedBox(width: 48)],
+    return Scaffold(
+      backgroundColor: context.colorScheme.surface,
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
+        toolbarHeight: 74,
+        leading: IconButton(
+          tooltip: 'Menu',
+          onPressed: openDashboardDrawer,
+          icon: const Icon(Icons.menu_outlined),
         ),
-        body: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                context.colorScheme.surfaceContainerHighest.withValues(
-                  alpha: 0.2,
-                ),
-                context.colorScheme.surfaceContainerLow.withValues(alpha: 0.34),
-                context.colorScheme.surface,
-              ],
-            ),
+        title: Text('workspace_settings'.tr()),
+        centerTitle: true,
+        actions: const [SizedBox(width: 48)],
+      ),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              context.colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.2,
+              ),
+              context.colorScheme.surfaceContainerLow.withValues(alpha: 0.34),
+              context.colorScheme.surface,
+            ],
           ),
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: _settingsMaxContentWidth,
-                ),
-                child: Column(
-                  children: [
-                    const _AssetDistributionSection(),
-                    Column(
-                      children: [
-                        BlocBuilder<BibleCubit, BibleState>(
-                          builder: (context, state) => Section(
-                            label: 'Verse'.tr(),
-                            child: (gap) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: gap),
-                              child: Material(
-                                color: context.colorScheme.surfaceContainerLowest,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  side: BorderSide(
-                                    color: context.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.55),
-                                  ),
-                                ),
-                                clipBehavior: Clip.antiAlias,
-                                child: Column(
-                                children:
-                                    [
-                                          {
-                                            'icon': Icons.menu_book_outlined,
-                                            'label': 'Version'.tr(),
-                                            'desc': 'bible_version_desc'.tr(),
-                                            'onTap': null,
-                                            'trailing': Row(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                IconButton(
-                                                  visualDensity:
-                                                      VisualDensity.compact,
-                                                  onPressed: () {
-                                                    router.push(
-                                                      BibleVersionRoute(
-                                                        dashboardCubit: context
-                                                            .read(),
-                                                      ),
-                                                    );
-                                                  },
-                                                  icon: Icon(Icons.settings),
-                                                ),
-                                                SizedBox(width: 4),
-                                                ElevatedButton(
-                                                  style:
-                                                      ElevatedButton.styleFrom(
-                                                        visualDensity:
-                                                            VisualDensity
-                                                                .compact,
-                                                      ),
-                                                  onPressed: () async {
-                                                    log('onTapSelectBible');
-                                                    await context
-                                                        .read<BibleCubit>()
-                                                        .getBibles();
-                                                    if (!context.mounted) {
-                                                      return;
-                                                    }
-                                                    final state = context
-                                                        .read<BibleCubit>()
-                                                        .state;
-                                                    var bibleCodes = state
-                                                        .bibleCodes
-                                                        .map(
-                                                          (e) => e
-                                                              .split('.')
-                                                              .first,
-                                                        )
-                                                        .toList();
-                                                    if (bibleCodes.isEmpty) {
-                                                      Fluttertoast.showToast(
-                                                        msg:
-                                                            'No Bible versions available'
-                                                                .tr(),
-                                                      );
-                                                      return;
-                                                    }
-                                                    var currentIndex =
-                                                        bibleCodes.indexOf(
-                                                          state
-                                                              .currentBibleCode,
-                                                        );
-                                                    if (currentIndex < 0) {
-                                                      currentIndex = 0;
-                                                    }
-                                                    await showModalBottomSheet(
-                                                      context: context,
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      isScrollControlled: true,
-                                                      useSafeArea: true,
-                                                      builder: (ctx) =>
-                                                          BibleSelectWidget(
-                                                            bibleCodes:
-                                                                bibleCodes,
-                                                            initialIndex:
-                                                                currentIndex,
-                                                            onTap: (index) async {
-                                                              await context
-                                                                  .read<
-                                                                    BibleCubit
-                                                                  >()
-                                                                  .selectBibleCode(
-                                                                    index,
-                                                                  );
-                                                              if (!ctx
-                                                                  .mounted) {
-                                                                return;
-                                                              }
-                                                              router.maybePop();
-                                                            },
-                                                          ),
-                                                    );
-                                                  },
-                                                  child: Text(
-                                                    (state.currentBibleCode
-                                                            .split('_')
-                                                            .last)
-                                                        .toUpperCase(),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          },
-                                          {
-                                            'icon': Icons.event_note_outlined,
-                                            'label': 'Today Reading'.tr(),
-                                            'desc': 'today_reading_desc'.tr(),
-                                            'onTap': null,
-                                            'trailing': ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                              ),
-                                              onPressed: () {
-                                                router.push(
-                                                  BibleListRoute(
-                                                    bibleCode:
-                                                        state.currentBibleCode,
-                                                    textScale:
-                                                        state.defaultTextScale,
-                                                    onSelected: (newBible) {
-                                                      context
-                                                          .read<BibleCubit>()
-                                                          .setTodayReading(
-                                                            newBible,
-                                                          );
-                                                      router.maybePop();
-                                                    },
-                                                    getBibles:
-                                                        (
-                                                          bookId,
-                                                          chapterId,
-                                                        ) async {
-                                                          if (bookId == null ||
-                                                              chapterId ==
-                                                                  null) {
-                                                            return [];
-                                                          }
-                                                          return await context
-                                                              .read<
-                                                                BibleCubit
-                                                              >()
-                                                              .getVersesByBook(
-                                                                bookId,
-                                                                chapterId,
-                                                              );
-                                                        },
-                                                    books: state.books,
-                                                  ),
-                                                );
-                                              },
-                                              child: FutureBuilder<String>(
-                                                future: context
-                                                    .read<BibleCubit>()
-                                                    .getBibleTitle([
-                                                      state.todayReading,
-                                                    ]),
-                                                builder: (context, snapshot) =>
-                                                    Text(
-                                                      snapshot.data ??
-                                                          'None'.tr(),
-                                                    ),
-                                              ),
-                                            ),
-                                          },
-                                          {
-                                            'icon': Icons.schedule_outlined,
-                                            'label': 'Bible Reminder'.tr(),
-                                            'desc': 'bible_reminder_desc'.tr(),
-                                            'onTap': null,
-                                            'trailing': ElevatedButton(
-                                              style: ElevatedButton.styleFrom(
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                              ),
-                                              onPressed: () async {
-                                                var settingCubit = context
-                                                    .read<SettingsCubit>();
-
-                                                var weekdays = List.generate(
-                                                  7,
-                                                  (index) => index + 1,
-                                                );
-                                                await showModalBottomSheet(
-                                                  backgroundColor:
-                                                      Colors.transparent,
-                                                  elevation: 0,
-                                                  isScrollControlled: true,
-                                                  context: context,
-                                                  builder: (context) {
-                                                    return BibleReminderDialog(
-                                                      weekdays: weekdays,
-                                                      settingCubit:
-                                                          settingCubit,
-                                                    );
-                                                  },
-                                                );
-                                              },
-                                              child: Text(
-                                                (context
-                                                            .watch<
-                                                              SettingsCubit
-                                                            >()
-                                                            .state
-                                                            .isBibleReminderNotificationActive
-                                                        ? 'On'
-                                                        : 'Off')
-                                                    .tr(),
-                                              ),
-                                            ),
-                                          },
-                                          {
-                                            'icon': Icons.headphones_outlined,
-                                            'label': 'Audio Bible Config'.tr(),
-                                            'desc': 'audio_bible_desc'.tr(),
-                                            'onTap': () {
-                                              router.push(
-                                                BibleAudioSettingRoute(
-                                                  onSave:
-                                                      (voices, pitch, speed) {
-                                                        context
-                                                            .read<BibleCubit>()
-                                                            .applyTtsSetting(
-                                                              voices,
-                                                              pitch,
-                                                              speed,
-                                                            );
-                                                      },
-                                                  initialPitchRate: context
-                                                      .read<BibleCubit>()
-                                                      .state
-                                                      .pitchRate,
-                                                  initialSpeedRate: context
-                                                      .read<BibleCubit>()
-                                                      .state
-                                                      .speedRate,
-                                                  initialVoices: context
-                                                      .read<BibleCubit>()
-                                                      .state
-                                                      .voices,
-                                                ),
-                                              );
-                                            },
-                                          },
-                                        ]
-                                        .map(
-                                          (e) => _SettingsTile(
-                                            icon: e['icon'] as IconData,
-                                            title: e['label'] as String,
-                                            description: e['desc'] as String?,
-                                            trailing: e['trailing'] as Widget?,
-                                            onTap: e['onTap'] as VoidCallback?,
-                                          ),
-                                        )
-                                        .toList(),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const _SongSettingsSection(),
-                        Section(
-                          label: 'Notification'.tr(),
-                          child: (gap) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: gap),
-                            child: Material(
-                              color: context.colorScheme.surfaceContainerLowest,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: context.colorScheme.outlineVariant
-                                      .withValues(alpha: 0.55),
-                                ),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                              children:
-                                  [
-                                        {
-                                          'icon': Icons
-                                              .notifications_active_outlined,
-                                          'label': 'Sabat Notification'.tr(),
-                                          'desc':
-                                              state.isSabatNotificationActive
-                                              ? 'sabat_notification_enabled_desc'
-                                                    .tr()
-                                              : 'sabat_notification_disabled_desc'
-                                                    .tr(),
-                                          'onTap': null,
-                                          'trailing': ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  state
-                                                      .isSabatNotificationActive
-                                                  ? context
-                                                        .colorScheme
-                                                        .secondaryContainer
-                                                  : context
-                                                        .colorScheme
-                                                        .errorContainer,
-                                              foregroundColor:
-                                                  state
-                                                      .isSabatNotificationActive
-                                                  ? context
-                                                        .colorScheme
-                                                        .onSecondaryContainer
-                                                  : context
-                                                        .colorScheme
-                                                        .onErrorContainer,
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                            ),
-                                            onPressed: () {
-                                              context
-                                                  .read<SettingsCubit>()
-                                                  .toggleSabatNotification();
-                                            },
-                                            child: Text(
-                                              (state.isSabatNotificationActive
-                                                      ? 'On'
-                                                      : 'Off')
-                                                  .tr(),
-                                            ),
-                                          ),
-                                        },
-                                      ]
-                                      .map(
-                                        (e) => _SettingsTile(
-                                          icon: e['icon'] as IconData,
-                                          title: e['label'] as String,
-                                          description: e['desc'] as String?,
-                                          trailing: e['trailing'] as Widget?,
-                                          onTap: e['onTap'] as VoidCallback?,
-                                        ),
-                                      )
-                                      .toList(),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const _ThemeSettingsSection(),
-                        Section(
-                          label: 'Others'.tr(),
-                          child: (gap) => Padding(
-                            padding: EdgeInsets.symmetric(horizontal: gap),
-                            child: Material(
-                              color: context.colorScheme.surfaceContainerLowest,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                                side: BorderSide(
-                                  color: context.colorScheme.outlineVariant
-                                      .withValues(alpha: 0.55),
-                                ),
-                              ),
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                              children:
-                                  [
-                                        {
-                                          'icon': Icons.palette_outlined,
-                                          'label': 'Theme'.tr(),
-                                          'desc': 'theme_desc'.tr(),
-                                          'onTap': null,
-                                          'trailing': ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                            ),
-                                            onPressed: () {
-                                              context
-                                                  .read<InitialCubit>()
-                                                  .toggleTheme(
-                                                    context.theme.brightness ==
-                                                            Brightness.light
-                                                        ? ThemeMode.dark
-                                                        : ThemeMode.light,
-                                                    () => context,
-                                                  );
-                                            },
-                                            child: Text(
-                                              context
-                                                  .read<InitialCubit>()
-                                                  .state
-                                                  .themeMode
-                                                  .capitalize()
-                                                  .tr(),
-                                            ),
-                                          ),
-                                        },
-                                        {
-                                          'icon': Icons.language_outlined,
-                                          'label': 'Language'.tr(),
-                                          'desc': 'language_desc'.tr(),
-                                          'onTap': null,
-                                          'trailing': ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                            ),
-                                            onPressed: () async {
-                                              showModalBottomSheet(
-                                                context: context,
-                                                isScrollControlled: true,
-                                                backgroundColor:
-                                                    Colors.transparent,
-                                                elevation: 0,
-                                                builder: (c) =>
-                                                    BlocProvider.value(
-                                                      value: context
-                                                          .read<BibleCubit>(),
-                                                      child:
-                                                          SelectLanguageDialog(),
-                                                    ),
-                                              );
-                                            },
-                                            child: Text(
-                                              context.locale.languageName,
-                                            ),
-                                          ),
-                                        },
-                                        {
-                                          'icon': Icons.backup_outlined,
-                                          'label': 'Backup'.tr(),
-                                          'desc': 'backup_desc'.tr(),
-                                          'onTap': () {
-                                            router.push(
-                                              BackupRoute(
-                                                onSynced: (data) {
-                                                  if (data.bibleState != null) {
-                                                    context
-                                                        .read<BibleCubit>()
-                                                        .sync(data.bibleState!);
-                                                  }
-                                                  if (data.songState != null) {
-                                                    context
-                                                        .read<SongCubit>()
-                                                        .sync(data.songState!);
-                                                  }
-                                                  if (data.faithState != null) {
-                                                    context
-                                                        .read<FaithCubit>()
-                                                        .sync(data.faithState!);
-                                                  }
-                                                  if (data.settingsState !=
-                                                      null) {
-                                                    context
-                                                        .read<SettingsCubit>()
-                                                        .sync(
-                                                          data.settingsState!,
-                                                        );
-                                                  }
-
-                                                  Fluttertoast.cancel();
-                                                  Fluttertoast.showToast(
-                                                    msg: 'Sync success'.tr(),
-                                                  );
-                                                },
-                                                data: AppBackupData(
-                                                  bibleState: context
-                                                      .read<BibleCubit>()
-                                                      .state,
-                                                  faithState: context
-                                                      .read<FaithCubit>()
-                                                      .state,
-                                                  settingsState: context
-                                                      .read<SettingsCubit>()
-                                                      .state,
-                                                  songState: context
-                                                      .read<SongCubit>()
-                                                      .state,
-                                                ),
-                                              ),
-                                            );
-                                          },
-                                        },
-                                        {
-                                          'icon': Icons.campaign_outlined,
-                                          'label': 'Report'.tr(),
-                                          'desc': 'report_desc'.tr(),
-                                          'onTap': () {
-                                            final cubit = context.read<DashboardCubit>();
-                                            router.push(
-                                              ReportRoute(
-                                                account: cubit.state.account,
-                                                onLoggedIn: (token) async {
-                                                  try {
-                                                    debugPrint('[SettingsView] onLoggedIn callback received (async), token length=${token.length}');
-                                                    debugPrint('[SettingsView] cubit obtained, calling loginSuccessCallback');
-                                                    await cubit.loginSuccessCallback(token);
-                                                    debugPrint('[SettingsView] loginSuccessCallback completed');
-                                                    router.maybePop();
-                                                    Fluttertoast.cancel();
-                                                    Fluttertoast.showToast(
-                                                      msg: 'BERHASIL LOGIN!',
-                                                    );
-                                                    return cubit.state.account;
-                                                  } catch (e, st) {
-                                                    debugPrint('[SettingsView] onLoggedIn ERROR: $e\n$st');
-                                                    rethrow;
-                                                  }
-                                                },
-                                              ),
-                                            );
-                                          },
-                                        },
-                                        {
-                                          'icon': Icons.text_fields_rounded,
-                                          'label': 'Font Settings'.tr(),
-                                          'desc': 'font_desc'.tr(),
-                                          'onTap': () {
-                                            router.push(FontSettingRoute());
-                                          },
-                                        },
-                                      ]
-                                      .map(
-                                        (e) => _SettingsTile(
-                                          icon: e['icon'] as IconData,
-                                          title: e['label'] as String,
-                                          description: e['desc'] as String?,
-                                          trailing: e['trailing'] as Widget?,
-                                          onTap: e['onTap'] as VoidCallback?,
-                                        ),
-                                      )
-                                      .toList(),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+        ),
+        // Each section is scoped to the bloc it actually reads. The old
+        // layout wrapped every section in a single BlocBuilder<SettingsCubit>
+        // so toggling one switch rebuilt the whole page (theme preview,
+        // asset card, song section included).
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(
+                maxWidth: _settingsMaxContentWidth,
+              ),
+              child: const Column(
+                children: [
+                  _VerseSettingsSection(),
+                  _SongSettingsSection(),
+                  _ThemeSettingsSection(),
+                  _NotificationSettingsSection(),
+                  _OtherSettingsSection(),
+                ],
               ),
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Base card used by every settings section so spacing, radius, border and
+/// elevation stay identical across the page.
+class _SettingsCard extends StatelessWidget {
+  final Widget child;
+
+  const _SettingsCard({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: context.colorScheme.surfaceContainerLowest,
+      shape: RoundedRectangleBorder(
+        borderRadius: context.appRadius(12),
+        side: BorderSide(
+          color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
     );
   }
 }
@@ -667,9 +142,14 @@ class _SettingsTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: context.appRadius(16),
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(16, 14, 12, 14),
+          padding: EdgeInsets.fromLTRB(
+            context.appSpace(16),
+            context.appSpace(14),
+            context.appSpace(12),
+            context.appSpace(14),
+          ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -678,7 +158,7 @@ class _SettingsTile extends StatelessWidget {
                 height: 38,
                 decoration: BoxDecoration(
                   color: colors.primaryContainer.withValues(alpha: 0.6),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: context.appRadius(12),
                   border: Border.all(
                     color: colors.primary.withValues(alpha: 0.32),
                   ),
@@ -791,48 +271,418 @@ class _SettingsSwitchTile extends StatelessWidget {
   }
 }
 
-class _AssetDistributionSection extends StatelessWidget {
-  const _AssetDistributionSection();
+class _SettingsDivider extends StatelessWidget {
+  const _SettingsDivider();
 
   @override
   Widget build(BuildContext context) {
-    return Section(
-      label: 'Offline Library',
-      child: (gap) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: gap),
-        child: Material(
-          color: context.colorScheme.surfaceContainerLowest,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-            side: BorderSide(
-              color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
-            ),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: _SettingsTile(
-            icon: Icons.offline_bolt_rounded,
-            title: 'Offline Library',
-            description:
-                'Kelola Alkitab dan hymnal terenkripsi, cek rilis terbaru GitHub, hapus aset terinstal, dan bersihkan cache cepat dari satu halaman khusus.',
-            trailing: const Icon(Icons.chevron_right_rounded),
-            onTap: () {
-              router.push(
-                AssetManagementRoute(
-                  assetManagementCubit: context.read<AssetManagementCubit>(),
-                  bibleCubit: context.read<BibleCubit>(),
-                  songCubit: context.read<SongCubit>(),
-                ),
-              );
-            },
-          ),
-        ),
-      ),
+    return Divider(
+      height: 1,
+      color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
     );
   }
 }
 
-class _SongSettingsSection extends StatelessWidget {
+class _VerseSettingsSection extends StatefulWidget {
+  const _VerseSettingsSection();
+
+  @override
+  State<_VerseSettingsSection> createState() => _VerseSettingsSectionState();
+}
+
+class _VerseSettingsSectionState extends State<_VerseSettingsSection> {
+  // Memoized so FutureBuilder does not re-create the future (and re-run the
+  // title lookup) on every unrelated BibleCubit emit.
+  Verse? _titleForVerse;
+  Future<String?>? _todayTitleFuture;
+
+  Future<String?> _titleFutureFor(BibleCubit cubit, Verse? verse) {
+    final current = _todayTitleFuture;
+    if (identical(_titleForVerse, verse) && current != null) {
+      return current;
+    }
+    _titleForVerse = verse;
+    final future = verse == null
+        ? Future<String?>.value(null)
+        : cubit.getBibleTitle([verse]);
+    _todayTitleFuture = future;
+    return future;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<BibleCubit, BibleState>(
+      builder: (context, state) {
+        final cubit = context.read<BibleCubit>();
+        return Section(
+          label: 'Verse'.tr(),
+          child: (gap) => Padding(
+            padding: EdgeInsets.symmetric(horizontal: gap),
+            child: _SettingsCard(
+              child: Column(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.menu_book_outlined,
+                    title: 'Version'.tr(),
+                    description: 'bible_version_desc'.tr(),
+                    onTap: () {
+                      router.push(
+                        BibleVersionRoute(dashboardCubit: context.read()),
+                      );
+                    },
+                    trailing: Text(
+                      state.currentBibleCode
+                          .split('_')
+                          .last
+                          .toUpperCase(),
+                      style: TextStyle(
+                        color: context.colorScheme.onSurfaceVariant,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.event_note_outlined,
+                    title: 'Today Reading'.tr(),
+                    description: 'today_reading_desc'.tr(),
+                    onTap: () {
+                      router.push(
+                        BibleListRoute(
+                          bibleCode: state.currentBibleCode,
+                          textScale: state.defaultTextScale,
+                          onSelected: (newBible) {
+                            cubit.setTodayReading(newBible);
+                            router.maybePop();
+                          },
+                          getBibles: (bookId, chapterId) async {
+                            if (bookId == null || chapterId == null) {
+                              return [];
+                            }
+                            return await cubit.getVersesByBook(
+                              bookId,
+                              chapterId,
+                            );
+                          },
+                          books: state.books,
+                        ),
+                      );
+                    },
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        FutureBuilder<String?>(
+                          future: _titleFutureFor(cubit, state.todayReading),
+                          builder: (context, snapshot) => Text(
+                            snapshot.data ?? 'None'.tr(),
+                            style: TextStyle(
+                              color: context.colorScheme.onSurfaceVariant,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                        if (state.todayReading != null)
+                          IconButton(
+                            tooltip: 'clear_reading'.tr(),
+                            visualDensity: VisualDensity.compact,
+                            onPressed: () => cubit.setTodayReading(null),
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              size: 18,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.schedule_outlined,
+                    title: 'Bible Reminder'.tr(),
+                    description: 'bible_reminder_desc'.tr(),
+                    onTap: () async {
+                      var weekdays = List.generate(7, (index) => index + 1);
+                      await showModalBottomSheet(
+                        backgroundColor: Colors.transparent,
+                        elevation: 0,
+                        isScrollControlled: true,
+                        context: context,
+                        builder: (context) => BibleReminderDialog(
+                          weekdays: weekdays,
+                          settingCubit: context.read<SettingsCubit>(),
+                        ),
+                      );
+                    },
+                    trailing: BlocBuilder<SettingsCubit, SettingsState>(
+                      builder: (context, settingsState) => Text(
+                        (settingsState.isBibleReminderNotificationActive
+                                ? 'On'
+                                : 'Off')
+                            .tr(),
+                        style: TextStyle(
+                          color: context.colorScheme.onSurfaceVariant,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.headphones_outlined,
+                    title: 'Audio Bible Config'.tr(),
+                    description: 'audio_bible_desc'.tr(),
+                    onTap: () {
+                      router.push(
+                        BibleAudioSettingRoute(
+                          onSave: (voices, pitch, speed) {
+                            cubit.applyTtsSetting(voices, pitch, speed);
+                          },
+                          initialPitchRate: cubit.state.pitchRate,
+                          initialSpeedRate: cubit.state.speedRate,
+                          initialVoices: cubit.state.voices,
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _SongSettingsSection extends StatefulWidget {
   const _SongSettingsSection();
+
+  @override
+  State<_SongSettingsSection> createState() => _SongSettingsSectionState();
+}
+
+class _SongSettingsSectionState extends State<_SongSettingsSection> {
+  Future<List<String>>? _soundFontsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _soundFontsFuture = context.read<SongCubit>().midiEngine
+        .getAvailableSoundFonts();
+  }
+
+  bool _canDeleteFont(AssetManagementState assetState, String sfFile) {
+    final code = sfFile.replaceAll('.sf2', '');
+    for (final status in assetState.statuses) {
+      if (status.definition.kind == DistributedAssetKind.soundfont &&
+          status.definition.code == code &&
+          status.canDelete) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  Future<bool> _confirmDeleteSoundFont(
+    BuildContext context,
+    String title,
+  ) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('delete'.tr()),
+        content: Text('confirm_delete_asset'.tr(namedArgs: {'name': title})),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('No'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Yes'.tr()),
+          ),
+        ],
+      ),
+    );
+    return result ?? false;
+  }
+
+  Future<void> _showSoundFontMenu(
+    BuildContext context, {
+    required String currentFont,
+    required List<({String code, String title})> remoteFonts,
+    required AssetManagementState assetState,
+    required Future<void> Function() onDownloaded,
+  }) async {
+    final songCubit = context.read<SongCubit>();
+    // Resolve the anchor synchronously (no async gap) so the context
+    // use below is safe.
+    final box = context.findRenderObject() as RenderBox;
+    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+    // Fetch the current font list fresh so a just-downloaded font
+    // appears as selectable immediately (the FutureBuilder snapshot
+    // may be stale).
+    final soundfonts = await songCubit.midiEngine.getAvailableSoundFonts();
+    if (!context.mounted) return;
+    // If the manifest state is empty (offline/first run) fall back to the
+    // bundled definitions — excluding anything already installed.
+    final remoteList = <({String code, String title})>[
+      ...remoteFonts,
+    ];
+    if (remoteList.isEmpty) {
+      final installedCodes = <String>{
+        ...soundfonts.map((f) => f.replaceAll('.sf2', '')),
+        ...assetState.statuses
+            .where(
+              (s) =>
+                  s.definition.kind == DistributedAssetKind.soundfont &&
+                  s.isInstalled,
+            )
+            .map((s) => s.definition.code),
+      };
+      remoteList.addAll(
+        supportedDistributedAssets
+            .where(
+              (d) =>
+                  d.kind == DistributedAssetKind.soundfont &&
+                  !installedCodes.contains(d.code),
+            )
+            .map(
+              (d) => (code: d.code, title: d.title),
+            ),
+      );
+    }
+    final action = await showMenu<String>(
+      context: context,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          box.localToGlobal(Offset.zero, ancestor: overlay),
+          box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      initialValue: currentFont,
+      items: [
+        for (final sf in soundfonts)
+          PopupMenuItem(
+            value: 'select:$sf',
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(sf.replaceAll('.sf2', '')),
+                ),
+                if (sf == currentFont)
+                  Icon(
+                    Icons.check_rounded,
+                    size: 18,
+                    color: context.colorScheme.primary,
+                  ),
+                if (_canDeleteFont(assetState, sf))
+                  Icon(
+                    Icons.delete_outline_rounded,
+                    size: 18,
+                    color: context.colorScheme.error,
+                  ),
+              ],
+            ),
+          ),
+        for (final remote in remoteList)
+          PopupMenuItem(
+            value: 'download:${remote.code}',
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    remote.title,
+                    style: TextStyle(
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.download_rounded,
+                  size: 18,
+                  color: context.colorScheme.primary,
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+    if (action == null || !context.mounted) return;
+
+    if (action.startsWith('select:')) {
+      songCubit.setSoundFont(action.substring(7));
+      return;
+    }
+    if (action.startsWith('download:')) {
+      final definition = assetDefinitionForCode(
+        DistributedAssetKind.soundfont,
+        action.substring(9),
+      );
+      if (definition != null) {
+        await di<AssetManagementCubit>().downloadAsset(definition);
+        await onDownloaded();
+      }
+      return;
+    }
+    if (action.startsWith('delete:')) {
+      final code = action.substring(7);
+      final status = assetState.statuses
+          .where(
+            (s) => s.definition.code == code && s.canDelete,
+          )
+          .firstOrNull;
+      if (status != null) {
+        final confirmed = await _confirmDeleteSoundFont(
+          context,
+          status.definition.title,
+        );
+        if (confirmed) {
+          await di<AssetManagementCubit>().deleteAsset(status.definition);
+          await onDownloaded();
+        }
+      }
+    }
+  }
+
+  Future<void> _resetChords(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('reset_chords'.tr()),
+        content: Text('reset_chords_confirm'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('No'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Yes'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (!context.mounted || confirmed != true) return;
+
+    final service = di<ChordSyncService>();
+    await service.reset();
+    final result = await service.sync();
+    if (!context.mounted) return;
+    Fluttertoast.cancel();
+    if (result.failed > 0) {
+      Fluttertoast.showToast(msg: 'chords_sync_failed'.tr());
+    } else {
+      Fluttertoast.showToast(msg: 'chords_synced'.tr());
+    }
+    // Reload chords for the current song so the reset is visible at once.
+    final songCubit = context.read<SongCubit>();
+    if (songCubit.state.songs.isNotEmpty) {
+      songCubit.reloadChordsForCurrentSong();
+      songCubit.refreshLibraryAvailability();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -840,98 +690,159 @@ class _SongSettingsSection extends StatelessWidget {
       builder: (context, state) {
         final songCubit = context.read<SongCubit>();
         return Section(
-          label: 'Pujian',
+          label: 'song_section'.tr(),
           child: (gap) => Padding(
             padding: EdgeInsets.symmetric(horizontal: gap),
-            child: Material(
-              color: context.colorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
+            child: _SettingsCard(
               child: Column(
                 children: [
-                  _SettingsSwitchTile(
-                    icon: Icons.piano_outlined,
-                    title: 'Tampilkan chord',
-                    description: 'Default overlay chord seperti gyschordweb',
-                    value: state.showChord,
-                    onChanged: songCubit.toggleChord,
-                  ),
-                  Divider(
-                    height: 1,
-                    color: context.colorScheme.outlineVariant.withValues(
-                      alpha: 0.3,
-                    ),
-                  ),
-                  _SettingsSwitchTile(
-                    icon: Icons.music_note_rounded,
-                    title: 'Aktifkan MIDI player',
-                    description: 'Tampilkan kontrol player di halaman pujian',
-                    value: state.showAudio,
-                    onChanged: songCubit.toggleAudio,
-                  ),
-                  Divider(
-                    height: 1,
-                    color: context.colorScheme.outlineVariant.withValues(
-                      alpha: 0.3,
-                    ),
-                  ),
                   _SettingsTile(
                     icon: Icons.library_music_outlined,
-                    title: 'SoundFont',
-                    description: 'Bank suara MIDI',
+                    title: 'soundfont_title'.tr(),
+                    description: 'soundfont_desc'.tr(),
                     trailing: FutureBuilder<List<String>>(
-                      future: songCubit.midiEngine.getAvailableSoundFonts(),
+                      future: _soundFontsFuture,
                       builder: (context, snapshot) {
-                        final soundfonts = settingsSoundFontMenuValues(
-                          availableSoundFonts: snapshot.data,
-                          selectedSoundFont: state.soundFont,
-                        );
-                        return PopupMenuButton<String>(
-                          initialValue: state.soundFont,
-                          onSelected: songCubit.setSoundFont,
-                          itemBuilder: (context) => soundfonts
-                              .map(
-                                (sf) => PopupMenuItem(
-                                  value: sf,
-                                  child: Text(sf.replaceAll('.sf2', '')),
+                        return BlocBuilder<AssetManagementCubit,
+                            AssetManagementState>(
+                          bloc: di<AssetManagementCubit>(),
+                          builder: (context, assetState) {
+                            // SoundFonts from the release manifest that are
+                            // not installed locally yet.
+                            final remoteFonts = <({String code, String title})>[
+                              ...assetState.statuses
+                                  .where(
+                                    (s) =>
+                                        s.definition.kind ==
+                                            DistributedAssetKind.soundfont &&
+                                        !s.isInstalled &&
+                                        s.hasRemotePackage,
+                                  )
+                                  .map(
+                                    (s) => (
+                                      code: s.definition.code,
+                                      title: s.definition.title,
+                                    ),
+                                  ),
+                            ];
+                            return Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Material(
+                                  color: Colors.transparent,
+                                  shape: StadiumBorder(
+                                    side: BorderSide(
+                                      color: context
+                                          .colorScheme
+                                          .outlineVariant
+                                          .withValues(alpha: 0.4),
+                                    ),
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  // Builder anchors the menu to THIS pill
+                                  // (the section context made it pop up far
+                                  // left / wrong position).
+                                  child: Builder(
+                                    builder: (pillContext) => InkWell(
+                                      borderRadius:
+                                          BorderRadius.circular(999),
+                                      onTap: () => _showSoundFontMenu(
+                                        pillContext,
+                                        currentFont: state.soundFont,
+                                        remoteFonts: remoteFonts,
+                                        assetState: assetState,
+                                        onDownloaded: () async {
+                                          _soundFontsFuture = songCubit
+                                              .midiEngine
+                                              .getAvailableSoundFonts();
+                                          if (mounted) setState(() {});
+                                        },
+                                      ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 6,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              state.soundFont
+                                                  .replaceAll('.sf2', ''),
+                                              style: TextStyle(
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                                color: context
+                                                    .colorScheme
+                                                    .onSurfaceVariant,
+                                              ),
+                                            ),
+                                            Icon(
+                                              Icons.arrow_drop_down,
+                                              color: context
+                                                  .colorScheme
+                                                  .onSurfaceVariant,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ),
-                              )
-                              .toList(),
-                          child: Text(state.soundFont.replaceAll('.sf2', '')),
+                                // Download progress for the soundfont
+                                // currently being fetched (32MB+ takes a
+                                // while — show it instead of a silent wait).
+                                if (assetState.progressByCode.isNotEmpty) ...[
+                                  const SizedBox(height: 6),
+                                  SizedBox(
+                                    width: 120,
+                                    child: LinearProgressIndicator(
+                                      minHeight: 4,
+                                      borderRadius:
+                                          BorderRadius.circular(2),
+                                      value: assetState.progressByCode.values
+                                          .reduce((a, b) => a > b ? a : b),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            );
+                          },
                         );
                       },
                     ),
                   ),
-                  Divider(
-                    height: 1,
-                    color: context.colorScheme.outlineVariant.withValues(
-                      alpha: 0.3,
-                    ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.library_books_outlined,
+                    title: 'hymn_book'.tr(),
+                    description: 'hymn_book_management'.tr(),
+                    onTap: () {
+                      router.push(HymnalManagementRoute());
+                    },
                   ),
+                  const _SettingsDivider(),
+                  _SettingsTile(
+                    icon: Icons.music_note_outlined,
+                    title: 'reset_chords'.tr(),
+                    description: 'reset_chords_desc'.tr(),
+                    onTap: () => _resetChords(context),
+                  ),
+                  const _SettingsDivider(),
                   _SettingsSwitchTile(
                     icon: Icons.bolt_outlined,
-                    title: 'Cache Ahead MIDI',
-                    description: 'Render lagu berikutnya di latar belakang',
+                    title: 'midi_cache_title'.tr(),
+                    description: 'midi_cache_desc'.tr(),
                     value: state.midiPreloadEnabled,
                     onChanged: songCubit.toggleWarmUp,
                   ),
-                  if (state.midiPreloadEnabled)
-                    Divider(
-                      height: 1,
-                      color: context.colorScheme.outlineVariant.withValues(
-                        alpha: 0.3,
-                      ),
-                    ),
-                  if (state.midiPreloadEnabled)
+                  if (state.midiPreloadEnabled) ...[
+                    const _SettingsDivider(),
                     _SettingsTile(
                       icon: Icons.queue_music_outlined,
-                      title: 'Jumlah lagu di-cache',
-                      description: 'Batas cache MIDI engine',
+                      title: 'midi_cache_count_title'.tr(),
+                      description: 'midi_cache_count_desc'.tr(),
                       trailing: PopupMenuButton<int>(
                         initialValue: state.midiCacheMaxCount,
                         onSelected: songCubit.setMidiCacheMaxCount,
@@ -939,26 +850,28 @@ class _SongSettingsSection extends StatelessWidget {
                             .map(
                               (v) => PopupMenuItem(
                                 value: v,
-                                child: Text('$v lagu'),
+                                child: Text(
+                                  'song_count'.tr(namedArgs: {'n': '$v'}),
+                                ),
                               ),
                             )
                             .toList(),
-                        child: Text('${state.midiCacheMaxCount} lagu'),
+                        child: Text(
+                          'song_count'.tr(namedArgs: {
+                            'n': '${state.midiCacheMaxCount}',
+                          }),
+                          style: TextStyle(
+                            color: context.colorScheme.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
+                        ),
                       ),
                     ),
-                  if (state.midiPreloadEnabled)
-                    Divider(
-                      height: 1,
-                      color: context.colorScheme.outlineVariant.withValues(
-                        alpha: 0.3,
-                      ),
-                    ),
-                  if (state.midiPreloadEnabled)
+                    const _SettingsDivider(),
                     _SettingsTile(
                       icon: Icons.cached_outlined,
-                      title: 'Preload tetangga',
-                      description:
-                          'Berapa lagu di sekitar yang di-render lebih awal',
+                      title: 'midi_neighbor_title'.tr(),
+                      description: 'midi_neighbor_desc'.tr(),
                       trailing: PopupMenuButton<int>(
                         initialValue: state.midiPreloadNeighborCount,
                         onSelected: songCubit.setMidiPreloadNeighborCount,
@@ -966,17 +879,30 @@ class _SongSettingsSection extends StatelessWidget {
                             .map(
                               (v) => PopupMenuItem(
                                 value: v,
-                                child: Text(v == 0 ? 'Mati' : '$v lagu'),
+                                child: Text(
+                                  v == 0
+                                      ? 'off'.tr()
+                                      : 'song_count'.tr(
+                                          namedArgs: {'n': '$v'},
+                                        ),
+                                ),
                               ),
                             )
                             .toList(),
                         child: Text(
                           state.midiPreloadNeighborCount == 0
-                              ? 'Mati'
-                              : '${state.midiPreloadNeighborCount} lagu',
+                              ? 'off'.tr()
+                              : 'song_count'.tr(namedArgs: {
+                                  'n': '${state.midiPreloadNeighborCount}',
+                                }),
+                          style: TextStyle(
+                            color: context.colorScheme.onSurfaceVariant,
+                            fontSize: 13,
+                          ),
                         ),
                       ),
                     ),
+                  ],
                 ],
               ),
             ),
@@ -995,65 +921,314 @@ class _ThemeSettingsSection extends StatelessWidget {
     return BlocBuilder<InitialCubit, InitialState>(
       builder: (context, state) {
         return Section(
-          label: 'Theme',
+          label: 'appearance_section'.tr(),
           child: (gap) => Padding(
             padding: EdgeInsets.symmetric(horizontal: gap),
-            child: Material(
-              color: context.colorScheme.surfaceContainerLowest,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-                side: BorderSide(
-                  color: context.colorScheme.outlineVariant.withValues(alpha: 0.55),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
+            child: _SettingsCard(
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Text(
+                      'theme_mode'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    _PreferenceSelector<ThemeMode>(
+                      label: 'theme_mode'.tr(),
+                      selected: {state.themeMode.toThemeMode},
+                      onChanged: (mode) {
+                        context
+                            .read<InitialCubit>()
+                            .toggleTheme(mode, () => context);
+                      },
+                      segments: [
+                        ButtonSegment(
+                          value: ThemeMode.system,
+                          label: Text('system'.tr()),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.light,
+                          label: Text('light'.tr()),
+                        ),
+                        ButtonSegment(
+                          value: ThemeMode.dark,
+                          label: Text('dark'.tr()),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
                     _AccentColorPicker(
-                  selectedKey: state.accentKey,
-                  onSelected: (key) {
-                    context.read<InitialCubit>().changeAccentColor(key);
-                  },
+                      selectedKey: state.accentKey,
+                      onSelected: (key) {
+                        context.read<InitialCubit>().changeAccentColor(key);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _DensitySelector(
+                      selected: state.themePreferences.density,
+                      onChanged: (density) {
+                        context.read<InitialCubit>().changeDensity(density);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _CornerRadiusSelector(
+                      selected: state.themePreferences.cornerRadius,
+                      onChanged: (style) {
+                        context.read<InitialCubit>().changeCornerRadius(style);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _TypographyScaleSelector(
+                      selected: state.themePreferences.typographyScale,
+                      onChanged: (scale) {
+                        context
+                            .read<InitialCubit>()
+                            .changeTypographyScale(scale);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _ThemePreviewCard(
+                      accentKey: state.accentKey,
+                      cornerRadius: state.themePreferences.cornerRadius,
+                      typographyScale: state.themePreferences.typographyScale,
+                    ),
+                    const SizedBox(height: 16),
+                    const _SettingsDivider(),
+                    _SettingsTile(
+                      icon: Icons.text_fields_rounded,
+                      title: 'Font Settings'.tr(),
+                      description: 'font_desc'.tr(),
+                      onTap: () {
+                        router.push(FontSettingRoute());
+                      },
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 24),
-                _DensitySelector(
-                  selected: state.themePreferences.density,
-                  onChanged: (density) {
-                    context.read<InitialCubit>().changeDensity(density);
-                  },
-                ),
-                const SizedBox(height: 16),
-                _CornerRadiusSelector(
-                  selected: state.themePreferences.cornerRadius,
-                  onChanged: (style) {
-                    context.read<InitialCubit>().changeCornerRadius(style);
-                  },
-                ),
-                const SizedBox(height: 16),
-                _TypographyScaleSelector(
-                  selected: state.themePreferences.typographyScale,
-                  onChanged: (scale) {
-                    context.read<InitialCubit>().changeTypographyScale(scale);
-                  },
-                ),
-                const SizedBox(height: 24),
-                _ThemePreviewCard(
-                  accentKey: state.accentKey,
-                  cornerRadius: state.themePreferences.cornerRadius,
-                  typographyScale: state.themePreferences.typographyScale,
-                ),
-                const SizedBox(height: 8),
-              ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _NotificationSettingsSection extends StatelessWidget {
+  const _NotificationSettingsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SettingsCubit, SettingsState>(
+      builder: (context, state) => Section(
+        label: 'Notification'.tr(),
+        child: (gap) => Padding(
+          padding: EdgeInsets.symmetric(horizontal: gap),
+          child: _SettingsCard(
+            child: _SettingsSwitchTile(
+              icon: Icons.notifications_active_outlined,
+              title: 'Sabat Notification'.tr(),
+              description: state.isSabatNotificationActive
+                  ? 'sabat_notification_enabled_desc'.tr()
+                  : 'sabat_notification_disabled_desc'.tr(),
+              value: state.isSabatNotificationActive,
+              onChanged: (value) {
+                context.read<SettingsCubit>().toggleSabatNotification();
+              },
             ),
           ),
         ),
       ),
     );
-      },
+  }
+}
+
+class _OtherSettingsSection extends StatelessWidget {
+  const _OtherSettingsSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Section(
+      label: 'Others'.tr(),
+      child: (gap) => Padding(
+        padding: EdgeInsets.symmetric(horizontal: gap),
+        child: _SettingsCard(
+          child: Column(
+            children: [
+              _SettingsTile(
+                icon: Icons.language_outlined,
+                title: 'Language'.tr(),
+                description: 'language_desc'.tr(),
+                onTap: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    builder: (c) => BlocProvider.value(
+                      value: context.read<BibleCubit>(),
+                      child: const SelectLanguageDialog(),
+                    ),
+                  );
+                },
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
+                icon: Icons.backup_outlined,
+                title: 'Backup'.tr(),
+                description: 'backup_desc'.tr(),
+                onTap: () {
+                  router.push(
+                    BackupRoute(
+                      onSynced: (data) {
+                        if (data.bibleState != null) {
+                          context.read<BibleCubit>().sync(data.bibleState!);
+                        }
+                        if (data.songState != null) {
+                          context.read<SongCubit>().sync(data.songState!);
+                        }
+                        if (data.faithState != null) {
+                          context.read<FaithCubit>().sync(data.faithState!);
+                        }
+                        if (data.settingsState != null) {
+                          context
+                              .read<SettingsCubit>()
+                              .sync(data.settingsState!);
+                        }
+                        Fluttertoast.cancel();
+                        Fluttertoast.showToast(msg: 'Sync success'.tr());
+                      },
+                      data: AppBackupData(
+                        bibleState: context.read<BibleCubit>().state,
+                        faithState: context.read<FaithCubit>().state,
+                        settingsState: context.read<SettingsCubit>().state,
+                        songState: context.read<SongCubit>().state,
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const _SettingsDivider(),
+              _SettingsTile(
+                icon: Icons.campaign_outlined,
+                title: 'Report'.tr(),
+                description: 'report_desc'.tr(),
+                onTap: () {
+                  final cubit = context.read<DashboardCubit>();
+                  router.push(
+                    ReportRoute(
+                      account: cubit.state.account,
+                      onLoggedIn: (token) async {
+                        try {
+                          await cubit.loginSuccessCallback(token);
+                          router.maybePop();
+                          Fluttertoast.cancel();
+                          Fluttertoast.showToast(msg: 'BERHASIL LOGIN!');
+                          return cubit.state.account;
+                        } catch (e, st) {
+                          debugPrint(
+                            '[SettingsView] onLoggedIn ERROR: $e\n$st',
+                          );
+                          rethrow;
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
+              const _SettingsDivider(),
+              BlocBuilder<AssetManagementCubit, AssetManagementState>(
+                bloc: di<AssetManagementCubit>(),
+                builder: (context, assetState) => Column(
+                  children: [
+                    _SettingsTile(
+                      icon: Icons.cleaning_services_outlined,
+                      title: 'delete_app_cache'.tr(),
+                      description: 'delete_app_cache_desc'.tr(),
+                      onTap: assetState.isClearingCache
+                          ? null
+                          : () {
+                              di<AssetManagementCubit>()
+                                  .clearFastAccessCache();
+                            },
+                      trailing: assetState.isClearingCache
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : null,
+                    ),
+                    const _SettingsDivider(),
+                    _SettingsTile(
+                      icon: Icons.restart_alt_rounded,
+                      title: 'full_app_reset'.tr(),
+                      description: 'full_app_reset_desc'.tr(),
+                      onTap: assetState.isResettingApp
+                          ? null
+                          : () => _resetWholeApp(context),
+                      trailing: assetState.isResettingApp
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(strokeWidth: 2),
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  Future<void> _resetWholeApp(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('full_app_reset'.tr()),
+        content: Text(
+          'Wipe all app data and return to first-time setup? This removes downloaded assets, notes, reminders, login state, cache, and preferences.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text('No'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text('Yes'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (!context.mounted || confirmed != true) return;
+
+    final assetCubit = di<AssetManagementCubit>();
+    final songCubit = context.read<SongCubit>();
+    final bibleCubit = context.read<BibleCubit>();
+
+    await songCubit.releaseResourcesForMaintenance();
+    await bibleCubit.releaseResourcesForMaintenance();
+    await Future<void>.delayed(const Duration(milliseconds: 80));
+    await WidgetsBinding.instance.endOfFrame;
+
+    await songCubit.prepareForAppReset();
+    final success = await assetCubit.resetAppData();
+    if (!context.mounted || !success) return;
+
+    await songCubit.resetToDefaults();
+    if (!context.mounted) return;
+    context.read<BackupCubit>().resetToDefaults();
+    context.read<InitialCubit>().resetToDefaults();
+    router.popUntilRoot();
+    router.replace(const InitialRoute());
   }
 }
 
@@ -1083,7 +1258,7 @@ class _AccentColorPicker extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Accent Color',
+          'accent_color'.tr(),
           style: Theme.of(context).textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
           ),
@@ -1102,7 +1277,7 @@ class _AccentColorPicker extends StatelessWidget {
                 height: 56,
                 decoration: BoxDecoration(
                   color: c.$4,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: context.appRadius(12),
                   border: isSelected
                       ? Border.all(color: c.$3, width: 2)
                       : Border.all(color: c.$3.withValues(alpha: 0.3)),
@@ -1125,6 +1300,43 @@ class _AccentColorPicker extends StatelessWidget {
   }
 }
 
+class _PreferenceSelector<T> extends StatelessWidget {
+  final String label;
+  final Set<T> selected;
+  final List<ButtonSegment<T>> segments;
+  final ValueChanged<T> onChanged;
+
+  const _PreferenceSelector({
+    required this.label,
+    required this.selected,
+    required this.segments,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        SegmentedButton<T>(
+          segments: segments,
+          selected: selected,
+          expandedInsets: EdgeInsets.zero,
+          showSelectedIcon: false,
+          onSelectionChanged: (set) => onChanged(set.first),
+        ),
+      ],
+    );
+  }
+}
+
 class _DensitySelector extends StatelessWidget {
   final DisplayDensity selected;
   final ValueChanged<DisplayDensity> onChanged;
@@ -1136,33 +1348,22 @@ class _DensitySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Display Density',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+    return _PreferenceSelector<DisplayDensity>(
+      label: 'display_density'.tr(),
+      selected: {selected},
+      onChanged: onChanged,
+      segments: [
+        ButtonSegment(
+          value: DisplayDensity.compact,
+          label: Text('density_compact'.tr()),
         ),
-        const SizedBox(height: 12),
-        SegmentedButton<DisplayDensity>(
-          segments: const [
-            ButtonSegment(
-              value: DisplayDensity.compact,
-              label: Text('Compact'),
-            ),
-            ButtonSegment(
-              value: DisplayDensity.standard,
-              label: Text('Standard'),
-            ),
-            ButtonSegment(
-              value: DisplayDensity.comfortable,
-              label: Text('Comfortable'),
-            ),
-          ],
-          selected: {selected},
-          onSelectionChanged: (set) => onChanged(set.first),
+        ButtonSegment(
+          value: DisplayDensity.standard,
+          label: Text('density_standard'.tr()),
+        ),
+        ButtonSegment(
+          value: DisplayDensity.comfortable,
+          label: Text('density_comfortable'.tr()),
         ),
       ],
     );
@@ -1180,33 +1381,22 @@ class _CornerRadiusSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Corner Radius',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+    return _PreferenceSelector<CornerRadiusStyle>(
+      label: 'corner_radius'.tr(),
+      selected: {selected},
+      onChanged: onChanged,
+      segments: [
+        ButtonSegment(
+          value: CornerRadiusStyle.soft,
+          label: Text('radius_soft'.tr()),
         ),
-        const SizedBox(height: 12),
-        SegmentedButton<CornerRadiusStyle>(
-          segments: const [
-            ButtonSegment(
-              value: CornerRadiusStyle.soft,
-              label: Text('Soft'),
-            ),
-            ButtonSegment(
-              value: CornerRadiusStyle.medium,
-              label: Text('Medium'),
-            ),
-            ButtonSegment(
-              value: CornerRadiusStyle.sharp,
-              label: Text('Sharp'),
-            ),
-          ],
-          selected: {selected},
-          onSelectionChanged: (set) => onChanged(set.first),
+        ButtonSegment(
+          value: CornerRadiusStyle.medium,
+          label: Text('radius_medium'.tr()),
+        ),
+        ButtonSegment(
+          value: CornerRadiusStyle.sharp,
+          label: Text('radius_sharp'.tr()),
         ),
       ],
     );
@@ -1224,33 +1414,22 @@ class _TypographyScaleSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Typography Scale',
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+    return _PreferenceSelector<TypographyScale>(
+      label: 'typography_scale'.tr(),
+      selected: {selected},
+      onChanged: onChanged,
+      segments: [
+        ButtonSegment(
+          value: TypographyScale.compact,
+          label: Text('type_compact'.tr()),
         ),
-        const SizedBox(height: 12),
-        SegmentedButton<TypographyScale>(
-          segments: const [
-            ButtonSegment(
-              value: TypographyScale.compact,
-              label: Text('Compact'),
-            ),
-            ButtonSegment(
-              value: TypographyScale.normal,
-              label: Text('Normal'),
-            ),
-            ButtonSegment(
-              value: TypographyScale.comfortable,
-              label: Text('Comfortable'),
-            ),
-          ],
-          selected: {selected},
-          onSelectionChanged: (set) => onChanged(set.first),
+        ButtonSegment(
+          value: TypographyScale.normal,
+          label: Text('type_normal'.tr()),
+        ),
+        ButtonSegment(
+          value: TypographyScale.comfortable,
+          label: Text('type_comfortable'.tr()),
         ),
       ],
     );
@@ -1314,28 +1493,31 @@ class _ThemePreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colorScheme;
     final seed = _getSeedColor();
     final container = _getContainerColor();
     final radius = _getRadius();
     final scale = _getScale();
 
+    // Surface-based palette (not hardcoded white/grey) so the preview card
+    // stays legible in dark mode.
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colors.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: Border.all(color: container, width: 1),
+        border: Border.all(color: colors.outlineVariant, width: 1),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'PREVIEW',
+            'preview_label'.tr().toUpperCase(),
             style: TextStyle(
               fontSize: 10 * scale,
               fontWeight: FontWeight.w700,
-              color: Colors.grey,
+              color: colors.onSurfaceVariant,
               letterSpacing: 1.2,
             ),
           ),
@@ -1353,7 +1535,7 @@ class _ThemePreviewCard extends StatelessWidget {
             'This is sample body text showing the current theme settings.',
             style: TextStyle(
               fontSize: 14 * scale,
-              color: Colors.grey[700],
+              color: colors.onSurfaceVariant,
             ),
           ),
           const SizedBox(height: 12),
@@ -1432,7 +1614,6 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       expand: false,
-      // controller: controller,
       snap: true,
       initialChildSize: childHeight.clamp(0.1, .9),
       minChildSize: (childHeight - .2).clamp(0.0000000001, .9),
@@ -1458,7 +1639,6 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
               Expanded(
                 child: SingleChildScrollView(
                   controller: scrollController,
-                  // padding: EdgeInsets.symmetric(horizontal: 16),
                   child: Section(
                     key: widgetKey,
                     label: 'Select Language'.tr(),
@@ -1470,12 +1650,15 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                             child: Column(
                               children: [
                                 ListTile(
-                                  tileColor:
-                                      context.colorScheme.surfaceContainerLow,
+                                  tileColor: context
+                                      .colorScheme
+                                      .surfaceContainerLow,
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(8),
                                     side: BorderSide(
-                                      color: context.colorScheme.outlineVariant
+                                      color: context
+                                          .colorScheme
+                                          .outlineVariant
                                           .withValues(alpha: 0.46),
                                     ),
                                   ),
@@ -1520,7 +1703,6 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                             ),
                           ),
                         ),
-                        // SizedBox(height: 24),
                       ],
                     ),
                   ),
@@ -1600,7 +1782,7 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                             margin: const EdgeInsets.fromLTRB(12, 4, 12, 4),
                             decoration: BoxDecoration(
                               color: context.colorScheme.surfaceContainerLow,
-                              borderRadius: BorderRadius.circular(8),
+                              borderRadius: context.appRadius(8),
                               border: Border.all(
                                 color: context.colorScheme.outlineVariant
                                     .withValues(alpha: 0.46),
@@ -1656,7 +1838,7 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                                   color: data[item] != null
                                       ? context.colorScheme.primary
                                       : null,
-                                  borderRadius: BorderRadius.circular(10),
+                                  borderRadius: context.appRadius(10),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
@@ -1698,7 +1880,7 @@ class _BibleReminderDialogState extends State<BibleReminderDialog> {
                               foregroundColor: context.colorScheme.onPrimary,
                               minimumSize: Size.fromHeight(56),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: context.appRadius(8),
                               ),
                             ),
                             onPressed: () async {

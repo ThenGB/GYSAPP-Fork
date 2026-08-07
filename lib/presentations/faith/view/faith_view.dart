@@ -1,3 +1,4 @@
+import '../../../components/components.dart';
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
@@ -92,7 +93,7 @@ class _FaithViewState extends State<FaithView> {
 
         appBar: AppBar(
           backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
-          title: const Text('Dasar Kepercayaan'),
+          title: Text('faith_section_title'.tr()),
           automaticallyImplyLeading: false,
           toolbarHeight: 74,
           leading: IconButton(
@@ -101,41 +102,84 @@ class _FaithViewState extends State<FaithView> {
             icon: const Icon(Icons.menu_outlined),
           ),
           actions: [
-            IconButton(
-              tooltip: 'Search'.tr(),
-              onPressed: () {
-                router.push(FaithNoteListRoute(cubit: context.read()));
-              },
-              icon: const Icon(Icons.search_rounded),
+            Material(
+              color: Colors.transparent,
+              shape: StadiumBorder(
+                side: BorderSide(
+                  color: context
+                      .colorScheme
+                      .outlineVariant
+                      .withValues(alpha: 0.4),
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              // Builder gives the InkWell its own context so the menu
+              // anchors to THIS pill (using the page context made the
+              // menu pop up at the wrong position — far left).
+              child: Builder(
+                builder: (pillContext) => InkWell(
+                  borderRadius: BorderRadius.circular(999),
+                  onTap: () =>
+                      _showLanguageMenu(pillContext, state),
+                  child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.translate_rounded,
+                        size: 18,
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        _localeLabel(state.locale),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: context.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      Icon(
+                        Icons.arrow_drop_down,
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
+                    ],
+                  ),
+                ),
+                ),
+              ),
             ),
-            PopupMenuButton(
+            const SizedBox(width: 4),
+            PopupMenuButton<String>(
               offset: Offset(0, 48),
               onSelected: (value) {
-                if (value == 'Language') {
-                  final currentIndex = context.supportedLocales.indexWhere(
-                    (locale) =>
-                        locale.languageCode == state.locale.languageCode,
-                  );
-                  final nextIndex =
-                      ((currentIndex + 1) % context.supportedLocales.length)
-                          .clamp(0, context.supportedLocales.length - 1);
-                  context.read<FaithCubit>().setLanguage(
-                    context.supportedLocales[nextIndex],
-                  );
-                } else if (value == 'See all notes') {
+                if (value == 'See all notes') {
                   router.push(FaithNoteListRoute(cubit: context.read()));
                 }
               },
               itemBuilder: (context) {
-                return ['Language', 'See all notes']
+                return ['See all notes']
                     .map((e) => PopupMenuItem(value: e, child: Text(e.tr())))
                     .toList();
               },
-              child: CircleAvatar(
-                backgroundColor: Colors.transparent,
-                child: Icon(
-                  Icons.more_vert_rounded,
-                  color: context.colorScheme.onSurfaceVariant,
+              child: Material(
+                color: Colors.transparent,
+                shape: const CircleBorder(),
+                clipBehavior: Clip.antiAlias,
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Icon(
+                      Icons.more_vert_rounded,
+                      size: 22,
+                      color: context.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -255,7 +299,6 @@ class FaithWidget extends StatelessWidget {
           builder: (context, constraints) {
             final compact = constraints.maxWidth < 430;
             final cardPadding = compact ? 18.0 : 24.0;
-            final markerSize = compact ? 104.0 : 140.0;
             final numberGap = compact ? 12.0 : 16.0;
             final initialCubit = context.read<InitialCubit>();
             return AnimatedContainer(
@@ -267,66 +310,84 @@ class FaithWidget extends StatelessWidget {
                 color: state.selectedFaith.contains(index)
                     ? context.colorScheme.primaryContainer
                     : context.colorScheme.surfaceContainer,
-                borderRadius: BorderRadius.circular(compact ? 18 : 22),
-              ),
-              padding: EdgeInsets.fromLTRB(
-                cardPadding,
-                cardPadding,
-                cardPadding,
-                cardPadding,
+                borderRadius: context.appRadius(compact ? 18 : 22),
               ),
               child: Stack(
                 children: [
-                  AnimatedPositioned(
-                    duration: const Duration(milliseconds: 250),
-                    right: -16,
-                    bottom: compact ? -14 : -24,
-                    child: AnimatedDefaultTextStyle(
-                      duration: const Duration(milliseconds: 250),
-                      style:
-                          (context.textTheme.headlineLarge ?? const TextStyle())
-                              .copyWith(
-                                fontSize: markerSize,
-                                fontWeight: FontWeight.w900,
-                                color: context.colorScheme.primary.withValues(
-                                  alpha: state.selectedFaith.contains(index)
-                                      ? 0.20
-                                      : 0.10,
+                  // Roman ornament — auto-fits the whole card (FittedBox
+                  // scales it down), so it can never be cropped.
+                  Positioned.fill(
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 8, bottom: 4),
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 250),
+                        style:
+                            (context.textTheme.headlineLarge ?? const TextStyle())
+                                .copyWith(
+                                  fontSize: 96,
+                                  fontWeight: FontWeight.w900,
+                                  color: context.colorScheme.primary.withValues(
+                                    alpha: state.selectedFaith.contains(index)
+                                        ? 0.20
+                                        : 0.10,
+                                  ),
+                                  height: 1,
                                 ),
-                                height: 1,
-                              ),
-                      child: Text(_romanNumeral(index + 1)),
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          alignment: Alignment.bottomRight,
+                          child: Text(_romanNumeral(index + 1)),
+                        ),
+                      ),
                     ),
                   ),
-                  Row(
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      cardPadding,
+                      cardPadding,
+                      cardPadding,
+                      cardPadding,
+                    ),
+                    child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${item['number']}',
-                        style: context.textTheme.headlineLarge?.copyWith(
+                        style: TextStyle(
+                          fontSize: context.appFontSize(14) * 1.5,
+                          fontWeight: FontWeight.w800,
                           color: context.colorScheme.primary,
+                          height: 1.1,
                         ),
                       ),
                       SizedBox(width: numberGap),
                       Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text.rich(
-                              TextSpan(text: item['text'].toString()),
-                              textScaler: TextScaler.linear(scale),
-                              style: TextStyle(
-                                fontFamily: initialCubit.state.defaultFont,
-                                height: fontHeight,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
+                        child: Text.rich(
+                          TextSpan(text: item['text'].toString()),
+                          textScaler: TextScaler.linear(scale),
+                          style: TextStyle(
+                            fontFamily: initialCubit.state.defaultFont,
+                            // CJK glyphs use a fallback font whose metrics
+                            // differ — forcing fontHeight clipped the glyphs
+                            // (cropped rows). Use natural line height there.
+                            height: context
+                                    .read<FaithCubit>()
+                                    .state
+                                    .locale
+                                    .languageCode
+                                    .contains('zh')
+                                ? null
+                                : fontHeight,
+                            // Regular weight: w500 rendered noticeably
+                            // heavy with EB Garamond / Manrope.
+                            fontWeight: FontWeight.w400,
+                            fontSize: context.appFontSize(14),
+                          ),
                         ),
                       ),
                     ],
                   ),
+                ),
                 ],
               ),
             );
@@ -335,6 +396,62 @@ class FaithWidget extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _showLanguageMenu(BuildContext context, FaithState state) async {
+  final box = context.findRenderObject() as RenderBox;
+  final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
+  final locale = await showMenu<Locale>(
+    context: context,
+    position: RelativeRect.fromRect(
+      Rect.fromPoints(
+        box.localToGlobal(Offset.zero, ancestor: overlay),
+        box.localToGlobal(
+          box.size.bottomRight(Offset.zero),
+          ancestor: overlay,
+        ),
+      ),
+      Offset.zero & overlay.size,
+    ),
+    initialValue: state.locale,
+    items: [
+      for (final locale in context.supportedLocales)
+        PopupMenuItem(
+          value: locale,
+          child: Row(
+            children: [
+              Icon(
+                Icons.language_rounded,
+                size: 18,
+                color: context.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                _localeLabel(locale),
+                style: locale == state.locale
+                    ? TextStyle(
+                        fontWeight: FontWeight.w700,
+                        color: context.colorScheme.primary,
+                      )
+                    : null,
+              ),
+            ],
+          ),
+        ),
+    ],
+  );
+  if (locale != null && context.mounted) {
+    context.read<FaithCubit>().setLanguage(locale);
+  }
+}
+
+String _localeLabel(Locale locale) {
+  return switch (locale.languageCode) {
+    'id' => 'Indonesia',
+    'en' => 'English',
+    'zh' => '中文',
+    _ => locale.languageCode,
+  };
 }
 
 String _romanNumeral(int value) {
@@ -483,7 +600,10 @@ class SelectedFaithMenu extends StatelessWidget {
                   ),
                 ],
               ),
-              SizedBox(height: 8 + 16 + viewPadding),
+              // The faith page is a full-screen route whose bottom edge
+              // sits under the floating dock, so the selection menu needs
+              // explicit nav-bar clearance (72 = 64px dock + margin).
+              SizedBox(height: 8 + 16 + viewPadding + 72),
             ],
           ),
         ),

@@ -83,6 +83,15 @@ android {
             signingConfig = hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
+
+    // Enable R8 full mode for more aggressive code shrinking.  Full mode
+    // performs additional optimisations (e.g. more aggressive class
+    // merging) that trade a small amount of build time for smaller APKs.
+    // Safe with our proguard rules because the Flutter embedding, the
+    // native PDF / MIDI plugins and the authentication plugins all have
+    // their symbols explicitly kept.
+    // Note: this property is only honoured by AGP 8.x; for older AGP it
+    // is a no-op.
 }
 
 flutter {

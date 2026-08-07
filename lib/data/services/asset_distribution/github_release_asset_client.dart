@@ -32,6 +32,7 @@ class GitHubReleaseAssetClient {
   static const _manifestNames = {
     AssetReleaseTrack.bibles: 'bibles-manifest.json',
     AssetReleaseTrack.hymnals: 'hymnals-manifest.json',
+    AssetReleaseTrack.soundfont: 'soundfont-manifest.json',
   };
 
   Future<RemoteAssetManifest?> fetchLatestManifest(

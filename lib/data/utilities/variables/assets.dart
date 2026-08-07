@@ -1,10 +1,6 @@
 class Assets {
   Assets._();
 
-  /// Assets for assetsDataBTb
-  /// assets/data/b_tb.db
-  static const String assetsDataBTb = "assets/data/b_tb.db";
-
   /// Assets for assetsDataEmailReport
   /// assets/data/email_report.html
   static const String assetsDataEmailReport = "assets/data/email_report.html";

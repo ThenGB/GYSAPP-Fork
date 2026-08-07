@@ -12,7 +12,7 @@ import 'native_midi/midi_worker.dart';
 import 'native_midi/native_midi_renderer.dart';
 import '../../presentations/song/cubit/song_preload_key.dart';
 
-const String defaultMidiSoundFont = 'GeneralUser-GS.sf2';
+const String defaultMidiSoundFont = 'TimGM6mb.sf2';
 
 class MidiPlaybackState {
   final bool isPlaying;
@@ -364,6 +364,49 @@ class MidiEngineService {
             await play();
           }
           return;
+        }
+      }
+
+      // FAST PATH 1.5: disk cache populated by warm-up / background render.
+      // Without this the cache-ahead feature only helps while the source
+      // survives in memory; after a prune or app restart the next song
+      // re-renders from scratch even though the WAV is on disk.
+      if (startAt == Duration.zero) {
+        final wavFile = File(_wavCachePath(cacheKey));
+        if (await wavFile.exists()) {
+          try {
+            final wavBytes = await wavFile.readAsBytes();
+            final source = await SoLoud.instance.loadMem(
+              'midi-cache-$cacheKey',
+              wavBytes,
+              mode: LoadMode.memory,
+            );
+            _sourceCache[cacheKey] = source;
+            _touchCacheKey(cacheKey);
+            await _pruneSourceCache();
+            _setCurrentSource(source);
+            final duration =
+                SoLoud.instance.getLength(source).inMilliseconds / 1000;
+            _setState(
+              _state.copyWith(
+                isLoading: false,
+                duration: duration,
+              ),
+            );
+            log(
+              'loadMidi: loaded from disk cache for $midiPath',
+              name: 'MidiEngine',
+            );
+            if (autoplay) {
+              await play();
+            }
+            return;
+          } catch (e) {
+            log(
+              'loadMidi: disk cache load failed for $midiPath: $e',
+              name: 'MidiEngine',
+            );
+          }
         }
       }
 

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:simple_animations/simple_animations.dart';
+import '../../../components/components.dart';
 
 import '../../../data/data.dart';
 import '../../../data/utilities/toast_utils.dart';
@@ -108,7 +109,7 @@ class VerseWidgetState extends State<VerseWidget>
                           return TextSpan(
                             style: TextStyle(
                               fontWeight: FontWeight.w900,
-                              fontSize: 13,
+                              fontSize: context.appFontSize(13),
                               height: context
                                   .read<BibleCubit>()
                                   .state
@@ -213,7 +214,7 @@ class VerseWidgetState extends State<VerseWidget>
                                 : Alignment.center,
                             decoration: widget.hasNote
                                 ? BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10),
+                                    borderRadius: context.appRadius(10),
                                     color:
                                         context.colorScheme.secondaryContainer,
                                   )
@@ -249,7 +250,7 @@ class VerseWidgetState extends State<VerseWidget>
                                   style: TextStyle(
                                     fontFamily: context.read<BibleCubit>().state.defaultFont,
                                     fontWeight: FontWeight.w700,
-                                    fontSize: 14,
+                                    fontSize: context.appFontSize(14),
                                     color: widget.hasNote
                                         ? context
                                               .colorScheme
@@ -270,7 +271,7 @@ class VerseWidgetState extends State<VerseWidget>
                               .bodyMedium
                               ?.copyWith(
                                 fontFamily: context.read<BibleCubit>().state.defaultFont,
-                                fontSize: 17,
+                                fontSize: context.appFontSize(17),
                                 fontWeight: FontWeight.w400,
                                 height: 1.35,
                                 color: context.colorScheme.onSurface,
@@ -297,7 +298,7 @@ class VerseWidgetState extends State<VerseWidget>
                                           decoration: widget.hasNote
                                               ? BoxDecoration(
                                                   borderRadius:
-                                                      BorderRadius.circular(10),
+                                                      context.appRadius(10),
                                                   color: context
                                                       .colorScheme
                                                       .secondaryContainer,
@@ -341,7 +342,7 @@ class VerseWidgetState extends State<VerseWidget>
                                                 style: TextStyle(
                                                   fontFamily: context.read<BibleCubit>().state.defaultFont,
                                                   fontWeight: FontWeight.w700,
-                                                  fontSize: 14,
+                                                  fontSize: context.appFontSize(14),
                                                   color: widget.hasNote
                                                       ? context
                                                             .colorScheme
@@ -475,7 +476,7 @@ class VerseWidgetState extends State<VerseWidget>
                                       ),
                                       decoration: BoxDecoration(
                                         // color: context.colorScheme.primary,
-                                        borderRadius: BorderRadius.circular(10),
+                                        borderRadius: context.appRadius(10),
                                       ),
                                       child: Text(
                                         '*',
@@ -486,7 +487,7 @@ class VerseWidgetState extends State<VerseWidget>
 
                                         /// REF*
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: context.appFontSize(12),
                                           fontWeight: FontWeight.bold,
                                           // color: context.colorScheme.onPrimary,
                                         ),

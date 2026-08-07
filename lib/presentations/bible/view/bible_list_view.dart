@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../components/components.dart';
 
 import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
@@ -145,7 +146,7 @@ class _BibleListViewState extends State<BibleListView> {
                               width: (constraints.maxWidth / 5),
                               height: (constraints.maxWidth / 8) * widget.textScale,
                               child: Material(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: context.appRadius(8),
                                 color: context.colorScheme.surfaceContainerLow,
                                 child: InkWell(
                                   onTap: () {
@@ -157,7 +158,7 @@ class _BibleListViewState extends State<BibleListView> {
                                     padding: const EdgeInsets.all(4),
                                     alignment: Alignment.center,
                                     decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: context.appRadius(8),
                                       border: Border.all(
                                         color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                                       ),
@@ -196,7 +197,7 @@ class _BibleListViewState extends State<BibleListView> {
                                   width: (constraints.maxWidth / 5),
                                   height: (constraints.maxWidth / 8) * widget.textScale,
                                   child: Material(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(8),
                                     color: context.colorScheme.surfaceContainerLow,
                                     child: InkWell(
                                       onTap: () {
@@ -207,7 +208,7 @@ class _BibleListViewState extends State<BibleListView> {
                                         padding: const EdgeInsets.all(4),
                                         alignment: Alignment.center,
                                         decoration: BoxDecoration(
-                                          borderRadius: BorderRadius.circular(8),
+                                          borderRadius: context.appRadius(8),
                                           border: Border.all(
                                             color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                                           ),
@@ -247,7 +248,7 @@ class _BibleListViewState extends State<BibleListView> {
               width: isGridViewMode ? (constraints.maxWidth / 6) : constraints.maxWidth,
               height: (isGridViewMode ? (constraints.maxWidth / 8) : 48) * widget.textScale,
               child: Material(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: context.appRadius(8),
                 color: context.colorScheme.surfaceContainerLow,
                 child: InkWell(
                   onTap: () {
@@ -257,7 +258,7 @@ class _BibleListViewState extends State<BibleListView> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: context.appRadius(8),
                       border: Border.all(
                         color: context.colorScheme.outlineVariant.withValues(alpha: 0.2),
                       ),

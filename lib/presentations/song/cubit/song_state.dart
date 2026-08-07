@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../components/design_system/design_system.dart';
 import '../../../data/services/chord_service.dart';
 import '../../../data/utilities/extensions/extensions.dart';
 import '../../../domain/entity/song/song_entity.dart';
@@ -27,7 +28,7 @@ abstract class SongState with _$SongState {
     @Default('KR') String bookCode,
     @Default(0) int pageIndex,
     @Default(0) int verseIndex,
-    @Default(false) isImageMode,
+    @Default(false) bool isImageMode,
     @Default(false) bool showSizer,
     @Default('mid') String defaultAudioFormat,
     Song? selectedSong,
@@ -141,7 +142,7 @@ abstract class SongState with _$SongState {
   }
 
   List<String> get availableFonts {
-    return ['Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
+    return DesignSystem.appFontOptions;
   }
 
   List<Song> get songs {

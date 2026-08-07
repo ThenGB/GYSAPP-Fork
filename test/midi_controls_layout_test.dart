@@ -75,7 +75,7 @@ void main() {
     );
     expect(
       source,
-      contains('navHeight + bottomInset'),
+      contains('navHeight + 8 + bottomInset'),
     );
     expect(source, isNot(contains('final reservedBottomSpace')));
   });
@@ -298,7 +298,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 100));
 
     // Tap the circle to expand
-    await tester.tap(find.byIcon(Icons.queue_music_rounded));
+    await tester.tap(find.byIcon(Icons.play_arrow_rounded));
     await tester.pump();
 
     // Should be in flying state
@@ -331,7 +331,7 @@ void main() {
     final sidebarLeft = tester.getRect(positioned).left;
 
     // Tap the circle to expand
-    await tester.tap(find.byIcon(Icons.queue_music_rounded));
+    await tester.tap(find.byIcon(Icons.play_arrow_rounded));
     await tester.pump();
 
     // Half-way through the fly phase (240ms total fly).
@@ -374,11 +374,11 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Should be collapsed - circle visible
-    expect(find.byIcon(Icons.queue_music_rounded), findsOneWidget);
+    expect(find.byIcon(Icons.play_arrow_rounded), findsOneWidget);
   });
 
   testWidgets(
-    'collapse morph phase keeps the panel centred on screen',
+    'collapse shrinks in place then flies to the sidebar',
     (tester) async {
       tester.view.physicalSize = const Size(360, 640);
       tester.view.devicePixelRatio = 1;
@@ -397,37 +397,36 @@ void main() {
       );
       await tester.pump(const Duration(milliseconds: 300));
 
-      // Capture the player centre via the Positioned key.  During the morph
-      // phase the panel shrinks but its CENTRE should stay at screenWidth/2
-      // so the circle collapses in place rather than drifting to the left
-      // edge of the expanded player.
+      // Capture the expanded player rect.
       final playerRect = tester
           .getRect(find.byKey(const ValueKey('midi-positioned')));
-      final playerCenter = playerRect.center.dx;
+      final playerLeft = playerRect.left;
 
       // Start collapse.
       await tester.tap(find.byIcon(Icons.expand_more));
       await tester.pump();
 
-      // Half-way through the morph phase (240ms total).  The panel should
-      // have shrunk substantially but its centre should still be at the
-      // same x as the expanded player's centre.
+      // Half-way through the shrink phase: the panel is smaller but stays
+      // at the player slot (no overflow, no premature movement).
       await tester.pump(const Duration(milliseconds: 120));
-      final midMorphRect = tester
+      final midRect = tester
           .getRect(find.byKey(const ValueKey('midi-positioned')));
-      final midMorphCenter = midMorphRect.center.dx;
-      // The centre should NOT have drifted sideways.  Allow 2px slop for
-      // sub-pixel rounding.
+      expect(tester.takeException(), isNull);
+      expect(midRect.width, lessThan(playerRect.width));
+      expect((midRect.left - playerLeft).abs() < 2, isTrue);
+
+      // After the shrink, the circle flies to the sidebar.
+      await tester.pumpAndSettle();
+      final finalRect = tester
+          .getRect(find.byKey(const ValueKey('midi-positioned')));
+      expect(finalRect.width, closeTo(64, 1));
       expect(
-        (midMorphCenter - playerCenter).abs() < 2,
+        finalRect.left > playerLeft + 100,
         isTrue,
         reason:
-            'Panel centre drifted during morph: '
-            'expandedCenter=$playerCenter, midMorphCenter=$midMorphCenter',
+            'Final position should be far from player (at sidebar): '
+            'playerLeft=$playerLeft, finalLeft=${finalRect.left}',
       );
-
-      // Let the animation settle.
-      await tester.pumpAndSettle();
     },
   );
 
@@ -460,9 +459,9 @@ void main() {
       await tester.tap(find.byIcon(Icons.expand_more));
       await tester.pump();
 
-      // Sample at 3 points during the fly phase to verify the panel
-      // moves from player to sidebar (not from sidebar to player).
-      await tester.pump(const Duration(milliseconds: 300));
+      // Sample at 3 points during the one continuous motion to verify the
+      // panel moves from player to sidebar (never back toward the player).
+      await tester.pump(const Duration(milliseconds: 100));
       final earlyFlyLeft = tester
           .getRect(find.byKey(const ValueKey('midi-positioned')))
           .left;
@@ -519,7 +518,7 @@ void main() {
       // the current position.  The default sidebar is at the right
       // edge (X=1.0); dragging left puts the snap target on the
       // left edge so the X animation is visible.
-      final circle = find.byIcon(Icons.queue_music_rounded);
+      final circle = find.byIcon(Icons.play_arrow_rounded);
       await tester.drag(circle, const Offset(-100, 0));
       await tester.pump();
 
@@ -562,7 +561,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       final positioned = find.byKey(const ValueKey('midi-positioned'));
-      final circle = find.byIcon(Icons.queue_music_rounded);
+      final circle = find.byIcon(Icons.play_arrow_rounded);
 
       // Drag the circle UP so it ends well above centre.  The release
       // Y should be preserved by the snap, not reset to 0.5 (centre).
@@ -610,7 +609,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Get the circle widget
-    final circle = find.byIcon(Icons.queue_music_rounded);
+    final circle = find.byIcon(Icons.play_arrow_rounded);
 
     // Drag from center to left side
     await tester.drag(circle, const Offset(-100, 0));
@@ -637,7 +636,7 @@ void main() {
       await tester.pump(const Duration(milliseconds: 300));
 
       final positioned = find.byKey(const ValueKey('midi-positioned'));
-      final circle = find.byIcon(Icons.queue_music_rounded);
+      final circle = find.byIcon(Icons.play_arrow_rounded);
 
       // Drag far enough to cross the centre line.  The snap will then
       // animate the circle to the LEFT edge.  The drag itself should
@@ -691,7 +690,7 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Drag from center to right side
-    final circle = find.byIcon(Icons.queue_music_rounded);
+    final circle = find.byIcon(Icons.play_arrow_rounded);
     await tester.drag(circle, const Offset(100, 0));
     await tester.pumpAndSettle();
 

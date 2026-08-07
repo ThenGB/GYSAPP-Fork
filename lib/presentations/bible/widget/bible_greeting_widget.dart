@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
 import '../../../components/widgets/section.dart';
@@ -29,7 +30,7 @@ class BibleGreeting extends StatelessWidget {
               onPressed: () async {
                 onTapSelectBible(context);
               },
-              child: const Text('Select bible'),
+              child: Text('Select bible'.tr()),
             ),
           ],
         ),

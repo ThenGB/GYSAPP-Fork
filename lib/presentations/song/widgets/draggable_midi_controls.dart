@@ -1,9 +1,14 @@
-﻿// ignore_for_file: constant_identifier_names
+﻿import '../../../components/components.dart';
+// ignore_for_file: constant_identifier_names
 // Enum values use snake_case for readability (e.g., sidebar_circle, flying_to_player)
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/services/midi_engine_service.dart';
 import '../cubit/song_playlist.dart';
 
 // Animation timing
@@ -14,6 +19,9 @@ const Duration kMidiDragPopDuration = Duration(milliseconds: 180);
 
 const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
+// Bottom space reserved for the dashboard dock (_navBarHeight 72 + margin)
+// so the player never sits underneath the navigation bar.
+const double kMidiNavBarReserve = 80;
 const double kMidiCollapsedBarHeight = 48;
 const double kMidiCollapsedMaxWidth = 220;
 const double kMidiExpandedMaxWidth = 460;
@@ -31,6 +39,10 @@ const double kMidiExpandedWidthRatio = 0.95;
 
 // Collapsed (circle) dimensions
 const double kMidiCircleSize = 48.0;
+
+/// Sidebar button width: taller than a circle — a long pill whose ends are
+/// half-circles (radius = height/2 = 24) so it reads as a docked tab.
+const double kMidiSidebarWidth = 64.0;
 const double kMidiCircleMargin = 8.0;
 
 // Drag pop-up scale when the user grabs the circle.
@@ -85,12 +97,148 @@ String midiLoopModeTooltip(String mode) {
 bool midiLoopModeActive(String mode) =>
     SongPlaylistAutoNextMode.normalize(mode) != SongPlaylistAutoNextMode.off;
 
+/// A single General MIDI instrument entry shown in the instrument picker.
+class MidiInstrumentOption {
+  const MidiInstrumentOption(this.program, this.label);
+  final int program;
+  final String label;
+}
+
+/// Curated subset of the General MIDI instrument list grouped by family.
+/// Includes the patches most commonly used for congregational song
+/// accompaniment so the picker stays short and easy to scan.
+const List<MidiInstrumentFamily> kMidiInstrumentFamilies = [
+  MidiInstrumentFamily(
+    'Default',
+    [
+      MidiInstrumentOption(-1, 'Default (Acoustic Grand Piano)'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Piano',
+    [
+      MidiInstrumentOption(0, 'Acoustic Grand Piano'),
+      MidiInstrumentOption(1, 'Bright Acoustic Piano'),
+      MidiInstrumentOption(2, 'Electric Grand Piano'),
+      MidiInstrumentOption(4, 'Electric Piano 1'),
+      MidiInstrumentOption(5, 'Electric Piano 2'),
+      MidiInstrumentOption(6, 'Harpsichord'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Organ',
+    [
+      MidiInstrumentOption(16, 'Drawbar Organ'),
+      MidiInstrumentOption(19, 'Church Organ'),
+      MidiInstrumentOption(20, 'Reed Organ'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Guitar',
+    [
+      MidiInstrumentOption(24, 'Nylon Guitar'),
+      MidiInstrumentOption(25, 'Steel Guitar'),
+      MidiInstrumentOption(26, 'Jazz Guitar'),
+      MidiInstrumentOption(27, 'Clean Electric'),
+      MidiInstrumentOption(28, 'Muted Electric'),
+      MidiInstrumentOption(29, 'Overdriven'),
+      MidiInstrumentOption(30, 'Distortion'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Bass',
+    [
+      MidiInstrumentOption(32, 'Acoustic Bass'),
+      MidiInstrumentOption(33, 'Fingered Bass'),
+      MidiInstrumentOption(34, 'Picked Bass'),
+      MidiInstrumentOption(36, 'Slap Bass 1'),
+      MidiInstrumentOption(39, 'Synth Bass 1'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Strings',
+    [
+      MidiInstrumentOption(40, 'Violin'),
+      MidiInstrumentOption(41, 'Viola'),
+      MidiInstrumentOption(42, 'Cello'),
+      MidiInstrumentOption(46, 'Orchestral Harp'),
+      MidiInstrumentOption(48, 'String Ensemble'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Brass',
+    [
+      MidiInstrumentOption(56, 'Trumpet'),
+      MidiInstrumentOption(57, 'Trombone'),
+      MidiInstrumentOption(58, 'Tuba'),
+      MidiInstrumentOption(60, 'French Horn'),
+      MidiInstrumentOption(61, 'Brass Section'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Reed / Sax',
+    [
+      MidiInstrumentOption(65, 'Alto Sax'),
+      MidiInstrumentOption(66, 'Tenor Sax'),
+      MidiInstrumentOption(67, 'Baritone Sax'),
+      MidiInstrumentOption(68, 'Oboe'),
+      MidiInstrumentOption(71, 'Clarinet'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Flute',
+    [
+      MidiInstrumentOption(72, 'Piccolo'),
+      MidiInstrumentOption(73, 'Flute'),
+      MidiInstrumentOption(74, 'Recorder'),
+      MidiInstrumentOption(75, 'Pan Flute'),
+    ],
+  ),
+  MidiInstrumentFamily(
+    'Synth',
+    [
+      MidiInstrumentOption(80, 'Square Lead'),
+      MidiInstrumentOption(81, 'Sawtooth Lead'),
+      MidiInstrumentOption(88, 'New Age Pad'),
+      MidiInstrumentOption(89, 'Warm Pad'),
+      MidiInstrumentOption(90, 'Polysynth Pad'),
+      MidiInstrumentOption(91, 'Choir Pad'),
+    ],
+  ),
+];
+
+class MidiInstrumentFamily {
+  const MidiInstrumentFamily(this.label, this.options);
+  final String label;
+  final List<MidiInstrumentOption> options;
+}
+
+String midiInstrumentLabel(int? program) {
+  if (program == null || program < 0) {
+    return 'Default (Acoustic Grand Piano)';
+  }
+  for (final family in kMidiInstrumentFamilies) {
+    for (final option in family.options) {
+      if (option.program == program) return option.label;
+    }
+  }
+  return 'Program $program';
+}
+
 /// Fixed-bottom MIDI control panel styled to match the Stitch reference.
 class DraggableMidiControls extends StatefulWidget {
   final bool isPlaying;
   final bool isLoading;
   final double position;
   final double duration;
+
+  /// Optional MIDI playback state stream.  When provided, the widget
+  /// subscribes internally and drives the seek slider from a
+  /// [ValueListenable] so position ticks (every 250 ms during playback)
+  /// do NOT trigger a full widget rebuild.  Only the seek slider and
+  /// its position label rebuild; the rest of the player stays put.
+  final Stream<MidiPlaybackState>? stateStream;
+
   final int transposeStep;
   final String currentKey;
   final List<String> availableKeys;
@@ -104,6 +252,13 @@ class DraggableMidiControls extends StatefulWidget {
   final ValueChanged<double> onTempo;
   final String nowPlayingTitle;
   final String? runningFamilyChord;
+
+  /// Currently selected MIDI instrument program (null = default / GM patch 0).
+  final int? midiInstrument;
+
+  /// Called when the user picks an instrument from the popup.  Pass `null`
+  /// to reset to the default instrument.
+  final ValueChanged<int?>? onMidiInstrument;
 
   /// When provided the panel's expand/collapse state is controlled externally
   /// (e.g. by the Dashboard which needs the height for layout calculations).
@@ -132,6 +287,7 @@ class DraggableMidiControls extends StatefulWidget {
     required this.isLoading,
     required this.position,
     required this.duration,
+    this.stateStream,
     required this.transposeStep,
     this.currentKey = '-',
     this.availableKeys = const [],
@@ -145,6 +301,8 @@ class DraggableMidiControls extends StatefulWidget {
     required this.onTempo,
     this.nowPlayingTitle = '',
     this.runningFamilyChord,
+    this.midiInstrument,
+    this.onMidiInstrument,
     this.isExpanded,
     this.onExpandedChanged,
     this.onPreviousSong,
@@ -165,6 +323,19 @@ class DraggableMidiControls extends StatefulWidget {
 class _DraggableMidiControlsState extends State<DraggableMidiControls>
     with TickerProviderStateMixin {
   final GlobalKey _instrumentButtonKey = GlobalKey();
+
+  // === Position / Duration streaming ===
+  //
+  // The MIDI engine pushes a new MidiPlaybackState every 250 ms while
+  // playing.  Forwarding that stream to the parent as a widget prop would
+  // force a full DraggableMidiControls rebuild 4 times per second.  Instead
+  // we subscribe internally and publish only the fields that drive the
+  // seek slider / time label — the rest of the player does not see the
+  // ticks.  didUpdateWidget still re-syncs the notifiers when the parent
+  // hands us a new initial value (e.g. after a song change).
+  final ValueNotifier<double> _positionNotifier = ValueNotifier<double>(0);
+  final ValueNotifier<double> _durationNotifier = ValueNotifier<double>(0);
+  StreamSubscription<MidiPlaybackState>? _stateSub;
 
   // === Animation State Machine ===
   MidiPlayerAnimationState _animationState =
@@ -200,6 +371,20 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   double _playerLeft = 0;
   double _playerWidth = 0;
 
+  /// Monotonic counter bumped every time the parent rebuilds for a
+  /// reason that affects the controls' content (state change, theme
+  /// change, MediaQuery change).  _MorphContent reads this to know
+  /// when to invalidate its cached subtree so that the closures
+  /// (`headerBuilder`, `controlsBuilder`, `circleBuilder`) capture the
+  /// latest state.
+  ///
+  /// Animation frames do NOT bump this counter: the parent itself
+  /// is not rebuilt during animation (only the AnimatedBuilder's
+  /// `builder` callback fires), so the cached content survives the
+  /// ~14 frame rebuilds that happen during a 240 ms expand/collapse
+  /// animation.
+  int _contentVersion = 0;
+
   // Drag state
   bool _isDragging = false;
   double _snapFromX = 0;
@@ -208,12 +393,25 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   double _snapToY = 0;
 
   // Debounce timers
-  Timer? _tempoDebounce;
-  Timer? _transposeDebounce;
+  // (No local debounce anymore — the cubit coalesces the actual engine
+  // update, and the displayed value comes from the parent rebuild
+  // triggered by the cubit emit, so the visible number updates on the
+  // next frame without any per-press setState or timer.)
 
   @override
   void initState() {
     super.initState();
+
+    // Seed the notifiers with the initial values and start listening to
+    // the engine's state stream.  Subsequent ticks update the notifiers
+    // (cheap; the seek slider is the only listener) without rebuilding
+    // the rest of the player.
+    _positionNotifier.value = widget.position;
+    _durationNotifier.value = widget.duration;
+    final stream = widget.stateStream;
+    if (stream != null) {
+      _stateSub = stream.listen(_onMidiPlaybackState);
+    }
 
     // Initialize animation controllers
     _flyController = AnimationController(
@@ -238,13 +436,17 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     )..addStatusListener(_handleSnapStatus);
     _snapAnimation = CurvedAnimation(
       parent: _snapController,
-      curve: Curves.easeOutCubic,
+      // Slight overshoot so the pill "clicks" into the dock edge instead
+      // of easing to a dead stop.
+      curve: Curves.easeOutBack,
     );
 
     // Set up derived animations
     _flyAnimation = CurvedAnimation(
       parent: _flyController,
-      curve: Curves.easeInOutCubic,
+      // Ease-out departure: the circle leaves quickly and decelerates into
+      // its landing, which reads far smoother than a symmetric ease-in-out.
+      curve: Curves.easeOutCubic,
     );
     _morphAnimation = CurvedAnimation(
       parent: _morphController,
@@ -275,6 +477,18 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     }
   }
 
+  void _onMidiPlaybackState(MidiPlaybackState s) {
+    // Only republish when the value actually changes.  ValueNotifier
+    // de-duplicates equal values, but the early-return saves the
+    // round-trip through the listener chain.
+    if (_positionNotifier.value != s.position) {
+      _positionNotifier.value = s.position;
+    }
+    if (_durationNotifier.value != s.duration) {
+      _durationNotifier.value = s.duration;
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -287,6 +501,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _bottomInset = MediaQuery.viewPaddingOf(c).bottom;
     _playerLeft = (_screenWidth * (1 - kMidiExpandedWidthRatio)) / 2;
     _playerWidth = _screenWidth * kMidiExpandedWidthRatio;
+    // Theme/MediaQuery change — cached content may now reference
+    // stale colors, so invalidate it.
+    _contentVersion++;
   }
 
   void _handleTap() {
@@ -326,8 +543,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   @override
   void dispose() {
-    _tempoDebounce?.cancel();
-    _transposeDebounce?.cancel();
+    _stateSub?.cancel();
     _flyController.dispose();
     _morphController.dispose();
     _bounceController.dispose();
@@ -337,12 +553,36 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       ..dispose();
     _sidebarX.dispose();
     _sidebarY.dispose();
+    _positionNotifier.dispose();
+    _durationNotifier.dispose();
     super.dispose();
   }
 
   @override
   void didUpdateWidget(covariant DraggableMidiControls oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    // Resubscribe if the stream identity changed.  Listen handles null
+    // gracefully so this is safe even when the parent doesn't supply a
+    // stream (e.g. widget tests).
+    if (!identical(oldWidget.stateStream, widget.stateStream)) {
+      _stateSub?.cancel();
+      final stream = widget.stateStream;
+      _stateSub = stream?.listen(_onMidiPlaybackState);
+    }
+
+    // Sync the notifiers when the parent hands us new initial values.
+    // We only override the notifier when its current value still matches
+    // the previous prop — if the stream has already pushed a fresher
+    // value, leave it alone so we don't fight the live feed.
+    if (oldWidget.position != widget.position &&
+        _positionNotifier.value == oldWidget.position) {
+      _positionNotifier.value = widget.position;
+    }
+    if (oldWidget.duration != widget.duration &&
+        _durationNotifier.value == oldWidget.duration) {
+      _durationNotifier.value = widget.duration;
+    }
 
     // Handle external isExpanded changes
     if (widget.isExpanded != null &&
@@ -364,6 +604,12 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         _bounceController.value = 0;
       }
     }
+
+    // State changed at the parent level — invalidate the cached
+    // _MorphContent subtree so the closures capture the new state.
+    // Animation frames do not call this method, so the cache still
+    // survives morph/fly transitions.
+    _contentVersion++;
   }
 
   void expand() {
@@ -377,17 +623,27 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     _dragPopController.reverse();
     widget.onExpandedChanged?.call(true);
 
-    // Phase 1: Fly to player position (from sidebar, where the controller
-    // was reset to 0 at the end of the previous collapse).
-    _flyController.forward(from: 0).then((_) {
-      if (!mounted) return;
-      _animationState = MidiPlayerAnimationState.expanding_player;
-      // Phase 2: Morph into player
-      _morphController.forward(from: _morphController.value).then((_) {
-        if (!mounted) return;
-        _animationState = MidiPlayerAnimationState.expanded_player;
-      });
-    });
+    // Phase 1: Fly to player position. The morph starts just before
+    // landing (overlap) so the circle grows while still in transit —
+    // one continuous motion instead of two sequential phases.
+    _flyController.forward(from: 0);
+    Future<void>.delayed(
+      kMidiAnimationFlyDuration - const Duration(milliseconds: 60),
+      () {
+        if (!mounted ||
+            _animationState != MidiPlayerAnimationState.flying_to_player) {
+          return;
+        }
+        _animationState = MidiPlayerAnimationState.expanding_player;
+        _morphController.forward(from: _morphController.value).then((_) {
+          if (!mounted ||
+              _animationState != MidiPlayerAnimationState.expanding_player) {
+            return;
+          }
+          _animationState = MidiPlayerAnimationState.expanded_player;
+        });
+      },
+    );
   }
 
   void collapse() {
@@ -395,21 +651,23 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         _animationState != MidiPlayerAnimationState.expanding_player) {
       return;
     }
+    // Three gentle phases instead of a rough parallel motion:
+    //   1. Content swaps to the circle icon instantly (no squashing).
+    //   2. The surface shrinks in place at the player slot (never dipping
+    //      toward the nav bar — the slot sits above the dock).
+    //   3. The circle glides to the sidebar button with an ease-out.
     _animationState = MidiPlayerAnimationState.collapsing_player;
     widget.onExpandedChanged?.call(false);
 
     _morphController.reverse(from: _morphController.value).then((_) {
-      if (!mounted) return;
-      // Reset the fly value to 0 BEFORE changing state so the first
-      // frame of flying_to_sidebar reads flyValue=0 → lerp gives
-      // player position (no jump to the sidebar).
-      _flyController.value = 0;
+      if (!mounted || _animationState != MidiPlayerAnimationState.collapsing_player) {
+        return;
+      }
       _animationState = MidiPlayerAnimationState.flying_to_sidebar;
+      _flyController.value = 0;
       _flyController.forward().then((_) {
         if (!mounted) return;
         _animationState = MidiPlayerAnimationState.sidebar_circle;
-        // Reset fly to 0 so the next expand can forward(from: 0) and
-        // produce the full fly animation from sidebar to player.
         _flyController.value = 0;
         if (widget.isPlaying) {
           _bounceController.repeat(reverse: true);
@@ -427,8 +685,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     if (_screenWidth <= 0) return _sidebarX.value;
     final actualLeft = kMidiCircleMargin +
         (_sidebarX.value *
-            (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2));
-    final centerX = actualLeft + (kMidiCircleSize / 2);
+            (_screenWidth - kMidiSidebarWidth - kMidiCircleMargin * 2));
+    final centerX = actualLeft + (kMidiSidebarWidth / 2);
     return centerX < _screenCenterX ? 0.0 : 1.0;
   }
 
@@ -440,35 +698,32 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   /// by both [_sidebarPosition] (current state) and the snap animation
   /// (interpolated coordinates) so both share the same edge-snapping logic.
   Offset _sidebarPositionAt(double x, double y) {
-    final halfSize = kMidiCircleSize / 2;
+    final halfWidth = kMidiSidebarWidth / 2;
     const peek = 8.0;
-    final sliderLeft = x * (_screenWidth - kMidiCircleSize);
+    final sliderLeft = x * (_screenWidth - kMidiSidebarWidth);
 
     final left = x <= 0.03
-        ? -halfSize + peek
+        ? -halfWidth + peek
         : x >= 0.97
-            ? _screenWidth - halfSize - peek
-            : sliderLeft.clamp(peek, _screenWidth - kMidiCircleSize - peek);
+            ? _screenWidth - halfWidth - peek
+            : sliderLeft.clamp(peek, _screenWidth - kMidiSidebarWidth - peek);
 
     final maxBottom = _screenHeight * 0.75;
-    final minBottom = kMidiCircleMargin + _bottomInset;
+    final minBottom =
+        kMidiCircleMargin + _bottomInset + kMidiNavBarReserve;
     final bottom = minBottom + (y * (maxBottom - minBottom));
 
     return Offset(left, bottom);
   }
 
-  Offset get _playerPosition => Offset(_playerLeft, 0);
-
-  /// Left offset of the 48px circle when it is centered at the player's
-  /// horizontal centre (screenWidth / 2).  Used as the morph/fly anchor so
-  /// the collapsing circle stays centred instead of shrinking toward the
-  /// left edge of the expanded player.
-  Offset get _circleAtPlayerCenter =>
-      Offset(_screenCenterX - kMidiCircleSize / 2, 0);
+  Offset get _playerPosition =>
+      Offset(_playerLeft, kMidiNavBarReserve);
 
   Size get _playerSize => Size(_playerWidth, kMidiExpandedTotalHeight);
 
-  Size get _circleSize => const Size(kMidiCircleSize, kMidiCircleSize);
+  /// Sidebar button: a long pill (half-circle ends, 64×48) so it reads as
+  /// a docked tab rather than a plain circle.
+  Size get _sidebarSize => const Size(kMidiSidebarWidth, kMidiCircleSize);
 
   Offset get _currentPosition {
     switch (_animationState) {
@@ -478,19 +733,18 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         return Offset.lerp(
             _effectiveSidebarPosition, _playerPosition, _flyAnimation.value)!;
       case MidiPlayerAnimationState.flying_to_sidebar:
+        // Depart from the player slot itself and travel straight to the
+        // sidebar button while shrinking — one continuous motion, never
+        // dipping toward the nav bar.
         return Offset.lerp(
-            _circleAtPlayerCenter, _effectiveSidebarPosition, _flyAnimation.value)!;
+            _playerPosition, _effectiveSidebarPosition, _flyAnimation.value)!;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.expanded_player:
         return _playerPosition;
       case MidiPlayerAnimationState.collapsing_player:
-        // Hold the CENTRE constant during the morph: derive left from the
-        // current morphed width so the shape stays centred as it shrinks
-        // from the full player down to the 48px circle.  Anchoring the
-        // left edge at _playerLeft instead caused the circle to collapse
-        // toward the left side of the screen before flying to the sidebar.
-        final w = _currentSize.width;
-        return Offset(_screenCenterX - w / 2, 0);
+        // Tap-cancel during expand: morph back at the player slot (nav-bar
+        // reserve, never under the dock).
+        return _playerPosition;
     }
   }
 
@@ -513,43 +767,49 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   Size get _currentSize {
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
+        return _sidebarSize;
       case MidiPlayerAnimationState.flying_to_sidebar:
-        return _circleSize;
+        // Morph already finished before the fly — the pill is small.
+        return _sidebarSize;
       case MidiPlayerAnimationState.flying_to_player:
-        return Size.lerp(_circleSize, _playerSize, _flyAnimation.value)!;
+        // Keep the pill shape while in transit; only the position moves.
+        // The shape morphs exclusively at the player slot, which reads as a
+        // clean "fly then bloom" instead of a blob growing mid-flight.
+        return _sidebarSize;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.expanded_player:
         return _playerSize;
       case MidiPlayerAnimationState.collapsing_player:
-        return Size.lerp(_circleSize, _playerSize, _morphAnimation.value)!;
+        return Size.lerp(_sidebarSize, _playerSize, _morphAnimation.value)!;
     }
   }
 
   BorderRadius get _currentBorderRadius {
-    const circleRadius = kMidiCircleSize / 2;
+    // Half-circle pill ends: radius = height / 2 (24).
+    const pillRadius = kMidiCircleSize / 2;
     const expandedRadius = BorderRadius.all(Radius.circular(16));
 
     switch (_animationState) {
       case MidiPlayerAnimationState.sidebar_circle:
       case MidiPlayerAnimationState.flying_to_sidebar:
       case MidiPlayerAnimationState.flying_to_player:
-        return const BorderRadius.all(Radius.circular(circleRadius));
+        return const BorderRadius.all(Radius.circular(pillRadius));
       case MidiPlayerAnimationState.expanding_player:
         return BorderRadius.lerp(
-          const BorderRadius.all(Radius.circular(circleRadius)),
+          const BorderRadius.all(Radius.circular(pillRadius)),
           expandedRadius,
           _morphAnimation.value,
         )!;
       case MidiPlayerAnimationState.expanded_player:
         return expandedRadius;
       case MidiPlayerAnimationState.collapsing_player:
-        // Morph 1.0 → 0.0 maps to expanded (16) → circle (24).  We must
+        // Morph 1.0 → 0.0 maps to expanded (16) → pill (24).  We must
         // pass them in that order so the corners go from rounded to
         // fully round as the panel shrinks; the previous ordering
         // produced the inverse (24 → 16) which looked like a flicker.
         return BorderRadius.lerp(
           expandedRadius,
-          const BorderRadius.all(Radius.circular(circleRadius)),
+          const BorderRadius.all(Radius.circular(pillRadius)),
           1 - _morphAnimation.value,
         )!;
     }
@@ -562,25 +822,96 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   }
 
   void _showInstrumentMenu(BuildContext context) async {
-    // Kept for compatibility with the existing API; the surface itself renders
-    // no instrument button in the rebuilt layout.  When instrument wiring is
-    // re-introduced, restore the popup here.
+    final onSelected = widget.onMidiInstrument;
+    if (onSelected == null) return;
+
+    // Matches the key-selector style: a bottom sheet grouped by family
+    // with a flat, scrollable list of options.  Touch-friendly on
+    // phones and easier to scan than the previous popup menu.
+    final picked = await showModalBottomSheet<int?>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) {
+        final colors = Theme.of(sheetContext).colorScheme;
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                child: Text(
+                  'Pilih Instrumen',
+                  style: Theme.of(sheetContext).textTheme.titleLarge,
+                ),
+              ),
+              const Divider(height: 1),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: kMidiInstrumentFamilies.length,
+                  itemBuilder: (context, fi) {
+                    final family = kMidiInstrumentFamilies[fi];
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
+                          child: Text(
+                            family.label.toUpperCase(),
+                            style: Theme.of(context)
+                                .textTheme
+                                .labelSmall
+                                ?.copyWith(
+                                  color: colors.primary,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: 1.2,
+                                ),
+                          ),
+                        ),
+                        for (final option in family.options)
+                          ListTile(
+                            dense: true,
+                            title: Text(option.label),
+                            trailing: widget.midiInstrument == option.program
+                                ? Icon(
+                                    Icons.check_rounded,
+                                    color: colors.primary,
+                                  )
+                                : null,
+                            onTap: () => Navigator.of(sheetContext).pop(
+                              option.program == -1 ? null : option.program,
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+
+    if (picked != null) {
+      onSelected(picked);
+    }
   }
 
   void _adjustTempo(double newTempo) {
-    _tempoDebounce?.cancel();
-    _tempoDebounce = Timer(const Duration(milliseconds: 300), () {
-      widget.onTempo(newTempo);
-    });
-    setState(() {});
+    // Forward immediately.  The cubit's own 250 ms debounce coalesces
+    // the actual engine update for rapid +/- presses, so a local
+    // debounce here would only delay the displayed value (and the
+    // setState that previously guarded it was a no-op — the visible
+    // number comes from widget.tempoBpm, which the parent provides).
+    widget.onTempo(newTempo);
   }
 
   void _adjustTranspose(int newTranspose) {
-    _transposeDebounce?.cancel();
-    _transposeDebounce = Timer(const Duration(milliseconds: 300), () {
-      widget.onTranspose(_normalizeTranspose(newTranspose));
-    });
-    setState(() {});
+    // See _adjustTempo for rationale on no local debounce.
+    widget.onTranspose(_normalizeTranspose(newTranspose));
   }
 
   int _normalizeTranspose(int value) {
@@ -596,7 +927,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Transpose'),
+        title: Text('edit_transpose_title'.tr()),
         content: TextField(
           controller: controller,
           keyboardType: const TextInputType.numberWithOptions(signed: true),
@@ -616,7 +947,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text('Batal'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -626,7 +957,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
               }
               Navigator.pop(context);
             },
-            child: const Text('Simpan'),
+            child: Text('Simpan'.tr()),
           ),
         ],
       ),
@@ -641,7 +972,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Tempo'),
+        title: Text('edit_tempo_title'.tr()),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
@@ -661,7 +992,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text('Batal'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -671,7 +1002,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
               }
               Navigator.pop(context);
             },
-            child: const Text('Simpan'),
+            child: Text('Simpan'.tr()),
           ),
         ],
       ),
@@ -763,7 +1094,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                                 : 1.0)
                             : 1.0;
                     final showHeader = _animationState ==
-                            MidiPlayerAnimationState.expanding_player ||
+                        MidiPlayerAnimationState.expanding_player ||
                         _animationState ==
                             MidiPlayerAnimationState.expanded_player;
 
@@ -785,6 +1116,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                               borderRadius: borderRadius,
                               colors: colors,
                               showHeader: showHeader,
+                              contentVersion: _contentVersion,
                               headerBuilder: (_) => _buildHeader(colors),
                               controlsBuilder: (ctx) =>
                                   _buildExpandedControls(ctx, colors),
@@ -855,7 +1187,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   void _updateDragPosition(Offset delta) {
     if (_screenWidth <= 0 || _screenHeight <= 0) return;
     final dx = delta.dx /
-        (_screenWidth - kMidiCircleSize - kMidiCircleMargin * 2);
+        (_screenWidth - kMidiSidebarWidth - kMidiCircleMargin * 2);
     // Negate dy because Positioned.bottom measures from the bottom of the
     // parent, while drag deltas use screen coordinates (y grows downward).
     // Without negation, dragging up moves the circle down (inverted).
@@ -896,11 +1228,60 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   }
 
   Widget _buildCircleContent(ColorScheme colors) {
+    // ExcludeSemantics: the icon subtree swaps between play-arrow and the
+    // equalizer when playback toggles, and the equalizer rebuilds every
+    // frame — both push orphan a11y-tree updates (AXTree spam).  The
+    // whole pill is decorative; the expanded player carries the controls.
+    return ExcludeSemantics(
+      child: _buildCircleIcon(colors),
+    );
+  }
+
+  Widget _buildCircleIcon(ColorScheme colors) {
+    // Live status icon: an animated 3-bar equalizer while playing (the
+    // bars ride the existing pulse controller at staggered phases) and a
+    // play arrow when paused — the user always knows the true state.
+    if (widget.isPlaying) {
+      return AnimatedBuilder(
+        animation: _bounceAnimation,
+        builder: (context, _) {
+          final t = _bounceAnimation.value;
+          double bar(double phase) {
+            final p = (t + phase) % 1.0;
+            // 0.35 → 1.0 → 0.35 sine wave.
+            return 0.35 + 0.65 * (0.5 - 0.5 * math.cos(p * 2 * math.pi));
+          }
+
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _eqBar(heightFactor: bar(0.0), colors: colors),
+              const SizedBox(width: 3),
+              _eqBar(heightFactor: bar(0.33), colors: colors),
+              const SizedBox(width: 3),
+              _eqBar(heightFactor: bar(0.66), colors: colors),
+            ],
+          );
+        },
+      );
+    }
     return Center(
       child: Icon(
-        Icons.queue_music_rounded,
-        size: 22,
+        Icons.play_arrow_rounded,
+        size: 26,
         color: colors.onPrimary,
+      ),
+    );
+  }
+
+  Widget _eqBar({required double heightFactor, required ColorScheme colors}) {
+    return Container(
+      width: 3.5,
+      height: 10 + 14 * heightFactor,
+      decoration: BoxDecoration(
+        color: colors.onPrimary,
+        borderRadius: BorderRadius.circular(2),
       ),
     );
   }
@@ -919,12 +1300,21 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              Icon(
-                Icons.music_note_rounded,
-                size: 16,
-                color: colors.onPrimary,
+              // Now-playing mark: icon tucked in a soft tinted disc.
+              Container(
+                width: 20,
+                height: 20,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colors.onPrimary.withValues(alpha: 0.18),
+                ),
+                child: Icon(
+                  Icons.music_note_rounded,
+                  size: 13,
+                  color: colors.onPrimary,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   widget.nowPlayingTitle.trim().isEmpty
@@ -934,8 +1324,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: colors.onPrimary,
-                    fontSize: 12,
-                    letterSpacing: 1.3,
+                    fontSize: context.appFontSize(11),
+                    letterSpacing: 1.4,
                     fontWeight: FontWeight.w800,
                   ),
                 ),
@@ -991,49 +1381,46 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   Widget _buildTopRow(BuildContext context, ColorScheme colors) {
     return Row(
       children: [
-        SizedBox(
-          width: 32,
-          height: 32,
-          child: FilledButton(
-            onPressed: widget.isLoading ? null : widget.onPlayPause,
-            style: FilledButton.styleFrom(
-              shape: const CircleBorder(),
-              padding: EdgeInsets.zero,
-              backgroundColor: colors.primary,
-            ),
-            child: widget.isLoading
-                ? SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation(colors.onPrimary),
-                    ),
-                  )
-                : Icon(
-                    widget.isPlaying
-                        ? Icons.pause_rounded
-                        : Icons.play_arrow_rounded,
-                    color: colors.onPrimary,
-                    size: 20,
-                  ),
-          ),
+        _AnimatedPlayButton(
+          isLoading: widget.isLoading,
+          isPlaying: widget.isPlaying,
+          onPressed: widget.onPlayPause,
+          colors: colors,
         ),
         const SizedBox(width: 10),
         Expanded(
           child: _MidiSeekSlider(
-            position: widget.position,
-            duration: widget.duration,
+            position: _positionNotifier,
+            duration: _durationNotifier,
             onSeek: widget.onSeek,
           ),
         ),
         const SizedBox(width: 6),
-        Text(
-          '${_formatTime(widget.position)} / ${_formatTime(widget.duration)}',
-          style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                letterSpacing: 0.1,
-              ),
+        // Subscribe to both notifiers so only the time text rebuilds on
+        // a position tick; the play/pause button and seek slider
+        // subscription live in their own builders.
+        ValueListenableBuilder<double>(
+          valueListenable: _positionNotifier,
+          builder: (context, position, _) {
+            return ValueListenableBuilder<double>(
+              valueListenable: _durationNotifier,
+              builder: (context, duration, _) {
+                // ExcludeSemantics: the clock text changes many times per
+                // second while playing; each change pushes an a11y-tree
+                // update (AXTree spam on Windows).  The time is
+                // decorative — the seek bar conveys the same info.
+                return ExcludeSemantics(
+                  child: Text(
+                    '${_formatTime(position)} / ${_formatTime(duration)}',
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          letterSpacing: 0.1,
+                        ),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ],
     );
@@ -1078,7 +1465,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       height: boxHeight,
       colors: colors,
       children: [
-        _CompactIconButton(
+        _AnimatedIconButton(
           onPressed: () => _adjustTranspose(widget.transposeStep - 1),
           icon: Icons.remove_rounded,
         ),
@@ -1098,7 +1485,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             ),
           ),
         ),
-        _CompactIconButton(
+        _AnimatedIconButton(
           onPressed: () => _adjustTranspose(widget.transposeStep + 1),
           icon: Icons.add_rounded,
         ),
@@ -1122,11 +1509,18 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         children: [
           Icon(Icons.key_rounded, size: 16, color: colors.onSurfaceVariant),
           const SizedBox(width: 4),
-          Expanded(
+          // Use Flexible (not Expanded) so the icon+text group sizes to
+          // its content.  The pill's MainAxisAlignment.center then
+          // centres the whole group instead of pinning the text to the
+          // trailing edge of an Expanded that consumed all remaining
+          // width.
+          Flexible(
             child: Text(
               chordInfo,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
+              softWrap: false,
+              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: colors.onSurfaceVariant,
                     fontWeight: FontWeight.w700,
@@ -1147,7 +1541,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       height: boxHeight,
       colors: colors,
       children: [
-        _CompactIconButton(
+        _AnimatedIconButton(
           onPressed: () => _adjustTempo((widget.tempoBpm - 1).clamp(30, 300)),
           icon: Icons.remove_rounded,
         ),
@@ -1166,7 +1560,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             ),
           ),
         ),
-        _CompactIconButton(
+        _AnimatedIconButton(
           onPressed: () => _adjustTempo((widget.tempoBpm + 1).clamp(30, 300)),
           icon: Icons.add_rounded,
         ),
@@ -1175,61 +1569,37 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   }
 
   Widget _buildIconActions(ColorScheme colors) {
+    final hasInstrument = widget.midiInstrument != null;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
         if (widget.onToggleChord != null && widget.chordToggleEnabled)
-          SizedBox(
-            width: 28,
-            height: 28,
-            child: InkResponse(
-              onTap: widget.onToggleChord,
-              radius: 16,
-              child: Tooltip(
-                message: widget.showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
-                child: Icon(
-                  widget.showChord
-                      ? Icons.music_note_rounded
-                      : Icons.music_off_rounded,
-                  size: 18,
-                  color: widget.showChord
-                      ? colors.primary
-                      : colors.onSurfaceVariant,
-                ),
-              ),
-            ),
+          _AnimatedIconButton(
+            onPressed: widget.onToggleChord,
+            icon: widget.showChord
+                ? Icons.music_note_rounded
+                : Icons.music_off_rounded,
+            color: widget.showChord
+                ? colors.primary
+                : colors.onSurfaceVariant,
+            tooltip: widget.showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
           ),
-        SizedBox(
+        _AnimatedIconButton(
           key: _instrumentButtonKey,
-          width: 28,
-          height: 28,
-          child: InkResponse(
-            onTap: () => _showInstrumentMenu(context),
-            radius: 16,
-            child: Icon(
-              Icons.piano_rounded,
-              size: 18,
-              color: colors.onSurfaceVariant,
-            ),
-          ),
+          onPressed: () => _showInstrumentMenu(context),
+          icon: Icons.piano_rounded,
+          color: hasInstrument ? colors.primary : colors.onSurfaceVariant,
+          tooltip: widget.onMidiInstrument == null
+              ? 'Instrumen'
+              : 'Instrumen: ${midiInstrumentLabel(widget.midiInstrument)}',
         ),
-        SizedBox(
-          width: 28,
-          height: 28,
-          child: InkResponse(
-            onTap: widget.onLoopModeCycle,
-            radius: 16,
-            child: Tooltip(
-              message: midiLoopModeTooltip(widget.autoNextMode),
-              child: Icon(
-                midiLoopModeIcon(widget.autoNextMode),
-                size: 18,
-                color: midiLoopModeActive(widget.autoNextMode)
-                    ? colors.primary
-                    : colors.onSurfaceVariant,
-              ),
-            ),
-          ),
+        _AnimatedIconButton(
+          onPressed: widget.onLoopModeCycle,
+          icon: midiLoopModeIcon(widget.autoNextMode),
+          color: midiLoopModeActive(widget.autoNextMode)
+              ? colors.primary
+              : colors.onSurfaceVariant,
+          tooltip: midiLoopModeTooltip(widget.autoNextMode),
         ),
       ],
     );
@@ -1247,6 +1617,7 @@ class _AnimatedMorphSurface extends StatelessWidget {
     required this.borderRadius,
     required this.colors,
     required this.showHeader,
+    required this.contentVersion,
     required this.headerBuilder,
     required this.controlsBuilder,
     required this.circleBuilder,
@@ -1256,6 +1627,7 @@ class _AnimatedMorphSurface extends StatelessWidget {
   final BorderRadius borderRadius;
   final ColorScheme colors;
   final bool showHeader;
+  final int contentVersion;
   final Widget Function(BuildContext) headerBuilder;
   final Widget Function(BuildContext) controlsBuilder;
   final Widget Function(BuildContext) circleBuilder;
@@ -1269,21 +1641,37 @@ class _AnimatedMorphSurface extends StatelessWidget {
         borderRadius: borderRadius,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: colors.primary,
+            // Modern depth: a soft diagonal gradient instead of a flat
+            // primary fill, with a hairline highlight border and a gentle
+            // floating shadow.
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                colors.primary.withValues(alpha: 0.97),
+                colors.primaryContainer.withValues(alpha: 0.92),
+              ],
+            ),
             border: Border.all(
-              color: colors.primary.withValues(alpha: 0.5),
+              color: colors.onPrimary.withValues(alpha: 0.22),
               width: 1,
             ),
             boxShadow: const [
               BoxShadow(
-                color: Color(0x4D000000),
-                blurRadius: 12,
-                offset: Offset(-3, 5),
+                color: Color(0x33000000),
+                blurRadius: 20,
+                offset: Offset(0, 8),
+              ),
+              BoxShadow(
+                color: Color(0x14000000),
+                blurRadius: 4,
+                offset: Offset(0, 2),
               ),
             ],
           ),
           child: _MorphContent(
             showHeader: showHeader,
+            contentVersion: contentVersion,
             headerBuilder: headerBuilder,
             controlsBuilder: controlsBuilder,
             circleBuilder: circleBuilder,
@@ -1295,18 +1683,29 @@ class _AnimatedMorphSurface extends StatelessWidget {
 }
 
 /// Holds the last-built content tree so the heavy controls subtree
-/// is not rebuilt on every animation frame.  The subtree is only
-/// rebuilt when `showHeader` actually flips, which happens once per
-/// expand/collapse rather than ~26 times per animation.
+/// is not rebuilt on every animation frame.  The subtree is rebuilt
+/// when either:
+///   1. `showHeader` flips (expand ↔ collapse), or
+///   2. the parent bumps `contentVersion` (state change, theme change,
+///      MediaQuery change) — the closures we cached were capturing
+///      the parent's previous state, so we must rebuild to pick up
+///      the new closures.
+///
+/// Animation frames do not bump `contentVersion` (the parent itself
+/// is not rebuilt during animation), so the cache survives the
+/// ~14 frame rebuilds that happen during a 240 ms expand/collapse
+/// animation.
 class _MorphContent extends StatefulWidget {
   const _MorphContent({
     required this.showHeader,
+    required this.contentVersion,
     required this.headerBuilder,
     required this.controlsBuilder,
     required this.circleBuilder,
   });
 
   final bool showHeader;
+  final int contentVersion;
   final Widget Function(BuildContext) headerBuilder;
   final Widget Function(BuildContext) controlsBuilder;
   final Widget Function(BuildContext) circleBuilder;
@@ -1321,7 +1720,8 @@ class _MorphContentState extends State<_MorphContent> {
   @override
   void didUpdateWidget(covariant _MorphContent oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.showHeader != widget.showHeader) {
+    if (oldWidget.showHeader != widget.showHeader ||
+        oldWidget.contentVersion != widget.contentVersion) {
       _content = _buildFor(widget.showHeader);
     }
   }
@@ -1356,26 +1756,150 @@ class _MorphContentState extends State<_MorphContent> {
   Widget build(BuildContext context) => _content;
 }
 
+/// Primary play/pause button with a press animation and a soft glow when
+/// playing.  The scale dips on press and the icon cross-fades between
+/// play/pause states.
+class _AnimatedPlayButton extends StatefulWidget {
+  const _AnimatedPlayButton({
+    required this.isLoading,
+    required this.isPlaying,
+    required this.onPressed,
+    required this.colors,
+  });
+
+  final bool isLoading;
+  final bool isPlaying;
+  final VoidCallback? onPressed;
+  final ColorScheme colors;
+
+  @override
+  State<_AnimatedPlayButton> createState() => _AnimatedPlayButtonState();
+}
+
+class _AnimatedPlayButtonState extends State<_AnimatedPlayButton> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedScale(
+      scale: _pressed ? 0.82 : 1.0,
+      duration: const Duration(milliseconds: 150),
+      curve: _pressed ? Curves.easeOutCubic : Curves.easeOutBack,
+      child: InkResponse(
+        onTap: widget.onPressed,
+        onTapDown: widget.onPressed == null
+            ? null
+            : (_) => setState(() => _pressed = true),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTapUp: (_) => setState(() => _pressed = false),
+        radius: 20,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: widget.colors.primary,
+            boxShadow: widget.isPlaying
+                ? [
+                    BoxShadow(
+                      color: widget.colors.primary.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                      spreadRadius: 1,
+                    ),
+                  ]
+                : null,
+          ),
+          child: widget.isLoading
+              ? SizedBox(
+                  width: 16,
+                  height: 16,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor:
+                        AlwaysStoppedAnimation(widget.colors.onPrimary),
+                  ),
+                )
+              : AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  transitionBuilder: (child, animation) =>
+                      ScaleTransition(scale: animation, child: child),
+                  child: Icon(
+                    widget.isPlaying
+                        ? Icons.pause_rounded
+                        : Icons.play_arrow_rounded,
+                    key: ValueKey(widget.isPlaying),
+                    color: widget.colors.onPrimary,
+                    size: 20,
+                  ),
+                ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Common 28×28 compact tap target used throughout the controls row.
-class _CompactIconButton extends StatelessWidget {
-  const _CompactIconButton({
+/// Compact icon button with a subtle press animation: the icon dips down
+/// while pressed and springs back with a soft ease-out.  Shared by every
+/// small control in the MIDI player (transpose, tempo, chord, instrument,
+/// loop) so the whole panel feels alive and consistent.
+class _AnimatedIconButton extends StatefulWidget {
+  const _AnimatedIconButton({
+    super.key,
     required this.onPressed,
     required this.icon,
+    this.color,
+    this.tooltip,
   });
 
   final VoidCallback? onPressed;
   final IconData icon;
+  final Color? color;
+  final String? tooltip;
+
+  @override
+  State<_AnimatedIconButton> createState() => _AnimatedIconButtonState();
+}
+
+class _AnimatedIconButtonState extends State<_AnimatedIconButton> {
+  bool _pressed = false;
 
   @override
   Widget build(BuildContext context) {
-    return InkResponse(
-      onTap: onPressed,
-      radius: 16,
-      child: SizedBox(
-        width: 28,
-        height: 28,
-        child: Icon(icon, size: 18),
+    final button = AnimatedScale(
+      scale: _pressed ? 0.8 : 1.0,
+      duration: const Duration(milliseconds: 150),
+      curve: _pressed ? Curves.easeOutCubic : Curves.easeOutBack,
+      child: InkResponse(
+        onTap: widget.onPressed,
+        onTapDown: widget.onPressed == null
+            ? null
+            : (_) => setState(() => _pressed = true),
+        onTapCancel: () => setState(() => _pressed = false),
+        onTapUp: (_) => setState(() => _pressed = false),
+        radius: 16,
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: Icon(
+            widget.icon,
+            size: 18,
+            color: widget.color,
+          ),
+        ),
       ),
+    );
+    if (widget.tooltip == null) return button;
+    // tap-only trigger: on desktop the default hover trigger mounts and
+    // unmounts the tooltip overlay on every mouse pass, which pushes
+    // orphan accessibility-tree updates and spams
+    // "Failed to update ui::AXTree" from accessibility_bridge.cc.
+    return Tooltip(
+      message: widget.tooltip!,
+      triggerMode: TooltipTriggerMode.tap,
+      child: button,
     );
   }
 }
@@ -1398,7 +1922,7 @@ class _Pill extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         color: colors.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: context.appRadius(8),
         border: Border.all(color: colors.outlineVariant),
       ),
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -1413,7 +1937,9 @@ class _Pill extends StatelessWidget {
 
 /// Separate widget for MIDI seek slider to prevent rebuild issues.
 /// This widget isolates the slider state to prevent jumping when
-/// position updates from the audio engine.
+/// position updates from the audio engine.  It subscribes to position
+/// and duration via [ValueListenable] so the parent does not need to
+/// rebuild this widget on every position tick.
 class _MidiSeekSlider extends StatefulWidget {
   const _MidiSeekSlider({
     required this.position,
@@ -1421,8 +1947,8 @@ class _MidiSeekSlider extends StatefulWidget {
     required this.onSeek,
   });
 
-  final double position;
-  final double duration;
+  final ValueListenable<double> position;
+  final ValueListenable<double> duration;
   final ValueChanged<double> onSeek;
 
   @override
@@ -1439,10 +1965,16 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider> {
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    final colors = Theme.of(context).colorScheme;
     _sliderTheme = SliderTheme.of(context).copyWith(
       thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
       overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-      trackHeight: 6,
+      trackHeight: 5,
+      // Subtle glow on the thumb so the seek handle feels alive.
+      thumbColor: colors.onPrimary,
+      activeTrackColor: colors.onPrimary,
+      inactiveTrackColor: colors.onPrimary.withValues(alpha: 0.3),
+      overlayColor: colors.onPrimary.withValues(alpha: 0.12),
     );
   }
 
@@ -1451,28 +1983,41 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider> {
     super.didUpdateWidget(oldWidget);
     final pending = _pendingSeekValue;
     if (pending != null &&
-        (widget.duration <= 0 || (widget.position - pending).abs() <= 0.35)) {
+        (widget.duration.value <= 0 ||
+            (widget.position.value - pending).abs() <= 0.35)) {
       _pendingSeekValue = null;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final value = _dragSeekValue ?? _pendingSeekValue ?? widget.position;
-    final sliderValue = widget.duration > 0
-        ? value.clamp(0.0, widget.duration)
-        : 0.0;
+    return ValueListenableBuilder<double>(
+      valueListenable: widget.position,
+      builder: (context, position, _) {
+        return ValueListenableBuilder<double>(
+          valueListenable: widget.duration,
+          builder: (context, duration, _) {
+            return _buildSlider(context, position, duration);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSlider(BuildContext context, double position, double duration) {
+    final value = _dragSeekValue ?? _pendingSeekValue ?? position;
+    final sliderValue = duration > 0 ? value.clamp(0.0, duration) : 0.0;
 
     final theme = _sliderTheme;
     final slider = Slider(
       value: sliderValue,
-      max: widget.duration > 0 ? widget.duration : 1,
-      onChanged: widget.duration > 0
+      max: duration > 0 ? duration : 1,
+      onChanged: duration > 0
           ? (value) {
               setState(() => _dragSeekValue = value);
             }
           : null,
-      onChangeEnd: widget.duration > 0
+      onChangeEnd: duration > 0
           ? (value) {
               setState(() {
                 _dragSeekValue = null;
@@ -1483,6 +2028,13 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider> {
           : null,
     );
 
-    return theme == null ? slider : SliderTheme(data: theme, child: slider);
+    // ExcludeSemantics: the slider's value changes every frame while
+    // playing, which pushes an accessibility tree update per frame on
+    // Windows and spams "Failed to update ui::AXTree" from
+    // accessibility_bridge.cc.  Gestures still work — only the a11y node
+    // is dropped.
+    return ExcludeSemantics(
+      child: theme == null ? slider : SliderTheme(data: theme, child: slider),
+    );
   }
 }

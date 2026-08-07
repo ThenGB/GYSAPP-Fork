@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -199,7 +200,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                             context.colorScheme.surfaceContainerLow,
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: context.appRadius(8),
                         border: Border.all(
                           color: context.colorScheme.outlineVariant.withValues(
                             alpha: 0.62,
@@ -212,19 +213,19 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                           filled: true,
                           fillColor: context.colorScheme.surfaceContainerLowest,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.outlineVariant,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.outlineVariant,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.primary,
                               width: 1.2,
@@ -303,7 +304,7 @@ class _BibleNoteListViewState extends State<BibleNoteListView> {
                                                 .surfaceContainerLow,
                                           ],
                                         ),
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: context.appRadius(8),
                                         border: Border.all(
                                           color: context
                                               .colorScheme

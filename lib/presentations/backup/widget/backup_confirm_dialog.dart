@@ -84,7 +84,9 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
                   Text(
                     'Are you sure want to backup now?'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
+                    style: context.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   SizedBox(height: 12),
                   Text(
@@ -96,8 +98,8 @@ class _BackupConfirmDialogState extends State<BackupConfirmDialog> {
                     style: ElevatedButton.styleFrom(
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       fixedSize: Size.fromHeight(56),
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                      backgroundColor: context.colorScheme.primary,
+                      foregroundColor: context.colorScheme.onPrimary,
                     ),
                     onPressed: () {
                       widget.onConfirm();

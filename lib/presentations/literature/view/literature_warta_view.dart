@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../components/components.dart';
 
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
@@ -81,7 +82,7 @@ class LiteratureWartaView extends StatelessWidget {
                       onPressed: () {
                         context.read<LiteratureWartaCubit>().getData();
                       },
-                      child: const Text('Reload'),
+                      child: Text('Reload'.tr()),
                     ),
                   )
                 : Stack(
@@ -100,7 +101,7 @@ class LiteratureWartaView extends StatelessWidget {
                                   .entries
                                   .map(
                                     (e) => ClipRRect(
-                                      borderRadius: BorderRadius.circular(18),
+                                      borderRadius: context.appRadius(18),
                                       child: GestureDetector(
                                         onTap: () {
                                           router.push(
@@ -185,7 +186,7 @@ class WartaSheet extends StatelessWidget {
                 onPressed: () {
                   router.popAndPush(WebpageRoute(url: item.url));
                 },
-                child: const Text('Buka'),
+                child: Text('Buka'.tr()),
               ),
             ),
             body: SingleChildScrollView(
@@ -197,7 +198,7 @@ class WartaSheet extends StatelessWidget {
                     child: SizedBox(
                       width: 120,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: context.appRadius(16),
                         child: AspectRatio(
                           aspectRatio: 3 / 4,
                           child: CachedNetworkImage(

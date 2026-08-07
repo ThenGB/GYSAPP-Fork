@@ -2,6 +2,7 @@ import 'package:animations/animations.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import '../../../components/components.dart';
 
 import '../../../data/data.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
@@ -52,7 +53,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
             style: ElevatedButton.styleFrom(
               minimumSize: Size.fromHeight(56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: context.appRadius(8),
               ),
             ),
             onPressed:
@@ -73,7 +74,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
             color: context.colorScheme.outlineVariant.withValues(alpha: 0.68),
           ),
         ),
-        title: const Text('Bible Filters'),
+        title: Text('bible_filters_title'.tr()),
         centerTitle: true,
         actions: [
           AnimatedSize(
@@ -159,7 +160,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   (isGridViewMode ? (constraints.maxWidth / 8) : 48) *
                   widget.textScale,
               child: Material(
-                borderRadius: BorderRadius.circular(8),
+                borderRadius: context.appRadius(8),
                 color: values.contains(e.value)
                     ? context.colorScheme.primaryContainer.withValues(
                         alpha: 0.6,
@@ -171,7 +172,7 @@ class _BibleSearchFilterViewState extends State<BibleSearchFilterView> {
                   },
                   child: Container(
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: context.appRadius(8),
                       border: values.contains(e.value)
                           ? Border.all(
                               color: context.colorScheme.primary,

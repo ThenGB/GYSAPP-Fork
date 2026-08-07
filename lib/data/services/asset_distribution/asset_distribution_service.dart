@@ -35,11 +35,13 @@ class AssetDistributionService {
     };
     final bibleManifest = await _safeManifest(AssetReleaseTrack.bibles);
     final hymnalManifest = await _safeManifest(AssetReleaseTrack.hymnals);
+    final soundfontManifest = await _safeManifest(AssetReleaseTrack.soundfont);
 
     return supportedDistributedAssets.map((definition) {
       final manifest = switch (definition.releaseTrack) {
         AssetReleaseTrack.bibles => bibleManifest,
         AssetReleaseTrack.hymnals => hymnalManifest,
+        AssetReleaseTrack.soundfont => soundfontManifest,
       };
       final remote = manifest?.packages
           .where((package) => package.code == definition.code)
@@ -57,6 +59,7 @@ class AssetDistributionService {
     await Future.wait([
       _safeManifest(AssetReleaseTrack.bibles),
       _safeManifest(AssetReleaseTrack.hymnals),
+      _safeManifest(AssetReleaseTrack.soundfont),
     ]);
   }
 
@@ -87,6 +90,8 @@ class AssetDistributionService {
         File('${_registry.bibleInstallDirectory.path}/${package.installFileName}'),
       DistributedAssetKind.hymnal =>
         File('${_registry.hymnalInstallDirectory.path}/${package.installFileName}'),
+      DistributedAssetKind.soundfont =>
+        File('${_registry.soundfontInstallDirectory.path}/${package.installFileName}'),
     };
 
     await _packageService.installPackage(
@@ -154,7 +159,9 @@ class AssetDistributionService {
       return;
     }
     final digest = sha256.convert(await packageFile.readAsBytes()).toString();
-    if (digest != expectedChecksum) {
+    // Manifest checksums are stored uppercase; compare case-insensitively
+    // (an exact != always threw and silently broke downloads).
+    if (digest.toLowerCase() != expectedChecksum.toLowerCase()) {
       if (await packageFile.exists()) {
         await packageFile.delete();
       }
