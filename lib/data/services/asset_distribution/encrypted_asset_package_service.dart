@@ -15,7 +15,22 @@ class EncryptedAssetPackageService {
     required File packageFile,
     required File destinationFile,
   }) async {
-    final payload = await decodePackage(await packageFile.readAsBytes());
+    final bytes = await packageFile.readAsBytes();
+
+    Uint8List payload;
+    if (bytes.length >= _headerMagic.length &&
+        String.fromCharCodes(
+              bytes.sublist(0, _headerMagic.length),
+            ) ==
+            _headerMagic) {
+      // Encrypted + GZip-compressed package (GYSPKG1 format).
+      payload = await decodePackage(bytes);
+    } else {
+      // Unencrypted package (e.g. a raw SoundFont file downloaded
+      // directly from a GitHub release).  Just copy the bytes.
+      payload = bytes;
+    }
+
     await destinationFile.parent.create(recursive: true);
     await destinationFile.writeAsBytes(payload, flush: true);
   }

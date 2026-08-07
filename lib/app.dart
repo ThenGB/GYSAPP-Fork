@@ -6,6 +6,7 @@ import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart' show PointerDeviceKind;
 import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -146,10 +147,27 @@ Future initApplication() async {
 
 void _initializePdfRuntime() {
   if (Platform.isWindows) {
-    final executableDir = File(Platform.resolvedExecutable).parent.path;
-    Pdfrx.pdfiumModulePath = '$executableDir\\pdfium.dll';
+    // Legacy builds ship pdfium.dll next to the executable; fresh
+    // native-assets builds (Flutter 3.44+) keep it under
+    // build/native_assets/windows and pdfrx resolves it automatically
+    // when the module path is left null.  Forcing the runner-dir path
+    // broke every app start after `flutter clean` (pdfium.dll was gone,
+    // "Failed to load explicit PDFium module path ... error 126").
+    final runnerDll = File(
+      '${File(Platform.resolvedExecutable).parent.path}\\pdfium.dll',
+    );
+    if (runnerDll.existsSync()) {
+      Pdfrx.pdfiumModulePath = runnerDll.path;
+    }
   }
-  pdfrxFlutterInitialize();
+  // Fire-and-forget with a guard: a pdfium init failure (e.g. missing
+  // DLL after flutter clean) must never block app start — it runs in a
+  // worker isolate and is only needed when a PDF is actually opened.
+  unawaited(
+    pdfrxFlutterInitialize().catchError((Object e, StackTrace st) {
+      log('pdfrx init failed', error: e, stackTrace: st, name: 'App');
+    }),
+  );
 }
 
 Future _setupNotification() async {
@@ -208,17 +226,31 @@ class _AppState extends State<App> {
         buildWhen: (prev, curr) =>
             prev.defaultFont != curr.defaultFont ||
             prev.accentKey != curr.accentKey ||
-            prev.themeMode != curr.themeMode,
+            prev.themeMode != curr.themeMode ||
+            prev.themePreferences != curr.themePreferences,
         builder: (context, state) {
           return MaterialApp.router(
             title: 'Gereja Yesus Sejati',
+            scrollBehavior: const _SmoothScrollBehavior(),
             localizationsDelegates: context.localizationDelegates,
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             routerConfig: router.config(),
-            theme: defaultTheme(state.defaultFont, accentKey: state.accentKey),
+            theme: defaultTheme(
+              state.defaultFont,
+              accentKey: state.accentKey,
+              density: state.themePreferences.density,
+              cornerRadius: state.themePreferences.cornerRadius,
+              typographyScale: state.themePreferences.typographyScale,
+            ),
             debugShowCheckedModeBanner: false,
-            darkTheme: darkTheme(state.defaultFont, accentKey: state.accentKey),
+            darkTheme: darkTheme(
+              state.defaultFont,
+              accentKey: state.accentKey,
+              density: state.themePreferences.density,
+              cornerRadius: state.themePreferences.cornerRadius,
+              typographyScale: state.themePreferences.typographyScale,
+            ),
             themeMode: state.themeMode.toThemeMode,
             // Tighter rebuild for MediaQuery overrides — only text scale and
             // theme mode drive this wrapper.
@@ -248,5 +280,40 @@ class _AppState extends State<App> {
         },
       ),
     );
+  }
+}
+
+/// Fluid momentum scrolling on every platform, including Windows where the
+/// default clamping physics stops dead — that instant stop is what reads
+/// as "snapping". Bouncing physics keeps a soft glide while overscrolling.
+class _SmoothScrollBehavior extends MaterialScrollBehavior {
+  const _SmoothScrollBehavior();
+
+  @override
+  Set<PointerDeviceKind> get dragDevices {
+    // Include mouse: Flutter desktop excludes it by default, so dragging
+    // with a mouse did nothing — the scroll only worked via the wheel
+    // (which jumps per notch). With mouse drag enabled the Bouncing
+    // physics below make scrolling fluid.
+    return const {
+      PointerDeviceKind.touch,
+      PointerDeviceKind.mouse,
+      PointerDeviceKind.stylus,
+      PointerDeviceKind.trackpad,
+      PointerDeviceKind.invertedStylus,
+    };
+  }
+
+  @override
+  ScrollPhysics getScrollPhysics(BuildContext context) {
+    switch (getPlatform(context)) {
+      case TargetPlatform.android:
+      case TargetPlatform.iOS:
+        return const BouncingScrollPhysics();
+      default:
+        return const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        );
+    }
   }
 }

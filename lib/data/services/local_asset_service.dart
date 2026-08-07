@@ -8,9 +8,16 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../domain/entity/song/song_entity.dart';
+import '../../di/injection.dart';
 import 'asset_distribution/installed_asset_registry.dart';
 import 'asset_distribution/models.dart';
+import 'chord_sync_service.dart';
 import 'pdf_chunk_service.dart';
+
+/// Top-level helper so [compute] can run the big song-index decode on a
+/// background isolate.
+List<dynamic> _decodeIndexJson(String source) =>
+    jsonDecode(source) as List<dynamic>;
 
 class LocalAssetService {
   // Retained as a constructor dependency for backward compatibility with
@@ -56,7 +63,9 @@ class LocalAssetService {
         'assets/data/index/${code.toLowerCase().replaceAll('-', '_')}_index.json';
     try {
       final jsonString = await rootBundle.loadString(fileName);
-      final List<dynamic> data = jsonDecode(jsonString);
+      // ~2MB of index JSON across all books — decode on a background isolate
+      // so startup / first Hymnal open doesn't jank the UI thread.
+      final List<dynamic> data = await compute(_decodeIndexJson, jsonString);
       final songs = data.cast<Map<String, dynamic>>();
       _indexCache[code] = songs;
       _cacheSongLookup(code, songs);
@@ -128,10 +137,31 @@ class LocalAssetService {
     // Native chord file only. Do not cross-map chords across books because
     // numbering/title mappings can differ per book.
     if (song['hasChord'] == true) {
-      final nativePath = await _resolveAssetPath(song['chordFile'] as String?);
+      final chordFile = song['chordFile'] as String?;
+      // 1. Chord synced from gyschordweb wins over everything.
+      final synced = await di<ChordSyncService>()
+          .resolveInstalledChordPath(chordFile);
+      if (synced != null) return synced;
+      // 2. Bundled fallback (kept only until the first sync replaces it).
+      final nativePath = await _resolveAssetPath(chordFile);
       if (nativePath != null) return nativePath;
     }
 
+    return null;
+  }
+
+  /// Reads the chord JSON text for a song, transparently handling both
+  /// synced file paths (app support dir) and bundled assets.
+  Future<String?> readChordJson(String bookCode, String number) async {
+    final path = await getChordPath(bookCode, number);
+    if (path == null) return null;
+    try {
+      if (path.startsWith('assets/') || path.startsWith('data/')) {
+        return rootBundle.loadString(path);
+      }
+      final file = File(path);
+      if (await file.exists()) return file.readAsString();
+    } catch (_) {}
     return null;
   }
 
@@ -476,14 +506,7 @@ class LocalAssetService {
   }
 
   Future<bool> hasChord(String bookCode, String number) async {
-    final path = await getChordPath(bookCode, number);
-    if (path == null) return false;
-    try {
-      await rootBundle.loadString(path);
-      return true;
-    } catch (_) {
-      return false;
-    }
+    return await readChordJson(bookCode, number) != null;
   }
 
   Future<bool> hasMidi(String bookCode, String number) async {
@@ -581,15 +604,31 @@ class LocalAssetService {
   /// Get all available soundfont files
   Future<List<String>> getAvailableSoundFonts() async {
     final manifest = await _loadAssetManifest();
-    return manifest.keys
-        .where(
-          (k) =>
-              k.startsWith('assets/data/soundfont/') &&
-              k.toLowerCase().endsWith('.sf2'),
-        )
-        .map((k) => Uri.decodeFull(k.split('/').last))
-        .toList()
-      ..sort();
+    final fonts = <String>{
+      ...manifest.keys
+          .where(
+            (k) =>
+                k.startsWith('assets/data/soundfont/') &&
+                k.toLowerCase().endsWith('.sf2'),
+          )
+          .map((k) => Uri.decodeFull(k.split('/').last)),
+    };
+    // Downloaded soundfonts live in the install directory — include them
+    // so a freshly downloaded font appears as selectable immediately
+    // (previously only bundled manifest entries were listed).
+    final registry = _installedAssetRegistry;
+    if (registry != null) {
+      final dir = registry.soundfontInstallDirectory;
+      if (await dir.exists()) {
+        await for (final entity in dir.list()) {
+          final name = entity.uri.pathSegments.last;
+          if (name.toLowerCase().endsWith('.sf2')) {
+            fonts.add(name);
+          }
+        }
+      }
+    }
+    return fonts.toList()..sort();
   }
 
   Future<Map<String, dynamic>> _loadAssetManifestFromSourceTree() async {

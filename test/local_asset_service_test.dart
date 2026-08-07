@@ -2,11 +2,14 @@ import 'dart:io';
 
 import 'package:church/data/services/asset_distribution/installed_asset_registry.dart';
 import 'package:church/data/services/asset_distribution/models.dart';
+import 'package:church/data/services/chord_sync_service.dart';
 import 'package:church/data/services/local_asset_service.dart';
 import 'package:church/data/services/pdf_chunk_service.dart';
 import 'package:church/data/services/local_bible_asset_service.dart';
+import 'package:church/di/injection.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
 import 'package:path/path.dart' as p;
 
 void main() {
@@ -25,6 +28,14 @@ void main() {
             _ => null,
           };
         });
+    if (!di.isRegistered<ChordSyncService>()) {
+      di.registerLazySingleton(
+        () => ChordSyncService(
+          AppDirectory(tempDir.path, tempDir.path, tempDir.path),
+          http.Client(),
+        ),
+      );
+    }
   });
 
   tearDown(() async {
@@ -150,16 +161,23 @@ void main() {
     expect(await service.needsPdfPreparation('KR', '001'), isFalse);
   });
 
-  test('resolves KR chord path to bundled native overlay data', () async {
+  test('resolves KR chord path from synced files only (no bundled chords)', () async {
     final service = LocalAssetService(PdfChunkService());
 
-    final path = await service.getChordPath('KR', '001');
+    // Chords are no longer bundled — without a synced file the path is null.
+    expect(await service.getChordPath('KR', '001'), isNull);
 
-    expect(
-      path,
-      'assets/data/chord/kr/001_Pujilah Allah Yang Maha Esa.chord.json',
+    // After a sync places the file in the chord folder, it resolves there.
+    final sync = di<ChordSyncService>();
+    final file = File(
+      '${sync.chordDirectory.path}/001_Pujilah Allah Yang Maha Esa.chord.json',
     );
-    final json = await rootBundle.loadString(path!);
+    await file.create(recursive: true);
+    await file.writeAsString('{"noteIdx":[]}');
+
+    final path = await service.getChordPath('KR', '001');
+    expect(path?.replaceAll('\\', '/'), file.path.replaceAll('\\', '/'));
+    final json = await service.readChordJson('KR', '001');
     expect(json, contains('"noteIdx"'));
   });
 
@@ -232,8 +250,9 @@ void main() {
     final soundfonts = await service.getAvailableSoundFonts();
 
     expect(soundfonts, contains('TimGM6mb.sf2'));
-    expect(soundfonts, contains('GeneralUser-GS.sf2'));
-    expect(soundfonts.length, greaterThanOrEqualTo(2));
+    // GeneralUser-GS.sf2 is no longer bundled — it is hosted on
+    // GitHub Releases (GYSAPP-Data) for optional download.
+    expect(soundfonts.length, greaterThanOrEqualTo(1));
     for (final fileName in soundfonts) {
       final data = await rootBundle.load('assets/data/soundfont/$fileName');
       expect(data.lengthInBytes, greaterThan(0));

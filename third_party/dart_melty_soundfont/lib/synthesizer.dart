@@ -169,7 +169,9 @@ class Synthesizer implements AudioRenderer {
       chorusInputRight: !rc ? null : Float32List(settings.blockSize),
       chorusOutputLeft: !rc ? null : Float32List(settings.blockSize),
       chorusOutputRight: !rc ? null : Float32List(settings.blockSize),
-      masterVolume: 0.5,
+      // Raised from upstream 0.5: hymnal MIDI sounded half as loud as the
+      // source material. 0.9 keeps headroom against clipping.
+      masterVolume: 0.9,
     );
 
     // Channels & Voices must be set *after* the synth is constructed,

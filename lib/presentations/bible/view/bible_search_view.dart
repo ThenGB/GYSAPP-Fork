@@ -1,4 +1,5 @@
 import 'dart:async';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -80,7 +81,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                 ),
               ),
             ),
-            title: const Text('Bible Search'),
+            title: Text('bible_search_title'.tr()),
             centerTitle: true,
           ),
           body: MediaQuery(
@@ -98,7 +99,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: context.colorScheme.surfaceContainerLow,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: context.appRadius(8),
                       border: Border.all(
                         color: context.colorScheme.outlineVariant.withValues(
                           alpha: 0.2,
@@ -122,19 +123,19 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                         filled: true,
                         fillColor: context.colorScheme.surfaceContainerLowest,
                         border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: context.appRadius(8),
                           borderSide: BorderSide(
                             color: context.colorScheme.outlineVariant,
                           ),
                         ),
                         enabledBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: context.appRadius(8),
                           borderSide: BorderSide(
                             color: context.colorScheme.outlineVariant,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: context.appRadius(8),
                           borderSide: BorderSide(
                             color: context.colorScheme.primary,
                             width: 1.2,
@@ -274,7 +275,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                 margin: const EdgeInsets.only(bottom: 8),
                                 decoration: BoxDecoration(
                                   color: context.colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: context.appRadius(8),
                                   border: Border.all(
                                     color: context.colorScheme.outlineVariant.withValues(
                                       alpha: 0.2,
@@ -331,7 +332,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                         );
 
                                         return Text.rich(
-                                          style: TextStyle(fontSize: 12),
+                                          style: TextStyle(fontSize: context.appFontSize(12)),
                                           TextSpan(
                                             children: [
                                               TextSpan(
@@ -346,7 +347,7 @@ class _BibleSearchViewState extends State<BibleSearchView> {
                                               buildHighlightedText(
                                                 isUnderline: true,
                                                 style: TextStyle(
-                                                  fontSize: 12,
+                                                  fontSize: context.appFontSize(12),
                                                 ),
                                                 sentence,
                                                 () {

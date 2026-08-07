@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -189,7 +190,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                       padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
                         color: context.colorScheme.surfaceContainerLow,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: context.appRadius(8),
                         border: Border.all(
                           color: context.colorScheme.outlineVariant.withValues(
                             alpha: 0.2,
@@ -202,19 +203,19 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                           filled: true,
                           fillColor: context.colorScheme.surfaceContainerLowest,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.outlineVariant,
                             ),
                           ),
                           enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.outlineVariant,
                             ),
                           ),
                           focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                             borderSide: BorderSide(
                               color: context.colorScheme.primary,
                               width: 1.2,
@@ -276,7 +277,7 @@ class _FaithNoteListViewState extends State<FaithNoteListView> {
                                     ),
                                     decoration: BoxDecoration(
                                       color: context.colorScheme.surfaceContainerLow,
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: context.appRadius(8),
                                       border: Border.all(
                                         color: context.colorScheme.outlineVariant.withValues(
                                           alpha: 0.2,
@@ -367,7 +368,7 @@ class NoDataFound extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 18),
         decoration: BoxDecoration(
           color: context.colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: context.appRadius(8),
           border: Border.all(
             color: context.colorScheme.outlineVariant.withValues(
               alpha: 0.2,
@@ -382,7 +383,7 @@ class NoDataFound extends StatelessWidget {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: context.appFontSize(16)),
             ),
             const SizedBox(height: 4),
             Text(

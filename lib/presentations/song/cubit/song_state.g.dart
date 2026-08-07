@@ -19,7 +19,7 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
   bookCode: json['bookCode'] as String? ?? 'KR',
   pageIndex: (json['pageIndex'] as num?)?.toInt() ?? 0,
   verseIndex: (json['verseIndex'] as num?)?.toInt() ?? 0,
-  isImageMode: json['isImageMode'] ?? false,
+  isImageMode: json['isImageMode'] as bool? ?? false,
   showSizer: json['showSizer'] as bool? ?? false,
   defaultAudioFormat: json['defaultAudioFormat'] as String? ?? 'mid',
   selectedSong: json['selectedSong'] == null

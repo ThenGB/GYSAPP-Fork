@@ -224,7 +224,10 @@ class SelectedVerseMenu extends StatelessWidget {
                   ],
                 ),
               ),
-              SizedBox(height: 8 + 16 + viewPadding),
+              // The bible tab's Scaffold bottomSheet sits under the
+              // floating dock, so the selection menu needs explicit
+              // nav-bar clearance (72 = 64px dock + margin).
+              SizedBox(height: 8 + 16 + viewPadding + 72),
             ],
           ),
         ),

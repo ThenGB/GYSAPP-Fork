@@ -66,6 +66,22 @@ class DesignSystem {
   static const String fontHeading = 'EB Garamond';
   static const String fontUI = 'Manrope';
 
+  /// Single source of truth for the user-selectable reading fonts.
+  /// Previously every screen shipped its own list (Bible had 6 entries,
+  /// Faith/Song had 5, the font settings page had 9) — the pickers showed
+  /// different options depending on where you opened them.
+  static const List<String> appFontOptions = [
+    'Roboto',
+    'Roboto Serif',
+    'Open Sans',
+    'Gentium Basic',
+    'Arial',
+    'EB Garamond',
+    'Lato',
+    'Quicksand',
+    'Inter',
+  ];
+
   // ═══════════════════════════════════════════════════════════════
   // NAVIGATION - Compact navigation sizes
   // ═══════════════════════════════════════════════════════════════

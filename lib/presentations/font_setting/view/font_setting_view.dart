@@ -28,17 +28,9 @@ class _FontSettingViewState extends State<FontSettingView> {
       .defaultTextHeight;
   late String defaultFontStyle = context.read<InitialCubit>().state.defaultFont;
 
-  static const _availableFonts = [
-    'Roboto',
-    'Roboto Serif',
-    'Open Sans',
-    'Gentium Basic',
-    'Arial',
-    'EB Garamond',
-    'Lato',
-    'Quicksand',
-    'Inter',
-  ];
+  // Single source of truth lives in DesignSystem.appFontOptions so the
+  // font pickers match everywhere (Bible, Faith, Song, global settings).
+  final _availableFonts = DesignSystem.appFontOptions;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +42,7 @@ class _FontSettingViewState extends State<FontSettingView> {
           shape: Border(
             bottom: BorderSide(color: context.colorScheme.outlineVariant),
           ),
-          title: const Text('Pengaturan Font'),
+          title: Text('font_setting_title'.tr()),
           centerTitle: true,
         ),
         bottomNavigationBar: BottomAppBar(
@@ -60,7 +52,7 @@ class _FontSettingViewState extends State<FontSettingView> {
             style: ElevatedButton.styleFrom(
               minimumSize: const Size.fromHeight(52),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
+                borderRadius: context.appRadius(18),
               ),
             ),
             onPressed: () async {
@@ -123,7 +115,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                                     ),
                                     isDense: true,
                                     border: OutlineInputBorder(
-                                      borderRadius: BorderRadius.circular(16),
+                                      borderRadius: context.appRadius(16),
                                       borderSide: BorderSide(
                                         color:
                                             context.colorScheme.outlineVariant,
@@ -137,7 +129,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                                           child: Text(
                                             e,
                                             style: TextStyle(
-                                              fontSize: 12,
+                                              fontSize: context.appFontSize(12),
                                               fontFamily: e,
                                             ),
                                           ),
@@ -160,7 +152,7 @@ class _FontSettingViewState extends State<FontSettingView> {
                                               overflow: TextOverflow.ellipsis,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.normal,
-                                                fontSize: 12,
+                                                fontSize: context.appFontSize(12),
                                                 fontFamily: e,
                                               ),
                                             ),

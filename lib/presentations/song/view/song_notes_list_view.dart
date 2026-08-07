@@ -1,4 +1,5 @@
 import 'dart:convert';
+import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
@@ -199,7 +200,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                             context.colorScheme.surfaceContainerLow,
                           ],
                         ),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: context.appRadius(8),
                         border: Border.all(
                           color: context.colorScheme.outlineVariant.withValues(
                             alpha: 0.62,
@@ -212,7 +213,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                           filled: true,
                           fillColor: context.colorScheme.surfaceContainerLowest,
                           border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: context.appRadius(8),
                           ),
                           isDense: true,
                           hintText: 'Search notes'.tr(),
@@ -277,7 +278,7 @@ class _SongNotesListViewState extends State<SongNotesListView> {
                                               .surfaceContainerLow,
                                         ],
                                       ),
-                                      borderRadius: BorderRadius.circular(8),
+                                      borderRadius: context.appRadius(8),
                                       border: Border.all(
                                         color: context
                                             .colorScheme

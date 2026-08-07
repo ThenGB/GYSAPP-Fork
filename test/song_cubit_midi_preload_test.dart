@@ -605,6 +605,19 @@ class _FakeAssetService extends LocalAssetService {
     }
     return chordPath;
   }
+
+  @override
+  Future<String?> readChordJson(String bookCode, String number) async {
+    final key = '$bookCode:$number';
+    chordRequests.add(key);
+    final blocker = _blockedChordPaths[key];
+    if (blocker != null) {
+      await blocker.future;
+    }
+    // Chords are no longer bundled; the sync service provides real files.
+    // Tests only assert on load timing, so a minimal JSON payload suffices.
+    return chordPath == null ? null : '{"verses":[]}';
+  }
 }
 
 class _FakeMidiEngine extends MidiEngineService {

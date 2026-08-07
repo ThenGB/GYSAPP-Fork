@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../components/design_system/design_system.dart';
 import '../../../data/data.dart';
 import '../../../domain/entity/faith_note/faith_note.dart';
 import '../../../router/router.dart';
@@ -25,7 +26,7 @@ abstract class FaithState with _$FaithState {
   }) = _FaithState;
 
   List<String> get availableFonts {
-    return ['Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
+    return DesignSystem.appFontOptions;
   }
 
   TextTheme get defaultTextTheme {

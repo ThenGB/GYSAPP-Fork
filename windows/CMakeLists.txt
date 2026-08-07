@@ -7,6 +7,19 @@ project(church LANGUAGES CXX)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
 set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS ON CACHE BOOL "" FORCE)
 
+# Suppress benign MSVC warnings from third-party C++ (the WebView2 SDK
+# headers and the flutter_soloud / melty dependencies ship hundreds of
+# them). These categories are noise from vendored code we do not own:
+#   C4996 strdup/_strdup, C4244/C4245/C4267 narrowing, C4018 signedness,
+#   C4456/C4458/C4459 name hiding, C4189 unused local, C4127 constant
+#   condition, C4702 unreachable code.
+if(MSVC)
+  add_compile_options(
+    /wd4996 /wd4244 /wd4245 /wd4267 /wd4018
+    /wd4456 /wd4458 /wd4459 /wd4189 /wd4127 /wd4702
+  )
+endif()
+
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
 set(BINARY_NAME "church")
@@ -44,7 +57,7 @@ add_definitions(-DUNICODE -D_UNICODE)
 # of modifying this function.
 function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
-  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
+  target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100" /wd"4458" /wd"4244")
   target_compile_options(${TARGET} PRIVATE /EHsc)
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")

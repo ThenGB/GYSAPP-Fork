@@ -5,6 +5,7 @@ import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:http/http.dart' as http;
 
 import '../data/data.dart';
 
@@ -67,6 +68,9 @@ void _services() {
   di.registerLazySingleton(() => PdfChunkService());
   di.registerLazySingleton(() => AppResetService(appDirectory: di()));
   di.registerLazySingleton(
+    () => ChordSyncService(di<AppDirectory>(), http.Client()),
+  );
+  di.registerLazySingleton(
     () => InstalledAssetRegistry(
       supportDirectory: Directory(di<AppDirectory>().support),
     ),
@@ -123,6 +127,8 @@ class AppDirectory {
   String get backupFolder => '$cache/backup';
   String get encryptFolder => '$cache/encrypted';
   String get decryptFolder => '$cache/encrypted';
+  // Synced chord JSON files (from gyschordweb), not bundled anymore.
+  String get chordFolder => '$support/chords';
 }
 
 InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(

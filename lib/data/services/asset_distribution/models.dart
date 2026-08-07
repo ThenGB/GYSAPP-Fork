@@ -1,6 +1,6 @@
-enum DistributedAssetKind { bible, hymnal }
+enum DistributedAssetKind { bible, hymnal, soundfont }
 
-enum AssetReleaseTrack { bibles, hymnals }
+enum AssetReleaseTrack { bibles, hymnals, soundfont }
 
 class AssetDefinition {
   const AssetDefinition({
@@ -214,6 +214,14 @@ const supportedDistributedAssets = <AssetDefinition>[
     installFileName: 'asm_p_master.pdf',
     bundledByDefault: false,
     releaseTrack: AssetReleaseTrack.hymnals,
+  ),
+  AssetDefinition(
+    kind: DistributedAssetKind.soundfont,
+    code: 'GeneralUser-GS',
+    title: 'GeneralUser-GS SoundFont',
+    installFileName: 'GeneralUser-GS.sf2',
+    bundledByDefault: false,
+    releaseTrack: AssetReleaseTrack.soundfont,
   ),
 ];
 

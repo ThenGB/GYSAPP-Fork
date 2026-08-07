@@ -76,12 +76,15 @@ class HomeCubit extends HydratedCubit<HomeState> {
     }
   }
 
-  void refresh() {
+  Future<void> refresh() async {
     scrappSauhBagiJiwa();
     scrappTrueVoice();
     getMenu();
     getPrimaryMenuStatus();
-    fetchTodayVerse();
+    // Await the verse fetch so the pull-to-refresh indicator stays
+    // visible until the refresh actually completes (previously it
+    // snapped back instantly — looked like a mere bounce).
+    await fetchTodayVerse();
   }
 
   Future<void> getMenu() async {

@@ -1,6 +1,3 @@
-import org.gradle.api.Project
-import groovy.xml.XmlSlurper
-
 allprojects {
     repositories {
         google()
@@ -53,17 +50,18 @@ subprojects {
     project.evaluationDependsOn(':app')
 }
 
-def namespaceFromManifest(Project project) {
+def namespaceFromManifest(project) {
     def manifestFile = project.android.sourceSets.main.manifest.srcFile
     if (!manifestFile.exists()) {
         return fallbackNamespace(project)
     }
 
-    def packageName = new XmlSlurper().parse(manifestFile).@package.text()
+    def matcher = manifestFile.text =~ /package="([^"]+)"/
+    def packageName = matcher.find() ? matcher.group(1) : null
     return packageName ?: fallbackNamespace(project)
 }
 
-def fallbackNamespace(Project project) {
+def fallbackNamespace(project) {
     def groupName = project.group?.toString()
     if (groupName) return groupName
     return project.name.replace('-', '_')

@@ -19,6 +19,9 @@ class InstalledAssetRegistry {
   Directory get hymnalInstallDirectory =>
       Directory('${installedAssetsDirectory.path}/hymnal');
 
+  Directory get soundfontInstallDirectory =>
+      Directory('${installedAssetsDirectory.path}/soundfont');
+
   File get registryFile => File('${installedAssetsDirectory.path}/registry.json');
 
   Future<Map<String, InstalledAssetRecord>> _load() async {
@@ -100,11 +103,17 @@ class InstalledAssetRegistry {
     return _resolveInstalledPath(record);
   }
 
+  Future<String?> resolveInstalledSoundfontPath(String code) async {
+    final record = await getInstalledRecord(DistributedAssetKind.soundfont, code);
+    return _resolveInstalledPath(record);
+  }
+
   Future<String?> _resolveInstalledPath(InstalledAssetRecord? record) async {
     if (record == null || record.installedPath.isEmpty) return null;
     final baseDir = switch (record.kind) {
       DistributedAssetKind.bible => bibleInstallDirectory,
       DistributedAssetKind.hymnal => hymnalInstallDirectory,
+      DistributedAssetKind.soundfont => soundfontInstallDirectory,
     };
     final file = File('${baseDir.path}/${record.installedPath}');
     return await file.exists() ? file.path : null;

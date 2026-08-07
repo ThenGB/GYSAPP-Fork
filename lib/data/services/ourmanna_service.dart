@@ -172,8 +172,14 @@ class OurMannnaService {
       return localized;
     }
 
-    // 4. Localization failed — return English API text (no cache)
-    return apiVerse;
+    // 4. Localization failed — return English API text (no cache),
+    // sanitized in case the endpoint ever echoes markup.
+    return OurMannaVerse(
+      text: _stripBibleTags(apiVerse.text),
+      reference: apiVerse.reference,
+      bibleCodeName: apiVerse.bibleCodeName,
+      originalReference: apiVerse.originalReference,
+    );
   }
 
   Future<OurMannaVerse?> _localizeVerse(
@@ -337,6 +343,13 @@ class OurMannnaService {
   String _stripBibleTags(String text) {
     return text
         .replaceAll(RegExp(r'<[^>]+>'), '')
+        // HTML entities the API occasionally returns (&amp; &lt; &quot; …)
+        .replaceAll('&amp;', '&')
+        .replaceAll('&lt;', '<')
+        .replaceAll('&gt;', '>')
+        .replaceAll('&quot;', '"')
+        .replaceAll('&#39;', "'")
+        .replaceAll('&nbsp;', ' ')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }
@@ -396,7 +409,15 @@ class OurMannnaService {
         await prefs.remove(dateKey);
         return null;
       }
-      return verse;
+      // Sanitize on read: older app versions cached the raw bundled text
+      // which still contained <pb/>/<t> XML markers — those would otherwise
+      // render as literal symbols in the Today Verse card forever.
+      return OurMannaVerse(
+        text: _stripBibleTags(verse.text),
+        reference: verse.reference,
+        bibleCodeName: verse.bibleCodeName,
+        originalReference: verse.originalReference,
+      );
     } catch (e) {
       return null;
     }

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:timeago/timeago.dart' as timeago;
+import '../../../components/components.dart';
 
 import '../../../data/data.dart';
 import '../../../router/router.dart';
@@ -104,7 +105,7 @@ class _InitialViewState extends State<InitialView> {
                       child: Card(
                         elevation: 18,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: context.appRadius(20),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20),

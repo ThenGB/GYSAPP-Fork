@@ -42,4 +42,8 @@ class AssetManagementState {
   List<ManagedAssetStatus> get hymnalStatuses => statuses
       .where((status) => status.definition.kind == DistributedAssetKind.hymnal)
       .toList();
+
+  List<ManagedAssetStatus> get soundfontStatuses => statuses
+      .where((status) => status.definition.kind == DistributedAssetKind.soundfont)
+      .toList();
 }

@@ -5,6 +5,10 @@
 /// to prevent stale data reuse.
 library;
 
+/// Bump when a render-affecting change lands (e.g. the melty master
+/// volume 0.5 → 0.9 fix) so previously cached WAVs are re-rendered.
+const int kMidiRenderVersion = 2;
+
 /// Generates a cache key for a MIDI preload job.
 ///
 /// The key includes all render-affecting settings so that
@@ -24,6 +28,7 @@ String generateMidiPreloadKey({
   final normalizedInstrument = instrument?.clamp(0, 127);
 
   return [
+    'v$kMidiRenderVersion',
     midiPath,
     soundFont,
     normalizedTranspose,

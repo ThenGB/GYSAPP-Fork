@@ -19,8 +19,8 @@ void main() {
       'lib/presentations/song/widgets/song_pdf_viewer.dart',
     ).readAsStringSync();
 
-    expect(source, contains('pageSignature'));
-    expect(source, contains(r'#pages$pageSignature'));
+    expect(source, contains('pageHash'));
+    expect(source, contains(r'#ph$pageHash'));
   });
 
   test('fit-to-page is guarded when pdfrx controller is between states', () {

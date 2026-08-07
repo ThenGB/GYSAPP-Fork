@@ -398,15 +398,98 @@ class BibleCubit extends HydratedCubit<BibleState> {
     });
   }
 
+  /// Advances the daily reading target to today.
+  ///
+  /// The target advances one chapter per calendar day missed since the last
+  /// time the user opened the Bible, so a reader who opens the app after
+  /// three days lands on the chapter for today (catch-up), not three days
+  /// behind. Safe on cold start: book metadata is reloaded when needed and
+  /// the Bible end is handled by stopping at the last chapter.
   Future<void> incrementTodayReading() async {
-    if (state.todayReading == null) return;
-    DateTime now = DateTime.now();
+    final target = state.todayReading;
+    final last = state.lastOpenBible;
+    if (target == null || last == null) return;
 
-    Duration difference = now.difference(state.lastOpenBible ?? DateTime.now());
-    int days = difference.inDays;
-    nextChapter(days, true).then((value) {
-      setTodayReading(state.currentBible);
-    });
+    final now = DateTime.now();
+    final lastDay = DateTime(last.year, last.month, last.day);
+    final today = DateTime(now.year, now.month, now.day);
+    // Date-based (not 24h-based): reading at 23:00 and opening at 06:00
+    // the next day must still advance.
+    final missedDays = today.difference(lastDay).inDays;
+    if (missedDays < 1) return;
+
+    final books = await _ensureBooksLoaded();
+    if (books.isEmpty || isClosed) return;
+
+    final next = advanceReadingFrom(
+      books,
+      target.bookId,
+      target.chapterId,
+      missedDays,
+    );
+    if (next == null || isClosed) return;
+    setTodayReading(next);
+  }
+
+  /// Ensures the book list is available even on cold start, where
+  /// `state.books` is empty because chapter content has not loaded yet.
+  Future<List<BibleBook>> _ensureBooksLoaded() async {
+    if (state.books.isNotEmpty) return state.books;
+    final code = state.currentBibleCode;
+    if (bibleAssetService.isBundledCode(code)) {
+      return bibleAssetService.getBooks(code);
+    }
+    if (bibleDb == null) {
+      await initBible();
+      if (isClosed) return const [];
+    }
+    final db = bibleDb;
+    if (db == null) return const [];
+    return bibleRepository.getBooks(db);
+  }
+
+  /// Walks [steps] chapters forward from [bookId]/[chapterId] through
+  /// [books], crossing book boundaries. Returns null at the end of the
+  /// Bible. Pure function — no I/O, no state — so it is directly testable.
+  static Verse? advanceReadingFrom(
+    List<BibleBook> books,
+    int bookId,
+    int chapterId,
+    int steps,
+  ) {
+    if (steps < 1 || books.isEmpty) return null;
+    final firstBook = books.firstWhereOrNull((e) => e.id == bookId);
+    if (firstBook == null || (firstBook.chapterCount ?? 0) < 1) return null;
+
+    var currentBook = firstBook;
+    var b = bookId;
+    var c = chapterId;
+    var remaining = steps;
+
+    while (remaining > 0) {
+      final chaptersInBook = currentBook.chapterCount ?? 0;
+      final canAdvance = chaptersInBook - c;
+      if (canAdvance > 0) {
+        final step = math.min(canAdvance, remaining);
+        c += step;
+        remaining -= step;
+      } else {
+        // End of this book — move to the first chapter of the next one.
+        final idx = books.indexWhere((e) => e.id == b);
+        if (idx < 0 || idx == books.length - 1) return null;
+        currentBook = books[idx + 1];
+        b = currentBook.id;
+        c = 1;
+        remaining -= 1;
+      }
+    }
+
+    return Verse(
+      id: b * 1000000 + c * 1000 + 1,
+      bookId: b,
+      chapterId: c,
+      verseId: 1,
+    );
   }
 
   int countSelectedWords(String text, List<String> selectedWords) {
@@ -434,7 +517,30 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   @override
   Map<String, dynamic>? toJson(BibleState state) {
-    return state.toJson();
+    final json = state.toJson();
+    // Chapter content is reloadable from the bundled asset / DB and does not
+    // need to be persisted. Serializing it on every emit (chapter nav,
+    // bookmark toggle, TTS state…) caused multi-hundred-KB jsonEncode + flush
+    // disk writes on the UI thread per interaction.
+    for (final key in const [
+      'books',
+      'booksSplit',
+      'verses',
+      'versesSplit',
+      'references',
+      'referencesSplit',
+      'pericopes',
+      'pericopesSplit',
+      'pericopesParalels',
+      'pericopesParalelsSplit',
+      'currentBook',
+      'currentBookSplit',
+      'selectedVerse',
+      'hightlightedVerse',
+    ]) {
+      json.remove(key);
+    }
+    return json;
   }
 
   Future<void> getBibles() async {

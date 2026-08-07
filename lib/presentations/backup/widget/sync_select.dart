@@ -90,7 +90,9 @@ class _SyncSelectDialogState extends State<SyncSelectDialog> {
                   Text(
                     'Choose where you want to sync'.tr(),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 22),
+                    style: context.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   SizedBox(height: 12),
                   ListTile(

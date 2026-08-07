@@ -12,8 +12,10 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:simple_animations/simple_animations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../di/injection.dart';
+import '../../../domain/entity/verse/verse.dart';
 import '../../../router/router.dart';
 import '../../song/widgets/draggable_midi_controls.dart';
 import '../../presentations.dart';
@@ -93,11 +95,18 @@ const dashboardBottomNavigationDestinations = [
 ];
 
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
+
+/// Loaded once per process — the app version does not change at runtime.
+final Future<PackageInfo> _packageInfoFuture = PackageInfo.fromPlatform();
+
 const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
 const double kDashboardMiniPlayerNavGap = 8;
 const double kDashboardExpandedMiniPlayerHeight = 168;
-const double kDashboardPortraitBottomNavHeight = 64;
-const double kDashboardLandscapeBottomNavHeight = 56;
+// Dock heights MUST match _AnimatedRoundedNavBar._navBarHeight (72).
+// The old 64/56 values under-padded the body by 8–16px, so the last row
+// of every tab sat partially behind the dock.
+const double kDashboardPortraitBottomNavHeight = 72;
+const double kDashboardLandscapeBottomNavHeight = 72;
 const double kDashboardCompactNavOuterVerticalPadding = 4;
 const double kDashboardCompactNavInnerVerticalPadding = 5;
 const double kDashboardCompactNavIconSize = 19;
@@ -177,9 +186,11 @@ class DashboardView extends StatefulWidget {
   State<DashboardView> createState() => _DashboardViewState();
 }
 
-class _DashboardViewState extends State<DashboardView> {
+class _DashboardViewState extends State<DashboardView>
+    with WidgetsBindingObserver {
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     if (Platform.isAndroid) {
       WakelockPlus.disable();
     }
@@ -190,10 +201,26 @@ class _DashboardViewState extends State<DashboardView> {
 
   @override
   void initState() {
+    WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       initUniLinks();
     });
     super.initState();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Advance the daily reading target when the app comes back to the
+    // foreground — a user who kept the app open across midnight would
+    // otherwise never get today's chapter.
+    //
+    // NOTE: this State's context sits ABOVE the MultiBlocProvider built in
+    // build() below, so context.read<BibleCubit>() would throw
+    // ProviderNotFoundException here. Read the DI singleton instead — it is
+    // the exact instance the provider was created from.
+    if (state == AppLifecycleState.resumed && mounted) {
+      di<BibleCubit>().incrementTodayReading();
+    }
   }
 
   final _appLinks = AppLinks();
@@ -270,7 +297,7 @@ class _DashboardViewState extends State<DashboardView> {
                           Text(
                             'Preparing dashboard',
                             style: TextStyle(
-                              fontSize: 12,
+                              fontSize: context.appFontSize(12),
                               fontStyle: FontStyle.italic,
                               color: context.textColor?.withValues(alpha: .5),
                             ),
@@ -324,7 +351,9 @@ class _DashboardViewState extends State<DashboardView> {
                 final navHeight = isLandscape
                     ? kDashboardLandscapeBottomNavHeight
                     : kDashboardPortraitBottomNavHeight;
-                final bodyBottomPadding = navHeight + bottomInset;
+                // 8px breathing room so the last content row never touches
+                // or hides behind the dock.
+                final bodyBottomPadding = navHeight + 8 + bottomInset;
 
                 final bottomNavItemCount = bottomNavPages.length;
                 final isBeyondBottomNav = tabsRouter.activeIndex >= bottomNavItemCount;
@@ -339,6 +368,12 @@ class _DashboardViewState extends State<DashboardView> {
                   drawer: const _DashboardDrawer(),
                   body: Stack(
                     children: [
+                      // Anchors the Stack to the full body size. Without a
+                      // non-positioned child the Stack shrinks to 0x0 when
+                      // every other child is Positioned AND the MIDI overlay
+                      // collapses to SizedBox.shrink() (audio hidden) — which
+                      // made the whole body (all tabs) invisible.
+                      const SizedBox.expand(),
                       Positioned.fill(
                         child: DecoratedBox(
                           decoration: BoxDecoration(
@@ -353,6 +388,65 @@ class _DashboardViewState extends State<DashboardView> {
                             child: child,
                           ),
                         ),
+                      ),
+                      // Global MIDI player overlay — visible on every tab so
+                      // playback controls never disappear when the user
+                      // navigates away from the song page.
+                      BlocBuilder<SongCubit, SongState>(
+                        buildWhen: (prev, curr) =>
+                            prev.showAudio != curr.showAudio ||
+                            prev.isAudioPlaying != curr.isAudioPlaying ||
+                            prev.isAudioLoading != curr.isAudioLoading ||
+                            prev.transposeStep != curr.transposeStep ||
+                            prev.tempoBpm != curr.tempoBpm ||
+                            prev.playlistAutoNextMode !=
+                                curr.playlistAutoNextMode ||
+                            prev.showChord != curr.showChord ||
+                            prev.bookCode != curr.bookCode ||
+                            prev.midiInstrument != curr.midiInstrument ||
+                            prev.originalFamilyChord !=
+                                curr.originalFamilyChord ||
+                            prev.originalPdfKey != curr.originalPdfKey ||
+                            prev.chordAccidentalMode !=
+                                curr.chordAccidentalMode ||
+                            prev.soundFont != curr.soundFont,
+                        builder: (context, midiState) {
+                          final songCubit = context.read<SongCubit>();
+                          // When the PDF viewer's MIDI toggle turns audio
+                          // off, hide the player completely (pill included).
+                          // It comes back automatically when a song starts.
+                          if (!midiState.showAudio) {
+                            return const SizedBox.shrink();
+                          }
+                          return DraggableMidiControls(
+                            key: const ValueKey('midi_overlay'),
+                            isPlaying: midiState.isAudioPlaying,
+                            isLoading: midiState.isAudioLoading,
+                            position: 0,
+                            duration: 0,
+                            stateStream: songCubit.midiEngine.stateStream,
+                            transposeStep: midiState.transposeStep,
+                            currentKey: midiState.activeKeyLabel,
+                            availableKeys: midiState.transposeKeyOptions,
+                            tempoBpm: midiState.tempoBpm,
+                            autoNextMode: midiState.playlistAutoNextMode,
+                            midiInstrument: midiState.midiInstrument,
+                            onMidiInstrument: songCubit.setMidiInstrument,
+                            onPlayPause: songCubit.togglePlayPause,
+                            onLoopModeCycle: songCubit.cycleLoopMode,
+                            onSeek: (v) => songCubit.seek(
+                              Duration(milliseconds: (v * 1000).round()),
+                            ),
+                            onTranspose: songCubit.setTranspose,
+                            onKeySelected: songCubit.setTransposeKey,
+                            onTempo: songCubit.setTempo,
+                            onPreviousSong: songCubit.goToPreviousSong,
+                            onNextSong: songCubit.goToNextSong,
+                            showChord: midiState.showChord,
+                            chordToggleEnabled: midiState.bookCode != 'HYMNE',
+                            onToggleChord: songCubit.toggleChord,
+                          );
+                        },
                       ),
                     ],
                   ),
@@ -426,9 +520,9 @@ class _DashboardDrawer extends StatelessWidget {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+                                  padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
                                   child: Text(
-                                    'AKTIVITAS CEPAT',
+                                    'quick_actions_label'.tr().toUpperCase(),
                                     style: Theme.of(context).textTheme.labelSmall
                                         ?.copyWith(
                                           color: colors.onSurfaceVariant,
@@ -443,13 +537,13 @@ class _DashboardDrawer extends StatelessWidget {
                                     final lastSong = songCubit.state.lastOpenedSong;
                                     return _DrawerActivityTile(
                                       icon: Icons.music_note_rounded,
-                                      label: 'Terakhir dibuka',
+                                      label: 'last_opened'.tr(),
                                       value: lastSong != null
                                           ? '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}'
-                                          : 'Belum ada riwayat',
+                                          : 'no_history'.tr(),
                                       onTap: lastSong != null
                                           ? () {
-                                              Navigator.of(context).maybePop();
+                                              dashboardScaffoldKey.currentState?.closeDrawer();
                                               AutoTabsRouter.of(
                                                 context,
                                               ).setActiveIndex(2);
@@ -460,33 +554,32 @@ class _DashboardDrawer extends StatelessWidget {
                                   },
                                 ),
                                 const _DrawerProgressTile(),
-                                const SizedBox(height: 10),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14),
-                                  child: Divider(
-                                    color: colors.outlineVariant.withValues(
-                                      alpha: 0.42,
-                                    ),
-                                  ),
-                                ),
+                                const SizedBox(height: 8),
                                 ListTile(
                                   contentPadding: const EdgeInsets.symmetric(
                                     horizontal: 24,
                                   ),
                                   leading: Icon(
                                     Icons.settings_outlined,
-                                    color: colors.onSurfaceVariant,
+                                    color: colors.primary,
+                                    size: 22,
                                   ),
                                   title: Text(
-                                    'Pengaturan',
-                                    style: Theme.of(context).textTheme.titleLarge
+                                    'Pengaturan'.tr(),
+                                    style: Theme.of(context).textTheme.titleMedium
                                         ?.copyWith(
-                                          color: colors.onSurfaceVariant,
+                                          color: colors.onSurface,
                                           fontWeight: FontWeight.w700,
                                         ),
                                   ),
+                                  trailing: Icon(
+                                    Icons.chevron_right_rounded,
+                                    color: colors.onSurfaceVariant.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                  ),
                                   onTap: () {
-                                    Navigator.of(context).maybePop();
+                                    dashboardScaffoldKey.currentState?.closeDrawer();
                                     AutoTabsRouter.of(context).setActiveIndex(4);
                                   },
                                 ),
@@ -495,23 +588,23 @@ class _DashboardDrawer extends StatelessWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                          padding: const EdgeInsets.fromLTRB(24, 12, 24, 20),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              if (!state.isLoggedIn)
+                              if (!state.isLoggedIn) ...[
                                 FilledButton.icon(
                                   style: FilledButton.styleFrom(
                                     backgroundColor: colors.primary,
                                     foregroundColor: colors.onPrimary,
-                                    minimumSize: const Size.fromHeight(56),
+                                    minimumSize: const Size.fromHeight(48),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
+                                      borderRadius: context.appRadius(12),
                                     ),
                                   ),
                                   onPressed: () {
                                     final cubit = context.read<DashboardCubit>();
-                                    Navigator.of(context).maybePop();
+                                    dashboardScaffoldKey.currentState?.closeDrawer();
                                     router.push(
                                       LoginRoute(
                                         onLoggedIn: (token) {
@@ -528,34 +621,78 @@ class _DashboardDrawer extends StatelessWidget {
                                   icon: const Icon(Icons.login_rounded),
                                   label: Text('Login'.tr()),
                                 ),
-                              OutlinedButton.icon(
-                                style: OutlinedButton.styleFrom(
-                                  side: BorderSide(color: colors.outlineVariant),
-                                  minimumSize: const Size.fromHeight(46),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                const SizedBox(height: 8),
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: colors.outlineVariant),
+                                    minimumSize: const Size.fromHeight(44),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: context.appRadius(12),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    SystemNavigator.pop();
+                                  },
+                                  icon: Icon(
+                                    Icons.exit_to_app_rounded,
+                                    color: colors.onSurfaceVariant,
+                                  ),
+                                  label: Text(
+                                    'close_app'.tr(),
+                                    style: TextStyle(color: colors.onSurfaceVariant),
                                   ),
                                 ),
-                                onPressed: () {
-                                  Navigator.of(context).maybePop();
-                                  SystemNavigator.pop();
-                                },
-                                icon: Icon(Icons.exit_to_app_rounded, color: colors.onSurfaceVariant),
-                                label: Text(
-                                  'Keluar'.tr(),
-                                  style: TextStyle(color: colors.onSurfaceVariant),
+                              ] else ...[
+                                OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: colors.primary.withValues(alpha: 0.4),
+                                    ),
+                                    minimumSize: const Size.fromHeight(44),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: context.appRadius(12),
+                                    ),
+                                  ),
+                                  onPressed: () {
+                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    context.router.push(
+                                      WebpageRoute(url: 'https://e.gys.or.id'),
+                                    );
+                                  },
+                                  icon: const Icon(
+                                    Icons.open_in_new_rounded,
+                                    size: 18,
+                                  ),
+                                  label: Text('open_egys'.tr()),
                                 ),
-                              ),
-                              const SizedBox(height: 8),
+                                const SizedBox(height: 6),
+                                TextButton(
+                                  onPressed: () {
+                                    final cubit = context.read<DashboardCubit>();
+                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    cubit.loginSuccessCallback(null);
+                                  },
+                                  child: Text(
+                                    'logout'.tr(),
+                                    style: TextStyle(color: colors.error),
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: 10),
                               FutureBuilder<PackageInfo>(
-                                future: PackageInfo.fromPlatform(),
+                                // Memoized: PackageInfo.fromPlatform() is a
+                                // platform-channel call; creating it in build()
+                                // fired a new channel round-trip on every
+                                // drawer rebuild.
+                                future: _packageInfoFuture,
                                 builder: (context, snapshot) {
                                   final version = snapshot.data?.version ?? '';
                                   return Text(
                                     'v$version',
                                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                       color: colors.onSurfaceVariant.withValues(alpha: 0.4),
-                                      fontSize: 10,
+                                      fontSize: context.appFontSize(10),
                                     ),
                                   );
                                 },
@@ -585,152 +722,91 @@ class _DrawerHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
+      child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            width: 44,
+            height: 44,
+            padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
-              color: colors.primaryContainer.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
+              // Always-white backing: the church logo asset is transparent
+              // around the dove, so without this it bleeds into the dark
+              // drawer and becomes unreadable in dark theme.
+              color: Colors.white,
+              border: Border.all(
+                color: colors.primary.withValues(alpha: 0.5),
+                width: 1.4,
+              ),
             ),
-            child: Row(
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  padding: const EdgeInsets.all(3),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.5),
-                      width: 1.6,
+            child: ClipOval(
+              child: state.account?.profilePicture == null
+                  ? Image.asset(Assets.assetsImagesAppicon)
+                  : CachedNetworkImage(
+                      imageUrl: state.account!.profilePicture!,
+                      fit: BoxFit.cover,
+                      memCacheWidth: 120,
+                      memCacheHeight: 120,
+                      placeholder: (context, url) =>
+                          Image.asset(Assets.assetsImagesAppicon),
+                      errorWidget: (context, url, error) =>
+                          Image.asset(Assets.assetsImagesAppicon),
                     ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.16),
-                        blurRadius: 12,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: ClipOval(
-                    child: state.account?.profilePicture == null
-                        ? Image.asset(Assets.assetsImagesAppicon)
-                        : CachedNetworkImage(
-                            imageUrl: state.account!.profilePicture!,
-                            fit: BoxFit.cover,
-                            memCacheWidth: 120,
-                            memCacheHeight: 120,
-                            placeholder: (context, url) =>
-                                Image.asset(Assets.assetsImagesAppicon),
-                            errorWidget: (context, url, error) =>
-                                Image.asset(Assets.assetsImagesAppicon),
-                          ),
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  state.account?.name ?? 'Gereja Yesus Sejati',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    color: colors.onSurface,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        state.account?.name ?? 'Gereja Yesus Sejati',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: colors.onSurface,
-                          fontWeight: FontWeight.w700,
-                        ),
+                const SizedBox(height: 2),
+                if (state.isLoggedIn &&
+                    ((state.account?.memberType ?? '').isNotEmpty ||
+                        (state.account?.branchName ?? '').isNotEmpty)) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.tertiaryContainer,
+                      borderRadius: context.appRadius(6),
+                    ),
+                    child: Text(
+                      [
+                        state.account?.memberType,
+                        _formatBranchName(state.account?.branchName ?? ''),
+                      ].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onTertiaryContainer,
+                        fontWeight: FontWeight.w600,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        !state.isLoggedIn
-                            ? 'Belum login'
-                            : state.account?.email ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                      if (state.isLoggedIn) ...[
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.primaryContainer,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            state.account?.memberType ?? 'Jemaat',
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colors.onPrimaryContainer,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 2,
-                          ),
-                          decoration: BoxDecoration(
-                            color: colors.tertiaryContainer,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            _formatBranchName(state.account?.branchName ?? ''),
-                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: colors.onTertiaryContainer,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ],
+                    ),
                   ),
-                ),
+                ] else
+                  Text(
+                    'not_logged_in'.tr(),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ),
               ],
             ),
           ),
-          if (state.isLoggedIn) ...[
-            const SizedBox(height: 14),
-            OutlinedButton.icon(
-              onPressed: () {
-                Navigator.of(context).maybePop();
-                context.router.push(
-                  WebpageRoute(url: 'https://e.gys.or.id'),
-                );
-              },
-              icon: const Icon(Icons.open_in_new_rounded, size: 16),
-              label: const Text('Buka e-GYS'),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: colors.primary.withValues(alpha: 0.4)),
-                minimumSize: const Size.fromHeight(46),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14),
-                ),
-              ),
-            ),
-            const SizedBox(height: 10),
-            TextButton(
-              onPressed: () {
-                final cubit = context.read<DashboardCubit>();
-                Navigator.of(context).maybePop();
-                cubit.loginSuccessCallback(null);
-              },
-              child: Text(
-                'Log Out',
-                style: TextStyle(color: colors.error),
-              ),
-            ),
-          ],
         ],
       ),
     );
@@ -753,146 +829,311 @@ class _DrawerActivityTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: onTap != null
-              ? colors.primaryContainer.withValues(alpha: 0.3)
-              : colors.surfaceContainerLow.withValues(alpha: 0.5),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: onTap != null
-                ? colors.primary.withValues(alpha: 0.3)
-                : colors.outlineVariant.withValues(alpha: 0.3),
-          ),
+    final hasAction = onTap != null;
+    return Container(
+      margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow.withValues(alpha: 0.5),
+        borderRadius: context.appRadius(14),
+        border: Border.all(
+          color: colors.outlineVariant.withValues(alpha: 0.35),
         ),
-        child: Row(
-          children: [
-            Icon(icon, color: colors.primary, size: 20),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    label.toUpperCase(),
-                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colors.onSurfaceVariant.withValues(alpha: 0.70),
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.8,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  FittedBox(
-                    fit: BoxFit.scaleDown,
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      value,
+      ),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: context.appRadius(14),
+        child: Padding(
+          padding: EdgeInsets.all(context.appSpace(12)),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer.withValues(alpha: 0.55),
+                  borderRadius: context.appRadius(12),
+                ),
+                child: Icon(
+                  icon,
+                  size: 20,
+                  color: hasAction
+                      ? colors.primary
+                      : colors.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label.toUpperCase(),
                       maxLines: 1,
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant.withValues(alpha: 0.70),
                         fontWeight: FontWeight.w700,
-                        color: colors.onSurface,
+                        letterSpacing: 0.8,
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 4),
+                    Text(
+                      value,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: hasAction ? FontWeight.w700 : FontWeight.w400,
+                        color: hasAction
+                            ? colors.onSurface
+                            : colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (onTap != null) ...[
-              const SizedBox(width: 8),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: colors.primary.withValues(alpha: 0.7),
-              ),
+              if (hasAction) ...[
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 18,
+                  color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _DrawerProgressTile extends StatelessWidget {
+class _DrawerProgressTile extends StatefulWidget {
   const _DrawerProgressTile();
+
+  @override
+  State<_DrawerProgressTile> createState() => _DrawerProgressTileState();
+}
+
+class _DrawerProgressTileState extends State<_DrawerProgressTile> {
+  Verse? _titleFor;
+  Future<String?>? _titleFuture;
+
+  Future<String?> _titleFutureFor(BibleCubit cubit, Verse? verse) {
+    final current = _titleFuture;
+    if (identical(_titleFor, verse) && current != null) return current;
+    _titleFor = verse;
+    final future = verse == null
+        ? Future<String?>.value(null)
+        : cubit.getBibleTitle([verse]);
+    _titleFuture = future;
+    return future;
+  }
+
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    return Container(
-      margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            colors.surfaceContainerHighest.withValues(alpha: 0.92),
-            colors.surfaceContainerLow.withValues(alpha: 0.9),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colors.outlineVariant.withValues(alpha: 0.42),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                'PROGRESS ALKITAB',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.onSurfaceVariant,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-              const Spacer(),
-              Text(
-                'HARI INI',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: colors.primary,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ],
+    return BlocBuilder<BibleCubit, BibleState>(
+      builder: (context, bibleState) {
+        final cubit = context.read<BibleCubit>();
+        final target = bibleState.todayReading;
+        final lastOpen = bibleState.lastOpenBible;
+        final readToday =
+            target != null && lastOpen != null && _isSameDay(lastOpen, DateTime.now());
+
+        void openReading() {
+          dashboardScaffoldKey.currentState?.closeDrawer();
+          AutoTabsRouter.of(context).setActiveIndex(1);
+          cubit.setTodayReading(target);
+        }
+
+        final IconData leadingIcon = target == null
+            ? Icons.menu_book_outlined
+            : readToday
+            ? Icons.check_rounded
+            : Icons.auto_stories_outlined;
+        final Color iconColor = target == null
+            ? colors.onSurfaceVariant.withValues(alpha: 0.5)
+            : colors.primary;
+
+        return Container(
+          margin: const EdgeInsets.fromLTRB(24, 8, 24, 4),
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerLow.withValues(alpha: 0.5),
+            borderRadius: context.appRadius(14),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.35),
+            ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: colors.primary, width: 2),
-                ),
-                child: Icon(
-                  Icons.check_rounded,
-                  color: colors.primary,
-                  size: 20,
-                ),
+          child: InkWell(
+            borderRadius: context.appRadius(14),
+            onTap: target == null ? null : openReading,
+            child: Padding(
+              padding: EdgeInsets.all(context.appSpace(12)),
+              child: Row(
+                children: [
+                  Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer.withValues(alpha: 0.55),
+                      borderRadius: context.appRadius(12),
+                    ),
+                    child: Icon(leadingIcon, size: 20, color: iconColor),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                'daily_reading_label'.tr().toUpperCase(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: colors.onSurfaceVariant.withValues(
+                                        alpha: 0.70,
+                                      ),
+                                      fontWeight: FontWeight.w700,
+                                      letterSpacing: 0.8,
+                                    ),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: colors.primaryContainer,
+                                borderRadius: context.appRadius(999),
+                              ),
+                              child: Text(
+                                'HARI INI',
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .labelSmall
+                                    ?.copyWith(
+                                      color: colors.onPrimaryContainer,
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: context.appFontSize(9),
+                                      letterSpacing: 0.6,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        if (target == null)
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'no_daily_reading'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .titleSmall
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w400,
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'set_daily_reading_hint'.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                      height: 1.3,
+                                    ),
+                              ),
+                            ],
+                          )
+                        else
+                          FutureBuilder<String?>(
+                            future: _titleFutureFor(cubit, target),
+                            builder: (context, snapshot) {
+                              final title = snapshot.data ?? '';
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    readToday
+                                        ? 'read_today_done'.tr()
+                                        : 'Today Reading'.tr(),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w700,
+                                          color: readToday
+                                              ? colors.primary
+                                              : colors.onSurface,
+                                        ),
+                                  ),
+                                  if (title.isNotEmpty) ...[
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodySmall
+                                          ?.copyWith(
+                                            color: colors.onSurfaceVariant,
+                                            height: 1.3,
+                                          ),
+                                    ),
+                                  ],
+                                ],
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (target != null && !readToday) ...[
+                    const SizedBox(width: 8),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        visualDensity: VisualDensity.compact,
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                      ),
+                      onPressed: openReading,
+                      child: Text('read_action'.tr()),
+                    ),
+                  ] else if (target != null) ...[
+                    const SizedBox(width: 8),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      size: 18,
+                      color: colors.onSurfaceVariant.withValues(alpha: 0.5),
+                    ),
+                  ],
+                ],
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Sudah baca hari ini',
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontFamily: 'Manrope'),
-                ),
-              ),
-            ],
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
@@ -926,7 +1167,9 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
   int _previousIndex = 0;
   static const double _navBarHeight = 72;
   static const double _circleSize = 56;
-  static const double _notchDepth = 24;
+  // Deeper than the circle radius (28) so the floating circle sinks into
+  // the notch instead of colliding with its rim.
+  static const double _notchDepth = 36;
   static const double _notchWidth = 80;
   static const double _circleGap = 6;
 
@@ -1004,7 +1247,10 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
                     painter: _NavBarPainter(
                       notchCenterX: notchCenterX,
                       notchWidth: _notchWidth,
-                      notchDepth: _notchDepth,
+                      // When no tab is selected (e.g. Settings page)
+                      // flatten the notch so the bar is a clean
+                      // rounded rectangle.
+                      notchDepth: _hasSelection ? _notchDepth : 0,
                       color: navBarColor,
                       shadowColor: Colors.black.withValues(alpha: 0.15),
                     ),
@@ -1024,33 +1270,38 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
                                 child: Column(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   mainAxisSize: MainAxisSize.min,
-                                  children: isSelected
-                                      ? [
-                                          Icon(
-                                            dest.selectedIcon ?? dest.icon,
-                                            color: Colors.transparent,
-                                            size: 22,
-                                          ),
-                                        ]
-                                      : [
-                                          Icon(
-                                            dest.icon,
-                                            color: unselectedIconColor,
-                                            size: 22,
-                                          ),
-                                          const SizedBox(height: 4),
-                                          Text(
-                                            dest.label.tr(),
-                                            style: TextStyle(
-                                              color: unselectedIconColor
-                                                  .withValues(alpha: 0.7),
-                                              fontSize: 10,
-                                              fontWeight: FontWeight.w500,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                        ],
+                                  children: [
+                                    Icon(
+                                      isSelected
+                                          ? dest.selectedIcon ?? dest.icon
+                                          : dest.icon,
+                                      color: isSelected
+                                          ? Colors.transparent
+                                          : unselectedIconColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(height: 4),
+                                    // Fade the label out/in smoothly on
+                                    // selection instead of a hard swap.
+                                    AnimatedOpacity(
+                                      opacity: isSelected ? 0.0 : 1.0,
+                                      duration: const Duration(
+                                        milliseconds: 240,
+                                      ),
+                                      curve: Curves.easeOut,
+                                      child: Text(
+                                        dest.label.tr(),
+                                        style: TextStyle(
+                                          color: unselectedIconColor
+                                              .withValues(alpha: 0.7),
+                                          fontSize: context.appFontSize(10),
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
@@ -1125,26 +1376,36 @@ class _NavBarPainter extends CustomPainter {
 
     path.moveTo(cornerRadius, 0);
 
-    final notchStart = notchCenterX - halfNotch;
-    final notchEnd = notchCenterX + halfNotch;
+    // Clamp the notch so the curves stay within the rounded corners
+    // and never clip asymmetrically against the right edge.
+    final safeMin = cornerRadius + halfNotch;
+    final safeMax = w - cornerRadius - halfNotch;
+    final cx = notchCenterX.clamp(safeMin, safeMax);
+    final notchStart = cx - halfNotch;
+    final notchEnd = cx + halfNotch;
 
-    if (notchStart > cornerRadius) {
-      path.lineTo(notchStart, 0);
-    }
-
-    path.cubicTo(
-      notchCenterX - halfNotch * 0.65, 0,
-      notchCenterX - halfNotch * 0.3, notchDepth * 0.85,
-      notchCenterX, notchDepth,
-    );
-    path.cubicTo(
-      notchCenterX + halfNotch * 0.3, notchDepth * 0.85,
-      notchCenterX + halfNotch * 0.65, 0,
-      notchEnd, 0,
-    );
-
-    if (notchEnd < w - cornerRadius) {
+    if (notchDepth <= 0) {
+      // No notch — draw a flat top edge.
       path.lineTo(w - cornerRadius, 0);
+    } else {
+      if (notchStart > cornerRadius) {
+        path.lineTo(notchStart, 0);
+      }
+
+      path.cubicTo(
+        cx - halfNotch * 0.65, 0,
+        cx - halfNotch * 0.3, notchDepth * 0.85,
+        cx, notchDepth,
+      );
+      path.cubicTo(
+        cx + halfNotch * 0.3, notchDepth * 0.85,
+        cx + halfNotch * 0.65, 0,
+        notchEnd, 0,
+      );
+
+      if (notchEnd < w - cornerRadius) {
+        path.lineTo(w - cornerRadius, 0);
+      }
     }
 
     path.arcToPoint(

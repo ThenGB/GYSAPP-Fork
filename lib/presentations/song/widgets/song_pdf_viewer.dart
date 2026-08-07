@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:developer';
 import 'dart:math' show max;
+import '../../../components/components.dart';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pdfrx/pdfrx.dart' as pdfrx;
@@ -42,6 +44,8 @@ class SongPdfViewer extends StatefulWidget {
   final bool isEditMode;
   final Function(Map<int, List<ChordData>>)? onChordsChanged;
   final PdfViewerController? viewerController;
+  final VoidCallback? onNextSong;
+  final VoidCallback? onPreviousSong;
 
   const SongPdfViewer({
     super.key,
@@ -59,6 +63,8 @@ class SongPdfViewer extends StatefulWidget {
     this.isEditMode = false,
     this.onChordsChanged,
     this.viewerController,
+    this.onNextSong,
+    this.onPreviousSong,
   });
 
   @override
@@ -111,14 +117,34 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   /// PDF stays hidden until fit-to-page completes, then animates to visible.
   bool _pdfFullyVisible = false;
 
-  /// Two-page mode: the 0-based index of the first page in the visible pair.
-  /// When twoPageMode is true and the PDF has more than 2 pages, only the
-  /// pair starting at this offset is shown. Navigation via buttons or swipe
-  /// moves between pairs.
-  int _twoPagePairStart = 0;
+  /// 0-based index of the page that is currently visible (or the left
+  /// page of the visible pair in two-page mode).  In normal mode this
+  /// is the only visible page; in two-page mode the right-hand page
+  /// is `_currentPageIndex + 1`.
+  int _currentPageIndex = 0;
 
-  /// Total page count of the currently loaded document, for pair navigation.
+  /// Total page count of the currently loaded document, for navigation.
   int _totalPageCount = 0;
+
+  // Swipe gesture state for page/song navigation.
+  double _swipeStartX = 0;
+  double _swipeStartY = 0;
+  DateTime _swipeStartTime = DateTime.now();
+
+  /// Cached [pdfrx.PdfViewerParams] for the current configuration.
+  ///
+  /// This MUST be stable across rebuilds: pdfrx compares its `params`
+  /// field by identity in `didUpdateWidget` and re-applies the layout
+  /// (which invalidates the entire page tree) whenever a new instance
+  /// is detected.  Recreating `params` in `build()` would therefore put
+  /// the viewer in a perpetual rebuild loop and the PDF would never
+  /// reach a stable, visible state.
+  ///
+  /// The params are (re)created in `didChangeDependencies` (for the
+  /// initial build and theme changes) and in `didUpdateWidget` (only
+  /// when `showChord` flips, since `pageOverlaysBuilder` is the only
+  /// widget-driven field).
+  pdfrx.PdfViewerParams? _cachedParams;
 
   @override
   void initState() {
@@ -150,12 +176,20 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
     if (oldWidget.pdfPath != widget.pdfPath) {
       _parsePdfPath();
+      // The onViewerReady closure captures the path generation and
+      // source id; rebuild params so the new PDF reports readiness
+      // through the up-to-date closure.
+      _cachedParams = null;
     }
     if (oldWidget.twoPageMode != widget.twoPageMode ||
         oldWidget.verticalScrolling != widget.verticalScrolling) {
       // Layout changed — PdfViewer is rebuilt via new key on assetPath,
       // but twoPageMode/verticalScrolling need a setState.
       _needsInitialFit = true;
+      // Invalidate cached params so the next build creates fresh params
+      // with the correct layout mode.  Without this the old params (which
+      // may have different scrollPhysics or layoutPages) are reused.
+      _cachedParams = null;
       setState(() {});
     }
     if (oldWidget.showChord != widget.showChord ||
@@ -166,6 +200,13 @@ class _SongPdfViewerState extends State<SongPdfViewer>
         oldWidget.chordFontSizePercent != widget.chordFontSizePercent ||
         oldWidget.chordFillOpacityPercent != widget.chordFillOpacityPercent ||
         oldWidget.chordPaddingPercent != widget.chordPaddingPercent) {
+      // showChord flips the pageOverlaysBuilder; pdfrx compares the
+      // whole params by identity, so we must hand it a fresh instance
+      // (and bump the version so `_buildLayout` re-computes the
+      // chord overlay offsets).
+      if (oldWidget.showChord != widget.showChord) {
+        _cachedParams = null;
+      }
       setState(() {});
       // pdfrx's _widgetUpdated returns early (without calling _invalidate) when
       // the document key is unchanged, so the pageOverlaysBuilder closure change
@@ -196,7 +237,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       _viewerReadyWatchdog?.cancel();
       _pdfFullyVisible = false;
       _isTransitioning = true; // Start transition
-      _twoPagePairStart = 0;
+      _currentPageIndex = 0;
       _totalPageCount = 0;
       // Quick fade out
       _navFadeCtrl.value = 1.0;
@@ -230,7 +271,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     _metadataPrimedSourceId = null;
     _noteStatsLogged.clear();
     _isTransitioning = true;
-    _twoPagePairStart = 0;
+    _currentPageIndex = 0;
     _totalPageCount = 0;
 
     // Clear note extraction cache when PDF changes
@@ -241,20 +282,28 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
     // Start fade out animation if there was a previous PDF
     if (oldRequest != null) {
+      // Capture the generation so the .then() callback can reject
+      // itself if a newer _parsePdfPath call happened in the
+      // meantime (stale-closure race).
+      final capturedGeneration = _pathGeneration;
       // Set controller to fade-out position (value=1, opacity=0)
       _navFadeCtrl.value = 1.0;
       // Animate fade out over 150ms (fast portion of 300ms total)
       _navFadeCtrl.duration = const Duration(milliseconds: 150);
       _navFadeCtrl.forward(from: 0).then((_) {
-        if (mounted) {
-          setState(() {
-            _pdfRequest = newRequest;
-            _isTransitioning = false;
-          });
-          // Schedule watchdog for the new PDF
-          _scheduleViewerReadyWatchdog(_pathGeneration);
-        }
-        // Keep controller at end (value=1.0) so Task 3 can call reverse() for fade-in
+        if (!mounted || capturedGeneration != _pathGeneration) return;
+        // Invalidate the cached params so the next build creates
+        // fresh params with the NEW _pdfRequest.  Without this the
+        // onViewerReady closure still captures the old sourceId
+        // and pdfrx's _onViewerReady sourceId check fails, which
+        // prevents _pdfFullyVisible from ever becoming true.
+        _cachedParams = null;
+        setState(() {
+          _pdfRequest = newRequest;
+          _isTransitioning = false;
+        });
+        // Schedule watchdog for the new PDF
+        _scheduleViewerReadyWatchdog(_pathGeneration);
       });
     } else {
       // No previous PDF, just show the new one hidden
@@ -276,8 +325,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           'PDF viewer-ready watchdog gave up after $attempt recreations',
           name: 'SongPdfViewer',
         );
+        // Force the PDF visible so the user isn't stuck on a blank
+        // screen.  A mis-aligned PDF is better than nothing.
         if (mounted) {
-          setState(() => _isTransitioning = false);
+          _pdfFullyVisible = true;
+          _isTransitioning = false;
+          _navFadeCtrl.duration = const Duration(milliseconds: 300);
+          _navFadeCtrl.reverse(from: 1.0);
+          setState(() {});
         }
         return;
       }
@@ -324,8 +379,12 @@ class _SongPdfViewerState extends State<SongPdfViewer>
             continue;
           }
           _invalidatePdfIfReady();
-          if (mounted) {
-            setState(() => _isTransitioning = false);
+          if (mounted && generation == _pathGeneration) {
+            _pdfFullyVisible = true;
+            _isTransitioning = false;
+            _navFadeCtrl.duration = const Duration(milliseconds: 300);
+            _navFadeCtrl.reverse(from: 1.0);
+            setState(() {});
           }
           log(
             'PDF fit succeeded after $attempts attempts',
@@ -346,13 +405,13 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           _invalidatePdfIfReady();
         }
       }
-      if (mounted) {
-        setState(() => _isTransitioning = false);
-      }
-      log(
-        'PDF fit fallback completed after $maxAttempts attempts',
-        name: 'SongPdfViewer',
-      );
+      // Show the PDF even if the fit failed — a visible but
+      // mis-aligned PDF is better than nothing.
+      _pdfFullyVisible = true;
+      _isTransitioning = false;
+      _navFadeCtrl.duration = const Duration(milliseconds: 300);
+      _navFadeCtrl.reverse(from: 1.0);
+      setState(() {});
     }
   }
 
@@ -386,8 +445,20 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
     _viewerReadyGeneration = generation;
     _viewerReadyWatchdog?.cancel();
-    _totalPageCount = document.pages.length;
-    _twoPagePairStart = 0;
+    // The master PDF may contain dozens of songs; the navigator
+    // (and the `_goToPage` clamp) must report the *song's* page
+    // count, not the document's.  When `request.pageCount` is set
+    // (the usual case) it equals the number of pages that belong
+    // to this song; otherwise we fall back to "everything from
+    // `startPage` to the end of the document".
+    _totalPageCount =
+        request.pageCount ??
+        (document.pages.length - request.startPage + 1).clamp(1, 1 << 30);
+    // `_currentPageIndex` is 0-based and relative to the start of
+    // the song's page range, so the first page of the song is
+    // always index 0 — not `startPage - 1` (which would point at
+    // the last page of the previous song in the master PDF).
+    _currentPageIndex = 0;
     _primeDetectedMetadataFromFirstPage(document, request);
 
     // Use a more robust way to wait for the viewer to have a valid size.
@@ -508,12 +579,14 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     _pdfCtrl.goTo(matrix);
   }
 
-  /// Instant fit-to-page used on viewer-ready to avoid the animated double-zoom
-  /// flicker that occurs when onLayoutInitialized and onViewerReady both try to
-  /// set the zoom/position.
+  /// Instant fit-to-page used on viewer-ready and after explicit
+  /// page navigation to avoid the animated double-zoom flicker that
+  /// occurs when onLayoutInitialized and onViewerReady both try to
+  /// set the zoom/position.  Fits to [_currentPageIndex] so two-page
+  /// mode centres on the left page of the current pair.
   bool _fitToPageInstant() {
     if (!_pdfCtrl.isReady) return false;
-    final page = _pdfRequest?.startPage ?? _pdfCtrl.pageNumber ?? 1;
+    final page = (_pdfRequest?.startPage ?? 1) + _currentPageIndex;
     final matrix = _tryCalcFitMatrix(pageNumber: page);
     if (matrix == null) return false;
     _needsInitialFit = false;
@@ -610,15 +683,21 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     final request = _pdfRequest;
 
     if (request == null) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.picture_as_pdf_outlined, size: 48, color: Colors.grey),
-            SizedBox(height: 12),
+            Icon(
+              Icons.picture_as_pdf_outlined,
+              size: 48,
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
             Text(
               'Pilih lagu untuk menampilkan PDF.',
-              style: TextStyle(color: Colors.grey),
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
           ],
         ),
@@ -627,18 +706,31 @@ class _SongPdfViewerState extends State<SongPdfViewer>
 
     final theme = Theme.of(context);
     final requestGeneration = _pathGeneration;
-    // Use an instance method for onViewerReady so the tear-off is stable
-    // across rebuilds; pdfrx re-initialises the viewer when params change.
-    final params = pdfrx.PdfViewerParams(
-      backgroundColor: theme.colorScheme.surface,
+    // The params are cached in state so their identity stays stable
+    // across rebuilds.  pdfrx compares `widget.params` by identity in
+    // `didUpdateWidget` and tears down + re-lays out the page tree
+    // when it sees a new instance — recreating params in `build()`
+    // would put the viewer in a perpetual rebuild loop and the PDF
+    // would never settle on a visible state.  See [_cachedParams].
+    final params = _cachedParams ??= pdfrx.PdfViewerParams(
+      // White like the paper so the area below a short page blends into
+      // the sheet instead of showing a contrasting strip.
+      backgroundColor: const Color(0xFFFFFFFF),
       layoutPages: _buildLayout,
       onViewerReady: (document, ctrl) =>
           _onViewerReady(document, ctrl, requestGeneration, request.sourceId),
-      pageOverlaysBuilder: widget.showChord ? _buildPageOverlays : null,
-      // Use faster rendering settings
-      sizeDelegateProvider: pdfrx.PdfViewerSizeDelegateProviderLegacy(
+      // Always provide the overlay builder (never null) so chord badges
+      // can fade out on toggle-off instead of vanishing instantly; the
+      // badge TweenAnimationBuilder animates toward showChord's target.
+      pageOverlaysBuilder: _buildPageOverlays,
+      sizeDelegateProvider: const pdfrx.PdfViewerSizeDelegateProviderLegacy(
         maxScale: 3.5,
       ),
+      // Do NOT set scrollPhysics here — pdfrx uses its own
+      // FixedOverscrollPhysics which works with its internal
+      // scroll/zoom system.  Overriding it with
+      // ClampingScrollPhysics breaks vertical scrolling and
+      // pinch-to-zoom.
     );
 
     // Force recreation when the requested range changes so pdfrx applies
@@ -666,131 +758,189 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           );
 
     return SizedBox.expand(
-      child: AnimatedBuilder(
-        animation: _navFadeCtrl,
-        child: viewer,
-        builder: (context, child) {
-          // Only show the PDF when _pdfFullyVisible is true.
-          // Before that, keep it hidden (opacity 0).
-          final opacity = _pdfFullyVisible ? _navOpacity.value : 0.0;
-          final pdfWidget = Opacity(opacity: opacity, child: child);
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          return AnimatedBuilder(
+            animation: _navFadeCtrl,
+            child: viewer,
+            builder: (context, child) {
+              // Only show the PDF when _pdfFullyVisible is true.
+              // Before that, keep it hidden (opacity 0).
+              final opacity = _pdfFullyVisible ? _navOpacity.value : 0.0;
+              final pdfWidget = Opacity(opacity: opacity, child: child);
 
-          // In two-page mode with >2 pages, add navigation controls.
-          if (widget.twoPageMode && _totalPageCount > 2) {
-            final pairCount = (_totalPageCount / 2).ceil();
-            final currentPair = (_twoPagePairStart / 2).floor() + 1;
-            final canGoPrev = _twoPagePairStart > 0;
-            final canGoNext = _twoPagePairStart + 2 < _totalPageCount;
-            return Stack(
-              fit: StackFit.expand,
-              children: [
-                GestureDetector(
-                  onHorizontalDragEnd: (details) {
-                    final v = details.primaryVelocity ?? 0;
-                    if (v < -160 && canGoNext) {
-                      setState(() {
-                        _twoPagePairStart = (_twoPagePairStart + 2)
-                            .clamp(0, _totalPageCount - 1);
-                        _cachedLayout = null;
-                        _cachedLayoutKey = null;
-                      });
-                      _fitToPageInstant();
-                    } else if (v > 160 && canGoPrev) {
-                      setState(() {
-                        _twoPagePairStart = (_twoPagePairStart - 2)
-                            .clamp(0, _totalPageCount - 1);
-                        _cachedLayout = null;
-                        _cachedLayoutKey = null;
-                      });
-                      _fitToPageInstant();
-                    }
-                  },
-                  child: pdfWidget,
-                ),
-                Positioned(
-                  bottom: 8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 360),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
+              // Two-page mode in portrait: show a "rotate to landscape"
+              // prompt on top of the PDF so the user understands why
+              // only one page is visible.
+              if (widget.twoPageMode && orientation == Orientation.portrait) {
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    pdfWidget,
+                    _RotateToLandscapeOverlay(theme: theme),
+                  ],
+                );
+              }
+
+              // Vertical-scroll mode: no navigator pill (the user
+              // scrolls the whole document instead).
+              if (widget.verticalScrolling) {
+                return pdfWidget;
+              }
+
+              // Normal mode and two-page landscape: add a compact
+              // corner navigator and wrap the viewer in a Listener
+              // so vertical swipes navigate pages and horizontal
+              // swipes navigate songs.
+              if (_totalPageCount > 1) {
+                final isPortrait = orientation == Orientation.portrait;
+                final step = (widget.twoPageMode && !isPortrait) ? 2 : 1;
+                final maxIndex = (widget.twoPageMode && !isPortrait)
+                    ? ((_totalPageCount - 1) ~/ 2) * 2
+                    : _totalPageCount - 1;
+                final canGoPrev = _currentPageIndex > 0;
+                final canGoNext = _currentPageIndex + step <= maxIndex;
+                final displayIndex = widget.twoPageMode && !isPortrait
+                    ? '${_currentPageIndex ~/ 2 + 1}/${(_totalPageCount / 2).ceil()}'
+                    : '${_currentPageIndex + 1}/$_totalPageCount';
+                return Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    Listener(
+                      onPointerDown: _onSwipeStart,
+                      onPointerUp: _onSwipeEnd,
+                      child: pdfWidget,
+                    ),
+                    Positioned(
+                      bottom: 12,
+                      right: 12,
+                      child: _PdfPageNavigator(
+                        theme: theme,
+                        label: displayIndex,
+                        canGoPrev: canGoPrev,
+                        canGoNext: canGoNext,
+                        onPrev: () => unawaited(
+                          _goToPage(_currentPageIndex - step),
                         ),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surfaceContainerHighest
-                              .withValues(alpha: 0.92),
-                          borderRadius: BorderRadius.circular(24),
-                          border: Border.all(
-                            color: theme.colorScheme.outlineVariant
-                                .withValues(alpha: 0.4),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.chevron_left_rounded),
-                              onPressed: canGoPrev
-                                  ? () {
-                                      setState(() {
-                                        _twoPagePairStart = (_twoPagePairStart - 2)
-                                            .clamp(0, _totalPageCount - 1);
-                                        _cachedLayout = null;
-                                        _cachedLayoutKey = null;
-                                      });
-                                      _fitToPageInstant();
-                                    }
-                                  : null,
-                              tooltip: 'Halaman sebelumnya',
-                              visualDensity: VisualDensity.compact,
-                            ),
-                            Text(
-                              '$currentPair / $pairCount',
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(Icons.chevron_right_rounded),
-                              onPressed: canGoNext
-                                  ? () {
-                                      setState(() {
-                                        _twoPagePairStart = (_twoPagePairStart + 2)
-                                            .clamp(0, _totalPageCount - 1);
-                                        _cachedLayout = null;
-                                        _cachedLayoutKey = null;
-                                      });
-                                      _fitToPageInstant();
-                                    }
-                                  : null,
-                              tooltip: 'Halaman berikutnya',
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
+                        onNext: () => unawaited(
+                          _goToPage(_currentPageIndex + step),
                         ),
                       ),
                     ),
-                  ),
-                ),
-              ],
-            );
-          }
+                  ],
+                );
+              }
 
-          return pdfWidget;
+              return pdfWidget;
+            },
+          );
         },
       ),
     );
   }
 
-  /// Custom layout function implementing vertical-scroll and two-page modes.
+  /// Switch to a new page in the current PDF with a smooth
+  /// cross-fade transition: the current page fades out, the
+  /// layout is rebuilt for the new page, the viewer is
+  /// re-fitted, and the new page fades back in.  In two-page
+  /// mode the same animation runs but the layout is built for
+  /// the new pair.  In vertical-scroll mode the layout already
+  /// shows every page, so the swap still runs (and the user
+  /// sees the new page come into view centred).
+  Future<void> _goToPage(int newIndex) async {
+    if (newIndex == _currentPageIndex) return;
+    final clamped = newIndex.clamp(0, _totalPageCount - 1);
+    if (clamped == _currentPageIndex) return;
+
+    // Phase 1: fade out the current page.  `_navOpacity` is a
+    // tween from 1.0 (visible) to 0.0 (hidden); `forward()` drives
+    // the controller 0 → 1 so the tween output goes 1 → 0.
+    _navFadeCtrl.stop();
+    _navFadeCtrl.duration = const Duration(milliseconds: 120);
+    await _navFadeCtrl.forward(from: 0);
+    if (!mounted) return;
+
+    // Phase 2: swap the page.  Wrapped in setState so the build
+    // picks up the new `_currentPageIndex` and the layout cache
+    // is invalidated.
+    setState(() {
+      _currentPageIndex = clamped;
+      _cachedLayout = null;
+      _cachedLayoutKey = null;
+    });
+
+    // Wait one frame so pdfrx's internal layout pass runs with the
+    // new page rect before we ask it to fit.
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    _invalidatePdfIfReady();
+    _fitToPageInstant();
+
+    // Phase 3: fade in the new page.  `reverse()` drives the
+    // controller 1 → 0, which makes the tween output 0 → 1.
+    _navFadeCtrl.duration = const Duration(milliseconds: 180);
+    await _navFadeCtrl.reverse(from: 1);
+  }
+
+  void _onSwipeStart(PointerDownEvent event) {
+    _swipeStartX = event.position.dx;
+    _swipeStartY = event.position.dy;
+    _swipeStartTime = DateTime.now();
+  }
+
+  void _onSwipeEnd(PointerUpEvent event) {
+    final dx = event.position.dx - _swipeStartX;
+    final dy = event.position.dy - _swipeStartY;
+    final elapsed =
+        DateTime.now().difference(_swipeStartTime).inMilliseconds;
+    if (elapsed == 0 || elapsed > 600) return;
+
+    final vx = dx / elapsed * 1000;
+    final vy = dy / elapsed * 1000;
+    const minVelocity = 400.0; // px/s
+    const minDistance = 80.0; // px
+
+    if (vx.abs() > minVelocity &&
+        dx.abs() > minDistance &&
+        vx.abs() > vy.abs()) {
+      // Horizontal swipe → navigate songs.
+      if (vx > 0) {
+        widget.onNextSong?.call();
+      } else {
+        widget.onPreviousSong?.call();
+      }
+    } else if (vy.abs() > minVelocity &&
+        dy.abs() > minDistance &&
+        vy.abs() > vx.abs()) {
+      // Vertical swipe → navigate pages within the current song.
+      if (dy < 0) {
+        unawaited(_goToPage(_currentPageIndex + 1));
+      } else {
+        unawaited(_goToPage(_currentPageIndex - 1));
+      }
+    }
+  }
+
+  /// Custom layout function implementing the three viewing modes.
   ///
-  /// pdfrx requires one [Rect] per page in [pages] (indexed by position).
-  /// Pages outside the requested range are placed far off-screen so they are
-  /// invisible; the document size is computed from the visible pages only.
+  /// pdfrx requires one [Rect] per page in [pages] (indexed by
+  /// position).  The document size is the size of the scrollable
+  /// area; pages outside it are clipped.
+  ///
+  /// Modes:
+  ///   * **vertical** (`widget.verticalScrolling`): every page is
+  ///     stacked top-to-bottom at the document's widest page width.
+  ///     The user scrolls vertically through the song.
+  ///   * **two-page** (`widget.twoPageMode`): the page at
+  ///     `_currentPageIndex` and the next page are placed side-by-side
+  ///     (only when the device is in landscape — the build method
+  ///     overlays a "rotate to landscape" prompt in portrait).  The
+  ///     user navigates by pair with the prev/next controls.
+  ///   * **normal** (default): every page is placed in a horizontal
+  ///     row at the document's tallest page height.  The build method
+  ///     uses [PdfViewerController.goToPage] to scroll the viewer to
+  ///     `_currentPageIndex`, so the user always sees exactly the
+  ///     current page and navigates with the prev/next controls.
   pdfrx.PdfPageLayout _buildLayout(
     List<pdfrx.PdfPage> pages,
     pdfrx.PdfViewerParams params,
@@ -800,18 +950,27 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       return pdfrx.PdfPageLayout(pageLayouts: [], documentSize: Size.zero);
     }
 
-    // Determine which pages to show (1-based, inclusive start, exclusive end).
+    // Filter to the page range the cubit asked for (1-based, inclusive
+    // start, exclusive end).  Pages outside this range are parked at
+    // extreme negative coordinates so they are out of the scrollable
+    // area and not hit by the user's gestures.
     final int startPage = request.startPage;
     final int endPage = request.pageCount != null
         ? startPage + request.pageCount!
         : pages.length + 1;
 
-    // Cache key for the layout
-    final pageSignature = pages
-        .map((page) => '${page.pageNumber}:${page.width}x${page.height}')
-        .join(',');
+    // Cache key: includes every input that affects geometry.
+    // The page signature is a lightweight hash (O(1) per page)
+    // rather than the old O(N) string concatenation of every
+    // page's number, width and height.
+    var pageHash = pages.length;
+    for (final page in pages) {
+      pageHash = pageHash * 31 + page.pageNumber;
+      pageHash = pageHash * 31 + page.width.round();
+      pageHash = pageHash * 31 + page.height.round();
+    }
     final layoutKey =
-        '${request.sourceId}#s$startPage#e$endPage#v${widget.verticalScrolling}#t${widget.twoPageMode}#m${params.margin}#pages$pageSignature';
+        '${request.sourceId}#s$startPage#e$endPage#p$_currentPageIndex#v${widget.verticalScrolling}#t${widget.twoPageMode}#m${params.margin}#ph$pageHash';
     if (_cachedLayout != null && _cachedLayoutKey == layoutKey) {
       return _cachedLayout!;
     }
@@ -821,14 +980,27 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           (page) => page.pageNumber >= startPage && page.pageNumber < endPage,
         )
         .toList();
+    if (visiblePages.isEmpty) {
+      _cachedLayout = pdfrx.PdfPageLayout(
+        pageLayouts: const <Rect>[],
+        documentSize: const Size(100, 100),
+      );
+      return _cachedLayout!;
+    }
 
     final margin = params.margin;
+    final currentIndex = _currentPageIndex.clamp(0, visiblePages.length - 1);
+    final current = visiblePages[currentIndex];
+    final next = (currentIndex + 1 < visiblePages.length)
+        ? visiblePages[currentIndex + 1]
+        : null;
 
-    // Build a map from pageNumber → Rect for visible pages.
     final Map<int, Rect> visibleRects = {};
     Size documentSize;
 
     if (widget.verticalScrolling) {
+      // Vertical scroll: every page stacked at the document's widest
+      // width.  The user scrolls the whole document vertically.
       final width =
           visiblePages.fold(0.0, (w, p) => max(w, p.width)) + margin * 2;
       double y = margin;
@@ -843,61 +1015,71 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       }
       documentSize = Size(width, y);
     } else if (widget.twoPageMode) {
-      // In two-page mode, show only the current pair of pages (not all
-      // pages). This lets the user navigate pair-by-pair via swipe/buttons.
-      final pairStart = _twoPagePairStart.clamp(0, visiblePages.length);
-      final pairPages = <pdfrx.PdfPage>[];
-      for (int i = pairStart; i < pairStart + 2 && i < visiblePages.length; i++) {
-        pairPages.add(visiblePages[i]);
-      }
-      if (pairPages.isEmpty) {
-        documentSize = const Size(100, 100);
-      } else {
-        final left = pairPages[0];
-        final right = pairPages.length > 1 ? pairPages[1] : null;
-        final pairWidth = left.width + (right?.width ?? left.width) + margin;
-        final pairHeight = max(left.height, right?.height ?? 0.0);
+      // Two-page spread: current page on the left, next page on the
+      // right.  When there is no next page (e.g. last odd page) we
+      // just render the single current page; the build method shows
+      // a placeholder if needed.
+      final left = current;
+      final right = next;
+      if (right != null) {
+        final pairWidth = left.width + right.width + margin * 3;
+        final pairHeight = max(left.height, right.height) + margin * 2;
         visibleRects[left.pageNumber] = Rect.fromLTWH(
           margin,
           margin,
           left.width,
           left.height,
         );
-        if (right != null) {
-          visibleRects[right.pageNumber] = Rect.fromLTWH(
-            margin + left.width + margin,
-            margin,
-            right.width,
-            right.height,
-          );
-        }
-        documentSize = Size(pairWidth + margin, pairHeight + margin * 2);
+        visibleRects[right.pageNumber] = Rect.fromLTWH(
+          margin + left.width + margin,
+          margin,
+          right.width,
+          right.height,
+        );
+        documentSize = Size(pairWidth, pairHeight);
+      } else {
+        visibleRects[left.pageNumber] = Rect.fromLTWH(
+          margin,
+          margin,
+          left.width,
+          left.height,
+        );
+        documentSize = Size(
+          left.width + margin * 2,
+          left.height + margin * 2,
+        );
       }
     } else {
-      // Default: horizontal single-page layout.
-      final height =
-          visiblePages.fold(0.0, (h, p) => max(h, p.height)) + margin * 2;
-      double x = margin;
-      for (final page in visiblePages) {
-        visibleRects[page.pageNumber] = Rect.fromLTWH(
-          x,
-          (height - page.height) / 2,
-          page.width,
-          page.height,
-        );
-        x += page.width + margin;
-      }
-      documentSize = Size(x, height);
+      // Normal mode: only the current page is on-screen.  All
+      // other pages are parked far off-screen so the scrollable
+      // area is exactly one page wide — the user never sees more
+      // than the page they are on.  ClampingScrollPhysics on the
+      // PdfViewerParams prevents overscroll into the parked pages.
+      // When the user navigates with prev/next, `_goToPage`
+      // updates `_currentPageIndex`, invalidates the cached layout,
+      // and re-fits the viewer to the new page.
+      visibleRects[current.pageNumber] = Rect.fromLTWH(
+        margin,
+        margin,
+        current.width,
+        current.height,
+      );
+      documentSize = Size(
+        current.width + margin * 2,
+        current.height + margin * 2,
+      );
     }
 
     if (documentSize.isEmpty) {
       documentSize = const Size(100, 100);
     }
 
-    // Assemble one Rect per page (pdfrx contract): visible pages get their
-    // computed rect; hidden pages get a valid-sized rect placed far off-screen.
-    // Rect.zero must NOT be used — a zero-dimension rect causes pdfrx to
-    // compute a degenerate (NaN) hit-test transform matrix (1/0 → NaN).
+    // Assemble one Rect per page (pdfrx contract): pages in the
+    // requested range get their computed rect; everything else is
+    // parked far off-screen so it is out of the scrollable area and
+    // not hit by the user's gestures.  Rect.zero must NOT be used — a
+    // zero-dimension rect causes pdfrx to compute a degenerate (NaN)
+    // hit-test transform matrix (1/0 → NaN).
     final pageLayouts = [
       for (final page in pages)
         visibleRects[page.pageNumber] ??
@@ -927,6 +1109,17 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     final request = _pdfRequest;
     if (request == null) return [];
 
+    // PERFORMANCE: pdfrx invokes this callback for *every* page in
+    // the document, even pages that are parked off-screen at
+    // (-w*100, -h*100) by our custom layout.  Building chord
+    // overlays for those pages is pure waste (the widgets never
+    // paint, but State objects are still allocated).  Skip them.
+    final expectedPageNumber = request.startPage + _currentPageIndex;
+    final isCurrentPage = page.pageNumber == expectedPageNumber;
+    final isNextPageInTwoPageMode = widget.twoPageMode &&
+        page.pageNumber == expectedPageNumber + 1;
+    if (!isCurrentPage && !isNextPageInTwoPageMode) return [];
+
     // Map absolute PDF page number → song-relative page number (1-based).
     final songPage = page.pageNumber - request.startPage + 1;
     final allChords = widget.chords ?? const <int, List<ChordData>>{};
@@ -951,12 +1144,126 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           chordFillOpacityPercent: widget.chordFillOpacityPercent,
           chordPaddingPercent: widget.chordPaddingPercent,
           pageRectInViewer: pageRectInViewer,
+          showChord: widget.showChord,
           isEditMode: widget.isEditMode,
           onChordEdited: widget.onChordsChanged,
           loadNotePositionsAndInfos: _loadNotePositionsAndInfos,
         ),
       ),
     ];
+  }
+}
+
+/// Translucent overlay shown when two-page mode is enabled but the
+/// device is in portrait.  Tells the user to rotate to landscape.
+class _RotateToLandscapeOverlay extends StatelessWidget {
+  const _RotateToLandscapeOverlay({required this.theme});
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = theme.colorScheme;
+    return Container(
+      color: colors.surface.withValues(alpha: 0.72),
+      alignment: Alignment.center,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.screen_rotation_rounded,
+              size: 48,
+              color: colors.onSurfaceVariant,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Putar perangkat ke landscape',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Mode dua halaman hanya tersedia dalam orientasi landscape.',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Compact floating navigator rendered at the bottom-right corner of
+/// the PDF viewer when the document has more than one page.  Uses
+/// up/down buttons so the user can navigate pages with a tap or
+/// with vertical swipe gestures (which are detected by the
+/// [Listener] that wraps the PDF viewer).
+class _PdfPageNavigator extends StatelessWidget {
+  const _PdfPageNavigator({
+    required this.theme,
+    required this.label,
+    required this.canGoPrev,
+    required this.canGoNext,
+    required this.onPrev,
+    required this.onNext,
+  });
+
+  final ThemeData theme;
+  final String label;
+  final bool canGoPrev;
+  final bool canGoNext;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = theme.colorScheme;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.88),
+        borderRadius: context.appRadius(10),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_up_rounded),
+            onPressed: canGoPrev ? onPrev : null,
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Halaman sebelumnya',
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              label,
+              style: theme.textTheme.labelSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: colors.onSurfaceVariant,
+                fontSize: context.appFontSize(10),
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.keyboard_arrow_down_rounded),
+            onPressed: canGoNext ? onNext : null,
+            iconSize: 20,
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+            visualDensity: VisualDensity.compact,
+            tooltip: 'Halaman berikutnya',
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1002,10 +1309,13 @@ class _ChordOverlay extends StatefulWidget {
     required this.chordFillOpacityPercent,
     required this.chordPaddingPercent,
     required this.pageRectInViewer,
+    required this.showChord,
     this.isEditMode = false,
     this.onChordEdited,
     required this.loadNotePositionsAndInfos,
   });
+
+  final bool showChord;
 
   @override
   State<_ChordOverlay> createState() => _ChordOverlayState();
@@ -1394,7 +1704,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
               color: existingChord != null
                   ? Colors.blue.withValues(alpha: 0.3)
                   : Colors.grey.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(3),
+              borderRadius: context.appRadius(3),
               border: Border.all(
                 color: existingChord != null ? Colors.blue : Colors.grey,
                 width: 1,
@@ -1402,8 +1712,8 @@ class _ChordOverlayState extends State<_ChordOverlay> {
             ),
             child: Text(
               label,
-              style: const TextStyle(
-                fontSize: 10,
+              style: TextStyle(
+                fontSize: context.appFontSize(10),
                 color: Colors.black,
                 fontWeight: FontWeight.bold,
               ),
@@ -1436,7 +1746,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text('Batal'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -1450,7 +1760,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Simpan'),
+            child: Text('Simpan'.tr()),
           ),
         ],
       ),
@@ -1533,34 +1843,50 @@ class _ChordOverlayState extends State<_ChordOverlay> {
         : Colors.transparent;
     final borderWidth = widget.isEditMode ? 2.0 : 0.0;
 
+    // Fade badges in when chords turn on and out when they turn off.
+    // The overlay builder stays mounted (never null) so the fade-out can
+    // actually play before the next rebuild settles on the hidden state.
+    // NOTE: the Positioned must stay the direct child of the page Stack —
+    // wrapping it in Opacity breaks ParentData — so the animation lives
+    // INSIDE the Positioned.
     return Positioned(
       left: layout.center.dx,
       top: layout.center.dy,
-      child: FractionalTranslation(
-        // Match gyschordweb: center both horizontally and vertically (translate -50%, -50%)
-        translation: const Offset(-0.5, -0.5),
-        child: GestureDetector(
-          onTap: widget.isEditMode
-              ? () => _showEditDialog(context, chord)
-              : null,
-          child: Container(
-            padding: layout.padding,
-            decoration: BoxDecoration(
-              color: bgColor,
-              borderRadius: BorderRadius.circular(3),
-              border: Border.all(color: borderColor, width: borderWidth),
-            ),
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: layout.fontSize,
-                color: fgColor,
-                height: 1.2,
-                fontWeight: FontWeight.w600,
+      child: TweenAnimationBuilder<double>(
+        tween: Tween<double>(
+          begin: widget.showChord ? 0.0 : 1.0,
+          end: widget.showChord ? 1.0 : 0.0,
+        ),
+        duration: const Duration(milliseconds: 260),
+        curve: Curves.easeOutCubic,
+        child: FractionalTranslation(
+          // Match gyschordweb: center both horizontally and vertically (translate -50%, -50%)
+          translation: const Offset(-0.5, -0.5),
+          child: GestureDetector(
+            onTap: widget.isEditMode
+                ? () => _showEditDialog(context, chord)
+                : null,
+            child: Container(
+              padding: layout.padding,
+              decoration: BoxDecoration(
+                color: bgColor,
+                borderRadius: context.appRadius(3),
+                border: Border.all(color: borderColor, width: borderWidth),
+              ),
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: layout.fontSize,
+                  color: fgColor,
+                  height: 1.2,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
         ),
+        builder: (context, opacity, child) =>
+            Opacity(opacity: opacity, child: child),
       ),
     );
   }
@@ -1571,7 +1897,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Edit Chord'),
+        title: Text('edit_chord_title'.tr()),
         content: TextField(
           controller: controller,
           decoration: const InputDecoration(
@@ -1583,7 +1909,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
+            child: Text('Cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
@@ -1592,7 +1918,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
               }
               Navigator.pop(context);
             },
-            child: const Text('Save'),
+            child: Text('Save'.tr()),
           ),
         ],
       ),

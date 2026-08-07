@@ -1,4 +1,5 @@
-﻿import 'dart:async';
+﻿import '../../../components/components.dart';
+import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
@@ -53,6 +54,8 @@ class _SongListViewState extends State<SongListView>
     ..addListener(tabListener);
 
   Timer? _debounce;
+  List<Song>? _filteredCache;
+  String? _lastFilterQuery;
 
   @override
   void dispose() {
@@ -60,6 +63,18 @@ class _SongListViewState extends State<SongListView>
     searchController.dispose();
     tabController.dispose();
     super.dispose();
+  }
+
+  /// Memoized filter so keyboard-triggered resizes do not re-scan the whole
+  /// song list on every frame while the query is unchanged.
+  List<Song> _getFiltered(List<Song> data) {
+    final query = searchController.text;
+    if (_filteredCache != null && _lastFilterQuery == query) {
+      return _filteredCache!;
+    }
+    _filteredCache = getFilteredItems(data);
+    _lastFilterQuery = query;
+    return _filteredCache!;
   }
 
   void searchListener() {
@@ -151,6 +166,41 @@ class _SongListViewState extends State<SongListView>
         centerTitle: true,
         actions: [
           if (tabController.index == 1) ...[
+            // Single-button shuffle toggle.  The 6-chip mode selector
+            // used to live at the top of the playlist list; replacing
+            // it with a single header button keeps the initial view
+            // compact while still exposing the most common action.
+            // Other auto-next modes (one / number / playlist) remain
+            // reachable via the floating MIDI controls' cycle button.
+            BlocSelector<SongCubit, SongState, _ShuffleToggleView>(
+              selector: (state) {
+                final mode = state.playlistAutoNextMode;
+                final on =
+                    mode == SongPlaylistAutoNextMode.shuffleAll ||
+                    mode == SongPlaylistAutoNextMode.shufflePlaylist;
+                return _ShuffleToggleView(
+                  isOn: on,
+                  isPlaylist:
+                      mode == SongPlaylistAutoNextMode.shufflePlaylist,
+                );
+              },
+              builder: (context, view) {
+                return IconButton(
+                  visualDensity: VisualDensity.compact,
+                  tooltip: view.isOn
+                      ? (view.isPlaylist
+                            ? 'Shuffle playlist — matikan'
+                            : 'Shuffle all — matikan')
+                      : 'Aktifkan shuffle',
+                  onPressed: () =>
+                      context.read<SongCubit>().toggleShuffle(),
+                  icon: Icon(
+                    Icons.shuffle_rounded,
+                    color: view.isOn ? context.colorScheme.primary : null,
+                  ),
+                );
+              },
+            ),
             IconButton(
               visualDensity: VisualDensity.compact,
               onPressed: () => _showCreatePlaylistDialog(context),
@@ -230,19 +280,19 @@ class _SongListViewState extends State<SongListView>
                                     EdgeInsets.only(right: trailingReserved),
                                   ),
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(12),
                                     borderSide: BorderSide(
                                       color: colors.outlineVariant,
                                     ),
                                   ),
                                   enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(12),
                                     borderSide: BorderSide(
                                       color: colors.outlineVariant,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(12),
                                     borderSide: BorderSide(
                                       color: colors.primary,
                                       width: 1.2,
@@ -258,6 +308,7 @@ class _SongListViewState extends State<SongListView>
                                     offset: const Offset(0, 48),
                                       onSelected: (value) async {
                                         await widget.onChangeBookCode(value);
+                                        _filteredCache = null;
                                         await Future.delayed(
                                           const Duration(milliseconds: 100),
                                         );
@@ -405,11 +456,11 @@ class _SongListViewState extends State<SongListView>
                                         vertical: 0,
                                       ),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                        borderRadius: context.appRadius(12),
                                       ),
                                     ),
                                     onPressed: () => widget.onOpenSong(last),
-                                    child: const Text('Buka'),
+                                    child: Text('Buka'.tr()),
                                   ),
                                 ],
                               ),
@@ -421,22 +472,24 @@ class _SongListViewState extends State<SongListView>
                     Expanded(
                       child: Builder(
                         builder: (context) {
-                          final filteredItems = getFilteredItems(
+                          final filteredItems = _getFiltered(
                             widget.currentBook().songs,
                           );
                           return ListView.builder(
                             // ignore: deprecated_member_use
-                            cacheExtent: 800,
+                            cacheExtent: 200,
+                            keyboardDismissBehavior:
+                                ScrollViewKeyboardDismissBehavior.onDrag,
                             itemCount: filteredItems.length,
                             itemBuilder: (context, index) {
                               var item = filteredItems[index];
                               return Padding(
-                                padding: const EdgeInsets.fromLTRB(12, 3, 14, 3),
+                                padding: const EdgeInsets.fromLTRB(12, 4, 14, 4),
                                 child: Material(
                                   color: context.colorScheme.surfaceContainerLow,
-                                  borderRadius: BorderRadius.circular(8),
+                                  borderRadius: context.appRadius(12),
                                   child: InkWell(
-                                    borderRadius: BorderRadius.circular(8),
+                                    borderRadius: context.appRadius(12),
                                     onTap: () {
                                       FocusManager.instance.primaryFocus
                                           ?.unfocus();
@@ -447,47 +500,52 @@ class _SongListViewState extends State<SongListView>
                                     },
                                     child: Padding(
                                       padding: const EdgeInsets.symmetric(
-                                        horizontal: 16,
-                                        vertical: 2,
+                                        horizontal: 12,
+                                        vertical: 8,
                                       ),
                                       child: Row(
                                         children: [
-                                          SizedBox(
-                                            width: 50,
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              child: Text(
-                                                item.number ?? '',
-                                                style: const TextStyle(
-                                                  fontFamily: 'EB Garamond',
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 18,
-                                                ),
+                                          CircleAvatar(
+                                            radius: 20,
+                                            backgroundColor: context
+                                                .colorScheme
+                                                .primaryContainer
+                                                .withValues(alpha: 0.65),
+                                            child: Text(
+                                              item.number ?? '',
+                                              style: TextStyle(
+                                                fontFamily:
+                                                    DesignSystem.fontHeading,
+                                                fontWeight: FontWeight.w700,
+                                                fontSize:
+                                                    context.appFontSize(15),
+                                                color: context
+                                                    .colorScheme
+                                                    .onPrimaryContainer,
                                               ),
                                             ),
                                           ),
-                                          const SizedBox(width: 16),
+                                          const SizedBox(width: 14),
                                           Expanded(
-                                            child: FittedBox(
-                                              fit: BoxFit.scaleDown,
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                (item.title ?? '')
-                                                    .capitalizeEachWord(),
-                                                maxLines: 1,
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .titleMedium
-                                                    ?.copyWith(
-                                                      fontWeight: FontWeight.w600,
-                                                    ),
-                                              ),
+                                            child: Text(
+                                              (item.title ?? '')
+                                                  .capitalizeEachWord(),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
+                                              style: Theme.of(context)
+                                                  .textTheme
+                                                  .titleMedium
+                                                  ?.copyWith(
+                                                    fontWeight:
+                                                        FontWeight.w600,
+                                                  ),
                                             ),
                                           ),
                                           const SizedBox(width: 8),
                                           IconButton(
                                             tooltip: 'Tambah ke playlist',
-                                            visualDensity: VisualDensity.compact,
+                                            visualDensity:
+                                                VisualDensity.compact,
                                             padding: EdgeInsets.zero,
                                             onPressed: () {
                                               context
@@ -497,9 +555,13 @@ class _SongListViewState extends State<SongListView>
                                                 msg: 'Ditambahkan ke playlist',
                                               );
                                             },
-                                            icon: const Icon(
+                                            icon: Icon(
                                               Icons.playlist_add_rounded,
                                               size: 20,
+                                              color: context
+                                                  .colorScheme
+                                                  .onSurfaceVariant
+                                                  .withValues(alpha: 0.8),
                                             ),
                                           ),
                                         ],
@@ -538,7 +600,7 @@ class _SongListViewState extends State<SongListView>
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Buat Playlist'),
+        title: Text('playlist_create_title'.tr()),
         content: TextField(
           controller: controller,
           autofocus: true,
@@ -547,11 +609,11 @@ class _SongListViewState extends State<SongListView>
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Batal'),
+            child: Text('Batal'.tr()),
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: const Text('Buat'),
+            child: Text('Buat'.tr()),
           ),
         ],
       ),
@@ -598,10 +660,10 @@ class _SongListTabButton extends StatelessWidget {
       onPressed: onPressed,
       child: Text(
         label,
-        style: const TextStyle(
-          fontFamily: 'Manrope',
+        style: TextStyle(
+          fontFamily: DesignSystem.fontUI,
           fontWeight: FontWeight.w700,
-          fontSize: 12,
+          fontSize: context.appFontSize(12),
         ),
       ),
     );
@@ -671,22 +733,9 @@ class _PlaylistTab extends StatelessWidget {
         return ListView.builder(
           physics: const BouncingScrollPhysics(),
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          itemCount: state.playlists.length + 1,
+          itemCount: state.playlists.length,
           itemBuilder: (context, index) {
-            if (index == 0) {
-              return Column(
-                children: [
-                  frame(
-                    _AutoNextModeSelector(
-                      selectedMode: state.playlistAutoNextMode,
-                      onSelected: cubit.setPlaylistAutoNextMode,
-                    ),
-                  ),
-                  if (state.playlists.isNotEmpty) const SizedBox(height: 12),
-                ],
-              );
-            }
-            final playlist = state.playlists[index - 1];
+            final playlist = state.playlists[index];
             return frame(
               RepaintBoundary(
                 child: _PlaylistCard(
@@ -710,52 +759,25 @@ class _PlaylistTab extends StatelessWidget {
   }
 }
 
-class _AutoNextModeSelector extends StatelessWidget {
-  final String selectedMode;
-  final ValueChanged<String> onSelected;
-
-  const _AutoNextModeSelector({
-    required this.selectedMode,
-    required this.onSelected,
-  });
+/// Lightweight value type for the AppBar shuffle toggle so the
+/// BlocSelector can rebuild the button only when the relevant
+/// fields of the cubit state change.
+class _ShuffleToggleView {
+  const _ShuffleToggleView({required this.isOn, required this.isPlaylist});
+  final bool isOn;
+  final bool isPlaylist;
 
   @override
-  Widget build(BuildContext context) {
-    const options = {
-      SongPlaylistAutoNextMode.off: 'Mati',
-      SongPlaylistAutoNextMode.one: '1 Lagu',
-      SongPlaylistAutoNextMode.number: 'Nomor',
-      SongPlaylistAutoNextMode.playlist: 'Playlist',
-      SongPlaylistAutoNextMode.shuffleAll: 'Shuffle',
-      SongPlaylistAutoNextMode.shufflePlaylist: 'Shuffle PL',
-    };
+  bool operator ==(Object other) =>
+      other is _ShuffleToggleView &&
+      other.isOn == isOn &&
+      other.isPlaylist == isPlaylist;
 
-    return Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: options.entries
-          .map(
-            (entry) => ChoiceChip(
-              label: Text(entry.value),
-              selected: selectedMode == entry.key,
-              showCheckmark: false,
-              selectedColor: context.colorScheme.primaryContainer.withValues(
-                alpha: 0.65,
-              ),
-              side: BorderSide(
-                color: context.colorScheme.outlineVariant.withValues(
-                  alpha: 0.68,
-                ),
-              ),
-              onSelected: (_) => onSelected(entry.key),
-            ),
-          )
-          .toList(),
-    );
-  }
+  @override
+  int get hashCode => Object.hash(isOn, isPlaylist);
 }
 
-class _PlaylistCard extends StatelessWidget {
+class _PlaylistCard extends StatefulWidget {
   final SongPlaylist playlist;
   final bool active;
   final Map<String, Song> songMap;
@@ -775,9 +797,23 @@ class _PlaylistCard extends StatelessWidget {
   });
 
   @override
+  State<_PlaylistCard> createState() => _PlaylistCardState();
+}
+
+class _PlaylistCardState extends State<_PlaylistCard> {
+  // Collapsed by default so the playlist tab renders compactly on
+  // first paint.  The user can tap the card header (or the chevron)
+  // to expand and see the song list.
+  bool _expanded = false;
+
+  void _toggleExpanded() {
+    setState(() => _expanded = !_expanded);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final songs = playlist.songs
-        .map((item) => songMap['${item.code}:${item.number}'])
+    final songs = widget.playlist.songs
+        .map((item) => widget.songMap['${item.code}:${item.number}'])
         .whereType<Song>()
         .toList();
 
@@ -785,7 +821,7 @@ class _PlaylistCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: context.colorScheme.surfaceContainerLow,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: context.appRadius(12),
         border: Border.all(
           color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
@@ -794,76 +830,105 @@ class _PlaylistCard extends StatelessWidget {
         children: [
           ListTile(
             leading: Icon(
-              active ? Icons.playlist_play_rounded : Icons.queue_music_rounded,
-              color: active ? context.colorScheme.primary : null,
+              widget.active
+                  ? Icons.playlist_play_rounded
+                  : Icons.queue_music_rounded,
+              color: widget.active ? context.colorScheme.primary : null,
             ),
-            title: Text(playlist.name),
-            subtitle: Text('${songs.length} lagu${active ? ' â€¢ Aktif' : ''}'),
-            trailing: PopupMenuButton<String>(
-              onSelected: (value) {
-                if (value == 'active') onActivate();
-                if (value == 'delete') onDelete();
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'active',
-                  child: Text('Jadikan aktif'),
+            title: Text(widget.playlist.name),
+            subtitle: Text(
+              '${songs.length} lagu${widget.active ? ' • Aktif' : ''}',
+            ),
+            trailing: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                IconButton(
+                  tooltip: _expanded ? 'Ciutkan' : 'Bentangkan',
+                  onPressed: _toggleExpanded,
+                  icon: AnimatedRotation(
+                    turns: _expanded ? 0.5 : 0.0,
+                    duration: const Duration(milliseconds: 200),
+                    child: const Icon(Icons.expand_more_rounded),
+                  ),
                 ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Text('Hapus playlist'),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    if (value == 'active') widget.onActivate();
+                    if (value == 'delete') widget.onDelete();
+                  },
+                  itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 'active',
+                      child: Text('Jadikan aktif'.tr()),
+                    ),
+                    PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Hapus playlist'.tr()),
+                    ),
+                  ],
                 ),
               ],
             ),
+            onTap: _toggleExpanded,
           ),
-          if (songs.isEmpty)
-            const Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Align(
-                alignment: Alignment.centerLeft,
-                child: Text('Playlist kosong'),
-              ),
-            )
-          else
-            ...songs.indexed.map((entry) {
-              final index = entry.$1;
-              final song = entry.$2;
-              return Column(
-                children: [
-                  const Divider(height: 1),
-                  ListTile(
-                    dense: true,
-                    leading: SizedBox(
-                      width: 36,
-                      child: Text(
-                        song.number ?? '',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontFamily: 'EB Garamond',
-                          fontWeight: FontWeight.w700,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                    title: Text(
-                      song.title ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    onTap: () {
-                      onActivate();
-                      onOpenSong(song);
-                    },
-                    trailing: IconButton(
-                      tooltip: 'Hapus dari playlist',
-                      icon: const Icon(Icons.remove_circle_outline),
-                      onPressed: () => onRemoveSong(index),
-                    ),
-                  ),
-                ],
-              );
-            }),
+          AnimatedSize(
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+            child: _expanded
+                ? (songs.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text('Playlist kosong'.tr()),
+                          ),
+                        )
+                      : Column(
+                          children: songs.indexed.map((entry) {
+                            final index = entry.$1;
+                            final song = entry.$2;
+                            return Column(
+                              children: [
+                                const Divider(height: 1),
+                                ListTile(
+                                  dense: true,
+                                  leading: SizedBox(
+                                    width: 36,
+                                    child: Text(
+                                      song.number ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontFamily: DesignSystem.fontHeading,
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: context.appFontSize(16),
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    song.title ?? '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  onTap: () {
+                                    widget.onActivate();
+                                    widget.onOpenSong(song);
+                                  },
+                                  trailing: IconButton(
+                                    tooltip: 'Hapus dari playlist',
+                                    icon: const Icon(
+                                      Icons.remove_circle_outline,
+                                    ),
+                                    onPressed: () =>
+                                        widget.onRemoveSong(index),
+                                  ),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ))
+                : const SizedBox.shrink(),
+          ),
         ],
       ),
     );

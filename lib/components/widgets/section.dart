@@ -5,8 +5,9 @@ import '../../data/utilities/extensions/context_ext.dart';
 class Section extends StatelessWidget {
   final Widget Function(double gap) child;
   final String? label;
+  final String? subtitle;
 
-  const Section({super.key, this.label, required this.child});
+  const Section({super.key, this.label, this.subtitle, required this.child});
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +41,21 @@ class Section extends StatelessWidget {
                   letterSpacing: 1.0,
                   fontWeight: FontWeight.w900,
                   fontSize: compact ? 13 : 14,
+                ),
+              ),
+            ),
+          ],
+          if (subtitle != null) ...[
+            Padding(
+              padding: EdgeInsets.only(
+                left: compact ? 8 : 6,
+                bottom: compact ? 10 : 12,
+              ),
+              child: Text(
+                subtitle!,
+                style: context.textTheme.bodySmall?.copyWith(
+                  color: colors.onSurfaceVariant,
+                  height: 1.35,
                 ),
               ),
             ),

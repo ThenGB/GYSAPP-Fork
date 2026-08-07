@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../components/design_system/design_system.dart';
 import '../../../data/data.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
 import '../../../domain/entity/bible_bookmark/bible_bookmark.dart';
@@ -64,8 +65,17 @@ abstract class BibleState with _$BibleState {
     @Default(.90) double pitchRate,
   }) = _BibleState;
 
-  factory BibleState.fromJson(Map<String, dynamic> json) =>
-      _$BibleStateFromJson(json);
+  factory BibleState.fromJson(Map<String, dynamic> json) {
+    final state = _$BibleStateFromJson(json);
+    // Guard against stale persisted states that carried duplicate bible
+    // codes (pre-dedupe builds) — the version picker would otherwise show
+    // the same version twice.
+    final codes = state.bibleCodes;
+    if (codes.length != codes.toSet().length) {
+      return state.copyWith(bibleCodes: codes.toSet().toList());
+    }
+    return state;
+  }
 
   bool? get isSelectedPerjanjianLama {
     if (isSelectedCurrentBook) return false;
@@ -210,7 +220,7 @@ abstract class BibleState with _$BibleState {
   }
 
   List<String> get availableFonts {
-    return ['EB Garamond', 'Roboto', 'Roboto Serif', 'Open Sans', 'Gentium Basic', 'Arial'];
+    return DesignSystem.appFontOptions;
   }
 
   Future<String> get currentBibleCodeName async {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -167,17 +168,31 @@ void main() {
     expect(loginView, contains('GoogleSignIn'));
   });
 
-  test('settings exposes local asset download management launcher', () {
+  test('settings exposes per-kind asset management (no offline library page)', () {
     final settingsView = File('lib/presentations/settings/view/settings_view.dart')
         .readAsStringSync();
-    final assetManagementView = File(
-      'lib/presentations/settings/view/asset_management_view.dart',
+    final bibleVersionView = File(
+      'lib/presentations/bible/view/bible_version_view.dart',
+    ).readAsStringSync();
+    final hymnalView = File(
+      'lib/presentations/settings/view/hymnal_management_view.dart',
     ).readAsStringSync();
 
-    expect(settingsView, contains('Offline Library'));
-    expect(settingsView, contains('AssetManagementRoute('));
-    expect(assetManagementView, contains('Delete app cache'));
-    expect(assetManagementView, contains('Clear Cache'));
+    // The standalone Offline Library page is gone.
+    expect(settingsView, isNot(contains('offline_library'.tr())));
+    expect(settingsView, isNot(contains('AssetManagementRoute(')));
+    // Hymn book management lives in the PUJIAN section.
+    expect(settingsView, contains("'hymn_book'.tr()"));
+    expect(settingsView, contains('HymnalManagementRoute()'));
+    // Cache & full reset moved into LAINNYA.
+    expect(settingsView, contains("'delete_app_cache'.tr()"));
+    expect(settingsView, contains("'full_app_reset'.tr()"));
+    expect(settingsView, contains('clearFastAccessCache()'));
+    // Bible versions page drives downloads/updates through the asset tile.
+    expect(bibleVersionView, contains('DistributedAssetTile'));
+    expect(bibleVersionView, contains('selectBibleCodeByName(code)'));
+    // Hymnal management page lists hymnal assets.
+    expect(hymnalView, contains('DistributedAssetTile'));
   });
 
   test('repo root is free of loose diagnostic artifacts', () {
