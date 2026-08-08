@@ -296,6 +296,72 @@ void main() {
   );
 
   test(
+    'playlist mode auto-next drives the MIDI player through the active playlist',
+    () async {
+      final engine = _FakeMidiEngine();
+      final cubit = SongCubit(
+        _FakeSongRepository(),
+        _FakeAssetService(),
+        engine,
+      );
+      await _flushAsync();
+
+      // Build a 3-song playlist and make it the active playlist in playlist
+      // mode, exactly like tapping a song inside a playlist card does.
+      cubit.createPlaylist('Ibadah');
+      final playlistId = cubit.state.playlists.single.id;
+      final songs = cubit.state.songs;
+      cubit.addSongToPlaylist(playlistId, songs[0]);
+      cubit.addSongToPlaylist(playlistId, songs[1]);
+      cubit.addSongToPlaylist(playlistId, songs[2]);
+      cubit.setActivePlaylist(playlistId);
+
+      expect(cubit.state.isPlaylistLoopModeActive, isTrue);
+      expect(cubit.state.playlistAutoNextMode, SongPlaylistAutoNextMode.playlist);
+      expect(cubit.state.playlistShuffleIndex, isEmpty);
+
+      // Open the first playlist song as the current page.
+      await cubit.openSong(songs[0], autoplay: true);
+      await _flushAsync();
+      engine.events.clear();
+
+      // The song ends: the engine transitions from playing to stopped near
+      // the end of the track, which the cubit translates into an auto-next
+      // to the second song of the playlist.
+      engine.emitPlayback(
+        const MidiPlaybackState(
+          isPlaying: true,
+          position: 10,
+          duration: 100,
+          currentSong: 'assets/data/midi/kr/001.mid',
+        ),
+      );
+      engine.emitPlayback(
+        const MidiPlaybackState(
+          isPlaying: false,
+          position: 100,
+          duration: 100,
+        ),
+      );
+      await _flushAsync();
+
+      expect(cubit.state.pageIndex, 1);
+      expect(cubit.state.songs[cubit.state.pageIndex].number, '002');
+      // The next playlist song must be loaded AND auto-played so the
+      // playlist keeps driving the MIDI player. play() reloads the song
+      // with autoplay intent (the load:002 entry with start0) and flips
+      // isAudioPlaying back on.
+      expect(
+        engine.events.where((e) => e.contains('load:assets/data/midi/kr/002.mid')).length,
+        greaterThanOrEqualTo(1),
+      );
+      expect(cubit.state.isAudioPlaying, isTrue);
+
+      await cubit.close();
+    },
+  );
+
+  test(
     'preload warmup follows wrapped playback queue after audio opens',
     () async {
       final engine = _FakeMidiEngine();

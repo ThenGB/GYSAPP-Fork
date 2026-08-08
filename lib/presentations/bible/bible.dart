@@ -1,4 +1,3 @@
-export '../../components/widgets/font_setting_widget.dart';
 export 'cubit/bible_cubit.dart';
 export 'view/bible_audio_setting_view.dart';
 export 'view/bible_list_view.dart';

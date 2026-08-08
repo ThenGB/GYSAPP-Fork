@@ -41,6 +41,7 @@ class SongPdfViewer extends StatefulWidget {
   final int chordFontSizePercent;
   final int chordFillOpacityPercent;
   final int chordPaddingPercent;
+  final int chordOffsetPercent;
   final bool isEditMode;
   final Function(Map<int, List<ChordData>>)? onChordsChanged;
   final PdfViewerController? viewerController;
@@ -60,6 +61,7 @@ class SongPdfViewer extends StatefulWidget {
     this.chordFontSizePercent = 100,
     this.chordFillOpacityPercent = 94,
     this.chordPaddingPercent = 100,
+    this.chordOffsetPercent = 100,
     this.isEditMode = false,
     this.onChordsChanged,
     this.viewerController,
@@ -199,7 +201,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
         oldWidget.chordAccidentalMode != widget.chordAccidentalMode ||
         oldWidget.chordFontSizePercent != widget.chordFontSizePercent ||
         oldWidget.chordFillOpacityPercent != widget.chordFillOpacityPercent ||
-        oldWidget.chordPaddingPercent != widget.chordPaddingPercent) {
+        oldWidget.chordPaddingPercent != widget.chordPaddingPercent ||
+        oldWidget.chordOffsetPercent != widget.chordOffsetPercent) {
       // showChord flips the pageOverlaysBuilder; pdfrx compares the
       // whole params by identity, so we must hand it a fresh instance
       // (and bump the version so `_buildLayout` re-computes the
@@ -1143,6 +1146,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           chordFontSizePercent: widget.chordFontSizePercent,
           chordFillOpacityPercent: widget.chordFillOpacityPercent,
           chordPaddingPercent: widget.chordPaddingPercent,
+          chordOffsetPercent: widget.chordOffsetPercent,
           pageRectInViewer: pageRectInViewer,
           showChord: widget.showChord,
           isEditMode: widget.isEditMode,
@@ -1283,6 +1287,7 @@ class _ChordOverlay extends StatefulWidget {
   final int chordFontSizePercent;
   final int chordFillOpacityPercent;
   final int chordPaddingPercent;
+  final int chordOffsetPercent;
   final Rect pageRectInViewer;
   final bool isEditMode;
   final Function(Map<int, List<ChordData>>)? onChordEdited;
@@ -1308,6 +1313,7 @@ class _ChordOverlay extends StatefulWidget {
     required this.chordFontSizePercent,
     required this.chordFillOpacityPercent,
     required this.chordPaddingPercent,
+    required this.chordOffsetPercent,
     required this.pageRectInViewer,
     required this.showChord,
     this.isEditMode = false,
@@ -1821,6 +1827,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
       pdfPageSize: Size(widget.page.width, widget.page.height),
       fontSizePercent: widget.chordFontSizePercent,
       paddingPercent: widget.chordPaddingPercent,
+      offsetPercent: widget.chordOffsetPercent,
     );
 
     final label = ChordService.transposeChord(

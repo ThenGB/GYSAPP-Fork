@@ -8,6 +8,7 @@ export 'services/asset_distribution/asset_distribution_service.dart';
 export 'services/asset_distribution/encrypted_asset_package_service.dart';
 export 'services/asset_distribution/github_release_asset_client.dart';
 export 'services/asset_distribution/installed_asset_registry.dart';
+export 'services/asset_distribution/installed_asset_store_factory.dart';
 export 'services/asset_distribution/models.dart';
 export 'services/local_asset_service.dart';
 export 'services/ourmanna_service.dart';

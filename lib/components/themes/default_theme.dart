@@ -11,11 +11,12 @@ const _hymnalUiFont = 'Manrope';
 ThemeData defaultTheme(
   String defaultFont, {
   String accentKey = defaultAccentKey,
+  Color? customSeed,
   DisplayDensity density = DisplayDensity.standard,
   CornerRadiusStyle cornerRadius = CornerRadiusStyle.soft,
   TypographyScale typographyScale = TypographyScale.normal,
 }) {
-  final colorScheme = lightHymnalColorScheme(accentKey);
+  final colorScheme = lightHymnalColorScheme(accentKey, customSeed: customSeed);
 
   final visualDensity = switch (density) {
     DisplayDensity.compact => VisualDensity.compact,
@@ -66,7 +67,7 @@ ThemeData defaultTheme(
     ),
     appBarTheme: AppBarTheme(
       centerTitle: true,
-      toolbarHeight: 56,  // Reduced from 74
+      toolbarHeight: 56, // Reduced from 74
       titleSpacing: 0,
       backgroundColor: colorScheme.surface,
       foregroundColor: colorScheme.onSurface,
@@ -165,7 +166,7 @@ ThemeData defaultTheme(
       elevation: 0,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: r(12),  // Reduced from 20
+        borderRadius: r(12), // Reduced from 20
         side: BorderSide(
           color: colorScheme.outlineVariant.withValues(alpha: 0.3),
         ),
@@ -219,11 +220,15 @@ ThemeData defaultTheme(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: r(8),
-        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: r(8),
-        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: r(8),
@@ -267,18 +272,16 @@ ThemeData defaultTheme(
       ),
     ),
     navigationBarTheme: NavigationBarThemeData(
-      height: 64,  // Reduced from 70
+      height: 64, // Reduced from 70
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: colorScheme.primary.withValues(alpha: 0.15),  // Softer 15%
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.15), // Softer 15%
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
         return IconThemeData(
           size: selected ? 22 : 20,
-          color: selected
-              ? colorScheme.primary
-              : colorScheme.onSurfaceVariant,
+          color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
         );
       }),
       labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -287,9 +290,7 @@ ThemeData defaultTheme(
           fontFamily: _hymnalUiFont,
           fontSize: fs(11),
           fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-          color: selected
-              ? colorScheme.primary
-              : colorScheme.onSurfaceVariant,
+          color: selected ? colorScheme.primary : colorScheme.onSurfaceVariant,
         );
       }),
     ),
@@ -345,7 +346,9 @@ ThemeData defaultTheme(
     chipTheme: ChipThemeData(
       backgroundColor: colorScheme.surfaceContainerLow,
       selectedColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
-      side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      side: BorderSide(
+        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+      ),
       shape: RoundedRectangleBorder(borderRadius: r(8)),
       labelStyle: TextStyle(
         fontFamily: _hymnalUiFont,

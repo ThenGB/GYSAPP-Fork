@@ -1,8 +1,8 @@
 export 'design_system/design_system_exports.dart';
+export 'themes/app_accent.dart';
 export 'themes/app_theme_extras.dart';
 export 'themes/dark_theme.dart';
 export 'themes/default_theme.dart';
 export 'widgets/drag_handler.dart';
 export 'widgets/distributed_asset_tile.dart';
 export 'widgets/section.dart';
-

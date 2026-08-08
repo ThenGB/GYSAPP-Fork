@@ -1,15 +1,13 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:path/path.dart' as p;
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqlite_api.dart' show Database;
 
-import '../../di/injection.dart';
 import '../../domain/repository/bible_repository.dart';
 import '../../presentations/home/bloc/home_state.dart';
+import 'installed_bible_db.dart';
 import 'local_bible_asset_service.dart';
 
 class OurMannnaService {
@@ -19,13 +17,11 @@ class OurMannnaService {
   final Dio _dio;
   final LocalBibleAssetService _localBibleAssetService;
   final BibleRepository _bibleRepository;
-  final AppDirectory _appDirectory;
 
   OurMannnaService(
     this._dio,
     this._localBibleAssetService,
     this._bibleRepository,
-    this._appDirectory,
   );
 
   static final Map<String, int> _bookNameToId = _buildBookMap();
@@ -173,14 +169,20 @@ class OurMannnaService {
     }
 
     // 4. Localization failed — return English API text (no cache),
-    // sanitized in case the endpoint ever echoes markup.
+    // sanitized in case the endpoint ever echoes markup.  The version pill
+    // is derived from the requested code (never null) so the selector is
+    // always visible in the Today Verse card.
     return OurMannaVerse(
       text: _stripBibleTags(apiVerse.text),
       reference: apiVerse.reference,
-      bibleCodeName: apiVerse.bibleCodeName,
+      bibleCodeName: _codeNameFor(effectiveCode),
       originalReference: apiVerse.originalReference,
     );
   }
+
+  /// Human-readable version label, e.g. `b_tb` -> `TB`, `b_kjv` -> `KJV`.
+  String _codeNameFor(String bibleCode) =>
+      bibleCode.split('_').last.toUpperCase();
 
   Future<OurMannaVerse?> _localizeVerse(
     String reference,
@@ -236,17 +238,19 @@ class OurMannnaService {
           log('TodayVerse: bookId=$bookId not found in allBooks!', name: 'OurMannnaService');
         }
       } else {
-        final dbPath = p.join(_appDirectory.bibleFolder, '$bibleCode.db');
-        log('TodayVerse: checking dbPath=$dbPath', name: 'OurMannnaService');
-        final dbFile = _fileExists(dbPath);
-        if (!dbFile) {
+        log('TodayVerse: checking db for $bibleCode', name: 'OurMannnaService');
+        if (!await InstalledBibleDb.exists(bibleCode)) {
           log('TodayVerse: db file not found', name: 'OurMannnaService');
           return null;
         }
 
         Database? db;
         try {
-          db = await openDatabase(dbPath, readOnly: true);
+          db = await InstalledBibleDb.open(bibleCode, readOnly: true);
+          if (db == null) {
+            log('TodayVerse: failed to open db for $bibleCode', name: 'OurMannnaService');
+            return null;
+          }
           final verses = await _bibleRepository.getVerses(db, bookId: bookId, chapterId: chapterId);
           log('TodayVerse: got ${verses.length} verses from sqlite', name: 'OurMannnaService');
           final match = verses.where((v) => v.verseId == verseId).toList();
@@ -308,11 +312,11 @@ class OurMannnaService {
           }
         }
       } else {
-        final dbPath = p.join(_appDirectory.bibleFolder, '$bibleCode.db');
-        if (!_fileExists(dbPath)) return null;
+        if (!await InstalledBibleDb.exists(bibleCode)) return null;
         Database? db;
         try {
-          db = await openDatabase(dbPath, readOnly: true);
+          db = await InstalledBibleDb.open(bibleCode, readOnly: true);
+          if (db == null) return null;
           final allBooks = await _bibleRepository.getBooks(db);
           for (final book in allBooks) {
             final bs = (book.shortName ?? '').toLowerCase();
@@ -331,25 +335,18 @@ class OurMannnaService {
     return null;
   }
 
-  bool _fileExists(String path) {
-    try {
-      return FileSystemEntity.typeSync(path) ==
-          FileSystemEntityType.file;
-    } catch (_) {
-      return false;
-    }
-  }
-
   String _stripBibleTags(String text) {
+    // Decode entities BEFORE stripping tags: if tag-like entities are
+    // decoded after stripping, literal "<script>" could survive and become
+    // XSS if the text ever reaches an HTML renderer.
     return text
-        .replaceAll(RegExp(r'<[^>]+>'), '')
-        // HTML entities the API occasionally returns (&amp; &lt; &quot; …)
         .replaceAll('&amp;', '&')
         .replaceAll('&lt;', '<')
         .replaceAll('&gt;', '>')
         .replaceAll('&quot;', '"')
         .replaceAll('&#39;', "'")
         .replaceAll('&nbsp;', ' ')
+        .replaceAll(RegExp(r'<[^>]+>'), '')
         .replaceAll(RegExp(r'\s+'), ' ')
         .trim();
   }

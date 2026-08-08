@@ -13,6 +13,9 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'
+    show databaseFactoryFfiWeb;
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -52,7 +55,32 @@ Future initApplication() async {
   } else {
     widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   }
-  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  // Native splash: mobile only.  On desktop the splash window serves no
+  // purpose and the preserved first frame leaves the window interactive
+  // while the render tree has never been laid out — a hover/click during
+  // startup then crashes with "Cannot hit test a render box that has
+  // never been laid out".  Desktop renders the first frame immediately.
+  final preserveNativeSplash = !kIsWeb &&
+      (Platform.isAndroid || Platform.isIOS);
+  if (preserveNativeSplash) {
+    FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+  }
+  // sqlite backend per platform: sqflite's method channel only exists on
+  // Android/iOS.  Desktop (Windows/Linux/macOS) gets the FFI implementation;
+  // web gets the WASM/IndexedDB implementation.  Without these, downloaded
+  // (non-TB) bible versions throw MissingPluginException and load empty.
+  initLog('sqlite init begin');
+  if (kIsWeb) {
+    databaseFactory = databaseFactoryFfiWeb;
+  } else if (!Platform.isAndroid && !Platform.isIOS) {
+    try {
+      sqfliteFfiInit();
+      databaseFactory = databaseFactoryFfiNoIsolate;
+    } catch (e, st) {
+      log('sqflite FFI init failed, continuing: $e', error: e, stackTrace: st, name: 'App');
+    }
+  }
+  initLog('sqlite init done');
   _initializePdfRuntime();
   initLog('flutter binding ready');
 
@@ -92,9 +120,12 @@ Future initApplication() async {
             }
           }
         }
+
         await _wipeDir('/data/data/id.sch.kanaan.egys');
         // Ensure code_cache exists for Flutter DevFS
-        await Directory('/data/data/id.sch.kanaan.egys/code_cache').create(recursive: true);
+        await Directory(
+          '/data/data/id.sch.kanaan.egys/code_cache',
+        ).create(recursive: true);
       }
       await versionFile.parent.create(recursive: true);
       await versionFile.writeAsString(currentAppVersion);
@@ -108,7 +139,9 @@ Future initApplication() async {
   initLog('hydrated storage ready');
   initLog('about to call EasyLocalization.ensureInitialized');
   try {
-    await EasyLocalization.ensureInitialized().timeout(const Duration(seconds: 5));
+    await EasyLocalization.ensureInitialized().timeout(
+      const Duration(seconds: 5),
+    );
     initLog('localization ready');
   } catch (e) {
     initLog('EasyLocalization failed or timed out: $e — continuing without it');
@@ -140,7 +173,9 @@ Future initApplication() async {
   AppConfigStore.useFallbackConfig();
   initLog('using bundled app config');
 
-  FlutterNativeSplash.remove();
+  if (preserveNativeSplash) {
+    FlutterNativeSplash.remove();
+  }
   initLog('done');
   log('App Initialization DONE');
 }
@@ -239,6 +274,7 @@ class _AppState extends State<App> {
             theme: defaultTheme(
               state.defaultFont,
               accentKey: state.accentKey,
+              customSeed: state.themePreferences.customAccentColor,
               density: state.themePreferences.density,
               cornerRadius: state.themePreferences.cornerRadius,
               typographyScale: state.themePreferences.typographyScale,
@@ -247,6 +283,7 @@ class _AppState extends State<App> {
             darkTheme: darkTheme(
               state.defaultFont,
               accentKey: state.accentKey,
+              customSeed: state.themePreferences.customAccentColor,
               density: state.themePreferences.density,
               cornerRadius: state.themePreferences.cornerRadius,
               typographyScale: state.themePreferences.typographyScale,
@@ -268,8 +305,8 @@ class _AppState extends State<App> {
                       // system dark mode override.
                       platformBrightness:
                           state.themeMode.toThemeMode == ThemeMode.dark
-                              ? Brightness.dark
-                              : Brightness.light,
+                          ? Brightness.dark
+                          : Brightness.light,
                     ),
                     child: child!,
                   );
@@ -283,9 +320,11 @@ class _AppState extends State<App> {
   }
 }
 
-/// Fluid momentum scrolling on every platform, including Windows where the
-/// default clamping physics stops dead — that instant stop is what reads
-/// as "snapping". Bouncing physics keeps a soft glide while overscrolling.
+/// Smooth scroll behavior. iOS keeps its native bouncing physics.
+/// Android and desktop use clamping physics: bouncing physics breaks
+/// RefreshIndicator (pull-to-refresh springs back instead of arming,
+/// see flutter/flutter#49169), so every platform that hosts
+/// pull-to-refresh keeps native clamping.
 class _SmoothScrollBehavior extends MaterialScrollBehavior {
   const _SmoothScrollBehavior();
 
@@ -308,11 +347,17 @@ class _SmoothScrollBehavior extends MaterialScrollBehavior {
   ScrollPhysics getScrollPhysics(BuildContext context) {
     switch (getPlatform(context)) {
       case TargetPlatform.android:
+        // Clamping: bouncing physics on Android makes RefreshIndicator
+        // bounce back instead of triggering the refresh.
+        return const ClampingScrollPhysics();
       case TargetPlatform.iOS:
         return const BouncingScrollPhysics();
       default:
-        return const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
+        // Desktop + web: clamping so RefreshIndicator arms on mouse drag
+        // instead of bouncing back. AlwaysScrollable keeps pull-to-refresh
+        // reachable when the content is shorter than the viewport.
+        return const AlwaysScrollableScrollPhysics(
+          parent: ClampingScrollPhysics(),
         );
     }
   }

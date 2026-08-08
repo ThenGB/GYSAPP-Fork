@@ -3,19 +3,30 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:hydrated_bloc/hydrated_bloc.dart';
+import 'package:path_provider/path_provider.dart'
+    show getApplicationSupportDirectory;
 
 /// Fast Storage for native platforms (Android, iOS, Desktop).
 /// Uses Dart File I/O directly — no platform channels, no SharedPreferences.
 class FastFileStorage implements Storage {
   static const String _blocStatePrefix = '__bloc_';
 
+  FastFileStorage({Directory? cacheDir}) : _cacheDirOverride = cacheDir;
+
+  final Directory? _cacheDirOverride;
   Directory? _cacheDir;
   final Map<String, String> _memoryCache = {};
   bool _initialized = false;
 
   Future<void> init() async {
     if (_initialized) return;
-    _cacheDir = Directory('/data/data/id.sch.kanaan.egys/files/bloc_state');
+    // Platform-aware cache dir: the old hardcoded Android path made
+    // HydratedBloc state land in a nonexistent directory on desktop.
+    // An injected dir (used by AppResetService/tests) wins.
+    _cacheDir = _cacheDirOverride ??
+        (Platform.isAndroid
+            ? Directory('/data/data/id.sch.kanaan.egys/files/bloc_state')
+            : await _resolveSupportDir());
     log('[FastFileStorage] init: cacheDir=${_cacheDir!.path}');
     if (!await _cacheDir!.exists()) {
       await _cacheDir!.create(recursive: true);
@@ -24,6 +35,19 @@ class FastFileStorage implements Storage {
     await _preloadCache();
     _initialized = true;
     log('[FastFileStorage] init: done, preloaded ${_memoryCache.length} entries');
+  }
+
+  static Future<Directory> _resolveSupportDir() async {
+    // Fall back to the platform channel; if that fails (e.g. tests without
+    // a binding), keep state in a temp dir rather than crashing startup.
+    try {
+      final support = await getApplicationSupportDirectory();
+      return Directory('${support.path}/bloc_state');
+    } catch (_) {
+      return Directory(
+        '${Directory.systemTemp.path}/gys_bloc_state',
+      );
+    }
   }
 
   Future<void> _preloadCache() async {

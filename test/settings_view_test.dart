@@ -1,17 +1,29 @@
 import 'dart:io';
 
-import 'package:church/presentations/settings/view/settings_view.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  test('soundfont menu values include the currently selected soundfont', () {
-    expect(
-      settingsSoundFontMenuValues(
-        availableSoundFonts: null,
-        selectedSoundFont: 'GeneralUser-GS.sf2',
-      ),
-      ['GeneralUser-GS.sf2', 'TimGM6mb.sf2'],
-    );
+  test('soundfont tile navigates to the managed-asset page', () {
+    final settingsSource = File(
+      'lib/presentations/settings/view/settings_view.dart',
+    ).readAsStringSync();
+    expect(settingsSource, contains('router.push(SoundFontRoute())'));
+    // The old popup menu is gone.
+    expect(settingsSource, isNot(contains('_showSoundFontMenu')));
+    expect(settingsSource, isNot(contains('showMenu<String>')));
+
+    final pageSource = File(
+      'lib/presentations/settings/view/soundfont_view.dart',
+    ).readAsStringSync();
+    expect(pageSource, contains('DistributedAssetTile('));
+    expect(pageSource, contains('isActive'));
+    expect(pageSource, contains('setSoundFont'));
+    // The tile provides download/delete for non-bundled fonts.
+    final tileSource = File(
+      'lib/components/widgets/distributed_asset_tile.dart',
+    ).readAsStringSync();
+    expect(tileSource, contains('cubit.deleteAsset'));
+    expect(tileSource, contains('cubit.downloadAsset'));
   });
 
   test('song settings reads midi warm-up switch from bloc state', () {
@@ -28,19 +40,16 @@ void main() {
       'lib/presentations/settings/view/settings_view.dart',
     ).readAsStringSync();
 
-    expect(source, contains('assetState.progressByCode.isNotEmpty'));
-    expect(source, contains('LinearProgressIndicator('));
-    expect(source, contains('minHeight: 4'));
+    expect(source, contains('router.push(SoundFontRoute())'));
   });
 
-  test('soundfont pill anchors its menu to the pill (Builder context)', () {
-    final source = File(
-      'lib/presentations/settings/view/settings_view.dart',
+  test('soundfont download shows a progress bar while downloading', () {
+    // The managed-asset tile renders the download progress inline.
+    final tileSource = File(
+      'lib/components/widgets/distributed_asset_tile.dart',
     ).readAsStringSync();
 
-    expect(source, contains('builder: (pillContext) => InkWell('));
-    expect(source, contains('_showSoundFontMenu('));
-    expect(source, contains('showMenu<String>('));
-    expect(source, contains('await songCubit.midiEngine.getAvailableSoundFonts();'));
+    expect(tileSource, contains('progressByCode'));
+    expect(tileSource, contains('LinearProgressIndicator('));
   });
 }

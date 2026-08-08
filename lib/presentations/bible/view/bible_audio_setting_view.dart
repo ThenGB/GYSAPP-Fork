@@ -1,26 +1,30 @@
 import 'dart:developer';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:edge_tts/edge_tts.dart' as edge;
 import 'package:flutter/material.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../components/components.dart';
 import '../../../data/data.dart';
+import '../../../data/services/bible_tts_service.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../../../router/router.dart';
+import '../cubit/bible_cubit.dart';
+import '../cubit/bible_state.dart';
 
 @RoutePage()
 class BibleAudioSettingView extends StatefulWidget {
-  final Map<String, Map> initialVoices;
-  final double initialPitchRate;
-  final double initialSpeedRate;
-  final Function(Map<String, Map> voices, double pitch, double speed) onSave;
+  final BibleState initialState;
+  final Function(
+    BibleState state,
+  ) onSave;
   const BibleAudioSettingView({
     super.key,
-    required this.initialVoices,
-    required this.initialPitchRate,
-    required this.initialSpeedRate,
+    required this.initialState,
     required this.onSave,
   });
 
@@ -29,158 +33,39 @@ class BibleAudioSettingView extends StatefulWidget {
 }
 
 class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
-  FlutterTts? tts = isTextToSpeechConfiguredForCurrentPlatform
-      ? FlutterTts()
-      : null;
-  List<String> availableTtsLang = [];
-  List<Map> availableVoices = [];
+  final BibleTtsService _tts = BibleTtsService();
 
-  late Map<String, Map> voices = Map.from(widget.initialVoices);
-  late double pitch = widget.initialPitchRate;
-  late double speed = widget.initialSpeedRate;
+  late String _engine = widget.initialState.ttsEngine;
+  late String _edgeVoice = widget.initialState.edgeVoice;
+  late String _edgeRate = widget.initialState.edgeRate;
+  late String _edgePitch = widget.initialState.edgePitch;
+  late String _edgeVolume = widget.initialState.edgeVolume;
+  late double _pitch = widget.initialState.pitchRate;
+  late double _speed = widget.initialState.speedRate;
 
-  List<Map> voicesByLocale(String locale) {
-    return availableVoices
-        .where((element) => element['locale'] == locale)
-        .toList();
-  }
-
-  Future<void> speak(String sentence, String locale) async {
-    final tts = this.tts;
-    if (tts == null) {
-      try {
-        Fluttertoast.cancel();
-      } catch (e) {
-        log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
-      }
-      try {
-        Fluttertoast.showToast(msg: 'Not available'.tr());
-      } catch (e) {
-        log('TTS: Failed to show toast: $e', name: 'AudioSettings');
-      }
-      return;
-    }
-
-    if (isSpeaking) {
-      try {
-        await tts.stop();
-      } catch (e) {
-        log('TTS: Failed to stop: $e', name: 'AudioSettings');
-      }
-      isSpeaking = false;
-      if (isLangSpeaking(locale)) {
-        langSpeaking = '';
-        return;
-      }
-    }
-    await Future.delayed(Duration(milliseconds: 200));
-    try {
-      await tts.awaitSpeakCompletion(true);
-    } catch (e) {
-      log('TTS: Failed await completion: $e', name: 'AudioSettings');
-    }
-    await tts.setLanguage(locale);
-    var voiceForLocale = voices[locale];
-    if (voiceForLocale != null) {
-      try {
-        await tts.setVoice(voiceForLocale.cast());
-      } catch (e) {
-        log('TTS: Failed to set voice: $e', name: 'AudioSettings');
-      }
-    }
-    await tts.setPitch(pitch);
-    await tts.setSpeechRate(speed);
-    langSpeaking = locale;
-    isSpeaking = true;
-    try {
-      await tts.speak(sentence);
-    } catch (e) {
-      try {
-        Fluttertoast.cancel();
-      } catch (e) {
-        log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
-      }
-      try {
-        Fluttertoast.showToast(msg: Failure.fromError(e).message);
-      } catch (e) {
-        log('TTS: Failed to show error toast: $e', name: 'AudioSettings');
-      }
-    }
-    langSpeaking = '';
-    isSpeaking = false;
-  }
-
-  bool _isSpeaking = false;
-
-  String _langSpeaking = '';
-
-  bool isLangSpeaking(String locale) => _langSpeaking == locale;
-
-  set langSpeaking(String value) {
-    _langSpeaking = value;
-    setState(() {});
-  }
-
-  bool get isSpeaking => _isSpeaking;
-
-  set isSpeaking(bool value) {
-    setState(() {
-      _isSpeaking = value;
-    });
-  }
+  List<edge.Voice> _edgeVoices = [];
+  List<Map> _nativeVoices = [];
+  bool _voicesLoading = true;
+  String? _testText;
 
   @override
   void initState() {
-    final tts = this.tts;
-    if (tts == null) {
-      super.initState();
-      return;
-    }
+    super.initState();
+    _loadVoices();
+  }
 
-    tts.getLanguages
-        .then((value) {
-          try {
-            var supportedLangPrefixes = {
-              'id': 'id-ID',
-              'en': 'en-US',
-              'zh': 'zh-CN',
-            };
-            var values = (value as List<Object?>).cast<String>().toList();
-            var filtered = values
-                .where(
-                  (element) =>
-                      supportedLangPrefixes.containsKey(element) ||
-                      supportedLangPrefixes.containsValue(element) ||
-                      supportedLangPrefixes.containsKey(
-                        element.split('-').first,
-                      ) ||
-                      supportedLangPrefixes.containsValue(
-                        element.split('-').first,
-                      ),
-                )
-                .toList();
-            if (filtered.isEmpty) {
-              filtered = values.where((element) {
-                var prefix = element.split('-').first;
-                return supportedLangPrefixes.containsKey(prefix);
-              }).toList();
-            }
-            availableTtsLang = List.from(filtered);
-          } catch (e) {
-            log('TTS getLanguages failed: $e', name: 'AudioSettings');
-          }
-          if (mounted) {
-            WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-              setState(() {});
-            });
-          }
-        })
-        .catchError((e) {
-          log('TTS getLanguages error: $e', name: 'AudioSettings');
-        });
-    Future.microtask(() async {
+  Future<void> _loadVoices() async {
+    setState(() => _voicesLoading = true);
+    // Edge voice list (network; empty when offline).
+    final edgeVoices = await BibleTtsService.fetchEdgeVoices();
+    // Native device voices (when supported).
+    List<Map> native = [];
+    final nativeTts = isTextToSpeechConfiguredForCurrentPlatform
+        ? FlutterTts()
+        : null;
+    if (nativeTts != null) {
       try {
-        availableVoices = (await tts.getVoices as List<Object?>)
+        native = (await nativeTts.getVoices as List<Object?>)
             .cast<Map>()
             .toList()
             .map(
@@ -190,377 +75,496 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
             )
             .toList();
       } catch (e) {
-        log('TTS getVoices failed: $e', name: 'AudioSettings');
+        log('Native voices fetch failed: $e', name: 'AudioSettings');
       }
-      if (mounted) setState(() {});
+    }
+    if (!mounted) return;
+    setState(() {
+      _edgeVoices = edgeVoices;
+      _nativeVoices = native;
+      _voicesLoading = false;
     });
-    super.initState();
+  }
+
+  List<edge.Voice> _edgeVoicesFor(String langPrefix) {
+    return _edgeVoices
+        .where((v) => v.locale.startsWith('$langPrefix-'))
+        .toList();
+  }
+
+  List<Map> _nativeVoicesFor(String locale) {
+    return _nativeVoices
+        .where((e) => e['locale'] == locale)
+        .toList();
+  }
+
+  Future<void> _testSpeak(String sample) async {
+    await _tts.stop();
+    _tts.engine = _engine == 'native'
+        ? BibleTtsEngine.native
+        : BibleTtsEngine.edge;
+    _tts.edgeVoice = _edgeVoice;
+    _tts.edgeRate = _edgeRate;
+    _tts.edgePitch = _edgePitch;
+    _tts.edgeVolume = _edgeVolume;
+    await _tts.configureNative(
+      pitch: _pitch,
+      speed: _speed,
+    );
+    final ok = await _tts.speak(sample);
+    if (!ok) {
+      Fluttertoast.cancel();
+      Fluttertoast.showToast(msg: 'tts_not_available'.tr());
+    }
   }
 
   @override
   void dispose() {
-    if (isSpeaking || canStopIdleTextToSpeechForCurrentPlatform) {
-      tts?.stop();
-    }
+    _tts.stop();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         shape: Border(
-          bottom: BorderSide(color: context.colorScheme.outlineVariant),
+          bottom: BorderSide(color: colors.outlineVariant),
         ),
         title: Text('Audio Bible Config'.tr()),
       ),
       bottomNavigationBar: BottomAppBar(
-        color: context.colorScheme.surface,
+        color: colors.surface,
         surfaceTintColor: Colors.transparent,
         child: ElevatedButton(
           style: ElevatedButton.styleFrom(
-            backgroundColor: context.colorScheme.primary,
-            foregroundColor: context.colorScheme.onPrimary,
+            backgroundColor: colors.primary,
+            foregroundColor: colors.onPrimary,
           ),
-          onPressed: () {
-            context
-                .showConfirmation(
-                  'Are you sure want to save this preferences?'.tr(),
-                )
-                .then((confirmed) {
-                  router.maybePop();
-                  try {
-                    Fluttertoast.cancel();
-                  } catch (e) {
-                    log('TTS: Failed to cancel toast: $e', name: 'AudioSettings');
-                  }
-                  try {
-                    Fluttertoast.showToast(msg: 'Saved'.tr());
-                  } catch (e) {
-                    log('TTS: Failed to show saved toast: $e', name: 'AudioSettings');
-                  }
-                  widget.onSave(voices, pitch, speed);
-                });
-          },
+          onPressed: () => widget.onSave(
+            widget.initialState.copyWith(
+              ttsEngine: _engine,
+              edgeVoice: _edgeVoice,
+              edgeRate: _edgeRate,
+              edgePitch: _edgePitch,
+              edgeVolume: _edgeVolume,
+              pitchRate: _pitch,
+              speedRate: _speed,
+              voices: {
+                ...widget.initialState.voices,
+                ..._nativeVoiceByLocale,
+              },
+            ),
+          ),
           child: Text('Save'.tr()),
         ),
       ),
       body: SingleChildScrollView(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Section(
-              label: 'Voice'.tr(),
-              child: (gap) => Column(
-                mainAxisSize: MainAxisSize.min,
+            // ── Engine ───────────────────────────────────────────────────
+            _Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Opacity(
-                    opacity: availableTtsLang.contains('id-ID') ? 1 : .4,
-                    child: IgnorePointer(
-                      ignoring: !availableTtsLang.contains('id-ID'),
-                      child: Stack(
-                        children: [
-                          Section(
-                            label: 'Bahasa Indonesia',
-                            child: (gap) => Padding(
-                              padding: EdgeInsets.symmetric(horizontal: gap),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('tts_bahasa_placeholder'.tr()),
-                                  SizedBox(height: 4),
-                                  OverflowBar(
-                                    // buttonAlignedDropdown: true,
-                                    // layoutBehavior:
-                                    //     ButtonBarLayoutBehavior.constrained,
-                                    alignment: MainAxisAlignment.start,
-                                    children: [
-                                      PopupMenuButton(
-                                        initialValue: voices['id-ID'],
-                                        onSelected: (value) {
-                                          voices['id-ID'] = value;
-                                          setState(() {});
-                                        },
-                                        itemBuilder: (context) {
-                                          return voicesByLocale('id-ID')
-                                              .asMap()
-                                              .entries
-                                              .map(
-                                                (e) => PopupMenuItem(
-                                                  value: e.value,
-                                                  child: Text(
-                                                    'Voice ${e.key + 1}',
-                                                  ),
-                                                ),
-                                              )
-                                              .toList();
-                                        },
-                                        child: Row(
-                                          children: [
-                                            Text(() {
-                                              var index =
-                                                  voicesByLocale('id-ID')
-                                                      .map((e) => e['name'])
-                                                      .toList()
-                                                      .indexOf(
-                                                        voices['id-ID']?['name'],
-                                                      );
-
-                                              return 'Voice ${index + 1}';
-                                            }()),
-                                            SizedBox(width: 4),
-                                            Icon(
-                                              Icons.keyboard_arrow_down_rounded,
-                                              size: 14,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          elevation: 0,
-                                          backgroundColor:
-                                              isLangSpeaking('id-ID')
-                                              ? context
-                                                    .colorScheme
-                                                    .secondaryContainer
-                                              : context.colorScheme.primary,
-                                          foregroundColor:
-                                              isLangSpeaking('id-ID')
-                                              ? context
-                                                    .colorScheme
-                                                    .onSecondaryContainer
-                                              : context.colorScheme.onPrimary,
-                                        ),
-                                        onPressed: () {
-                                          speak(
-                                            'tts_bahasa_placeholder'.tr(),
-                                            'id-ID',
-                                          );
-                                        },
-                                        child: Text(
-                                          isLangSpeaking('id-ID')
-                                              ? 'Stop'.tr()
-                                              : 'Speak'.tr(),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          if (!availableTtsLang.contains('id-ID'))
-                            Positioned.fill(
-                              child: Align(
-                                alignment: Alignment.centerLeft,
-                                child: Container(
-                                  width: double.infinity,
-                                  padding: EdgeInsets.all(2),
-                                  color: context.colorScheme.error,
-                                  child: Text(
-                                    'Not available'.tr(),
-                                    style: TextStyle(
-                                      color: context.colorScheme.onError,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
+                  _Label('bible_tts_engine'.tr()),
+                  const SizedBox(height: 8),
+                  SegmentedButton<String>(
+                    segments: [
+                      ButtonSegment(
+                        value: 'edge',
+                        icon: const Icon(Icons.cloud_outlined, size: 18),
+                        label: Text('Edge TTS'),
                       ),
-                    ),
+                      ButtonSegment(
+                        value: 'native',
+                        icon: const Icon(
+                          Icons.phonelink_ring_outlined,
+                          size: 18,
+                        ),
+                        label: Text('bible_tts_native'.tr()),
+                      ),
+                    ],
+                    selected: {_engine},
+                    onSelectionChanged: (s) =>
+                        setState(() => _engine = s.first),
                   ),
-                  Section(
-                    label: 'English',
-                    child: (gap) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: gap),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('tts_english_placeholder'.tr()),
-                          SizedBox(height: 4),
-                          OverflowBar(
-                            // buttonAlignedDropdown: true,
-                            // layoutBehavior: ButtonBarLayoutBehavior.constrained,
-                            alignment: MainAxisAlignment.start,
-                            children: [
-                              PopupMenuButton(
-                                initialValue: voices['en-US'],
-                                onSelected: (value) {
-                                  voices['en-US'] = value;
-                                  setState(() {});
-                                },
-                                itemBuilder: (context) {
-                                  return voicesByLocale('en-US')
-                                      .asMap()
-                                      .entries
-                                      .map(
-                                        (e) => PopupMenuItem(
-                                          value: e.value,
-                                          child: Text('Voice ${e.key + 1}'),
-                                        ),
-                                      )
-                                      .toList();
-                                },
-                                child: Row(
-                                  children: [
-                                    Text(() {
-                                      var langId = 'en-US';
-                                      var index = voicesByLocale(langId)
-                                          .map((e) => e['name'])
-                                          .toList()
-                                          .indexOf(voices[langId]?['name']);
-
-                                      return 'Voice ${index + 1}';
-                                    }()),
-                                    SizedBox(width: 4),
-                                    Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      size: 14,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  elevation: 0,
-                                  backgroundColor: isLangSpeaking('en-US')
-                                      ? context.colorScheme.secondaryContainer
-                                      : context.colorScheme.primary,
-                                  foregroundColor: isLangSpeaking('en-US')
-                                      ? context.colorScheme.onSecondaryContainer
-                                      : context.colorScheme.onPrimary,
-                                ),
-                                onPressed: () {
-                                  speak(
-                                    'tts_english_placeholder'.tr(),
-                                    'en-US',
-                                  );
-                                },
-                                child: Text(
-                                  isLangSpeaking('en-US')
-                                      ? 'Stop'.tr()
-                                      : 'Speak'.tr(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Section(
-                    label: 'Chinese',
-                    child: (gap) => Padding(
-                      padding: EdgeInsets.symmetric(horizontal: gap),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('tts_chinese_placeholder'.tr()),
-                          SizedBox(height: 4),
-                          OverflowBar(
-                            // buttonAlignedDropdown: true,
-                            // layoutBehavior: ButtonBarLayoutBehavior.constrained,
-                            alignment: MainAxisAlignment.start,
-                            children: [
-                              PopupMenuButton(
-                                initialValue: voices['zh-CN'],
-                                onSelected: (value) {
-                                  voices['zh-CN'] = value;
-                                  setState(() {});
-                                },
-                                itemBuilder: (context) {
-                                  return voicesByLocale('zh-CN')
-                                      .asMap()
-                                      .entries
-                                      .map(
-                                        (e) => PopupMenuItem(
-                                          value: e.value,
-                                          child: Text('Voice ${e.key + 1}'),
-                                        ),
-                                      )
-                                      .toList();
-                                },
-                                child: Row(
-                                  children: [
-                                    Text(() {
-                                      var langId = 'zh-CN';
-                                      var index = voicesByLocale(langId)
-                                          .map((e) => e['name'])
-                                          .toList()
-                                          .indexOf(voices[langId]?['name']);
-
-                                      return 'Voice ${index + 1}';
-                                    }()),
-                                    SizedBox(width: 4),
-                                    Icon(
-                                      Icons.keyboard_arrow_down_rounded,
-                                      size: 14,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  elevation: 0,
-                                  backgroundColor: isLangSpeaking('zh-CN')
-                                      ? context.colorScheme.secondaryContainer
-                                      : context.colorScheme.primary,
-                                  foregroundColor: isLangSpeaking('zh-CN')
-                                      ? context.colorScheme.onSecondaryContainer
-                                      : context.colorScheme.onPrimary,
-                                ),
-                                onPressed: () {
-                                  speak(
-                                    'tts_chinese_placeholder'.tr(),
-                                    'zh-CN',
-                                  );
-                                },
-                                child: Text(
-                                  isLangSpeaking('zh-CN')
-                                      ? 'Stop'.tr()
-                                      : 'Speak'.tr(),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'bible_tts_fallback_note'.tr(),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colors.primary.withValues(alpha: 0.85),
                     ),
                   ),
                 ],
               ),
             ),
-            Section(
-              label: 'Pitch Rate'.tr(),
-              child: (gap) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: gap),
-                child: Slider.adaptive(
-                  value: pitch,
-                  label: '$pitch ${'rate'.tr()}',
-                  onChanged: (value) {
-                    pitch = value;
-                    setState(() {});
-                  },
-                ),
+
+            const SizedBox(height: 12),
+
+            // ── Edge voices ──────────────────────────────────────────────
+            if (_engine == 'edge') ...[
+              _Card(
+                child: _voicesLoading
+                    ? const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _Label('bible_edge_voice'.tr()),
+                          const SizedBox(height: 4),
+                          if (_edgeVoices.isEmpty)
+                            Text(
+                              'bible_edge_voices_offline'.tr(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            )
+                          else ...[
+                            _VoiceDropdown<edge.Voice>(
+                              value: _edgeVoices
+                                      .where((v) => v.shortName == _edgeVoice)
+                                      .firstOrNull ??
+                                  _edgeVoices.first,
+                              items: _edgeVoices,
+                              labelOf: (v) => v.shortName,
+                              onChanged: (v) =>
+                                  setState(() => _edgeVoice = v.shortName),
+                            ),
+                            const SizedBox(height: 12),
+                            _Label('bible_voice_rate'.tr()),
+                            _TextValueSlider(
+                              value: BibleTtsService.parseEdgePercent(
+                                _edgeRate,
+                              ).toDouble(),
+                              min: -50,
+                              max: 100,
+                              display:
+                                  '${BibleTtsService.parseEdgePercent(_edgeRate)}%',
+                              onChanged: (p) => setState(
+                                () => _edgeRate = BibleTtsService
+                                    .formatEdgePercent(p.round()),
+                              ),
+                            ),
+                            _Label('bible_voice_pitch'.tr()),
+                            _TextValueSlider(
+                              value: BibleTtsService.parseEdgePitch(
+                                _edgePitch,
+                              ).toDouble(),
+                              min: -50,
+                              max: 50,
+                              display:
+                                  '${BibleTtsService.parseEdgePitch(_edgePitch)}Hz',
+                              onChanged: (p) => setState(
+                                () => _edgePitch = BibleTtsService
+                                    .formatEdgePitch(p.round()),
+                              ),
+                            ),
+                            _Label('bible_voice_volume'.tr()),
+                            _TextValueSlider(
+                              value: BibleTtsService.parseEdgePercent(
+                                _edgeVolume,
+                              ).toDouble(),
+                              min: -50,
+                              max: 100,
+                              display:
+                                  '${BibleTtsService.parseEdgePercent(_edgeVolume)}%',
+                              onChanged: (p) => setState(
+                                () => _edgeVolume = BibleTtsService
+                                    .formatEdgePercent(p.round()),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // ── Native voice (per locale) ────────────────────────────────
+            if (_engine == 'native') ...[
+              _Card(
+                child: _voicesLoading
+                    ? const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Center(
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _Label('bible_native_voice'.tr()),
+                          const SizedBox(height: 4),
+                          if (_nativeVoices.isEmpty)
+                            Text(
+                              'tts_not_available'.tr(),
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: colors.onSurfaceVariant,
+                              ),
+                            )
+                          else
+                            for (final (lang, label) in [
+                              ('id-ID', 'tts_bahasa_placeholder'.tr()),
+                              ('en-US', 'tts_english_placeholder'.tr()),
+                              ('zh-CN', 'tts_chinese_placeholder'.tr()),
+                            ]) ...[                              _NativeVoiceRow(
+                                label: label,
+                                voices: _nativeVoicesFor(lang),
+                                initialValue: _nativeVoiceByLocale[lang],
+                                onChanged: (v) {
+                                  setState(() {
+                                    _nativeVoiceByLocale[lang] = v;
+                                  });
+                                },
+                              ),
+                              const SizedBox(height: 8),
+                            ],
+                        ],
+                      ),
+              ),
+              const SizedBox(height: 12),
+            ],
+
+            // ── Pitch / speed (shared) ───────────────────────────────────
+            _Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Label('tts_pitch_label'.tr()),
+                  Slider.adaptive(
+                    value: _pitch,
+                    min: 0.1,
+                    max: 2.0,
+                    onChanged: (v) => setState(() => _pitch = v),
+                  ),
+                  _Label('tts_speed_label'.tr()),
+                  Slider.adaptive(
+                    value: _speed,
+                    min: 0.1,
+                    max: 1.0,
+                    onChanged: (v) => setState(() => _speed = v),
+                  ),
+                ],
               ),
             ),
-            Section(
-              label: 'Speed Rate'.tr(),
-              child: (gap) => Padding(
-                padding: EdgeInsets.symmetric(horizontal: gap),
-                child: Slider.adaptive(
-                  value: speed,
-                  label: '$speed ${'rate'.tr()}',
-                  onChanged: (value) {
-                    speed = value;
-                    setState(() {});
-                  },
-                ),
+
+            const SizedBox(height: 12),
+
+            // ── Test ─────────────────────────────────────────────────────
+            _Card(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _Label('tts_test_label'.tr()),
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: InputDecoration(
+                      isDense: true,
+                      hintText: 'tts_test_hint'.tr(),
+                      border: OutlineInputBorder(
+                        borderRadius: context.appRadius(10),
+                      ),
+                    ),
+                    onChanged: (v) => _testText = v,
+                  ),
+                  const SizedBox(height: 8),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: FilledButton.tonalIcon(
+                      onPressed: () => _testSpeak(
+                        (_testText ?? '').trim().isEmpty
+                            ? 'Halo, selamat datang di Alkitab.'
+                            : _testText!,
+                      ),
+                      icon: const Icon(Icons.volume_up_rounded, size: 18),
+                      label: Text('tts_test_button'.tr()),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  // ─── helpers ───────────────────────────────────────────────────────────
+  Map<String, Map<String, String>> _nativeVoiceByLocale = {};
+}
+
+class _Card extends StatelessWidget {
+  final Widget child;
+  const _Card({required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerLow,
+        borderRadius: context.appRadius(14),
+        border: Border.all(
+          color: context.colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
+      ),
+      child: child,
+    );
+  }
+}
+
+class _Label extends StatelessWidget {
+  final String text;
+  const _Label(this.text);
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: Theme.of(context).textTheme.labelMedium?.copyWith(
+        fontWeight: FontWeight.w800,
+        color: context.colorScheme.onSurfaceVariant,
+      ),
+    );
+  }
+}
+
+class _VoiceDropdown<T> extends StatelessWidget {
+  final T value;
+  final List<T> items;
+  final String Function(T) labelOf;
+  final ValueChanged<T> onChanged;
+
+  const _VoiceDropdown({
+    required this.value,
+    required this.items,
+    required this.labelOf,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<T>(
+      isExpanded: true,
+      initialValue: value,
+      items: [
+        for (final item in items)
+          DropdownMenuItem(value: item, child: Text(labelOf(item))),
+      ],
+      onChanged: (v) {
+        if (v != null) onChanged(v);
+      },
+      decoration: InputDecoration(
+        isDense: true,
+        border: OutlineInputBorder(borderRadius: context.appRadius(10)),
+      ),
+    );
+  }
+}
+
+class _TextValueSlider extends StatelessWidget {
+  final double value;
+  final double min;
+  final double max;
+  final String display;
+  final ValueChanged<double> onChanged;
+
+  const _TextValueSlider({
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.display,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Slider.adaptive(
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            divisions: (max - min).round(),
+            onChanged: onChanged,
+          ),
+        ),
+        SizedBox(
+          width: 64,
+          child: Text(
+            display,
+            textAlign: TextAlign.right,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _NativeVoiceRow extends StatelessWidget {
+  final String label;
+  final List<Map> voices;
+  final Map<String, String>? initialValue;
+  final ValueChanged<Map<String, String>> onChanged;
+
+  const _NativeVoiceRow({
+    required this.label,
+    required this.voices,
+    this.initialValue,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    if (voices.isEmpty) {
+      return Text(
+        label,
+        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+          color: context.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+    Map selected = voices.first;
+    if (initialValue != null) {
+      final match = voices.where(
+        (v) => v['name'] == initialValue!['name'],
+      );
+      if (match.isNotEmpty) selected = match.first;
+    }
+    return DropdownButtonFormField<Map>(
+      isExpanded: true,
+      initialValue: selected,
+      items: [
+        for (final (i, v) in voices.indexed)
+          DropdownMenuItem(
+            value: v,
+            child: Text('$label — Voice ${i + 1}'),
+          ),
+      ],
+      onChanged: (v) {
+        if (v != null) {
+          onChanged(
+            v.map((k, value) => MapEntry(k.toString(), value.toString())),
+          );
+        }
+      },
+      decoration: InputDecoration(
+        isDense: true,
+        labelText: label,
+        border: OutlineInputBorder(borderRadius: context.appRadius(10)),
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:dio/dio.dart';
 
@@ -92,6 +93,24 @@ class GitHubReleaseAssetClient {
       destinationPath,
       onReceiveProgress: onProgress,
     );
+  }
+
+  /// Downloads a package as raw bytes (web only).
+  ///
+  /// Dio's `download(url, savePath)` is not implemented on web (it throws
+  /// `UnimplementedError`), so web fetches bytes; native uses the streaming
+  /// [downloadPackage] file path instead so large assets never sit fully in
+  /// memory.
+  Future<Uint8List> downloadPackageBytes(
+    RemoteAssetPackage package, {
+    ProgressCallback? onProgress,
+  }) async {
+    final response = await _dio.get<List<int>>(
+      package.downloadUrl,
+      options: Options(responseType: ResponseType.bytes),
+      onReceiveProgress: onProgress,
+    );
+    return Uint8List.fromList(response.data ?? const []);
   }
 
   static GitHubTrackRelease? selectLatestReleaseForTrack(

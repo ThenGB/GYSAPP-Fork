@@ -55,6 +55,15 @@ abstract class BibleState with _$BibleState {
     @Default('Newest') String sortNotesBy,
     @Default(false) bool enableAudio,
     @Default(false) bool isSpeaking,
+    @Default(false) bool isTtsPaused,
+    @Default('edge') String ttsEngine,
+    @Default('id-ID-ArdiNeural') String edgeVoice,
+    @Default('+0%') String edgeRate,
+    @Default('+0Hz') String edgePitch,
+    @Default('+0%') String edgeVolume,
+    @Default(true) bool autoNextChapter,
+    @Default(0) int ttsCurrentVerseIndex,
+    @Default(false) bool isSpeakingSelectedOnly,
     @Default(false) bool isSplitContentLoading,
     @Default('') String currentWord,
     @Default(0) int currentStartWord,
@@ -64,6 +73,8 @@ abstract class BibleState with _$BibleState {
     @Default(.35) double speedRate,
     @Default(.90) double pitchRate,
   }) = _BibleState;
+
+  Map<String, dynamic> toJson() => _$BibleStateToJson(this);
 
   factory BibleState.fromJson(Map<String, dynamic> json) {
     final state = _$BibleStateFromJson(json);

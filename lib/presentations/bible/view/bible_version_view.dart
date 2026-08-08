@@ -6,7 +6,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../di/injection.dart';
-import '../../../router/router.dart';
 import '../../presentations.dart';
 
 @RoutePage()
@@ -59,7 +58,6 @@ class _BibleVersionViewState extends State<BibleVersionView> {
               ),
             );
           }
-          final currentCode = di<BibleCubit>().state.currentBibleCode;
           return ListView.separated(
             itemCount: bibles.length,
             separatorBuilder: (_, _) => Divider(
@@ -68,18 +66,16 @@ class _BibleVersionViewState extends State<BibleVersionView> {
             ),
             itemBuilder: (context, index) {
               final status = bibles[index];
-              final code = status.definition.code;
-              final isActive = code == currentCode;
+              // Management-only list: download/update/delete. The active
+              // version is chosen inside the Bible view header selector, so
+              // no active badge or tap-to-select is shown here.
               return DistributedAssetTile(
                 status: status,
                 cubit: _assetCubit,
-                isActive: isActive,
-                onSelect: () async {
-                  final cubit = di<BibleCubit>();
-                  await cubit.selectBibleCodeByName(code);
-                  if (!context.mounted) return;
-                  router.maybePop();
-                },
+                onDownload: () => _assetCubit.downloadAsset(
+                  status.definition,
+                  bibleCubit: di<BibleCubit>(),
+                ),
               );
             },
           );

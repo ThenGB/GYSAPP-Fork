@@ -1,12 +1,9 @@
-﻿import '../../../components/components.dart';
+import '../../../components/components.dart';
 import 'dart:async';
-import 'dart:math' as math;
-import 'dart:ui' as ui;
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
@@ -180,8 +177,7 @@ class _SongListViewState extends State<SongListView>
                     mode == SongPlaylistAutoNextMode.shufflePlaylist;
                 return _ShuffleToggleView(
                   isOn: on,
-                  isPlaylist:
-                      mode == SongPlaylistAutoNextMode.shufflePlaylist,
+                  isPlaylist: mode == SongPlaylistAutoNextMode.shufflePlaylist,
                 );
               },
               builder: (context, view) {
@@ -192,8 +188,7 @@ class _SongListViewState extends State<SongListView>
                             ? 'Shuffle playlist — matikan'
                             : 'Shuffle all — matikan')
                       : 'Aktifkan shuffle',
-                  onPressed: () =>
-                      context.read<SongCubit>().toggleShuffle(),
+                  onPressed: () => context.read<SongCubit>().toggleShuffle(),
                   icon: Icon(
                     Icons.shuffle_rounded,
                     color: view.isOn ? context.colorScheme.primary : null,
@@ -273,12 +268,15 @@ class _SongListViewState extends State<SongListView>
                                     Icons.search_rounded,
                                     color: colors.primary,
                                   ),
-                                  contentPadding: EdgeInsets.symmetric(
-                                    horizontal: 4,
-                                    vertical: compactSearch ? 10 : 8,
-                                  ).add(
-                                    EdgeInsets.only(right: trailingReserved),
-                                  ),
+                                  contentPadding:
+                                      EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                        vertical: compactSearch ? 10 : 8,
+                                      ).add(
+                                        EdgeInsets.only(
+                                          right: trailingReserved,
+                                        ),
+                                      ),
                                   border: OutlineInputBorder(
                                     borderRadius: context.appRadius(12),
                                     borderSide: BorderSide(
@@ -306,80 +304,77 @@ class _SongListViewState extends State<SongListView>
                                   alignment: Alignment.centerRight,
                                   child: PopupMenuButton(
                                     offset: const Offset(0, 48),
-                                      onSelected: (value) async {
-                                        await widget.onChangeBookCode(value);
-                                        _filteredCache = null;
-                                        await Future.delayed(
-                                          const Duration(milliseconds: 100),
-                                        );
-                                        setState(() {
-                                          forceRefresh++;
-                                        });
-                                      },
-                                      initialValue: widget.currentBook().code,
-                                      itemBuilder: (context) {
-                                        return widget
-                                            .books()
-                                            .map(
-                                              (e) => PopupMenuItem(
-                                                value: e.code,
-                                                child: Text(e.code ?? ''),
-                                              ),
-                                            )
-                                            .toList();
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          AnimatedBuilder(
-                                            animation: searchController,
-                                            builder: (context, child) =>
-                                                searchController.text.isEmpty
-                                                ? const SizedBox.shrink()
-                                                : CloseButton(
-                                                    onPressed: () {
-                                                      searchController.clear();
-                                                    },
-                                                  ),
+                                    onSelected: (value) async {
+                                      await widget.onChangeBookCode(value);
+                                      _filteredCache = null;
+                                      await Future.delayed(
+                                        const Duration(milliseconds: 100),
+                                      );
+                                      setState(() {
+                                        forceRefresh++;
+                                      });
+                                    },
+                                    initialValue: widget.currentBook().code,
+                                    itemBuilder: (context) {
+                                      return widget
+                                          .books()
+                                          .map(
+                                            (e) => PopupMenuItem(
+                                              value: e.code,
+                                              child: Text(e.code ?? ''),
+                                            ),
+                                          )
+                                          .toList();
+                                    },
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        AnimatedBuilder(
+                                          animation: searchController,
+                                          builder: (context, child) =>
+                                              searchController.text.isEmpty
+                                              ? const SizedBox.shrink()
+                                              : CloseButton(
+                                                  onPressed: () {
+                                                    searchController.clear();
+                                                  },
+                                                ),
+                                        ),
+                                        Container(
+                                          width: codeWidth,
+                                          alignment: Alignment.center,
+                                          margin: const EdgeInsets.all(2),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
                                           ),
-                                          Container(
-                                            width: codeWidth,
-                                            alignment: Alignment.center,
-                                            margin: const EdgeInsets.all(2),
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 12,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  const BorderRadius.horizontal(
-                                                    right: Radius.circular(8),
-                                                  ),
-                                              color: colors.primaryContainer
-                                                  .withValues(alpha: 0.65),
-                                              border: Border.all(
-                                                color: colors.primary,
-                                              ),
-                                            ),
-                                            child: Text(
-                                              widget.currentBook().code ?? '',
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.bold,
-                                                fontSize: compactSearch
-                                                    ? 13
-                                                    : 14,
-                                                color:
-                                                    colors.onPrimaryContainer,
-                                              ),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                const BorderRadius.horizontal(
+                                                  right: Radius.circular(8),
+                                                ),
+                                            color: colors.primaryContainer
+                                                .withValues(alpha: 0.65),
+                                            border: Border.all(
+                                              color: colors.primary,
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                          child: Text(
+                                            widget.currentBook().code ?? '',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: compactSearch ? 13 : 14,
+                                              color: colors.onPrimaryContainer,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ],
-                            );
-                          },
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                     const Divider(height: 1),
@@ -475,100 +470,168 @@ class _SongListViewState extends State<SongListView>
                           final filteredItems = _getFiltered(
                             widget.currentBook().songs,
                           );
-                          return ListView.builder(
-                            // ignore: deprecated_member_use
-                            cacheExtent: 200,
-                            keyboardDismissBehavior:
-                                ScrollViewKeyboardDismissBehavior.onDrag,
-                            itemCount: filteredItems.length,
-                            itemBuilder: (context, index) {
-                              var item = filteredItems[index];
-                              return Padding(
-                                padding: const EdgeInsets.fromLTRB(12, 4, 14, 4),
-                                child: Material(
-                                  color: context.colorScheme.surfaceContainerLow,
-                                  borderRadius: context.appRadius(12),
-                                  child: InkWell(
-                                    borderRadius: context.appRadius(12),
-                                    onTap: () {
-                                      FocusManager.instance.primaryFocus
-                                          ?.unfocus();
-                                      widget.onSearchTermsChanged(
-                                        searchController.text,
-                                      );
-                                      widget.onTapPageNumber(item.number!);
-                                    },
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          CircleAvatar(
-                                            radius: 20,
-                                            backgroundColor: context
+                          if (filteredItems.isEmpty) {
+                            return Center(
+                              child: Padding(
+                                padding: const EdgeInsets.all(32),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      Icons.search_off_rounded,
+                                      size: 48,
+                                      color: context
+                                          .colorScheme
+                                          .onSurfaceVariant
+                                          .withValues(alpha: 0.5),
+                                    ),
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      'no_songs_found'.tr(),
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .titleMedium
+                                          ?.copyWith(
+                                            color: context
                                                 .colorScheme
-                                                .primaryContainer
-                                                .withValues(alpha: 0.65),
-                                            child: Text(
-                                              item.number ?? '',
-                                              style: TextStyle(
-                                                fontFamily:
-                                                    DesignSystem.fontHeading,
-                                                fontWeight: FontWeight.w700,
-                                                fontSize:
-                                                    context.appFontSize(15),
-                                                color: context
-                                                    .colorScheme
-                                                    .onPrimaryContainer,
+                                                .onSurfaceVariant,
+                                          ),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }
+                          return LayoutBuilder(
+                            builder: (context, constraints) {
+                              final cardWidth = constraints.maxWidth < 560
+                                  ? 170.0
+                                  : 200.0;
+                              final columns = (constraints.maxWidth / cardWidth)
+                                  .floor()
+                                  .clamp(1, 8);
+                              return GridView.builder(
+                                // ignore: deprecated_member_use
+                                cacheExtent: 300,
+                                padding: const EdgeInsets.fromLTRB(
+                                  14,
+                                  10,
+                                  14,
+                                  24,
+                                ),
+                                keyboardDismissBehavior:
+                                    ScrollViewKeyboardDismissBehavior.onDrag,
+                                gridDelegate:
+                                    SliverGridDelegateWithFixedCrossAxisCount(
+                                      crossAxisCount: columns,
+                                      mainAxisSpacing: 10,
+                                      crossAxisSpacing: 10,
+                                      childAspectRatio:
+                                          constraints.maxWidth < 560
+                                          ? 1.05
+                                          : 1.55,
+                                    ),
+                                itemCount: filteredItems.length,
+                                itemBuilder: (context, index) {
+                                  var item = filteredItems[index];
+                                  final colors = context.colorScheme;
+                                  return RepaintBoundary(
+                                    child: Material(
+                                      color: colors.surfaceContainerLow,
+                                      borderRadius: context.appRadius(14),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: InkWell(
+                                        onTap: () {
+                                          FocusManager.instance.primaryFocus
+                                              ?.unfocus();
+                                          widget.onSearchTermsChanged(
+                                            searchController.text,
+                                          );
+                                          final number = item.number;
+                                          if (number == null) return;
+                                          widget.onTapPageNumber(number);
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            Positioned(
+                                              top: 4,
+                                              right: 2,
+                                              child: IconButton(
+                                                tooltip: 'Tambah ke playlist',
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                                padding: EdgeInsets.zero,
+                                                onPressed: () {
+                                                  context
+                                                      .read<SongCubit>()
+                                                      .addSongToActivePlaylist(
+                                                        item,
+                                                      );
+                                                  Fluttertoast.showToast(
+                                                    msg:
+                                                        'Ditambahkan ke playlist',
+                                                  );
+                                                },
+                                                icon: Icon(
+                                                  Icons.playlist_add_rounded,
+                                                  size: 20,
+                                                  color: colors.onSurfaceVariant
+                                                      .withValues(alpha: 0.8),
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 14),
-                                          Expanded(
-                                            child: Text(
-                                              (item.title ?? '')
-                                                  .capitalizeEachWord(),
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: Theme.of(context)
-                                                  .textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                    fontWeight:
-                                                        FontWeight.w600,
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                    12,
+                                                    10,
+                                                    10,
+                                                    8,
                                                   ),
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Text(
+                                                    item.number ?? '',
+                                                    style: TextStyle(
+                                                      fontFamily: DesignSystem
+                                                          .fontHeading,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: context
+                                                          .appFontSize(20),
+                                                      color: colors.primary,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 4),
+                                                  Text(
+                                                    (item.title ?? '')
+                                                        .capitalizeEachWord(),
+                                                    maxLines: 2,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style: Theme.of(context)
+                                                        .textTheme
+                                                        .bodyMedium
+                                                        ?.copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                          height: 1.25,
+                                                        ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          IconButton(
-                                            tooltip: 'Tambah ke playlist',
-                                            visualDensity:
-                                                VisualDensity.compact,
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () {
-                                              context
-                                                  .read<SongCubit>()
-                                                  .addSongToActivePlaylist(item);
-                                              Fluttertoast.showToast(
-                                                msg: 'Ditambahkan ke playlist',
-                                              );
-                                            },
-                                            icon: Icon(
-                                              Icons.playlist_add_rounded,
-                                              size: 20,
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurfaceVariant
-                                                  .withValues(alpha: 0.8),
-                                            ),
-                                          ),
-                                        ],
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
                             },
                           );
@@ -670,7 +733,7 @@ class _SongListTabButton extends StatelessWidget {
   }
 }
 
-class _PlaylistTab extends StatelessWidget {
+class _PlaylistTab extends StatefulWidget {
   final List<SongBook> Function() books;
   final ValueChanged<Song> onOpenSong;
   final VoidCallback onCreatePlaylist;
@@ -680,6 +743,47 @@ class _PlaylistTab extends StatelessWidget {
     required this.onOpenSong,
     required this.onCreatePlaylist,
   });
+
+  @override
+  State<_PlaylistTab> createState() => _PlaylistTabState();
+}
+
+class _PlaylistTabState extends State<_PlaylistTab> {
+  // Memoized song→map lookup. Playlist mutations (rename / reorder / remove)
+  // rebuild the list without re-scanning every song in the book. The cache
+  // is keyed on the book-list content (identity + each book's song identity)
+  // so in-place song data updates (e.g. a lyrics refresh) also invalidate it.
+  Map<String, Song>? _songMapCache;
+  List<Object?>? _songMapKey;
+
+  Map<String, Song> _songMap() {
+    final books = widget.books();
+    final key = <Object?>[
+      for (final book in books) book.code,
+      for (final book in books) book.songs,
+    ];
+    if (_songMapCache != null && _listEquals(_songMapKey, key)) {
+      return _songMapCache!;
+    }
+    final songMap = <String, Song>{};
+    for (final book in books) {
+      for (final song in book.songs) {
+        songMap['${book.code}:${song.number}'] = song;
+      }
+    }
+    _songMapCache = songMap;
+    _songMapKey = key;
+    return songMap;
+  }
+
+  static bool _listEquals(List<Object?>? a, List<Object?>? b) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null || a.length != b.length) return false;
+    for (var i = 0; i < a.length; i++) {
+      if (!identical(a[i], b[i])) return false;
+    }
+    return true;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -692,13 +796,7 @@ class _PlaylistTab extends StatelessWidget {
           prev.songBook != curr.songBook,
       builder: (context, state) {
         final cubit = context.read<SongCubit>();
-        // Build the song→map lookup once per rebuild instead of per card.
-        final songMap = <String, Song>{};
-        for (final book in books()) {
-          for (final song in book.songs) {
-            songMap['${book.code}:${song.number}'] = song;
-          }
-        }
+        final songMap = _songMap();
         if (state.playlists.isEmpty) {
           return Align(
             alignment: Alignment.topCenter,
@@ -711,7 +809,7 @@ class _PlaylistTab extends StatelessWidget {
                 description:
                     'Buat playlist lalu tambahkan lagu dari tab Lists.',
                 action: FilledButton.icon(
-                  onPressed: onCreatePlaylist,
+                  onPressed: widget.onCreatePlaylist,
                   icon: const Icon(Icons.playlist_add_rounded),
                   label: const Text('Buat Playlist'),
                 ),
@@ -748,7 +846,7 @@ class _PlaylistTab extends StatelessWidget {
                   onDelete: () => cubit.deletePlaylist(playlist.id),
                   onRemoveSong: (index) =>
                       cubit.removeSongFromPlaylist(playlist.id, index),
-                  onOpenSong: onOpenSong,
+                  onOpenSong: widget.onOpenSong,
                 ),
               ),
             );
@@ -919,8 +1017,7 @@ class _PlaylistCardState extends State<_PlaylistCard> {
                                     icon: const Icon(
                                       Icons.remove_circle_outline,
                                     ),
-                                    onPressed: () =>
-                                        widget.onRemoveSong(index),
+                                    onPressed: () => widget.onRemoveSong(index),
                                   ),
                                 ),
                               ],
@@ -932,142 +1029,5 @@ class _PlaylistCardState extends State<_PlaylistCard> {
         ],
       ),
     );
-  }
-}
-
-extension StringLowerSpace on String {
-  String get toLowerNoSpace {
-    return toLowerCase().replaceAll(' ', '');
-  }
-}
-
-class PageTurnWidget extends StatefulWidget {
-  const PageTurnWidget({
-    super.key,
-    required this.amount,
-    this.backgroundColor = const Color(0xFFFFFFCC),
-    required this.child,
-  });
-
-  final Animation<double> amount;
-  final Color backgroundColor;
-  final Widget child;
-
-  @override
-  _PageTurnWidgetState createState() => _PageTurnWidgetState();
-}
-
-class _PageTurnWidgetState extends State<PageTurnWidget> {
-  final _boundaryKey = GlobalKey();
-  ui.Image? _image;
-
-  @override
-  void didUpdateWidget(PageTurnWidget oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.child != widget.child) {
-      _image = null;
-    }
-  }
-
-  void _captureImage(Duration timeStamp) async {
-    final pixelRatio = MediaQuery.of(context).devicePixelRatio;
-    final boundary =
-        _boundaryKey.currentContext?.findRenderObject()
-            as RenderRepaintBoundary;
-    final image = await boundary.toImage(pixelRatio: pixelRatio);
-    setState(() => _image = image);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_image != null) {
-      return CustomPaint(
-        painter: _PageTurnEffect(
-          amount: widget.amount,
-          image: _image!,
-          backgroundColor: widget.backgroundColor,
-        ),
-        size: Size.infinite,
-      );
-    } else {
-      WidgetsBinding.instance.addPostFrameCallback(_captureImage);
-      return LayoutBuilder(
-        builder: (BuildContext context, BoxConstraints constraints) {
-          final size = constraints.biggest;
-          return Stack(
-            clipBehavior: Clip.hardEdge,
-            children: [
-              Positioned(
-                left: 1 + size.width,
-                top: 1 + size.height,
-                width: size.width,
-                height: size.height,
-                child: RepaintBoundary(key: _boundaryKey, child: widget.child),
-              ),
-            ],
-          );
-        },
-      );
-    }
-  }
-}
-
-class _PageTurnEffect extends CustomPainter {
-  _PageTurnEffect({
-    required this.amount,
-    required this.image,
-    required this.backgroundColor,
-  }) : super(repaint: amount);
-
-  final Animation<double> amount;
-  final ui.Image image;
-  final Color backgroundColor;
-  final double radius = 0.18;
-
-  @override
-  void paint(ui.Canvas canvas, ui.Size size) {
-    final pos = amount.value;
-    final movX = (1.0 - pos) * 0.85;
-    final calcR = (movX < 0.20) ? radius * movX * 5 : radius;
-    final wHRatio = 1 - calcR;
-    final hWRatio = image.height / image.width;
-    final hWCorrection = (hWRatio - 1.0) / 2.0;
-
-    final w = size.width.toDouble();
-    final h = size.height.toDouble();
-    final c = canvas;
-    final shadowXf = (wHRatio - movX);
-    final shadowSigma = Shadow.convertRadiusToSigma(
-      8.0 + (32.0 * (1.0 - shadowXf)),
-    );
-    final pageRect = Rect.fromLTRB(0.0, 0.0, w * shadowXf, h);
-    c.drawRect(pageRect, Paint()..color = backgroundColor);
-    c.drawRect(
-      pageRect,
-      Paint()
-        ..color = Colors.black54
-        ..maskFilter = MaskFilter.blur(BlurStyle.outer, shadowSigma),
-    );
-
-    final ip = Paint();
-    for (double x = 0; x < size.width; x++) {
-      final xf = (x / w);
-      final v =
-          (calcR * (math.sin(math.pi / 0.5 * (xf - (1.0 - pos)))) +
-          (calcR * 1.1));
-      final xv = (xf * wHRatio) - movX;
-      final sx = (xf * image.width);
-      final sr = Rect.fromLTRB(sx, 0.0, sx + 1.0, image.height.toDouble());
-      final yv = ((h * calcR * movX) * hWRatio) - hWCorrection;
-      final ds = (yv * v);
-      final dr = Rect.fromLTRB(xv * w, 0.0 - ds, xv * w + 1.0, h + ds);
-      c.drawImageRect(image, sr, dr, ip);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_PageTurnEffect oldDelegate) {
-    return oldDelegate.image != image ||
-        oldDelegate.amount.value != amount.value;
   }
 }

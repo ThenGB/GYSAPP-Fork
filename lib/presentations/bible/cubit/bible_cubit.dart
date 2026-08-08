@@ -1,18 +1,17 @@
 import 'dart:developer';
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqflite.dart' show Database;
 
+import '../../../data/services/bible_tts_service.dart';
+import '../../../data/services/installed_bible_db.dart';
 import '../../../data/services/local_bible_asset_service.dart';
 import '../../../data/utilities/string_utils.dart';
-import '../../../data/utilities/platform_utils.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/bcvbc/bcvbc.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
@@ -34,9 +33,15 @@ class BibleCubit extends HydratedCubit<BibleState> {
     log('Initialized BibleCubit');
     incrementTodayReading();
   }
-  final FlutterTts? tts = isTextToSpeechConfiguredForCurrentPlatform
-      ? FlutterTts()
-      : null;
+
+  final BibleTtsService tts = BibleTtsService();
+
+  /// Whether the Edge engine is currently selected (falls back to native
+  /// automatically when offline).
+  BibleTtsEngine get activeTtsEngine =>
+      state.ttsEngine == 'native'
+          ? BibleTtsEngine.native
+          : BibleTtsEngine.edge;
 
   bool get isSelectingBible => state.selectedVerse.isNotEmpty;
 
@@ -47,6 +52,26 @@ class BibleCubit extends HydratedCubit<BibleState> {
   Database? splitBibleDb;
   bool get _usesAssetBible =>
       bibleAssetService.isBundledCode(state.currentBibleCode);
+
+  /// Pure decision helper for the main-version switch: should the split pane
+  /// follow the new main version?
+  ///
+  /// True when the split was mirroring the main — either sharing the same
+  /// database handle, or both using the same bundled (non-DB) code. False
+  /// when the split holds an independently selected version, so switching
+  /// the main pane leaves the split untouched.
+  static bool splitShouldFollowMain({
+    required Database? splitBibleDb,
+    required Database? previousBibleDb,
+    required String splitBibleCode,
+    required String currentBibleCode,
+  }) {
+    // Note: the null-guard matters — when both handles are null (bundled
+    // versions), sharing is decided by code equality, and an independent
+    // bundled split (B != A) must NOT be re-pointed.
+    return (splitBibleDb != null && splitBibleDb == previousBibleDb) ||
+        (splitBibleDb == null && splitBibleCode == currentBibleCode);
+  }
   bool get _usesSplitAssetBible =>
       bibleAssetService.isBundledCode(state.splitBibleCode);
 
@@ -57,38 +82,27 @@ class BibleCubit extends HydratedCubit<BibleState> {
       return;
     }
 
-    final dbPath = join(
-      di<AppDirectory>().bibleFolder,
-      '${state.currentBibleCode}.db',
-    );
-    final dbFile = File(dbPath);
-
-    // Ensure Bible DB is copied from assets if not exists
-    if (!dbFile.existsSync()) {
-      try {
-        dbFile.parent.createSync(recursive: true);
-        final assetPath = 'assets/data/${state.currentBibleCode}.db';
-        final data = await rootBundle.load(assetPath);
-        await dbFile.writeAsBytes(
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        );
-        log(
-          'Copied Bible DB from assets: $assetPath -> $dbPath',
-          name: 'BibleCubit',
-        );
-      } catch (e) {
-        log('Failed to copy Bible DB: $e', name: 'BibleCubit');
-        return;
-      }
-    }
-
+    Database? bibleDbOpened;
     try {
-      bibleDb = await openDatabase(dbPath, readOnly: true);
-      splitBibleDb = bibleDb;
-      getContent(state.currentBible);
+      bibleDbOpened = await InstalledBibleDb.open(
+        state.currentBibleCode,
+        readOnly: true,
+      );
     } catch (e) {
-      log('Failed to open Bible DB: $e', name: 'BibleCubit');
+      log('Failed to open Bible DB for ${state.currentBibleCode}: $e',
+          name: 'BibleCubit');
+      return;
     }
+    if (bibleDbOpened == null) {
+      log(
+        'Failed to open Bible DB for ${state.currentBibleCode}',
+        name: 'BibleCubit',
+      );
+      return;
+    }
+    bibleDb = bibleDbOpened;
+    splitBibleDb = bibleDb;
+    getContent(state.currentBible);
   }
 
   void updateFilterBook(List<BibleBook> values) {
@@ -101,7 +115,6 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   void applyTtsSetting(Map<String, Map> voices, double pitch, double speed) {
     emit(state.copyWith(voices: voices, pitchRate: pitch, speedRate: speed));
-    initTts();
   }
 
   void onFilterPerjanjianLama() {
@@ -199,75 +212,168 @@ class BibleCubit extends HydratedCubit<BibleState> {
     );
   }
 
-  Future<void> speakTheBible() async {
-    final tts = this.tts;
-    if (tts == null) {
-      emit(state.copyWith(isSpeaking: false));
-      return;
+  /// Builds the TTS sentence for [verse], stripping markup and applying the
+  /// pronunciation tweaks used across all playback modes.
+  String _buildTtsSentence(Verse verse) {
+    List<Pericope>? pericope = state.pericopes.getById(verse.id);
+    String sentence = '';
+    if (pericope.isNotEmpty) {
+      sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
     }
-    emit(state.copyWith(isSpeaking: true));
-    List<Verse> verses = [];
+    sentence += (verse.verse ?? '').replaceAll('  ', ' ');
+    sentence = sentence.replaceAll('Allah', 'Alla');
+    sentence = sentence.replaceAll('allah', 'alla');
+    sentence = sentence.replaceAll('Demikian', 'Demi kian');
+    sentence = sentence.replaceAll('demikian', 'demi kian');
+    sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
+    sentence = sentence.replaceAll('pentakosta', 'penta kosta');
+    sentence = removeTextBetweenTags(sentence, 'f');
+    sentence = sentence.replaceAll('<pb/>', '    ');
+    sentence = sentence.replaceAll('<t>', '');
+    sentence = sentence.replaceAll('</t>', '');
+    sentence = sentence.replaceAll('<i>', '');
+    sentence = sentence.replaceAll('</i>', '');
+    sentence = sentence.replaceAll('<J>', '');
+    sentence = sentence.replaceAll('</J>', '');
+    return sentence;
+  }
 
-    if (state.selectedVerse.isNotEmpty) {
+  /// Plays the Bible starting from [fromVerseId] (or the current verse when
+  /// null). When [onlyThisVerse] is true, a single verse is spoken; otherwise
+  /// the chapter is read from that verse to the end, optionally continuing to
+  /// the next chapter when [autoNextChapter] (state) is enabled.
+  Future<void> speakTheBible({
+    int? fromVerseId,
+    bool onlyThisVerse = false,
+  }) async {
+    if (state.isSpeaking) {
+      await stopSpeaking();
+    }
+    emit(
+      state.copyWith(
+        isSpeaking: true,
+        isTtsPaused: false,
+        isSpeakingSelectedOnly: onlyThisVerse || state.selectedVerse.isNotEmpty,
+      ),
+    );
+
+    List<Verse> verses;
+    if (state.selectedVerse.isNotEmpty && !onlyThisVerse) {
       verses = List.from(
         state.selectedVerse.sorted((a, b) => a.verseId.compareTo(b.verseId)),
       );
+    } else if (onlyThisVerse) {
+      final match = state.verses.where(
+        (v) => fromVerseId == null || v.verseId == fromVerseId,
+      );
+      verses = match.isNotEmpty
+          ? [match.first]
+          : List.from(state.verses);
     } else {
       verses = List.from(state.verses);
-    }
-    for (var verse in verses) {
-      if (!state.isSpeaking) break;
-      List<Pericope>? pericope = state.pericopes.getById(verse.id);
-      String sentence = '';
-      if (pericope.isNotEmpty) {
-        sentence += pericope.map((e) => '${e.title ?? ''}. ').join();
+      if (fromVerseId != null) {
+        final startIndex = verses.indexWhere(
+          (v) => v.verseId >= fromVerseId,
+        );
+        if (startIndex > 0) {
+          verses = verses.sublist(startIndex);
+        } else if (startIndex == -1) {
+          verses = [];
+        }
       }
-      sentence += (verse.verse ?? '').replaceAll('  ', ' ');
-      sentence = sentence.replaceAll('Allah', 'Alla');
-      sentence = sentence.replaceAll('allah', 'alla');
-      sentence = sentence.replaceAll('Demikian', 'Demi kian');
-      sentence = sentence.replaceAll('demikian', 'demi kian');
-      sentence = sentence.replaceAll('Pentakosta', 'Penta kosta');
-      sentence = sentence.replaceAll('pentakosta', 'penta kosta');
-      sentence = removeTextBetweenTags(sentence, 'f');
-      sentence = sentence.replaceAll('<pb/>', '    ');
-      sentence = sentence.replaceAll('<t>', '');
-      sentence = sentence.replaceAll('</t>', '');
-      sentence = sentence.replaceAll('<i>', '');
-      sentence = sentence.replaceAll('</i>', '');
-      sentence = sentence.replaceAll('<J>', '');
-      sentence = sentence.replaceAll('</J>', '');
-      emit(state.copyWith(currentBible: verse));
-      await Future.delayed(Duration(milliseconds: 600));
+    }
+
+    for (var i = 0; i < verses.length; i++) {
       if (!state.isSpeaking) break;
-      try {
-        await tts.speak(sentence);
-      } catch (e) {
-        log('TTS speak failed: $e', name: 'BibleCubit');
+      while (state.isTtsPaused && state.isSpeaking) {
+        await Future.delayed(const Duration(milliseconds: 250));
+      }
+      if (!state.isSpeaking) break;
+
+      final verse = verses[i];
+      emit(
+        state.copyWith(
+          currentBible: verse,
+          ttsCurrentVerseIndex: i,
+          currentStartWord: 0,
+          currentEndWord: 0,
+        ),
+      );
+      await Future.delayed(const Duration(milliseconds: 600));
+      if (!state.isSpeaking) break;
+
+      final sentence = _buildTtsSentence(verse);
+      final ok = await tts.speak(
+        sentence,
+        engine: activeTtsEngine,
+      );
+      if (!ok) {
+        log('TTS speak failed for verse ${verse.verseId}', name: 'BibleCubit');
         emit(state.copyWith(isSpeaking: false));
         return;
       }
-      emit(state.copyWith(currentStartWord: 0, currentEndWord: 0));
+    }
+
+    // Auto-continue to the next chapter when enabled and this chapter ended.
+    if (state.isSpeaking &&
+        state.autoNextChapter &&
+        verses.isNotEmpty &&
+        !state.isSpeakingSelectedOnly) {
+      final next = await _nextChapterForTts();
+      if (next != null) {
+        await speakTheBible(fromVerseId: next);
+        return;
+      }
     }
     emit(state.copyWith(isSpeaking: false));
   }
 
-  Future<void> stopSpeaking() async {
-    final tts = this.tts;
-    if (tts == null) {
-      emit(state.copyWith(isSpeaking: false));
-      return;
-    }
-    if (!state.isSpeaking && !canStopIdleTextToSpeechForCurrentPlatform) {
-      emit(state.copyWith(isSpeaking: false));
-      return;
+  /// Resolves the first verse id of the next chapter (or null at the end of
+  /// the Bible). Used by the auto-next-chapter playback option.
+  Future<int?> _nextChapterForTts() async {
+    final currentBook = state.currentBook ?? state.books.firstOrNull;
+    if (currentBook == null) return null;
+    final currentVerse = state.currentBible;
+    if (currentVerse == null) return null;
+
+    BibleBook? nextBook = currentBook;
+    final currentChapterCount = currentBook.chapterCount ?? 1;
+    int nextChapter = currentVerse.chapterId + 1;
+    if (nextChapter > currentChapterCount) {
+      nextChapter = 1;
+      final idx = state.books.indexWhere((b) => b.id == currentBook.id);
+      if (idx == -1 || idx + 1 >= state.books.length) return null;
+      nextBook = state.books[idx + 1];
     }
     try {
-      await tts.stop();
+      await getContent(
+        Verse(
+          id: nextBook.id * 1000000 + nextChapter * 1000 + 1,
+          bookId: nextBook.id,
+          chapterId: nextChapter,
+          verseId: 1,
+        ),
+      );
+      return state.verses.firstOrNull?.verseId;
     } catch (e) {
-      log('TTS stop failed: $e', name: 'BibleCubit');
+      log('Auto-next chapter failed: $e', name: 'BibleCubit');
+      return null;
     }
-    emit(state.copyWith(isSpeaking: false));
+  }
+
+  /// Pauses or resumes the current speech.
+  Future<void> togglePauseTts() async {
+    if (!state.isSpeaking) return;
+    final paused = !state.isTtsPaused;
+    emit(state.copyWith(isTtsPaused: paused));
+    if (paused) {
+      await tts.stop();
+    }
+  }
+
+  Future<void> stopSpeaking() async {
+    await tts.stop();
+    emit(state.copyWith(isSpeaking: false, isTtsPaused: false));
   }
 
   void replaceBookmarks(List<BibleBookmark> items) {
@@ -295,18 +401,47 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(enableAudio: !state.enableAudio));
   }
 
-  Future<void> initTts() async {
-    final tts = this.tts;
-    if (tts == null) return;
+  /// Selects the TTS engine: 'edge' (default) or 'native'. Edge falls back
+  /// to the built-in native engine automatically when offline.
+  void setTtsEngine(String engine) {
+    final normalized = engine == 'native' ? 'native' : 'edge';
+    emit(state.copyWith(ttsEngine: normalized));
+    tts.engine = normalized == 'native'
+        ? BibleTtsEngine.native
+        : BibleTtsEngine.edge;
+  }
 
+  void setAutoNextChapter(bool value) {
+    emit(state.copyWith(autoNextChapter: value));
+  }
+
+  void setEdgeVoice(String voice) => emit(state.copyWith(edgeVoice: voice));
+  void setEdgeRate(String rate) => emit(state.copyWith(edgeRate: rate));
+  void setEdgePitch(String pitch) => emit(state.copyWith(edgePitch: pitch));
+  void setEdgeVolume(String volume) =>
+      emit(state.copyWith(edgeVolume: volume));
+
+  Future<void> initTts() async {
+    tts.engine = state.ttsEngine == 'native'
+        ? BibleTtsEngine.native
+        : BibleTtsEngine.edge;
+    tts.edgeVoice = state.edgeVoice;
+    tts.edgeRate = state.edgeRate;
+    tts.edgePitch = state.edgePitch;
+    tts.edgeVolume = state.edgeVolume;
+
+    // Configure the native fallback engine — the same instance the service
+    // uses to speak, so config + progress handlers stay in sync.
+    final nativeTts = tts.nativeTts;
+    if (nativeTts == null) return;
     try {
-      await tts.awaitSpeakCompletion(true);
+      await nativeTts.awaitSpeakCompletion(true);
       if (!Platform.isWindows) {
-        await tts.awaitSynthCompletion(true);
+        await nativeTts.awaitSynthCompletion(true);
       }
-      await tts.setSpeechRate(state.speedRate);
-      await tts.setPitch(state.pitchRate);
-      List<String> langs = ((await tts.getLanguages) as List<Object?>)
+      await nativeTts.setSpeechRate(state.speedRate);
+      await nativeTts.setPitch(state.pitchRate);
+      List<String> langs = ((await nativeTts.getLanguages) as List<Object?>)
           .cast<String>()
           .toList();
       final lang = langs
@@ -316,11 +451,9 @@ class BibleCubit extends HydratedCubit<BibleState> {
             (element) => element == state.currentBibleLanguage.split('-').first,
           );
       if (!lang.isNegative) {
-        await tts.setLanguage(langs[lang]);
+        await nativeTts.setLanguage(langs[lang]);
       }
-      // List<Map<String, String>> voices =
-      //     ((await tts.getVoices) as List).cast<Map<String, String>>().toList();
-      List<Map> voices = (await tts.getVoices as List<Object?>)
+      List<Map> voices = (await nativeTts.getVoices as List<Object?>)
           .cast<Map>()
           .toList()
           .map(
@@ -347,15 +480,20 @@ class BibleCubit extends HydratedCubit<BibleState> {
           savedVoices[currentLang] = voice;
           emit(state.copyWith(voices: savedVoices.cast()));
         }
-        await tts.setVoice(savedVoice?.cast() ?? voice);
+        await nativeTts.setVoice(savedVoice?.cast() ?? voice);
       }
-      await tts.setVolume(1);
+      await nativeTts.setVolume(1);
+      await tts.configureNative(
+        voice: voice,
+        pitch: state.pitchRate,
+        speed: state.speedRate,
+      );
     } catch (e) {
       log('TTS initialization failed: $e', name: 'BibleCubit');
       return;
     }
 
-    tts.setProgressHandler((text, start, end, word) {
+    nativeTts.setProgressHandler((text, start, end, word) {
       log(
         'TTS Speaking \ntext: $text\nstart: $start\nend: $end\nword: $word\n',
         name: 'Speaking',
@@ -544,15 +682,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<void> getBibles() async {
-    var folder = Directory(di<AppDirectory>().bibleFolder);
-    if (!folder.existsSync()) {
-      folder.createSync(recursive: true);
-    }
-    var files = folder.listSync();
     final bibles = <String>{
-      for (final file in files)
-        if (file is File && basename(file.path).toLowerCase().endsWith('.db'))
-          basenameWithoutExtension(file.path),
+      ...await InstalledBibleDb.listInstalledCodes(),
       for (final code in await bibleAssetService.getBundledBibleCodes())
         code.split('.').first,
     }.toList()..sort();
@@ -574,9 +705,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
       await database.close();
     }
     final tts = this.tts;
-    if (tts != null) {
-      await tts.stop();
-    }
+    await tts.stop();
   }
 
   Future<List<Verse>> getVersesByBook(int bookId, int chapterId) async {
@@ -606,35 +735,85 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }) async {
     /// close current bible
     if (secondary) {
+      // Open the new split handle first, then close the old one — a failed
+      // switch keeps the current split pane loaded instead of emptying it.
+      final previousSplitDb = splitBibleDb;
+      Database? nextSplitDb;
+      var splitOpened = false;
       try {
-        splitBibleDb = bibleAssetService.isBundledCode(bibleCode)
-            ? null
-            : await openDatabase(
-                join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-              );
-      } on MissingPluginException catch (e) {
-        log('sqflite not available on this platform: $e', name: 'BibleCubit');
-        splitBibleDb = null;
+        if (bibleAssetService.isBundledCode(bibleCode)) {
+          nextSplitDb = null;
+          splitOpened = true;
+        } else {
+          nextSplitDb = await InstalledBibleDb.open(bibleCode);
+          splitOpened = nextSplitDb != null;
+        }
       } catch (e) {
         log('Failed to open split Bible DB: $e', name: 'BibleCubit');
-        splitBibleDb = null;
+        nextSplitDb = null;
+        splitOpened = false;
+      }
+      if (!splitOpened) {
+        splitBibleDb = previousSplitDb;
+        return;
+      }
+      splitBibleDb = nextSplitDb;
+      // If the split pane was sharing the main handle, detach before
+      // closing it is not needed here (the main handle stays open), but
+      // close the old split handle if it was a distinct database.
+      if (previousSplitDb != null && previousSplitDb != bibleDb) {
+        await previousSplitDb.close();
       }
       emit(state.copyWith(splitBibleCode: bibleCode));
     } else {
+      // Open the new handle first, then close the old one — a failed switch
+      // keeps the current Bible loaded instead of leaving an empty pane or
+      // claiming a version whose DB could not be opened.
+      final previousBibleDb = bibleDb;
+      Database? nextBibleDb;
+      var opened = false;
       try {
-        bibleDb = bibleAssetService.isBundledCode(bibleCode)
-            ? null
-            : await openDatabase(
-                join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-              );
-      } on MissingPluginException catch (e) {
-        log('sqflite not available on this platform: $e', name: 'BibleCubit');
-        bibleDb = null;
+        if (bibleAssetService.isBundledCode(bibleCode)) {
+          nextBibleDb = null;
+          opened = true;
+        } else {
+          nextBibleDb = await InstalledBibleDb.open(bibleCode);
+          opened = nextBibleDb != null;
+        }
       } catch (e) {
         log('Failed to open Bible DB: $e', name: 'BibleCubit');
-        bibleDb = null;
+        nextBibleDb = null;
+        opened = false;
       }
-      emit(state.copyWith(currentBibleCode: bibleCode));
+      if (!opened) {
+        // Keep the previous handle (and code) so the pane stays usable.
+        bibleDb = previousBibleDb;
+        getContent(state.currentBible);
+        return;
+      }
+      // If the split pane was mirroring the main pane (shared handle, or the
+      // same bundled code with no DB), re-point it to the new main handle so
+      // it follows the main instead of blanking under a stale label. An
+      // independently selected split version stays untouched.
+      final splitFollowsMain = splitShouldFollowMain(
+        splitBibleDb: splitBibleDb,
+        previousBibleDb: previousBibleDb,
+        splitBibleCode: state.splitBibleCode,
+        currentBibleCode: state.currentBibleCode,
+      );
+      final nextSplitBibleDb = splitFollowsMain ? nextBibleDb : splitBibleDb;
+      final nextSplitCode = splitFollowsMain ? bibleCode : state.splitBibleCode;
+
+      bibleDb = nextBibleDb;
+      splitBibleDb = nextSplitBibleDb;
+      // Close the old main handle only if the split no longer uses it.
+      if (previousBibleDb != null && previousBibleDb != nextSplitBibleDb) {
+        await previousBibleDb.close();
+      }
+      emit(state.copyWith(
+        currentBibleCode: bibleCode,
+        splitBibleCode: nextSplitCode,
+      ));
       initTts();
     }
 

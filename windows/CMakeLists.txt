@@ -119,6 +119,19 @@ if(EXISTS "${PDFIUM_NATIVE_ASSET}")
     COMPONENT Runtime)
 endif()
 
+# sqlite3 (via sqflite_common_ffi) also writes its native library through Dart
+# native-assets; Flutter's Windows install step does not copy it next to the
+# executable either. Without it every openDatabase of a downloaded (non-TB)
+# bible version fails with "Failed to load dynamic library 'sqlite3.dll'"
+# (error 126) and the Bible pane loads empty on desktop.
+set(SQLITE3_NATIVE_ASSET
+  "${CMAKE_CURRENT_SOURCE_DIR}/../build/native_assets/windows/sqlite3.dll")
+if(EXISTS "${SQLITE3_NATIVE_ASSET}")
+  install(FILES "${SQLITE3_NATIVE_ASSET}"
+    DESTINATION "${INSTALL_BUNDLE_LIB_DIR}"
+    COMPONENT Runtime)
+endif()
+
 # Fully re-copy the assets directory on each build to avoid having stale files
 # from a previous install.
 set(FLUTTER_ASSET_DIR_NAME "flutter_assets")

@@ -14,6 +14,10 @@ class DistributedAssetTile extends StatelessWidget {
   final AssetManagementCubit cubit;
   final bool isActive;
   final VoidCallback? onSelect;
+
+  /// Optional override for the download/update action (lets callers pass
+  /// consumer cubits like [BibleCubit] so lists refresh after install).
+  final VoidCallback? onDownload;
   final String? subtitleOverride;
 
   const DistributedAssetTile({
@@ -22,6 +26,7 @@ class DistributedAssetTile extends StatelessWidget {
     required this.cubit,
     this.isActive = false,
     this.onSelect,
+    this.onDownload,
     this.subtitleOverride,
   });
 
@@ -93,15 +98,15 @@ class DistributedAssetTile extends StatelessWidget {
             )
           : updateAvailable
           ? TextButton.icon(
-              onPressed: () =>
-                  cubit.downloadAsset(status.definition),
+              onPressed: onDownload ??
+                  () => cubit.downloadAsset(status.definition),
               icon: const Icon(Icons.system_update_alt_rounded, size: 18),
               label: Text('update'.tr()),
             )
           : canDownload
           ? TextButton.icon(
-              onPressed: () =>
-                  cubit.downloadAsset(status.definition),
+              onPressed: onDownload ??
+                  () => cubit.downloadAsset(status.definition),
               icon: const Icon(Icons.download_rounded, size: 18),
               label: Text('download'.tr()),
             )

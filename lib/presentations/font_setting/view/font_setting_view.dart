@@ -74,22 +74,54 @@ class _FontSettingViewState extends State<FontSettingView> {
         ),
         body: BlocBuilder<InitialCubit, InitialState>(
           builder: (context, state) => SingleChildScrollView(
-            child: Column(
-              children: [
-                Section(
-                  label: 'Preview'.tr(),
-                  child: (gap) => Padding(
-                    padding: EdgeInsets.all(gap),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        SizedBox(
-                          height: 160,
-                          child: Scrollbar(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 560),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // Live preview card.
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: context.colorScheme.surfaceContainerLow,
+                        borderRadius: context.appRadius(16),
+                        border: Border.all(
+                          color: context.colorScheme.outlineVariant,
+                        ),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Preview'.tr(),
+                            style: Theme.of(context).textTheme.labelMedium
+                                ?.copyWith(
+                                  color: context
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.8,
+                                ),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            height: 150,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: context
+                                  .colorScheme
+                                  .surfaceContainerHighest
+                                  .withValues(alpha: 0.5),
+                              borderRadius: context.appRadius(12),
+                            ),
                             child: SingleChildScrollView(
                               child: Text(
                                 'font_size_placeholder'.tr(),
-                                textScaler: TextScaler.linear(defaultTextScale),
+                                textScaler: TextScaler.linear(
+                                  defaultTextScale,
+                                ),
                                 style: TextStyle(
                                   fontFamily: defaultFontStyle,
                                   height: defaultTextHeight,
@@ -97,139 +129,130 @@ class _FontSettingViewState extends State<FontSettingView> {
                               ),
                             ),
                           ),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: ButtonTheme(
-                                alignedDropdown: true,
-                                padding: EdgeInsets.zero,
-                                child: DropdownButtonFormField(
-                                  initialValue: defaultFontStyle,
-                                  padding: EdgeInsets.zero,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    contentPadding: EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    isDense: true,
-                                    border: OutlineInputBorder(
-                                      borderRadius: context.appRadius(16),
-                                      borderSide: BorderSide(
-                                        color:
-                                            context.colorScheme.outlineVariant,
-                                      ),
-                                    ),
-                                  ),
-                                  items: _availableFonts
-                                      .map(
-                                        (e) => DropdownMenuItem(
-                                          value: e,
-                                          child: Text(
-                                            e,
-                                            style: TextStyle(
-                                              fontSize: context.appFontSize(12),
-                                              fontFamily: e,
-                                            ),
-                                          ),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (value) {
-                                    defaultFontStyle = value!;
-                                    setState(() {});
-                                  },
-                                  isExpanded: true,
-                                  alignment: Alignment.centerLeft,
-                                  iconSize: 12,
-                                  selectedItemBuilder: (context) =>
-                                      _availableFonts
-                                          .map(
-                                            (e) => Text(
-                                              e,
-                                              maxLines: 1,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: TextStyle(
-                                                fontWeight: FontWeight.normal,
-                                                fontSize: context.appFontSize(12),
-                                                fontFamily: e,
-                                              ),
-                                            ),
-                                          )
-                                          .toList(),
-                                ),
-                              ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.text_fields,
-                                        size: 16,
-                                        color: context.colorScheme.primary,
-                                      ),
-                                      Expanded(
-                                        child: Slider(
-                                          value: convertToPercentage(
-                                            defaultTextScale,
-                                            .7,
-                                            1.7,
-                                          ),
-                                          onChanged: (value) {
-                                            defaultTextScale = convertToValue(
-                                              value,
-                                              .7,
-                                              1.7,
-                                            );
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  Row(
-                                    children: [
-                                      Icon(
-                                        Icons.format_line_spacing,
-                                        size: 16,
-                                        color: context.colorScheme.primary,
-                                      ),
-                                      Expanded(
-                                        child: Slider(
-                                          value: convertToPercentage(
-                                            defaultTextHeight,
-                                            1.0,
-                                            2.5,
-                                          ),
-                                          onChanged: (value) {
-                                            defaultTextHeight = convertToValue(
-                                              value,
-                                              1.0,
-                                              2.5,
-                                            );
-                                            setState(() {});
-                                          },
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    // Font family picker.
+                    DropdownButtonFormField<String>(
+                      initialValue: defaultFontStyle,
+                      decoration: InputDecoration(
+                        labelText: 'font_setting_font'.tr(),
+                        filled: true,
+                        fillColor: context.colorScheme.surfaceContainerLow,
+                        border: OutlineInputBorder(
+                          borderRadius: context.appRadius(16),
+                          borderSide: BorderSide(
+                            color: context.colorScheme.outlineVariant,
+                          ),
+                        ),
+                      ),
+                      items: _availableFonts
+                          .map(
+                            (e) => DropdownMenuItem(
+                              value: e,
+                              child: Text(e, style: TextStyle(fontFamily: e)),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value == null) return;
+                        defaultFontStyle = value;
+                        setState(() {});
+                      },
+                      isExpanded: true,
+                    ),
+                    const SizedBox(height: 16),
+                    // Text scale slider.
+                    _FontSlider(
+                      label: 'font_setting_text_size'.tr(),
+                      icon: Icons.text_fields_rounded,
+                      value: convertToPercentage(defaultTextScale, 0.7, 1.7),
+                      displayValue: '${(defaultTextScale * 100).round()}%',
+                      onChanged: (fraction) {
+                        defaultTextScale = convertToValue(fraction, 0.7, 1.7);
+                        setState(() {});
+                      },
+                    ),
+                    const SizedBox(height: 8),
+                    // Line height slider.
+                    _FontSlider(
+                      label: 'font_setting_line_spacing'.tr(),
+                      icon: Icons.format_line_spacing_rounded,
+                      value: convertToPercentage(defaultTextHeight, 1.0, 2.5),
+                      displayValue: defaultTextHeight.toStringAsFixed(1),
+                      onChanged: (fraction) {
+                        defaultTextHeight = convertToValue(
+                          fraction,
+                          1.0,
+                          2.5,
+                        );
+                        setState(() {});
+                      },
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// A labeled slider row used by the font-settings page.
+class _FontSlider extends StatelessWidget {
+  const _FontSlider({
+    required this.label,
+    required this.icon,
+    required this.value,
+    required this.displayValue,
+    required this.onChanged,
+  });
+
+  final String label;
+  final IconData icon;
+  final double value;
+  final String displayValue;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 4, 12, 4),
+      decoration: BoxDecoration(
+        color: colors.surfaceContainerLow,
+        borderRadius: context.appRadius(16),
+        border: Border.all(color: colors.outlineVariant),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: colors.primary),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                displayValue,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: colors.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          Slider(value: value, onChanged: onChanged),
+        ],
       ),
     );
   }
