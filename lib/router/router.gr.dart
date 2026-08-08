@@ -69,23 +69,14 @@ class BackupRouteArgs {
 class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
   BibleAudioSettingRoute({
     Key? key,
-    required Map<String, Map<dynamic, dynamic>> initialVoices,
-    required double initialPitchRate,
-    required double initialSpeedRate,
-    required dynamic Function(
-      Map<String, Map<dynamic, dynamic>>,
-      double,
-      double,
-    )
-    onSave,
+    required BibleState initialState,
+    required void Function(BibleState) onSave,
     List<PageRouteInfo>? children,
   }) : super(
          BibleAudioSettingRoute.name,
          args: BibleAudioSettingRouteArgs(
            key: key,
-           initialVoices: initialVoices,
-           initialPitchRate: initialPitchRate,
-           initialSpeedRate: initialSpeedRate,
+           initialState: initialState,
            onSave: onSave,
          ),
          initialChildren: children,
@@ -99,9 +90,7 @@ class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
       final args = data.argsAs<BibleAudioSettingRouteArgs>();
       return BibleAudioSettingView(
         key: args.key,
-        initialVoices: args.initialVoices,
-        initialPitchRate: args.initialPitchRate,
-        initialSpeedRate: args.initialSpeedRate,
+        initialState: args.initialState,
         onSave: args.onSave,
       );
     },
@@ -111,47 +100,30 @@ class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
 class BibleAudioSettingRouteArgs {
   const BibleAudioSettingRouteArgs({
     this.key,
-    required this.initialVoices,
-    required this.initialPitchRate,
-    required this.initialSpeedRate,
+    required this.initialState,
     required this.onSave,
   });
 
   final Key? key;
 
-  final Map<String, Map<dynamic, dynamic>> initialVoices;
+  final BibleState initialState;
 
-  final double initialPitchRate;
-
-  final double initialSpeedRate;
-
-  final dynamic Function(Map<String, Map<dynamic, dynamic>>, double, double)
-  onSave;
+  final void Function(BibleState) onSave;
 
   @override
   String toString() {
-    return 'BibleAudioSettingRouteArgs{key: $key, initialVoices: $initialVoices, initialPitchRate: $initialPitchRate, initialSpeedRate: $initialSpeedRate, onSave: $onSave}';
+    return 'BibleAudioSettingRouteArgs{key: $key, initialState: $initialState, onSave: $onSave}';
   }
 
   @override
   bool operator ==(Object other) {
     if (identical(this, other)) return true;
     if (other is! BibleAudioSettingRouteArgs) return false;
-    return key == other.key &&
-        const MapEquality<String, Map<dynamic, dynamic>>().equals(
-          initialVoices,
-          other.initialVoices,
-        ) &&
-        initialPitchRate == other.initialPitchRate &&
-        initialSpeedRate == other.initialSpeedRate;
+    return key == other.key && initialState == other.initialState;
   }
 
   @override
-  int get hashCode =>
-      key.hashCode ^
-      const MapEquality<String, Map<dynamic, dynamic>>().hash(initialVoices) ^
-      initialPitchRate.hashCode ^
-      initialSpeedRate.hashCode;
+  int get hashCode => key.hashCode ^ initialState.hashCode;
 }
 
 /// generated route for

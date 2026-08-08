@@ -8,6 +8,7 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../data/models/theme_preferences.dart';
+import '../../../data/services/chord_service.dart';
 import '../../../di/injection.dart';
 import '../../../domain/domain.dart';
 import '../../../router/router.dart';
@@ -405,12 +406,21 @@ class _VerseSettingsSectionState extends State<_VerseSettingsSection> {
                     onTap: () {
                       router.push(
                         BibleAudioSettingRoute(
-                          onSave: (voices, pitch, speed) {
-                            cubit.applyTtsSetting(voices, pitch, speed);
+                          initialState: cubit.state,
+                          onSave: (state) {
+                            cubit.applyTtsSetting(
+                              state.voices,
+                              state.pitchRate,
+                              state.speedRate,
+                            );
+                            cubit.setTtsEngine(state.ttsEngine);
+                            cubit.setAutoNextChapter(state.autoNextChapter);
+                            cubit.setEdgeVoice(state.edgeVoice);
+                            cubit.setEdgeRate(state.edgeRate);
+                            cubit.setEdgePitch(state.edgePitch);
+                            cubit.setEdgeVolume(state.edgeVolume);
+                            cubit.initTts();
                           },
-                          initialPitchRate: cubit.state.pitchRate,
-                          initialSpeedRate: cubit.state.speedRate,
-                          initialVoices: cubit.state.voices,
                         ),
                       );
                     },
@@ -514,6 +524,15 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                     title: 'reset_chords'.tr(),
                     description: 'reset_chords_desc'.tr(),
                     onTap: () => _resetChords(context),
+                  ),
+                  const _SettingsDivider(),
+                  _SettingsSwitchTile(
+                    icon: Icons.music_off_outlined,
+                    title: 'accidental_mode'.tr(),
+                    description: 'accidental_mode_desc'.tr(),
+                    value: state.chordAccidentalMode ==
+                        ChordService.accidentalFlat,
+                    onChanged: (_) => songCubit.toggleAccidentalMode(),
                   ),
                   const _SettingsDivider(),
                   _SettingsSwitchTile(

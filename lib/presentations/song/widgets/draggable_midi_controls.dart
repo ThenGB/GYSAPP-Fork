@@ -8,6 +8,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import '../../../data/services/chord_service.dart';
 import '../../../data/services/midi_engine_service.dart';
 import '../cubit/song_playlist.dart';
 
@@ -244,6 +245,11 @@ class DraggableMidiControls extends StatefulWidget {
   final bool chordToggleEnabled;
   final VoidCallback? onToggleChord;
 
+  /// Accidental mode (sharp ♯ / flat ♭) for transposed chord display —
+  /// mirror of gyschordweb's transpose accidental switch.
+  final String chordAccidentalMode;
+  final VoidCallback? onToggleAccidental;
+
   /// Whether to wrap the panel in a [Positioned] widget.  Set to `false` when
   /// the caller already handles positioning (e.g. the Dashboard).
   final bool usePositioned;
@@ -280,6 +286,8 @@ class DraggableMidiControls extends StatefulWidget {
     this.showChord = false,
     this.chordToggleEnabled = true,
     this.onToggleChord,
+    this.chordAccidentalMode = ChordService.accidentalSharp,
+    this.onToggleAccidental,
     this.usePositioned = true,
     this.leftMargin = kMidiOverlayHorizontalMargin,
     this.rightMargin = kMidiOverlayHorizontalMargin,
@@ -1435,6 +1443,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     ColorScheme colors,
     double boxHeight,
   ) {
+    final isFlat = widget.chordAccidentalMode == ChordService.accidentalFlat;
     return _Pill(
       height: boxHeight,
       colors: colors,
@@ -1462,6 +1471,26 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         _AnimatedIconButton(
           onPressed: () => _adjustTranspose(widget.transposeStep + 1),
           icon: Icons.add_rounded,
+        ),
+        // ♯ / ♭ accidental toggle (mirrors gyschordweb's
+        // transpose-accidental switch).
+        GestureDetector(
+          key: const ValueKey('midi-accidental-toggle'),
+          onTap: widget.onToggleAccidental,
+          child: Container(
+            width: 20,
+            alignment: Alignment.center,
+            child: Text(
+              isFlat ? '♭' : '♯',
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+                color: isFlat
+                    ? colors.onPrimaryContainer
+                    : colors.onSurfaceVariant,
+              ),
+            ),
+          ),
         ),
       ],
     );

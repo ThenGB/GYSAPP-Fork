@@ -123,6 +123,15 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
   sortNotesBy: json['sortNotesBy'] as String? ?? 'Newest',
   enableAudio: json['enableAudio'] as bool? ?? false,
   isSpeaking: json['isSpeaking'] as bool? ?? false,
+  isTtsPaused: json['isTtsPaused'] as bool? ?? false,
+  ttsEngine: json['ttsEngine'] as String? ?? 'edge',
+  edgeVoice: json['edgeVoice'] as String? ?? 'id-ID-ArdiNeural',
+  edgeRate: json['edgeRate'] as String? ?? '+0%',
+  edgePitch: json['edgePitch'] as String? ?? '+0Hz',
+  edgeVolume: json['edgeVolume'] as String? ?? '+0%',
+  autoNextChapter: json['autoNextChapter'] as bool? ?? true,
+  ttsCurrentVerseIndex: (json['ttsCurrentVerseIndex'] as num?)?.toInt() ?? 0,
+  isSpeakingSelectedOnly: json['isSpeakingSelectedOnly'] as bool? ?? false,
   isSplitContentLoading: json['isSplitContentLoading'] as bool? ?? false,
   currentWord: json['currentWord'] as String? ?? '',
   currentStartWord: (json['currentStartWord'] as num?)?.toInt() ?? 0,
@@ -141,7 +150,7 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
   pitchRate: (json['pitchRate'] as num?)?.toDouble() ?? .90,
 );
 
-Map<String, dynamic> _$BibleStateToJson(_BibleState instance) =>
+Map<String, dynamic> _$BibleStateToJson(BibleState instance) =>
     <String, dynamic>{
       'currentBibleCode': instance.currentBibleCode,
       'splitBibleCode': instance.splitBibleCode,
@@ -178,6 +187,15 @@ Map<String, dynamic> _$BibleStateToJson(_BibleState instance) =>
       'sortNotesBy': instance.sortNotesBy,
       'enableAudio': instance.enableAudio,
       'isSpeaking': instance.isSpeaking,
+      'isTtsPaused': instance.isTtsPaused,
+      'ttsEngine': instance.ttsEngine,
+      'edgeVoice': instance.edgeVoice,
+      'edgeRate': instance.edgeRate,
+      'edgePitch': instance.edgePitch,
+      'edgeVolume': instance.edgeVolume,
+      'autoNextChapter': instance.autoNextChapter,
+      'ttsCurrentVerseIndex': instance.ttsCurrentVerseIndex,
+      'isSpeakingSelectedOnly': instance.isSpeakingSelectedOnly,
       'isSplitContentLoading': instance.isSplitContentLoading,
       'currentWord': instance.currentWord,
       'currentStartWord': instance.currentStartWord,

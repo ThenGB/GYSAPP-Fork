@@ -445,6 +445,10 @@ class _DashboardViewState extends State<DashboardView>
                             showChord: midiState.showChord,
                             chordToggleEnabled: midiState.bookCode != 'HYMNE',
                             onToggleChord: songCubit.toggleChord,
+                            chordAccidentalMode:
+                                midiState.chordAccidentalMode,
+                            onToggleAccidental:
+                                songCubit.toggleAccidentalMode,
                           );
                         },
                       ),

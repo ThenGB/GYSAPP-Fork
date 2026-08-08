@@ -12,12 +12,13 @@ import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../../components/widgets/swipe_detector_widget.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/toast_utils.dart';
 import '../../../domain/entity/bible_book/bible_book.dart';
 import '../../../domain/entity/verse/verse.dart';
-import '../../../data/utilities/toast_utils.dart';
 import '../../../router/router.dart';
 import '../../dashboard/cubit/dashboard_cubit.dart';
 import '../../dashboard/view/dashboard_view.dart';
+import '../widgets/bible_playback_sheet.dart';
 import '../../initial/bloc/initial_cubit.dart';
 import '../bible.dart';
 
@@ -427,6 +428,19 @@ class _BibleViewState extends State<BibleView> {
           context.read<BibleCubit>().saveToHistory(verse);
           scrollToVerse(verse.verseId - 1, true, forSecondView);
         },
+      ),
+    );
+  }
+
+  Future<void> _openPlaybackSheet(BuildContext sheetContext) async {
+    await showModalBottomSheet<void>(
+      context: sheetContext,
+      isScrollControlled: true,
+      showDragHandle: true,
+      backgroundColor: Theme.of(sheetContext).colorScheme.surface,
+      builder: (_) => BlocProvider<BibleCubit>.value(
+        value: context.read<BibleCubit>(),
+        child: const BiblePlaybackSheet(),
       ),
     );
   }
@@ -915,6 +929,9 @@ class _BibleViewState extends State<BibleView> {
                             } else if (value == 'histories') {
                               _openHistoriesDialog();
                               return;
+                            } else if (value == 'play') {
+                              _openPlaybackSheet(context);
+                              return;
                             } else if (value == 'notes') {
                               router.push(
                                 BibleNoteListRoute(cubit: context.read()),
@@ -1021,6 +1038,7 @@ class _BibleViewState extends State<BibleView> {
                               padding: EdgeInsets.zero,
                               child: _BibleMenuGrid(
                                 isAudioOn: state.enableAudio,
+                                isSpeaking: state.isSpeaking,
                                 onAction: (value) =>
                                     Navigator.of(context).pop(value),
                               ),
@@ -2004,10 +2022,12 @@ class _BibleFontSettingsSheetState extends State<_BibleFontSettingsSheet> {
 /// controls stay short instead of a long vertical item list.
 class _BibleMenuGrid extends StatelessWidget {
   final bool isAudioOn;
+  final bool isSpeaking;
   final ValueChanged<String> onAction;
 
   const _BibleMenuGrid({
     required this.isAudioOn,
+    required this.isSpeaking,
     required this.onAction,
   });
 
@@ -2024,10 +2044,15 @@ class _BibleMenuGrid extends StatelessWidget {
       (Icons.bookmarks_outlined, 'See all bookmarks', false),
       (Icons.search_rounded, 'Search', false),
       (
-        isAudioOn ? Icons.volume_up_rounded : Icons.volume_off_rounded,
+        isSpeaking
+            ? Icons.stop_circle_outlined
+            : (isAudioOn
+                  ? Icons.volume_up_rounded
+                  : Icons.volume_off_rounded),
         'Audio',
-        isAudioOn,
+        isSpeaking,
       ),
+      (Icons.play_circle_outline_rounded, 'Play', false),
     ];
     return Container(
       width: 5 * 76,
@@ -2090,6 +2115,8 @@ class _BibleMenuGrid extends StatelessWidget {
         return 'bookmarks';
       case 'Search':
         return 'search';
+      case 'Play':
+        return 'play';
       default:
         return 'audio';
     }
