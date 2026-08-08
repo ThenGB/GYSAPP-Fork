@@ -93,6 +93,7 @@ _SongState _$SongStateFromJson(Map<String, dynamic> json) => _SongState(
   chordFillOpacityPercent:
       (json['chordFillOpacityPercent'] as num?)?.toInt() ?? 94,
   chordPaddingPercent: (json['chordPaddingPercent'] as num?)?.toInt() ?? 100,
+  chordOffsetPercent: (json['chordOffsetPercent'] as num?)?.toInt() ?? 100,
   currentChords:
       (json['currentChords'] as Map<String, dynamic>?)?.map(
         (k, e) => MapEntry(
@@ -159,6 +160,7 @@ Map<String, dynamic> _$SongStateToJson(
   'chordFontSizePercent': instance.chordFontSizePercent,
   'chordFillOpacityPercent': instance.chordFillOpacityPercent,
   'chordPaddingPercent': instance.chordPaddingPercent,
+  'chordOffsetPercent': instance.chordOffsetPercent,
   'currentChords': instance.currentChords.map(
     (k, e) => MapEntry(k.toString(), e),
   ),

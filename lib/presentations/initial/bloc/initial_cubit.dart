@@ -1,4 +1,3 @@
-
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -6,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../app.dart';
+import '../../../components/themes/app_accent.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/app_config_store.dart';
 import '../../../data/services/local_asset_service.dart';
@@ -27,13 +27,15 @@ class InitialCubit extends HydratedCubit<InitialState> {
 
     // Emit loaded immediately so the app navigates to Dashboard without blocking.
     // All heavy work (internet check, PDF prep, config) happens in the background.
-    emit(state.copyWith(
-      isFailed: false,
-      isFreshInstall: false,
-      isLoading: false,
-      isLoaded: true,
-      message: 'Ready',
-    ));
+    emit(
+      state.copyWith(
+        isFailed: false,
+        isFreshInstall: false,
+        isLoading: false,
+        isLoaded: true,
+        message: 'Ready',
+      ),
+    );
 
     // Background initialization — does not block the UI
     _backgroundInit();
@@ -60,23 +62,38 @@ class InitialCubit extends HydratedCubit<InitialState> {
       try {
         final assetService = di<LocalAssetService>();
         if (await assetService.needsPdfPreparation('KR', '001')) {
-          emit(state.copyWith(
-            isLoading: false,
-            message: startupKrPreparationMessage,
-          ));
+          emit(
+            state.copyWith(
+              isLoading: false,
+              message: startupKrPreparationMessage,
+            ),
+          );
           await assetService.getPdfPath('KR', '001');
         }
       } catch (e, st) {
-        log('Startup KR preparation failed', name: 'InitialCubit', error: e, stackTrace: st);
+        log(
+          'Startup KR preparation failed',
+          name: 'InitialCubit',
+          error: e,
+          stackTrace: st,
+        );
       }
 
       // Config fetch policy
       try {
-        final configFetchPolicy = await AppConfigStore.jsonConfig('config_fetch_policy');
-        emit(state.copyWith(
-          configFetchTimeoutSeconds: configFetchPolicy['fetch_timeout'] ?? state.configFetchTimeoutSeconds,
-          configFetchIntervalSeconds: configFetchPolicy['fetch_interval'] ?? state.configFetchIntervalSeconds,
-        ));
+        final configFetchPolicy = await AppConfigStore.jsonConfig(
+          'config_fetch_policy',
+        );
+        emit(
+          state.copyWith(
+            configFetchTimeoutSeconds:
+                configFetchPolicy['fetch_timeout'] ??
+                state.configFetchTimeoutSeconds,
+            configFetchIntervalSeconds:
+                configFetchPolicy['fetch_interval'] ??
+                state.configFetchIntervalSeconds,
+          ),
+        );
       } catch (e) {
         log('Failed to load config fetch policy: $e');
       }
@@ -84,7 +101,12 @@ class InitialCubit extends HydratedCubit<InitialState> {
       // Theme preferences
       await _loadThemePreferences();
     } catch (e, st) {
-      log('Background init failed', name: 'InitialCubit', error: e, stackTrace: st);
+      log(
+        'Background init failed',
+        name: 'InitialCubit',
+        error: e,
+        stackTrace: st,
+      );
     }
   }
 
@@ -94,12 +116,16 @@ class InitialCubit extends HydratedCubit<InitialState> {
       await themeRepo.init();
       final prefs = themeRepo.preferences;
       final savedThemeMode = themeRepo.themeMode;
-      log('[InitialCubit] _loadThemePreferences: accentKey=${prefs.accentKey}, themeMode=$savedThemeMode');
-      emit(state.copyWith(
-        themePreferences: prefs,
-        accentKey: prefs.accentKey,
-        themeMode: savedThemeMode,
-      ));
+      log(
+        '[InitialCubit] _loadThemePreferences: accentKey=${prefs.accentKey}, themeMode=$savedThemeMode',
+      );
+      emit(
+        state.copyWith(
+          themePreferences: prefs,
+          accentKey: prefs.accentKey,
+          themeMode: savedThemeMode,
+        ),
+      );
     } catch (e) {
       log('Failed to load theme preferences', name: 'InitialCubit', error: e);
       // Fallback to defaults if loading fails
@@ -137,6 +163,20 @@ class InitialCubit extends HydratedCubit<InitialState> {
     _persistAccentKey(accentKey);
   }
 
+  void changeCustomAccentColor(Color color) {
+    final updatedPrefs = state.themePreferences.copyWith(
+      accentKey: customAccentKey,
+      customAccentSeed: color.toARGB32(),
+    );
+    emit(
+      state.copyWith(
+        accentKey: customAccentKey,
+        themePreferences: updatedPrefs,
+      ),
+    );
+    _saveThemePreferences();
+  }
+
   void changeDensity(DisplayDensity density) {
     final updatedPrefs = state.themePreferences.copyWith(density: density);
     emit(state.copyWith(themePreferences: updatedPrefs));
@@ -150,7 +190,9 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   void changeTypographyScale(TypographyScale scale) {
-    final updatedPrefs = state.themePreferences.copyWith(typographyScale: scale);
+    final updatedPrefs = state.themePreferences.copyWith(
+      typographyScale: scale,
+    );
     emit(state.copyWith(themePreferences: updatedPrefs));
     _saveThemePreferences();
   }

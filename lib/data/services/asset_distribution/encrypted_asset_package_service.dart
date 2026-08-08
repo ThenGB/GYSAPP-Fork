@@ -7,6 +7,9 @@ import 'package:encrypt/encrypt.dart';
 
 class EncryptedAssetPackageService {
   static const _headerMagic = 'GYSPKG1';
+  // NOTE: this key is obfuscation-only (static, shipped in the client) and
+  // MUST NOT be relied on for confidentiality — the real tamper protection
+  // is the mandatory SHA-256 checksum verified before install plus HTTPS.
   static final Key _key = Key.fromBase64(
     'yrvxIa8zgtn6cxTLH/+BsLjx5SrgGRQN7IVhK0ufB1Y=',
   );
@@ -16,7 +19,20 @@ class EncryptedAssetPackageService {
     required File destinationFile,
   }) async {
     final bytes = await packageFile.readAsBytes();
+    final payload = await decodePackageOrCopy(bytes);
+    await destinationFile.parent.create(recursive: true);
+    await destinationFile.writeAsBytes(payload, flush: true);
+  }
 
+  /// Decodes a downloaded package (raw bytes) into installable asset bytes.
+  ///
+  /// Handles both the encrypted GYSPKG1 format and plain payloads. This is
+  /// the web-compatible entry point — it never touches the file system.
+  Future<Uint8List> installPackageBytes(Uint8List bytes) async {
+    return decodePackageOrCopy(bytes);
+  }
+
+  Future<Uint8List> decodePackageOrCopy(Uint8List bytes) async {
     Uint8List payload;
     if (bytes.length >= _headerMagic.length &&
         String.fromCharCodes(
@@ -30,9 +46,7 @@ class EncryptedAssetPackageService {
       // directly from a GitHub release).  Just copy the bytes.
       payload = bytes;
     }
-
-    await destinationFile.parent.create(recursive: true);
-    await destinationFile.writeAsBytes(payload, flush: true);
+    return payload;
   }
 
   Uint8List buildPackageBytesForTesting(Uint8List payload) {

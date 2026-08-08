@@ -46,6 +46,7 @@
   "Make sure your spellings is correct": "Pastikan ejaanmu benar",
   "Correct your spellings or search another terms": "Perbaiki ejaanmu atau cari kata lain",
   "not found": "{} tidak ditemukan",
+  "no_songs_found": "Tidak ada lagu yang cocok dengan pencarian",
   "Search verses": "Cari ayat",
   "Good morning": "Selamat pagi",
   "Good afternoon": "Selamat siang",
@@ -118,6 +119,9 @@
   "offline_library": "Offline Library",
   "offline_library_desc": "Kelola Alkitab dan hymnal terenkripsi, cek rilis terbaru GitHub, hapus aset terinstal, dan bersihkan cache cepat dari satu halaman khusus.",
   "font_setting_title": "Pengaturan Font",
+  "font_setting_font": "Font",
+  "font_setting_text_size": "Ukuran teks",
+  "font_setting_line_spacing": "Jarak antar baris",
   "bible_filters_title": "Filter Alkitab",
   "bible_search_title": "Cari Alkitab",
   "faith_section_title": "Dasar Kepercayaan",
@@ -301,5 +305,12 @@
   "reset_chords_desc": "Hapus semua chord yang diunduh lalu unduh ulang dari gyschordweb.",
   "reset_chords_confirm": "Hapus semua chord yang diunduh dan unduh ulang dari gyschordweb?",
   "chords_synced": "Chord diperbarui dari gyschordweb",
-  "chords_sync_failed": "Gagal menyinkronkan chord"
+  "chords_sync_failed": "Gagal menyinkronkan chord",
+  "chord_settings_title": "Pengaturan chord",
+  "chord_settings_size": "Ukuran chord",
+  "chord_settings_offset": "Jarak dari not angka",
+  "chord_settings_padding": "Padding badge",
+  "chord_settings_close": "Dekat",
+  "chord_settings_far": "Jauh",
+  "accent_custom": "Warna Custom"
 }

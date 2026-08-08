@@ -1373,6 +1373,22 @@ class SongRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [SoundFontView]
+class SoundFontRoute extends PageRouteInfo<void> {
+  const SoundFontRoute({List<PageRouteInfo>? children})
+    : super(SoundFontRoute.name, initialChildren: children);
+
+  static const String name = 'SoundFontRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const SoundFontView();
+    },
+  );
+}
+
+/// generated route for
 /// [WebpageView]
 class WebpageRoute extends PageRouteInfo<WebpageRouteArgs> {
   WebpageRoute({

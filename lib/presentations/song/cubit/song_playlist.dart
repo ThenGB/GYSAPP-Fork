@@ -1,3 +1,5 @@
+import 'package:collection/collection.dart';
+
 import '../../../domain/entity/song/song_entity.dart';
 
 class SongPlaylistAutoNextMode {
@@ -299,12 +301,5 @@ class SongPlaybackQueue {
 
   static bool _sameSong(Song a, Song b) {
     return a.code == b.code && a.number == b.number;
-  }
-}
-
-extension _FirstOrNull<T> on Iterable<T> {
-  T? get firstOrNull {
-    final iterator = this.iterator;
-    return iterator.moveNext() ? iterator.current : null;
   }
 }

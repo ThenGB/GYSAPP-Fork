@@ -1,15 +1,14 @@
 import 'dart:developer';
-import 'dart:io';
+import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+import 'package:sqflite_common/sqflite.dart' show Database;
 
+import '../../../data/services/installed_bible_db.dart';
 import '../../../data/services/local_bible_asset_service.dart';
 import '../../../data/utilities/string_utils.dart';
 import '../../../data/utilities/platform_utils.dart';
@@ -47,6 +46,26 @@ class BibleCubit extends HydratedCubit<BibleState> {
   Database? splitBibleDb;
   bool get _usesAssetBible =>
       bibleAssetService.isBundledCode(state.currentBibleCode);
+
+  /// Pure decision helper for the main-version switch: should the split pane
+  /// follow the new main version?
+  ///
+  /// True when the split was mirroring the main — either sharing the same
+  /// database handle, or both using the same bundled (non-DB) code. False
+  /// when the split holds an independently selected version, so switching
+  /// the main pane leaves the split untouched.
+  static bool splitShouldFollowMain({
+    required Database? splitBibleDb,
+    required Database? previousBibleDb,
+    required String splitBibleCode,
+    required String currentBibleCode,
+  }) {
+    // Note: the null-guard matters — when both handles are null (bundled
+    // versions), sharing is decided by code equality, and an independent
+    // bundled split (B != A) must NOT be re-pointed.
+    return (splitBibleDb != null && splitBibleDb == previousBibleDb) ||
+        (splitBibleDb == null && splitBibleCode == currentBibleCode);
+  }
   bool get _usesSplitAssetBible =>
       bibleAssetService.isBundledCode(state.splitBibleCode);
 
@@ -57,38 +76,27 @@ class BibleCubit extends HydratedCubit<BibleState> {
       return;
     }
 
-    final dbPath = join(
-      di<AppDirectory>().bibleFolder,
-      '${state.currentBibleCode}.db',
-    );
-    final dbFile = File(dbPath);
-
-    // Ensure Bible DB is copied from assets if not exists
-    if (!dbFile.existsSync()) {
-      try {
-        dbFile.parent.createSync(recursive: true);
-        final assetPath = 'assets/data/${state.currentBibleCode}.db';
-        final data = await rootBundle.load(assetPath);
-        await dbFile.writeAsBytes(
-          data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes),
-        );
-        log(
-          'Copied Bible DB from assets: $assetPath -> $dbPath',
-          name: 'BibleCubit',
-        );
-      } catch (e) {
-        log('Failed to copy Bible DB: $e', name: 'BibleCubit');
-        return;
-      }
-    }
-
+    Database? bibleDbOpened;
     try {
-      bibleDb = await openDatabase(dbPath, readOnly: true);
-      splitBibleDb = bibleDb;
-      getContent(state.currentBible);
+      bibleDbOpened = await InstalledBibleDb.open(
+        state.currentBibleCode,
+        readOnly: true,
+      );
     } catch (e) {
-      log('Failed to open Bible DB: $e', name: 'BibleCubit');
+      log('Failed to open Bible DB for ${state.currentBibleCode}: $e',
+          name: 'BibleCubit');
+      return;
     }
+    if (bibleDbOpened == null) {
+      log(
+        'Failed to open Bible DB for ${state.currentBibleCode}',
+        name: 'BibleCubit',
+      );
+      return;
+    }
+    bibleDb = bibleDbOpened;
+    splitBibleDb = bibleDb;
+    getContent(state.currentBible);
   }
 
   void updateFilterBook(List<BibleBook> values) {
@@ -544,15 +552,8 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }
 
   Future<void> getBibles() async {
-    var folder = Directory(di<AppDirectory>().bibleFolder);
-    if (!folder.existsSync()) {
-      folder.createSync(recursive: true);
-    }
-    var files = folder.listSync();
     final bibles = <String>{
-      for (final file in files)
-        if (file is File && basename(file.path).toLowerCase().endsWith('.db'))
-          basenameWithoutExtension(file.path),
+      ...await InstalledBibleDb.listInstalledCodes(),
       for (final code in await bibleAssetService.getBundledBibleCodes())
         code.split('.').first,
     }.toList()..sort();
@@ -606,35 +607,85 @@ class BibleCubit extends HydratedCubit<BibleState> {
   }) async {
     /// close current bible
     if (secondary) {
+      // Open the new split handle first, then close the old one — a failed
+      // switch keeps the current split pane loaded instead of emptying it.
+      final previousSplitDb = splitBibleDb;
+      Database? nextSplitDb;
+      var splitOpened = false;
       try {
-        splitBibleDb = bibleAssetService.isBundledCode(bibleCode)
-            ? null
-            : await openDatabase(
-                join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-              );
-      } on MissingPluginException catch (e) {
-        log('sqflite not available on this platform: $e', name: 'BibleCubit');
-        splitBibleDb = null;
+        if (bibleAssetService.isBundledCode(bibleCode)) {
+          nextSplitDb = null;
+          splitOpened = true;
+        } else {
+          nextSplitDb = await InstalledBibleDb.open(bibleCode);
+          splitOpened = nextSplitDb != null;
+        }
       } catch (e) {
         log('Failed to open split Bible DB: $e', name: 'BibleCubit');
-        splitBibleDb = null;
+        nextSplitDb = null;
+        splitOpened = false;
+      }
+      if (!splitOpened) {
+        splitBibleDb = previousSplitDb;
+        return;
+      }
+      splitBibleDb = nextSplitDb;
+      // If the split pane was sharing the main handle, detach before
+      // closing it is not needed here (the main handle stays open), but
+      // close the old split handle if it was a distinct database.
+      if (previousSplitDb != null && previousSplitDb != bibleDb) {
+        await previousSplitDb.close();
       }
       emit(state.copyWith(splitBibleCode: bibleCode));
     } else {
+      // Open the new handle first, then close the old one — a failed switch
+      // keeps the current Bible loaded instead of leaving an empty pane or
+      // claiming a version whose DB could not be opened.
+      final previousBibleDb = bibleDb;
+      Database? nextBibleDb;
+      var opened = false;
       try {
-        bibleDb = bibleAssetService.isBundledCode(bibleCode)
-            ? null
-            : await openDatabase(
-                join(di<AppDirectory>().bibleFolder, '$bibleCode.db'),
-              );
-      } on MissingPluginException catch (e) {
-        log('sqflite not available on this platform: $e', name: 'BibleCubit');
-        bibleDb = null;
+        if (bibleAssetService.isBundledCode(bibleCode)) {
+          nextBibleDb = null;
+          opened = true;
+        } else {
+          nextBibleDb = await InstalledBibleDb.open(bibleCode);
+          opened = nextBibleDb != null;
+        }
       } catch (e) {
         log('Failed to open Bible DB: $e', name: 'BibleCubit');
-        bibleDb = null;
+        nextBibleDb = null;
+        opened = false;
       }
-      emit(state.copyWith(currentBibleCode: bibleCode));
+      if (!opened) {
+        // Keep the previous handle (and code) so the pane stays usable.
+        bibleDb = previousBibleDb;
+        getContent(state.currentBible);
+        return;
+      }
+      // If the split pane was mirroring the main pane (shared handle, or the
+      // same bundled code with no DB), re-point it to the new main handle so
+      // it follows the main instead of blanking under a stale label. An
+      // independently selected split version stays untouched.
+      final splitFollowsMain = splitShouldFollowMain(
+        splitBibleDb: splitBibleDb,
+        previousBibleDb: previousBibleDb,
+        splitBibleCode: state.splitBibleCode,
+        currentBibleCode: state.currentBibleCode,
+      );
+      final nextSplitBibleDb = splitFollowsMain ? nextBibleDb : splitBibleDb;
+      final nextSplitCode = splitFollowsMain ? bibleCode : state.splitBibleCode;
+
+      bibleDb = nextBibleDb;
+      splitBibleDb = nextSplitBibleDb;
+      // Close the old main handle only if the split no longer uses it.
+      if (previousBibleDb != null && previousBibleDb != nextSplitBibleDb) {
+        await previousBibleDb.close();
+      }
+      emit(state.copyWith(
+        currentBibleCode: bibleCode,
+        splitBibleCode: nextSplitCode,
+      ));
       initTts();
     }
 

@@ -46,6 +46,7 @@
   "Make sure your spellings is correct": "Make sure your spelling is correct",
   "Correct your spellings or search another terms": "Correct your spelling or search for other terms",
   "not found": "{} not found",
+  "no_songs_found": "No songs match your search",
   "Search verses": "Search verses",
   "Good morning": "Good morning",
   "Good afternoon": "Good afternoon",
@@ -119,6 +120,9 @@
   "offline_library": "Offline Library",
   "offline_library_desc": "Manage encrypted Bible and hymnal assets, check the latest GitHub releases, remove installed assets, and clear fast caches from one dedicated page.",
   "font_setting_title": "Font Settings",
+  "font_setting_font": "Font",
+  "font_setting_text_size": "Text size",
+  "font_setting_line_spacing": "Line spacing",
   "bible_filters_title": "Bible Filters",
   "bible_search_title": "Bible Search",
   "faith_section_title": "Beliefs",
@@ -301,5 +305,12 @@
   "reset_chords_desc": "Delete all downloaded chords then re-download from gyschordweb.",
   "reset_chords_confirm": "Delete all downloaded chords and re-download from gyschordweb?",
   "chords_synced": "Chords updated from gyschordweb",
-  "chords_sync_failed": "Failed to sync chords"
+  "chords_sync_failed": "Failed to sync chords",
+  "chord_settings_title": "Chord settings",
+  "chord_settings_size": "Chord size",
+  "chord_settings_offset": "Distance from the note number",
+  "chord_settings_padding": "Badge padding",
+  "chord_settings_close": "Close",
+  "chord_settings_far": "Far",
+  "accent_custom": "Custom Color"
 }

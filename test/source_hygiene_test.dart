@@ -188,9 +188,11 @@ void main() {
     expect(settingsView, contains("'delete_app_cache'.tr()"));
     expect(settingsView, contains("'full_app_reset'.tr()"));
     expect(settingsView, contains('clearFastAccessCache()'));
-    // Bible versions page drives downloads/updates through the asset tile.
+    // Bible versions page drives downloads/updates through the asset tile
+    // and is management-only: the active version is chosen inside the Bible
+    // view header, so no tap-to-select lives here.
     expect(bibleVersionView, contains('DistributedAssetTile'));
-    expect(bibleVersionView, contains('selectBibleCodeByName(code)'));
+    expect(bibleVersionView, isNot(contains('selectBibleCodeByName(code)')));
     // Hymnal management page lists hymnal assets.
     expect(hymnalView, contains('DistributedAssetTile'));
   });

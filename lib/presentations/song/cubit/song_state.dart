@@ -71,6 +71,7 @@ abstract class SongState with _$SongState {
     @Default(100) int chordFontSizePercent,
     @Default(94) int chordFillOpacityPercent,
     @Default(100) int chordPaddingPercent,
+    @Default(100) int chordOffsetPercent,
     @Default({}) Map<int, List<ChordData>> currentChords,
   }) = _SongState;
 

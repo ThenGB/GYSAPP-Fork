@@ -10,6 +10,7 @@ _ThemePreferences _$ThemePreferencesFromJson(
   Map<String, dynamic> json,
 ) => _ThemePreferences(
   accentKey: json['accentKey'] as String? ?? 'skyBlue',
+  customAccentSeed: (json['customAccentSeed'] as num?)?.toInt() ?? 0,
   surfaceTone:
       $enumDecodeNullable(_$SurfaceToneEnumMap, json['surfaceTone']) ??
       SurfaceTone.light,
@@ -28,6 +29,7 @@ _ThemePreferences _$ThemePreferencesFromJson(
 Map<String, dynamic> _$ThemePreferencesToJson(_ThemePreferences instance) =>
     <String, dynamic>{
       'accentKey': instance.accentKey,
+      'customAccentSeed': instance.customAccentSeed,
       'surfaceTone': _$SurfaceToneEnumMap[instance.surfaceTone]!,
       'cornerRadius': _$CornerRadiusStyleEnumMap[instance.cornerRadius]!,
       'density': _$DisplayDensityEnumMap[instance.density]!,

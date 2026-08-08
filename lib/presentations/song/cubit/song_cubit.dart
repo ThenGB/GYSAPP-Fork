@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'dart:math' as math;
 
+import 'package:collection/collection.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
@@ -1410,6 +1411,13 @@ class SongCubit extends HydratedCubit<SongState> {
 
   void changeChordPaddingPercent(int value) {
     emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400)));
+  }
+
+  /// Vertical distance of the chord badge above its note, as a percentage of
+  /// the base offset. 100 = the default offset; lower values pull the chord
+  /// closer to the note number, higher values push it further away.
+  void changeChordOffsetPercent(int value) {
+    emit(state.copyWith(chordOffsetPercent: value.clamp(0, 300)));
   }
 
   // ─── Mode ─────────────────────────────────────────────────────

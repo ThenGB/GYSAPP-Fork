@@ -15,24 +15,6 @@ import '../../presentations.dart';
 
 const double _settingsMaxContentWidth = 1080;
 
-List<String> settingsSoundFontMenuValues({
-  required List<String>? availableSoundFonts,
-  required String selectedSoundFont,
-}) {
-  final values = <String>[];
-  void addValue(String value) {
-    if (value.isNotEmpty && !values.contains(value)) {
-      values.add(value);
-    }
-  }
-
-  addValue(selectedSoundFont);
-  for (final soundFont in availableSoundFonts ?? const ['TimGM6mb.sf2']) {
-    addValue(soundFont);
-  }
-  return values;
-}
-
 @RoutePage()
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -325,21 +307,14 @@ class _VerseSettingsSectionState extends State<_VerseSettingsSection> {
                     icon: Icons.menu_book_outlined,
                     title: 'Version'.tr(),
                     description: 'bible_version_desc'.tr(),
+                    // Management entry only — the active version is chosen
+                    // inside the Bible view itself (header selector), so no
+                    // active-version chip is shown here.
                     onTap: () {
                       router.push(
                         BibleVersionRoute(dashboardCubit: context.read()),
                       );
                     },
-                    trailing: Text(
-                      state.currentBibleCode
-                          .split('_')
-                          .last
-                          .toUpperCase(),
-                      style: TextStyle(
-                        color: context.colorScheme.onSurfaceVariant,
-                        fontSize: 13,
-                      ),
-                    ),
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
@@ -386,10 +361,7 @@ class _VerseSettingsSectionState extends State<_VerseSettingsSection> {
                             tooltip: 'clear_reading'.tr(),
                             visualDensity: VisualDensity.compact,
                             onPressed: () => cubit.setTodayReading(null),
-                            icon: const Icon(
-                              Icons.close_rounded,
-                              size: 18,
-                            ),
+                            icon: const Icon(Icons.close_rounded, size: 18),
                           ),
                       ],
                     ),
@@ -461,191 +433,6 @@ class _SongSettingsSection extends StatefulWidget {
 }
 
 class _SongSettingsSectionState extends State<_SongSettingsSection> {
-  Future<List<String>>? _soundFontsFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _soundFontsFuture = context.read<SongCubit>().midiEngine
-        .getAvailableSoundFonts();
-  }
-
-  bool _canDeleteFont(AssetManagementState assetState, String sfFile) {
-    final code = sfFile.replaceAll('.sf2', '');
-    for (final status in assetState.statuses) {
-      if (status.definition.kind == DistributedAssetKind.soundfont &&
-          status.definition.code == code &&
-          status.canDelete) {
-        return true;
-      }
-    }
-    return false;
-  }
-
-  Future<bool> _confirmDeleteSoundFont(
-    BuildContext context,
-    String title,
-  ) async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text('delete'.tr()),
-        content: Text('confirm_delete_asset'.tr(namedArgs: {'name': title})),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text('No'.tr()),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text('Yes'.tr()),
-          ),
-        ],
-      ),
-    );
-    return result ?? false;
-  }
-
-  Future<void> _showSoundFontMenu(
-    BuildContext context, {
-    required String currentFont,
-    required List<({String code, String title})> remoteFonts,
-    required AssetManagementState assetState,
-    required Future<void> Function() onDownloaded,
-  }) async {
-    final songCubit = context.read<SongCubit>();
-    // Resolve the anchor synchronously (no async gap) so the context
-    // use below is safe.
-    final box = context.findRenderObject() as RenderBox;
-    final overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-    // Fetch the current font list fresh so a just-downloaded font
-    // appears as selectable immediately (the FutureBuilder snapshot
-    // may be stale).
-    final soundfonts = await songCubit.midiEngine.getAvailableSoundFonts();
-    if (!context.mounted) return;
-    // If the manifest state is empty (offline/first run) fall back to the
-    // bundled definitions — excluding anything already installed.
-    final remoteList = <({String code, String title})>[
-      ...remoteFonts,
-    ];
-    if (remoteList.isEmpty) {
-      final installedCodes = <String>{
-        ...soundfonts.map((f) => f.replaceAll('.sf2', '')),
-        ...assetState.statuses
-            .where(
-              (s) =>
-                  s.definition.kind == DistributedAssetKind.soundfont &&
-                  s.isInstalled,
-            )
-            .map((s) => s.definition.code),
-      };
-      remoteList.addAll(
-        supportedDistributedAssets
-            .where(
-              (d) =>
-                  d.kind == DistributedAssetKind.soundfont &&
-                  !installedCodes.contains(d.code),
-            )
-            .map(
-              (d) => (code: d.code, title: d.title),
-            ),
-      );
-    }
-    final action = await showMenu<String>(
-      context: context,
-      position: RelativeRect.fromRect(
-        Rect.fromPoints(
-          box.localToGlobal(Offset.zero, ancestor: overlay),
-          box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
-        ),
-        Offset.zero & overlay.size,
-      ),
-      initialValue: currentFont,
-      items: [
-        for (final sf in soundfonts)
-          PopupMenuItem(
-            value: 'select:$sf',
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(sf.replaceAll('.sf2', '')),
-                ),
-                if (sf == currentFont)
-                  Icon(
-                    Icons.check_rounded,
-                    size: 18,
-                    color: context.colorScheme.primary,
-                  ),
-                if (_canDeleteFont(assetState, sf))
-                  Icon(
-                    Icons.delete_outline_rounded,
-                    size: 18,
-                    color: context.colorScheme.error,
-                  ),
-              ],
-            ),
-          ),
-        for (final remote in remoteList)
-          PopupMenuItem(
-            value: 'download:${remote.code}',
-            child: Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    remote.title,
-                    style: TextStyle(
-                      color: context.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  Icons.download_rounded,
-                  size: 18,
-                  color: context.colorScheme.primary,
-                ),
-              ],
-            ),
-          ),
-      ],
-    );
-    if (action == null || !context.mounted) return;
-
-    if (action.startsWith('select:')) {
-      songCubit.setSoundFont(action.substring(7));
-      return;
-    }
-    if (action.startsWith('download:')) {
-      final definition = assetDefinitionForCode(
-        DistributedAssetKind.soundfont,
-        action.substring(9),
-      );
-      if (definition != null) {
-        await di<AssetManagementCubit>().downloadAsset(definition);
-        await onDownloaded();
-      }
-      return;
-    }
-    if (action.startsWith('delete:')) {
-      final code = action.substring(7);
-      final status = assetState.statuses
-          .where(
-            (s) => s.definition.code == code && s.canDelete,
-          )
-          .firstOrNull;
-      if (status != null) {
-        final confirmed = await _confirmDeleteSoundFont(
-          context,
-          status.definition.title,
-        );
-        if (confirmed) {
-          await di<AssetManagementCubit>().deleteAsset(status.definition);
-          await onDownloaded();
-        }
-      }
-    }
-  }
-
   Future<void> _resetChords(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -700,118 +487,17 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                     icon: Icons.library_music_outlined,
                     title: 'soundfont_title'.tr(),
                     description: 'soundfont_desc'.tr(),
-                    trailing: FutureBuilder<List<String>>(
-                      future: _soundFontsFuture,
-                      builder: (context, snapshot) {
-                        return BlocBuilder<AssetManagementCubit,
-                            AssetManagementState>(
-                          bloc: di<AssetManagementCubit>(),
-                          builder: (context, assetState) {
-                            // SoundFonts from the release manifest that are
-                            // not installed locally yet.
-                            final remoteFonts = <({String code, String title})>[
-                              ...assetState.statuses
-                                  .where(
-                                    (s) =>
-                                        s.definition.kind ==
-                                            DistributedAssetKind.soundfont &&
-                                        !s.isInstalled &&
-                                        s.hasRemotePackage,
-                                  )
-                                  .map(
-                                    (s) => (
-                                      code: s.definition.code,
-                                      title: s.definition.title,
-                                    ),
-                                  ),
-                            ];
-                            return Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  shape: StadiumBorder(
-                                    side: BorderSide(
-                                      color: context
-                                          .colorScheme
-                                          .outlineVariant
-                                          .withValues(alpha: 0.4),
-                                    ),
-                                  ),
-                                  clipBehavior: Clip.antiAlias,
-                                  // Builder anchors the menu to THIS pill
-                                  // (the section context made it pop up far
-                                  // left / wrong position).
-                                  child: Builder(
-                                    builder: (pillContext) => InkWell(
-                                      borderRadius:
-                                          BorderRadius.circular(999),
-                                      onTap: () => _showSoundFontMenu(
-                                        pillContext,
-                                        currentFont: state.soundFont,
-                                        remoteFonts: remoteFonts,
-                                        assetState: assetState,
-                                        onDownloaded: () async {
-                                          _soundFontsFuture = songCubit
-                                              .midiEngine
-                                              .getAvailableSoundFonts();
-                                          if (mounted) setState(() {});
-                                        },
-                                      ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 6,
-                                        ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              state.soundFont
-                                                  .replaceAll('.sf2', ''),
-                                              style: TextStyle(
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w600,
-                                                color: context
-                                                    .colorScheme
-                                                    .onSurfaceVariant,
-                                              ),
-                                            ),
-                                            Icon(
-                                              Icons.arrow_drop_down,
-                                              color: context
-                                                  .colorScheme
-                                                  .onSurfaceVariant,
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                // Download progress for the soundfont
-                                // currently being fetched (32MB+ takes a
-                                // while — show it instead of a silent wait).
-                                if (assetState.progressByCode.isNotEmpty) ...[
-                                  const SizedBox(height: 6),
-                                  SizedBox(
-                                    width: 120,
-                                    child: LinearProgressIndicator(
-                                      minHeight: 4,
-                                      borderRadius:
-                                          BorderRadius.circular(2),
-                                      value: assetState.progressByCode.values
-                                          .reduce((a, b) => a > b ? a : b),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            );
-                          },
-                        );
-                      },
+                    trailing: Text(
+                      state.soundFont.replaceAll('.sf2', ''),
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: context.colorScheme.onSurfaceVariant,
+                      ),
                     ),
+                    onTap: () {
+                      router.push(SoundFontRoute());
+                    },
                   ),
                   const _SettingsDivider(),
                   _SettingsTile(
@@ -857,9 +543,9 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                             )
                             .toList(),
                         child: Text(
-                          'song_count'.tr(namedArgs: {
-                            'n': '${state.midiCacheMaxCount}',
-                          }),
+                          'song_count'.tr(
+                            namedArgs: {'n': '${state.midiCacheMaxCount}'},
+                          ),
                           style: TextStyle(
                             color: context.colorScheme.onSurfaceVariant,
                             fontSize: 13,
@@ -882,9 +568,7 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                                 child: Text(
                                   v == 0
                                       ? 'off'.tr()
-                                      : 'song_count'.tr(
-                                          namedArgs: {'n': '$v'},
-                                        ),
+                                      : 'song_count'.tr(namedArgs: {'n': '$v'}),
                                 ),
                               ),
                             )
@@ -892,9 +576,11 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                         child: Text(
                           state.midiPreloadNeighborCount == 0
                               ? 'off'.tr()
-                              : 'song_count'.tr(namedArgs: {
-                                  'n': '${state.midiPreloadNeighborCount}',
-                                }),
+                              : 'song_count'.tr(
+                                  namedArgs: {
+                                    'n': '${state.midiPreloadNeighborCount}',
+                                  },
+                                ),
                           style: TextStyle(
                             color: context.colorScheme.onSurfaceVariant,
                             fontSize: 13,
@@ -930,20 +616,14 @@ class _ThemeSettingsSection extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      'theme_mode'.tr(),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
                     _PreferenceSelector<ThemeMode>(
                       label: 'theme_mode'.tr(),
                       selected: {state.themeMode.toThemeMode},
                       onChanged: (mode) {
-                        context
-                            .read<InitialCubit>()
-                            .toggleTheme(mode, () => context);
+                        context.read<InitialCubit>().toggleTheme(
+                          mode,
+                          () => context,
+                        );
                       },
                       segments: [
                         ButtonSegment(
@@ -963,8 +643,15 @@ class _ThemeSettingsSection extends StatelessWidget {
                     const SizedBox(height: 16),
                     _AccentColorPicker(
                       selectedKey: state.accentKey,
-                      onSelected: (key) {
-                        context.read<InitialCubit>().changeAccentColor(key);
+                      customAccentSeed: state.themePreferences.customAccentSeed,
+                      onSelected: (key, customColor) {
+                        if (customColor != null) {
+                          context.read<InitialCubit>().changeCustomAccentColor(
+                            customColor,
+                          );
+                        } else {
+                          context.read<InitialCubit>().changeAccentColor(key);
+                        }
                       },
                     ),
                     const SizedBox(height: 16),
@@ -985,14 +672,15 @@ class _ThemeSettingsSection extends StatelessWidget {
                     _TypographyScaleSelector(
                       selected: state.themePreferences.typographyScale,
                       onChanged: (scale) {
-                        context
-                            .read<InitialCubit>()
-                            .changeTypographyScale(scale);
+                        context.read<InitialCubit>().changeTypographyScale(
+                          scale,
+                        );
                       },
                     ),
                     const SizedBox(height: 16),
                     _ThemePreviewCard(
                       accentKey: state.accentKey,
+                      customAccentSeed: state.themePreferences.customAccentSeed,
                       cornerRadius: state.themePreferences.cornerRadius,
                       typographyScale: state.themePreferences.typographyScale,
                     ),
@@ -1094,9 +782,9 @@ class _OtherSettingsSection extends StatelessWidget {
                           context.read<FaithCubit>().sync(data.faithState!);
                         }
                         if (data.settingsState != null) {
-                          context
-                              .read<SettingsCubit>()
-                              .sync(data.settingsState!);
+                          context.read<SettingsCubit>().sync(
+                            data.settingsState!,
+                          );
                         }
                         Fluttertoast.cancel();
                         Fluttertoast.showToast(msg: 'Sync success'.tr());
@@ -1151,8 +839,7 @@ class _OtherSettingsSection extends StatelessWidget {
                       onTap: assetState.isClearingCache
                           ? null
                           : () {
-                              di<AssetManagementCubit>()
-                                  .clearFastAccessCache();
+                              di<AssetManagementCubit>().clearFastAccessCache();
                             },
                       trailing: assetState.isClearingCache
                           ? const SizedBox(
@@ -1234,70 +921,259 @@ class _OtherSettingsSection extends StatelessWidget {
 
 class _AccentColorPicker extends StatelessWidget {
   final String selectedKey;
-  final ValueChanged<String> onSelected;
+  final int customAccentSeed;
+  final void Function(String key, Color? customColor) onSelected;
 
   const _AccentColorPicker({
     required this.selectedKey,
+    required this.customAccentSeed,
     required this.onSelected,
   });
 
+  Future<void> _pickCustomColor(BuildContext context) async {
+    final initial = customAccentSeed == 0
+        ? const Color(0xFF3B82F6)
+        : Color(customAccentSeed);
+    final picked = await showDialog<Color>(
+      context: context,
+      builder: (_) => _CustomColorDialog(initialColor: initial),
+    );
+    if (picked != null) {
+      onSelected(customAccentKey, picked);
+    }
+  }
+
+  Widget _swatch({
+    required BuildContext context,
+    required String key,
+    required Color seed,
+    required Color background,
+    required VoidCallback onTap,
+    Widget? child,
+  }) {
+    final isSelected = key == selectedKey;
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 56,
+        height: 56,
+        decoration: BoxDecoration(
+          color: background,
+          borderRadius: context.appRadius(12),
+          border: isSelected
+              ? Border.all(color: seed, width: 2)
+              : Border.all(color: seed.withValues(alpha: 0.3)),
+        ),
+        child:
+            child ??
+            (isSelected
+                ? Center(
+                    child: Icon(Icons.check_rounded, color: seed, size: 24),
+                  )
+                : null),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final colors = [
-      ('skyBlue', 'Sky Blue', const Color(0xFF3B82F6), const Color(0xFFDBEAFE)),
-      ('mintGreen', 'Mint', const Color(0xFF10B981), const Color(0xFFD1FAF5)),
-      ('softLavender', 'Lavender', const Color(0xFF8B5CF6), const Color(0xFFF3E8FF)),
-      ('warmPeach', 'Peach', const Color(0xFFF97316), const Color(0xFFFFEDD5)),
-      ('dustyRose', 'Rose', const Color(0xFFF43F5E), const Color(0xFFFFE4E6)),
-      ('softTeal', 'Teal', const Color(0xFF14B8A6), const Color(0xFFCCFBF1)),
-      ('softIndigo', 'Indigo', const Color(0xFF6366F1), const Color(0xFFE0E7FF)),
-      ('softAmber', 'Amber', const Color(0xFFF59E0B), const Color(0xFFFEF3C7)),
-    ];
-
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'accent_color'.tr(),
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         Wrap(
           spacing: 12,
           runSpacing: 12,
-          children: colors.map((c) {
-            final isSelected = c.$1 == selectedKey;
-            return GestureDetector(
-              onTap: () => onSelected(c.$1),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                width: 56,
-                height: 56,
-                decoration: BoxDecoration(
-                  color: c.$4,
-                  borderRadius: context.appRadius(12),
-                  border: isSelected
-                      ? Border.all(color: c.$3, width: 2)
-                      : Border.all(color: c.$3.withValues(alpha: 0.3)),
-                ),
-                child: isSelected
-                    ? Center(
-                        child: Icon(
-                          Icons.check_rounded,
-                          color: c.$3,
-                          size: 24,
-                        ),
-                      )
-                    : null,
+          children: [
+            // Presets come from appAccentOptions (single source of truth),
+            // which is ordered by hue.
+            ...appAccentOptions.map(
+              (a) => _swatch(
+                context: context,
+                key: a.key,
+                seed: a.seed,
+                background: a.container,
+                onTap: () => onSelected(a.key, null),
               ),
-            );
-          }).toList(),
+            ),
+            // Custom colour — always last.
+            Tooltip(
+              message: 'accent_custom'.tr(),
+              child: _swatch(
+                context: context,
+                key: customAccentKey,
+                seed: customAccentSeed == 0
+                    ? const Color(0xFF3B82F6)
+                    : Color(customAccentSeed),
+                background: Colors.transparent,
+                onTap: () => _pickCustomColor(context),
+                child: Container(
+                  decoration: BoxDecoration(
+                    borderRadius: context.appRadius(10),
+                    gradient: const LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Color(0xFFEF4444),
+                        Color(0xFFF59E0B),
+                        Color(0xFF22C55E),
+                        Color(0xFF3B82F6),
+                        Color(0xFF8B5CF6),
+                      ],
+                    ),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      selectedKey == customAccentKey
+                          ? Icons.check_rounded
+                          : Icons.palette_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
+}
+
+/// Lets the user pick any colour: a curated hue×lightness grid plus a
+/// hex input, with a live preview.  No extra dependency — plain Flutter.
+class _CustomColorDialog extends StatefulWidget {
+  final Color initialColor;
+  const _CustomColorDialog({required this.initialColor});
+
+  @override
+  State<_CustomColorDialog> createState() => _CustomColorDialogState();
+}
+
+class _CustomColorDialogState extends State<_CustomColorDialog> {
+  late Color _color = widget.initialColor;
+  late final TextEditingController _hexController = TextEditingController(
+    text: _color.toHex(),
+  );
+
+  static final List<Color> _gridColors = [
+    for (var hue = 0; hue < 360; hue += 30)
+      for (final lightness in const [0.42, 0.55, 0.72]) ...<Color>[
+        HSLColor.fromAHSL(1, hue.toDouble(), 0.62, lightness).toColor(),
+      ],
+    const Color(0xFF111111),
+    const Color(0xFF6B7280),
+    const Color(0xFFEEEEEE),
+  ];
+
+  @override
+  void dispose() {
+    _hexController.dispose();
+    super.dispose();
+  }
+
+  void _applyHex(String text) {
+    final hex = text.replaceFirst('#', '').trim();
+    if (hex.length != 6) return;
+    final value = int.tryParse(hex, radix: 16);
+    if (value != null) {
+      setState(() => _color = Color(0xFF000000 | value));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return AlertDialog(
+      title: Text('accent_custom'.tr()),
+      content: SizedBox(
+        width: 320,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: _color,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: scheme.outlineVariant),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextField(
+                    controller: _hexController,
+                    decoration: const InputDecoration(
+                      prefixText: '#',
+                      labelText: 'HEX',
+                      isDense: true,
+                    ),
+                    textInputAction: TextInputAction.done,
+                    onChanged: _applyHex,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _gridColors.map((c) {
+                final isSelected = c.toARGB32() == _color.toARGB32();
+                return GestureDetector(
+                  onTap: () {
+                    setState(() => _color = c);
+                    _hexController.text = c.toHex();
+                  },
+                  child: Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: c,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isSelected
+                            ? scheme.primary
+                            : scheme.outlineVariant,
+                        width: isSelected ? 2 : 1,
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: Text('Batal'.tr()),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.pop(context, _color),
+          child: Text('Simpan'.tr()),
+        ),
+      ],
+    );
+  }
+}
+
+extension _ColorHex on Color {
+  String toHex() =>
+      toARGB32().toRadixString(16).padLeft(8, '0').substring(2).toUpperCase();
 }
 
 class _PreferenceSelector<T> extends StatelessWidget {
@@ -1320,9 +1196,9 @@ class _PreferenceSelector<T> extends StatelessWidget {
       children: [
         Text(
           label,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 12),
         SegmentedButton<T>(
@@ -1341,10 +1217,7 @@ class _DensitySelector extends StatelessWidget {
   final DisplayDensity selected;
   final ValueChanged<DisplayDensity> onChanged;
 
-  const _DensitySelector({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _DensitySelector({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -1438,64 +1311,53 @@ class _TypographyScaleSelector extends StatelessWidget {
 
 class _ThemePreviewCard extends StatelessWidget {
   final String accentKey;
+  final int customAccentSeed;
   final CornerRadiusStyle cornerRadius;
   final TypographyScale typographyScale;
 
   const _ThemePreviewCard({
     required this.accentKey,
+    required this.customAccentSeed,
     required this.cornerRadius,
     required this.typographyScale,
   });
 
-  Color _getSeedColor() {
-    switch (accentKey) {
-      case 'skyBlue': return const Color(0xFF3B82F6);
-      case 'mintGreen': return const Color(0xFF10B981);
-      case 'softLavender': return const Color(0xFF8B5CF6);
-      case 'warmPeach': return const Color(0xFFF97316);
-      case 'dustyRose': return const Color(0xFFF43F5E);
-      case 'softTeal': return const Color(0xFF14B8A6);
-      case 'softIndigo': return const Color(0xFF6366F1);
-      case 'softAmber': return const Color(0xFFF59E0B);
-      default: return const Color(0xFF3B82F6);
-    }
-  }
+  Color get _seedColor =>
+      appAccentByKey(accentKey, customSeed: _customSeed).seed;
 
-  Color _getContainerColor() {
-    switch (accentKey) {
-      case 'skyBlue': return const Color(0xFFDBEAFE);
-      case 'mintGreen': return const Color(0xFFD1FAF5);
-      case 'softLavender': return const Color(0xFFF3E8FF);
-      case 'warmPeach': return const Color(0xFFFFEDD5);
-      case 'dustyRose': return const Color(0xFFFFE4E6);
-      case 'softTeal': return const Color(0xFFCCFBF1);
-      case 'softIndigo': return const Color(0xFFE0E7FF);
-      case 'softAmber': return const Color(0xFFFEF3C7);
-      default: return const Color(0xFFDBEAFE);
-    }
-  }
+  Color get _containerColor =>
+      appAccentByKey(accentKey, customSeed: _customSeed).container;
+
+  Color? get _customSeed =>
+      customAccentSeed == 0 ? null : Color(customAccentSeed);
 
   double _getRadius() {
     switch (cornerRadius) {
-      case CornerRadiusStyle.soft: return 16;
-      case CornerRadiusStyle.medium: return 12;
-      case CornerRadiusStyle.sharp: return 4;
+      case CornerRadiusStyle.soft:
+        return 16;
+      case CornerRadiusStyle.medium:
+        return 12;
+      case CornerRadiusStyle.sharp:
+        return 4;
     }
   }
 
   double _getScale() {
     switch (typographyScale) {
-      case TypographyScale.compact: return 0.9;
-      case TypographyScale.normal: return 1.0;
-      case TypographyScale.comfortable: return 1.1;
+      case TypographyScale.compact:
+        return 0.9;
+      case TypographyScale.normal:
+        return 1.0;
+      case TypographyScale.comfortable:
+        return 1.1;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final seed = _getSeedColor();
-    final container = _getContainerColor();
+    final seed = _seedColor;
+    final container = _containerColor;
     final radius = _getRadius();
     final scale = _getScale();
 
@@ -1552,10 +1414,7 @@ class _ThemePreviewCard extends StatelessWidget {
                 ),
                 child: Text(
                   'Sample Chip',
-                  style: TextStyle(
-                    fontSize: 12 * scale,
-                    color: seed,
-                  ),
+                  style: TextStyle(fontSize: 12 * scale, color: seed),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1570,10 +1429,7 @@ class _ThemePreviewCard extends StatelessWidget {
                 ),
                 child: Text(
                   'Button',
-                  style: TextStyle(
-                    fontSize: 13 * scale,
-                    color: Colors.white,
-                  ),
+                  style: TextStyle(fontSize: 13 * scale, color: Colors.white),
                 ),
               ),
             ],
@@ -1650,15 +1506,12 @@ class _SelectLanguageDialogState extends State<SelectLanguageDialog> {
                             child: Column(
                               children: [
                                 ListTile(
-                                  tileColor: context
-                                      .colorScheme
-                                      .surfaceContainerLow,
+                                  tileColor:
+                                      context.colorScheme.surfaceContainerLow,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: context.appRadius(8),
                                     side: BorderSide(
-                                      color: context
-                                          .colorScheme
-                                          .outlineVariant
+                                      color: context.colorScheme.outlineVariant
                                           .withValues(alpha: 0.46),
                                     ),
                                   ),

@@ -2149,23 +2149,6 @@ class Assets {
   /// assets/icons/faith.png
   static const String assetsIconsFaith = "assets/icons/faith.png";
 
-  /// Assets for assetsIconsFontGapMin
-  /// assets/icons/font_gap_min.png
-  static const String assetsIconsFontGapMin = "assets/icons/font_gap_min.png";
-
-  /// Assets for assetsIconsFontGapPlus
-  /// assets/icons/font_gap_plus.png
-  static const String assetsIconsFontGapPlus = "assets/icons/font_gap_plus.png";
-
-  /// Assets for assetsIconsFontSizeMin
-  /// assets/icons/font_size_min.png
-  static const String assetsIconsFontSizeMin = "assets/icons/font_size_min.png";
-
-  /// Assets for assetsIconsFontSizePlus
-  /// assets/icons/font_size_plus.png
-  static const String assetsIconsFontSizePlus =
-      "assets/icons/font_size_plus.png";
-
   /// Assets for assetsIconsHistory
   /// assets/icons/history.png
   static const String assetsIconsHistory = "assets/icons/history.png";

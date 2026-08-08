@@ -11,11 +11,12 @@ const _hymnalUiFont = 'Manrope';
 ThemeData darkTheme(
   String defaultFont, {
   String accentKey = defaultAccentKey,
+  Color? customSeed,
   DisplayDensity density = DisplayDensity.standard,
   CornerRadiusStyle cornerRadius = CornerRadiusStyle.soft,
   TypographyScale typographyScale = TypographyScale.normal,
 }) {
-  final colorScheme = darkHymnalColorScheme(accentKey);
+  final colorScheme = darkHymnalColorScheme(accentKey, customSeed: customSeed);
 
   final visualDensity = switch (density) {
     DisplayDensity.compact => VisualDensity.compact,
@@ -219,11 +220,15 @@ ThemeData darkTheme(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       border: OutlineInputBorder(
         borderRadius: r(8),
-        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: r(8),
-        borderSide: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        borderSide: BorderSide(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: r(8),
@@ -341,7 +346,9 @@ ThemeData darkTheme(
     chipTheme: ChipThemeData(
       backgroundColor: colorScheme.surfaceContainerLow,
       selectedColor: colorScheme.primaryContainer.withValues(alpha: 0.4),
-      side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.4)),
+      side: BorderSide(
+        color: colorScheme.outlineVariant.withValues(alpha: 0.4),
+      ),
       shape: RoundedRectangleBorder(borderRadius: r(8)),
       labelStyle: TextStyle(
         fontFamily: _hymnalUiFont,

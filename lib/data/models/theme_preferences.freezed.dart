@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ThemePreferences {
 
- String get accentKey; SurfaceTone get surfaceTone; CornerRadiusStyle get cornerRadius; DisplayDensity get density; TypographyScale get typographyScale; bool get compactMode;
+ String get accentKey;/// ARGB value of the user-picked custom accent colour; 0 = unset.
+ int get customAccentSeed; SurfaceTone get surfaceTone; CornerRadiusStyle get cornerRadius; DisplayDensity get density; TypographyScale get typographyScale; bool get compactMode;
 /// Create a copy of ThemePreferences
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -28,16 +29,16 @@ $ThemePreferencesCopyWith<ThemePreferences> get copyWith => _$ThemePreferencesCo
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemePreferences&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.surfaceTone, surfaceTone) || other.surfaceTone == surfaceTone)&&(identical(other.cornerRadius, cornerRadius) || other.cornerRadius == cornerRadius)&&(identical(other.density, density) || other.density == density)&&(identical(other.typographyScale, typographyScale) || other.typographyScale == typographyScale)&&(identical(other.compactMode, compactMode) || other.compactMode == compactMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ThemePreferences&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.customAccentSeed, customAccentSeed) || other.customAccentSeed == customAccentSeed)&&(identical(other.surfaceTone, surfaceTone) || other.surfaceTone == surfaceTone)&&(identical(other.cornerRadius, cornerRadius) || other.cornerRadius == cornerRadius)&&(identical(other.density, density) || other.density == density)&&(identical(other.typographyScale, typographyScale) || other.typographyScale == typographyScale)&&(identical(other.compactMode, compactMode) || other.compactMode == compactMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accentKey,surfaceTone,cornerRadius,density,typographyScale,compactMode);
+int get hashCode => Object.hash(runtimeType,accentKey,customAccentSeed,surfaceTone,cornerRadius,density,typographyScale,compactMode);
 
 @override
 String toString() {
-  return 'ThemePreferences(accentKey: $accentKey, surfaceTone: $surfaceTone, cornerRadius: $cornerRadius, density: $density, typographyScale: $typographyScale, compactMode: $compactMode)';
+  return 'ThemePreferences(accentKey: $accentKey, customAccentSeed: $customAccentSeed, surfaceTone: $surfaceTone, cornerRadius: $cornerRadius, density: $density, typographyScale: $typographyScale, compactMode: $compactMode)';
 }
 
 
@@ -48,7 +49,7 @@ abstract mixin class $ThemePreferencesCopyWith<$Res>  {
   factory $ThemePreferencesCopyWith(ThemePreferences value, $Res Function(ThemePreferences) _then) = _$ThemePreferencesCopyWithImpl;
 @useResult
 $Res call({
- String accentKey, SurfaceTone surfaceTone, CornerRadiusStyle cornerRadius, DisplayDensity density, TypographyScale typographyScale, bool compactMode
+ String accentKey, int customAccentSeed, SurfaceTone surfaceTone, CornerRadiusStyle cornerRadius, DisplayDensity density, TypographyScale typographyScale, bool compactMode
 });
 
 
@@ -65,10 +66,11 @@ class _$ThemePreferencesCopyWithImpl<$Res>
 
 /// Create a copy of ThemePreferences
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? accentKey = null,Object? surfaceTone = null,Object? cornerRadius = null,Object? density = null,Object? typographyScale = null,Object? compactMode = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? accentKey = null,Object? customAccentSeed = null,Object? surfaceTone = null,Object? cornerRadius = null,Object? density = null,Object? typographyScale = null,Object? compactMode = null,}) {
   return _then(_self.copyWith(
 accentKey: null == accentKey ? _self.accentKey : accentKey // ignore: cast_nullable_to_non_nullable
-as String,surfaceTone: null == surfaceTone ? _self.surfaceTone : surfaceTone // ignore: cast_nullable_to_non_nullable
+as String,customAccentSeed: null == customAccentSeed ? _self.customAccentSeed : customAccentSeed // ignore: cast_nullable_to_non_nullable
+as int,surfaceTone: null == surfaceTone ? _self.surfaceTone : surfaceTone // ignore: cast_nullable_to_non_nullable
 as SurfaceTone,cornerRadius: null == cornerRadius ? _self.cornerRadius : cornerRadius // ignore: cast_nullable_to_non_nullable
 as CornerRadiusStyle,density: null == density ? _self.density : density // ignore: cast_nullable_to_non_nullable
 as DisplayDensity,typographyScale: null == typographyScale ? _self.typographyScale : typographyScale // ignore: cast_nullable_to_non_nullable
@@ -158,10 +160,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accentKey,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String accentKey,  int customAccentSeed,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ThemePreferences() when $default != null:
-return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
+return $default(_that.accentKey,_that.customAccentSeed,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
   return orElse();
 
 }
@@ -179,10 +181,10 @@ return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.densi
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accentKey,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String accentKey,  int customAccentSeed,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)  $default,) {final _that = this;
 switch (_that) {
 case _ThemePreferences():
-return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
+return $default(_that.accentKey,_that.customAccentSeed,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +201,10 @@ return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.densi
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accentKey,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String accentKey,  int customAccentSeed,  SurfaceTone surfaceTone,  CornerRadiusStyle cornerRadius,  DisplayDensity density,  TypographyScale typographyScale,  bool compactMode)?  $default,) {final _that = this;
 switch (_that) {
 case _ThemePreferences() when $default != null:
-return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
+return $default(_that.accentKey,_that.customAccentSeed,_that.surfaceTone,_that.cornerRadius,_that.density,_that.typographyScale,_that.compactMode);case _:
   return null;
 
 }
@@ -213,11 +215,13 @@ return $default(_that.accentKey,_that.surfaceTone,_that.cornerRadius,_that.densi
 /// @nodoc
 @JsonSerializable()
 
-class _ThemePreferences implements ThemePreferences {
-  const _ThemePreferences({this.accentKey = 'skyBlue', this.surfaceTone = SurfaceTone.light, this.cornerRadius = CornerRadiusStyle.soft, this.density = DisplayDensity.standard, this.typographyScale = TypographyScale.normal, this.compactMode = false});
+class _ThemePreferences extends ThemePreferences {
+  const _ThemePreferences({this.accentKey = 'skyBlue', this.customAccentSeed = 0, this.surfaceTone = SurfaceTone.light, this.cornerRadius = CornerRadiusStyle.soft, this.density = DisplayDensity.standard, this.typographyScale = TypographyScale.normal, this.compactMode = false}): super._();
   factory _ThemePreferences.fromJson(Map<String, dynamic> json) => _$ThemePreferencesFromJson(json);
 
 @override@JsonKey() final  String accentKey;
+/// ARGB value of the user-picked custom accent colour; 0 = unset.
+@override@JsonKey() final  int customAccentSeed;
 @override@JsonKey() final  SurfaceTone surfaceTone;
 @override@JsonKey() final  CornerRadiusStyle cornerRadius;
 @override@JsonKey() final  DisplayDensity density;
@@ -237,16 +241,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemePreferences&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.surfaceTone, surfaceTone) || other.surfaceTone == surfaceTone)&&(identical(other.cornerRadius, cornerRadius) || other.cornerRadius == cornerRadius)&&(identical(other.density, density) || other.density == density)&&(identical(other.typographyScale, typographyScale) || other.typographyScale == typographyScale)&&(identical(other.compactMode, compactMode) || other.compactMode == compactMode));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ThemePreferences&&(identical(other.accentKey, accentKey) || other.accentKey == accentKey)&&(identical(other.customAccentSeed, customAccentSeed) || other.customAccentSeed == customAccentSeed)&&(identical(other.surfaceTone, surfaceTone) || other.surfaceTone == surfaceTone)&&(identical(other.cornerRadius, cornerRadius) || other.cornerRadius == cornerRadius)&&(identical(other.density, density) || other.density == density)&&(identical(other.typographyScale, typographyScale) || other.typographyScale == typographyScale)&&(identical(other.compactMode, compactMode) || other.compactMode == compactMode));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,accentKey,surfaceTone,cornerRadius,density,typographyScale,compactMode);
+int get hashCode => Object.hash(runtimeType,accentKey,customAccentSeed,surfaceTone,cornerRadius,density,typographyScale,compactMode);
 
 @override
 String toString() {
-  return 'ThemePreferences(accentKey: $accentKey, surfaceTone: $surfaceTone, cornerRadius: $cornerRadius, density: $density, typographyScale: $typographyScale, compactMode: $compactMode)';
+  return 'ThemePreferences(accentKey: $accentKey, customAccentSeed: $customAccentSeed, surfaceTone: $surfaceTone, cornerRadius: $cornerRadius, density: $density, typographyScale: $typographyScale, compactMode: $compactMode)';
 }
 
 
@@ -257,7 +261,7 @@ abstract mixin class _$ThemePreferencesCopyWith<$Res> implements $ThemePreferenc
   factory _$ThemePreferencesCopyWith(_ThemePreferences value, $Res Function(_ThemePreferences) _then) = __$ThemePreferencesCopyWithImpl;
 @override @useResult
 $Res call({
- String accentKey, SurfaceTone surfaceTone, CornerRadiusStyle cornerRadius, DisplayDensity density, TypographyScale typographyScale, bool compactMode
+ String accentKey, int customAccentSeed, SurfaceTone surfaceTone, CornerRadiusStyle cornerRadius, DisplayDensity density, TypographyScale typographyScale, bool compactMode
 });
 
 
@@ -274,10 +278,11 @@ class __$ThemePreferencesCopyWithImpl<$Res>
 
 /// Create a copy of ThemePreferences
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? accentKey = null,Object? surfaceTone = null,Object? cornerRadius = null,Object? density = null,Object? typographyScale = null,Object? compactMode = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? accentKey = null,Object? customAccentSeed = null,Object? surfaceTone = null,Object? cornerRadius = null,Object? density = null,Object? typographyScale = null,Object? compactMode = null,}) {
   return _then(_ThemePreferences(
 accentKey: null == accentKey ? _self.accentKey : accentKey // ignore: cast_nullable_to_non_nullable
-as String,surfaceTone: null == surfaceTone ? _self.surfaceTone : surfaceTone // ignore: cast_nullable_to_non_nullable
+as String,customAccentSeed: null == customAccentSeed ? _self.customAccentSeed : customAccentSeed // ignore: cast_nullable_to_non_nullable
+as int,surfaceTone: null == surfaceTone ? _self.surfaceTone : surfaceTone // ignore: cast_nullable_to_non_nullable
 as SurfaceTone,cornerRadius: null == cornerRadius ? _self.cornerRadius : cornerRadius // ignore: cast_nullable_to_non_nullable
 as CornerRadiusStyle,density: null == density ? _self.density : density // ignore: cast_nullable_to_non_nullable
 as DisplayDensity,typographyScale: null == typographyScale ? _self.typographyScale : typographyScale // ignore: cast_nullable_to_non_nullable

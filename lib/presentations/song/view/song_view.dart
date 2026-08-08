@@ -8,10 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../../data/services/chord_service.dart';
 import '../../../data/services/pdf_note_service.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
+import '../widgets/chord_text_layout.dart';
 import '../widgets/song_pdf_viewer.dart';
 
 const double _songTextMaxContentWidth = 920;
@@ -204,7 +206,11 @@ class _SongViewState extends State<SongView> {
                 ),
               ),
               actions: [
-                BlocSelector<SongCubit, SongState, (bool, bool, bool, bool, bool, bool, int?)>(
+                BlocSelector<
+                  SongCubit,
+                  SongState,
+                  (bool, bool, bool, bool, bool, bool, int?)
+                >(
                   selector: (state) {
                     // Parse the current PDF path to get the page count
                     // from the manifest.  This tells us whether the
@@ -215,8 +221,7 @@ class _SongViewState extends State<SongView> {
                     final pdfPath = state.currentPdfPath;
                     if (pdfPath != null) {
                       try {
-                        pageCount =
-                            PdfDocumentRequest.parse(pdfPath).pageCount;
+                        pageCount = PdfDocumentRequest.parse(pdfPath).pageCount;
                       } catch (_) {}
                     }
                     return (
@@ -251,6 +256,7 @@ class _SongViewState extends State<SongView> {
                       onFitPage: _fitPdfToPage,
                       onShare: () => _shareCurrentSong(cubit.state),
                       onOpenLyrics: _openLyricsSettings,
+                      onOpenChordSettings: _openChordSettings,
                     );
                   },
                 ),
@@ -287,6 +293,11 @@ class _SongViewState extends State<SongView> {
                         prev.defaultTextHeight != curr.defaultTextHeight ||
                         prev.lyricsTextAlign != curr.lyricsTextAlign ||
                         prev.lyricsVerticalAlign != curr.lyricsVerticalAlign ||
+                        prev.showChord != curr.showChord ||
+                        prev.currentChords != curr.currentChords ||
+                        prev.transposeStep != curr.transposeStep ||
+                        prev.baseTransposeOffset != curr.baseTransposeOffset ||
+                        prev.chordAccidentalMode != curr.chordAccidentalMode ||
                         prev.songs != curr.songs,
                     builder: (context, state) => RepaintBoundary(
                       child: PageView.builder(
@@ -295,6 +306,11 @@ class _SongViewState extends State<SongView> {
                         itemCount: state.songs.length,
                         itemBuilder: (context, index) {
                           final song = state.songs[index];
+                          // Chord data is keyed by song-relative page
+                          // (1-based). A single song is one page in this
+                          // view, so page 1 holds its chords.
+                          final songChords =
+                              state.currentChords[1] ?? const <ChordData>[];
                           return RepaintBoundary(
                             child: _SongTextPage(
                               song: song,
@@ -307,6 +323,11 @@ class _SongViewState extends State<SongView> {
                               verseIndex: _currentVerseIndex,
                               onPreviousVerse: _previousVerse,
                               onNextVerse: () => _nextVerse(song),
+                              chords: songChords,
+                              showChords: shouldRenderChordForSongState(state),
+                              transposeStep: state.transposeStep,
+                              baseTransposeOffset: state.baseTransposeOffset,
+                              chordAccidentalMode: state.chordAccidentalMode,
                             ),
                           );
                         },
@@ -330,7 +351,8 @@ class _SongViewState extends State<SongView> {
                             curr.chordFontSizePercent ||
                         prev.chordFillOpacityPercent !=
                             curr.chordFillOpacityPercent ||
-                        prev.chordPaddingPercent != curr.chordPaddingPercent,
+                        prev.chordPaddingPercent != curr.chordPaddingPercent ||
+                        prev.chordOffsetPercent != curr.chordOffsetPercent,
                     builder: (context, state) {
                       if (state.currentPdfPath == null) {
                         return const SizedBox.shrink();
@@ -341,28 +363,29 @@ class _SongViewState extends State<SongView> {
                       // visible dark strip between the PDF and the dock.
                       return SizedBox.expand(
                         child: RepaintBoundary(
-                            child: SongPdfViewer(
-                              key: const ValueKey('pdf_viewer_instance'),
-                              pdfPath: state.currentPdfPath,
-                              showChord: shouldRenderChordForSongState(state),
-                              chords: state.currentChords,
-                              transposeStep: state.transposeStep,
-                              baseTransposeOffset: state.baseTransposeOffset,
-                              chordAccidentalMode: state.chordAccidentalMode,
-                              twoPageMode: state.pdfTwoPageMode,
-                              verticalScrolling: state.pdfVerticalScrolling,
-                              chordFontSizePercent: state.chordFontSizePercent,
-                              chordFillOpacityPercent:
-                                  state.chordFillOpacityPercent,
-                              chordPaddingPercent: state.chordPaddingPercent,
-                              isEditMode: chordToggleEnabled && _isChordEditMode,
-                              onChordsChanged: (updatedChords) {
-                                cubit.detectAndUpdateFamilyChord(updatedChords);
-                              },
-                              viewerController: _pdfViewerController,
-                              onNextSong: _goToNextSong,
-                              onPreviousSong: _goToPreviousSong,
-                            ),
+                          child: SongPdfViewer(
+                            key: const ValueKey('pdf_viewer_instance'),
+                            pdfPath: state.currentPdfPath,
+                            showChord: shouldRenderChordForSongState(state),
+                            chords: state.currentChords,
+                            transposeStep: state.transposeStep,
+                            baseTransposeOffset: state.baseTransposeOffset,
+                            chordAccidentalMode: state.chordAccidentalMode,
+                            twoPageMode: state.pdfTwoPageMode,
+                            verticalScrolling: state.pdfVerticalScrolling,
+                            chordFontSizePercent: state.chordFontSizePercent,
+                            chordFillOpacityPercent:
+                                state.chordFillOpacityPercent,
+                            chordPaddingPercent: state.chordPaddingPercent,
+                            chordOffsetPercent: state.chordOffsetPercent,
+                            isEditMode: chordToggleEnabled && _isChordEditMode,
+                            onChordsChanged: (updatedChords) {
+                              cubit.detectAndUpdateFamilyChord(updatedChords);
+                            },
+                            viewerController: _pdfViewerController,
+                            onNextSong: _goToNextSong,
+                            onPreviousSong: _goToPreviousSong,
+                          ),
                         ),
                       );
                     },
@@ -551,6 +574,89 @@ class _SongViewState extends State<SongView> {
     );
   }
 
+  /// Chord overlay settings: font size, badge padding, and the vertical gap
+  /// between the chord badge and its note number.
+  Future<void> _openChordSettings() {
+    return showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      useSafeArea: true,
+      builder: (context) {
+        return BlocBuilder<SongCubit, SongState>(
+          bloc: cubit,
+          buildWhen: (prev, curr) =>
+              prev.chordFontSizePercent != curr.chordFontSizePercent ||
+              prev.chordPaddingPercent != curr.chordPaddingPercent ||
+              prev.chordOffsetPercent != curr.chordOffsetPercent,
+          builder: (context, state) {
+            final colors = Theme.of(context).colorScheme;
+            return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        colors.primaryContainer.withValues(alpha: 0.55),
+                        colors.surfaceContainerHighest,
+                      ],
+                    ),
+                    borderRadius: context.appRadius(8),
+                    border: Border.all(
+                      color: colors.outlineVariant.withValues(alpha: 0.65),
+                    ),
+                  ),
+                  child: Text(
+                    'chord_settings_title'.tr(),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                _LyricsSlider(
+                  label: 'chord_settings_size'.tr(),
+                  value: state.chordFontSizePercent.toDouble(),
+                  min: 50,
+                  max: 200,
+                  divisions: 15,
+                  displayValue: '${state.chordFontSizePercent}%',
+                  onChanged: (value) =>
+                      cubit.changeChordFontSizePercent(value.round()),
+                ),
+                _LyricsSlider(
+                  label: 'chord_settings_offset'.tr(),
+                  value: state.chordOffsetPercent.toDouble(),
+                  min: 0,
+                  max: 300,
+                  divisions: 30,
+                  displayValue:
+                      '${(state.chordOffsetPercent <= 100 ? 'chord_settings_close' : 'chord_settings_far').tr()} (${state.chordOffsetPercent}%)',
+                  onChanged: (value) =>
+                      cubit.changeChordOffsetPercent(value.round()),
+                ),
+                _LyricsSlider(
+                  label: 'chord_settings_padding'.tr(),
+                  value: state.chordPaddingPercent.toDouble(),
+                  min: 0,
+                  max: 400,
+                  divisions: 20,
+                  displayValue: '${state.chordPaddingPercent}%',
+                  onChanged: (value) =>
+                      cubit.changeChordPaddingPercent(value.round()),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+  }
+
   void _openSongSelector() {
     router.push(
       SongListRoute(
@@ -609,7 +715,18 @@ class _SongViewState extends State<SongView> {
             if (pageController.hasClients) {
               pageController.jumpToPage(index);
             }
-            cubit.openSong(song);
+            // When a song is opened from the active playlist (playlist mode
+            // toggle on), start MIDI playback immediately so the playlist is
+            // connected to the player and auto-next keeps advancing through
+            // the playlist queue. Songs opened from other places (recent
+            // history, "Buka" button) are not auto-played unless they are
+            // members of the active playlist.
+            cubit.openSong(
+              song,
+              autoplay:
+                  cubit.state.isPlaylistLoopModeActive &&
+                  cubit.isSongInActivePlaylist(song),
+            );
           }
         },
         onBack: () => router.maybePop(),
@@ -702,24 +819,22 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle>
   @override
   void initState() {
     super.initState();
-    _holdAnim = AnimationController(
-      vsync: this,
-      duration: _holdToEditDuration,
-    )..addStatusListener((status) {
-      if (status == AnimationStatus.completed && _holding) {
-        _holding = false;
-        _holdAnim.reset();
-        widget.onEditTriggered?.call();
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Chord edit mode enabled'.tr()),
-              duration: const Duration(seconds: 2),
-            ),
-          );
+    _holdAnim = AnimationController(vsync: this, duration: _holdToEditDuration)
+      ..addStatusListener((status) {
+        if (status == AnimationStatus.completed && _holding) {
+          _holding = false;
+          _holdAnim.reset();
+          widget.onEditTriggered?.call();
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Chord edit mode enabled'.tr()),
+                duration: const Duration(seconds: 2),
+              ),
+            );
+          }
         }
-      }
-    });
+      });
   }
 
   @override
@@ -798,9 +913,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle>
                           softWrap: false,
                           overflow: TextOverflow.visible,
                           textAlign: TextAlign.center,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w800,
                                 fontSize: context.appFontSize(15),
@@ -850,6 +963,11 @@ class _SongTextPage extends StatefulWidget {
   final int verseIndex;
   final VoidCallback? onPreviousVerse;
   final VoidCallback? onNextVerse;
+  final List<ChordData> chords;
+  final bool showChords;
+  final int transposeStep;
+  final int baseTransposeOffset;
+  final String chordAccidentalMode;
 
   const _SongTextPage({
     required this.song,
@@ -862,6 +980,11 @@ class _SongTextPage extends StatefulWidget {
     required this.verseIndex,
     this.onPreviousVerse,
     this.onNextVerse,
+    this.chords = const [],
+    this.showChords = false,
+    this.transposeStep = 0,
+    this.baseTransposeOffset = 0,
+    this.chordAccidentalMode = ChordService.accidentalSharp,
   });
 
   @override
@@ -885,13 +1008,10 @@ class _SongTextPageState extends State<_SongTextPage>
       parent: _verseAnimCtrl,
       curve: Curves.easeOut,
     );
-    _verseSlideAnim = Tween<Offset>(
-      begin: const Offset(0.0, 0.08),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _verseAnimCtrl,
-      curve: Curves.easeOutCubic,
-    ));
+    _verseSlideAnim =
+        Tween<Offset>(begin: const Offset(0.0, 0.08), end: Offset.zero).animate(
+          CurvedAnimation(parent: _verseAnimCtrl, curve: Curves.easeOutCubic),
+        );
     _verseAnimCtrl.value = 1.0;
   }
 
@@ -920,6 +1040,73 @@ class _SongTextPageState extends State<_SongTextPage>
     }
   }
 
+  /// Renders the current verse as lyric lines.  When chord display is
+  /// enabled and chord data exists, each line gets a chord row above it
+  /// (like gyschordweb's chord-sheet view) using the transposed chord
+  /// labels — the same formatting the PDF overlay applies.
+  List<Widget> _buildVerseLines(
+    BuildContext context,
+    String verseText,
+    int verseIndex,
+    int totalVerses,
+  ) {
+    final theme = Theme.of(context);
+    // Preserve blank lines (stanza breaks) so chord mode doesn't collapse
+    // the verse structure; blank lines simply get no chord row.
+    final lines = verseText.split('\n');
+    var nonEmpty = lines.where((l) => l.isNotEmpty).toList();
+    if (nonEmpty.isEmpty) {
+      lines
+        ..clear()
+        ..add(verseText);
+      nonEmpty = [verseText];
+    }
+
+    final lyricsStyle = theme.textTheme.bodyLarge?.copyWith(
+      fontFamily: widget.fontFamily,
+      fontSize: 16 * widget.textScale,
+      height: widget.textHeight,
+      fontWeight: widget.fontBold ? FontWeight.w700 : FontWeight.w400,
+    );
+
+    if (!widget.showChords || widget.chords.isEmpty) {
+      return [
+        Text(verseText, textAlign: _resolveTextAlign(), style: lyricsStyle),
+      ];
+    }
+
+    final verseChords = chordsForVerse(widget.chords, verseIndex, totalVerses);
+    // Distribute across the non-empty lines only, so blank stanza breaks
+    // don't consume chord slots; map back onto the full line order below.
+    final chordsByNonEmptyLine = distributeChordsToLines(
+      verseChords,
+      nonEmpty.length,
+    );
+    var nonEmptyCursor = 0;
+
+    final result = <Widget>[];
+    for (var i = 0; i < lines.length; i++) {
+      final lineChords = lines[i].isEmpty
+          ? const <ChordData>[]
+          : chordsByNonEmptyLine[nonEmptyCursor++];
+      if (lineChords.isNotEmpty) {
+        result.add(
+          _ChordSheetLine(
+            chords: lineChords,
+            transposeStep: widget.transposeStep,
+            baseTransposeOffset: widget.baseTransposeOffset,
+            chordAccidentalMode: widget.chordAccidentalMode,
+            textScale: widget.textScale,
+          ),
+        );
+      }
+      result.add(
+        Text(lines[i], textAlign: _resolveTextAlign(), style: lyricsStyle),
+      );
+    }
+    return result;
+  }
+
   MainAxisAlignment _resolveVerticalAlign() {
     switch (widget.verticalAlign) {
       case 'center':
@@ -936,8 +1123,9 @@ class _SongTextPageState extends State<_SongTextPage>
     final theme = Theme.of(context);
     final verses = widget.song.verses;
     final hasVerses = verses.isNotEmpty;
-    final safeIndex =
-        hasVerses ? widget.verseIndex.clamp(0, verses.length - 1) : 0;
+    final safeIndex = hasVerses
+        ? widget.verseIndex.clamp(0, verses.length - 1)
+        : 0;
     final currentVerse = hasVerses ? verses[safeIndex] : null;
 
     return GestureDetector(
@@ -1030,35 +1218,24 @@ class _SongTextPageState extends State<_SongTextPage>
                                               Text(
                                                 'Bait ${safeIndex + 1} dari ${verses.length}',
                                                 textAlign: _resolveTextAlign(),
-                                                style: theme
-                                                    .textTheme.bodySmall
+                                                style: theme.textTheme.bodySmall
                                                     ?.copyWith(
                                                       color: theme
                                                           .colorScheme
                                                           .primary
                                                           .withValues(
-                                                              alpha: 0.6),
+                                                            alpha: 0.6,
+                                                          ),
                                                       fontWeight:
                                                           FontWeight.w700,
                                                     ),
                                               ),
                                               const SizedBox(height: 16),
-                                              Text(
+                                              ..._buildVerseLines(
+                                                context,
                                                 currentVerse!,
-                                                textAlign: _resolveTextAlign(),
-                                                style: theme
-                                                    .textTheme.bodyLarge
-                                                    ?.copyWith(
-                                                      fontFamily:
-                                                          widget.fontFamily,
-                                                      fontSize:
-                                                          16 * widget.textScale,
-                                                      height: widget.textHeight,
-                                                      fontWeight: widget
-                                                              .fontBold
-                                                          ? FontWeight.w700
-                                                          : FontWeight.w400,
-                                                    ),
+                                                safeIndex,
+                                                verses.length,
                                               ),
                                             ],
                                           ),
@@ -1090,8 +1267,7 @@ class _SongTextPageState extends State<_SongTextPage>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     TextButton.icon(
-                      onPressed:
-                          safeIndex > 0 ? widget.onPreviousVerse : null,
+                      onPressed: safeIndex > 0 ? widget.onPreviousVerse : null,
                       icon: const Icon(Icons.keyboard_arrow_up, size: 20),
                       label: Text('Atas'.tr()),
                     ),
@@ -1229,6 +1405,7 @@ class _PageModeMenuButton extends StatefulWidget {
     required this.onFitPage,
     required this.onShare,
     required this.onOpenLyrics,
+    required this.onOpenChordSettings,
   });
 
   final SongCubit cubit;
@@ -1242,6 +1419,7 @@ class _PageModeMenuButton extends StatefulWidget {
   final VoidCallback onFitPage;
   final VoidCallback onShare;
   final VoidCallback onOpenLyrics;
+  final VoidCallback onOpenChordSettings;
 
   @override
   State<_PageModeMenuButton> createState() => _PageModeMenuButtonState();
@@ -1271,8 +1449,7 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
     if (renderBox == null || overlayBox == null) return;
 
     final btnSize = renderBox.size;
-    final btnPos =
-        renderBox.localToGlobal(Offset.zero, ancestor: overlayBox);
+    final btnPos = renderBox.localToGlobal(Offset.zero, ancestor: overlayBox);
 
     showGeneralDialog(
       context: btnContext,
@@ -1315,8 +1492,7 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
               child: FadeTransition(
                 opacity: curved,
                 child: ScaleTransition(
-                  scale:
-                      Tween<double>(begin: 0.82, end: 1.0).animate(curved),
+                  scale: Tween<double>(begin: 0.82, end: 1.0).animate(curved),
                   alignment: Alignment.topRight,
                   child: child,
                 ),
@@ -1334,7 +1510,11 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
   // dismiss the dialog before running its action.
   // ------------------------------------------------------------------
 
-  Widget _buildMenuBody(BuildContext context, {required SongState state, required VoidCallback onClose}) {
+  Widget _buildMenuBody(
+    BuildContext context, {
+    required SongState state,
+    required VoidCallback onClose,
+  }) {
     final colors = Theme.of(context).colorScheme;
     final isTwoPage = state.pdfTwoPageMode;
     final isVertical = state.pdfVerticalScrolling;
@@ -1390,9 +1570,7 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
                 _ModeButton(
                   icon: Icons.swap_vert_rounded,
                   label: '↓',
-                  tooltip: isSinglePage
-                      ? 'Hanya 1 halaman'
-                      : 'Scroll vertikal',
+                  tooltip: isSinglePage ? 'Hanya 1 halaman' : 'Scroll vertikal',
                   selected: isVertical,
                   disabled: isSinglePage,
                   onTap: isSinglePage
@@ -1419,14 +1597,10 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
                       ? Icons.music_note_rounded
                       : Icons.music_off_rounded,
                   label: 'Chord',
-                  tooltip: showChord
-                      ? 'Sembunyikan chord'
-                      : 'Tampilkan chord',
+                  tooltip: showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
                   selected: showChord,
                   disabled: !chordEnabled,
-                  onTap: chordEnabled
-                      ? () => widget.cubit.toggleChord()
-                      : null,
+                  onTap: chordEnabled ? () => widget.cubit.toggleChord() : null,
                 ),
                 _ModeButton(
                   icon: Icons.fit_screen_rounded,
@@ -1465,9 +1639,7 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
                       ? Icons.volume_up_rounded
                       : Icons.volume_off_rounded,
                   label: 'MIDI',
-                  tooltip: showAudio
-                      ? 'Sembunyikan MIDI'
-                      : 'Tampilkan MIDI',
+                  tooltip: showAudio ? 'Sembunyikan MIDI' : 'Tampilkan MIDI',
                   selected: showAudio,
                   onTap: () => widget.cubit.toggleAudio(),
                 ),
@@ -1495,6 +1667,27 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
                 ),
               ],
             ),
+            if (chordEnabled) ...[
+              const SizedBox(height: 6),
+              Divider(height: 1, thickness: 0.5),
+              const SizedBox(height: 6),
+              // Row 4 — chord overlay settings (only for chord-enabled books).
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _ModeButton(
+                    icon: Icons.tune_rounded,
+                    label: 'Chord',
+                    tooltip: 'chord_settings_title'.tr(),
+                    selected: false,
+                    onTap: () {
+                      onClose();
+                      widget.onOpenChordSettings();
+                    },
+                  ),
+                ],
+              ),
+            ],
           ],
         ),
       ),
@@ -1531,9 +1724,7 @@ class _ModeButton extends StatelessWidget {
     final isInactive = disabled;
     final fg = isInactive
         ? colors.onSurfaceVariant.withValues(alpha: 0.3)
-        : (selected
-              ? colors.onPrimaryContainer
-              : colors.onSurfaceVariant);
+        : (selected ? colors.onPrimaryContainer : colors.onSurfaceVariant);
     return Tooltip(
       message: tooltip,
       child: InkWell(
@@ -1553,8 +1744,8 @@ class _ModeButton extends StatelessWidget {
               color: isInactive
                   ? colors.outlineVariant.withValues(alpha: 0.2)
                   : (selected
-                      ? colors.primary
-                      : colors.outlineVariant.withValues(alpha: 0.6)),
+                        ? colors.primary
+                        : colors.outlineVariant.withValues(alpha: 0.6)),
               width: selected ? 1.5 : 0.6,
             ),
           ),
@@ -1574,6 +1765,86 @@ class _ModeButton extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// One lyric line with its chord names rendered above the text, aligned by
+/// proportional slots — the text-mode equivalent of gyschordweb's
+/// note-aligned chord overlay.
+class _ChordSheetLine extends StatelessWidget {
+  final List<ChordData> chords;
+  final int transposeStep;
+  final int baseTransposeOffset;
+  final String chordAccidentalMode;
+  final double textScale;
+
+  const _ChordSheetLine({
+    required this.chords,
+    required this.transposeStep,
+    required this.baseTransposeOffset,
+    required this.chordAccidentalMode,
+    required this.textScale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final chordFontSize = (12 * textScale).clamp(9.0, 20.0);
+    final chordHeight = chordFontSize + 6;
+
+    final labels = chords
+        .map(
+          (c) => ChordService.transposeChord(
+            c.chord,
+            transposeStep,
+            baseTransposeOffset: baseTransposeOffset,
+            accidentalMode: chordAccidentalMode,
+          ),
+        )
+        .toList();
+
+    return SizedBox(
+      height: chordHeight + 4,
+      width: double.infinity,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final width = constraints.maxWidth;
+          return Stack(
+            clipBehavior: Clip.none,
+            children: [
+              for (var i = 0; i < labels.length; i++)
+                Positioned(
+                  left: (chordFractionInLine(i, labels.length) * width)
+                      .clamp(0.0, (width - 40).clamp(0.0, width))
+                      .toDouble(),
+                  top: 0,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primaryContainer.withValues(
+                        alpha: 0.55,
+                      ),
+                      borderRadius: BorderRadius.circular(5),
+                    ),
+                    child: Text(
+                      labels[i],
+                      style: TextStyle(
+                        fontFamily: DesignSystem.fontHeading,
+                        fontSize: chordFontSize,
+                        fontWeight: FontWeight.w800,
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          );
+        },
       ),
     );
   }

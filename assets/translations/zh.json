@@ -46,6 +46,7 @@
   "Make sure your spellings is correct": "请确保您的拼写正确",
   "Correct your spellings or search another terms": "更正您的拼写或搜索其他词汇",
   "not found": "未找到{}",
+  "no_songs_found": "没有与搜索匹配的歌曲",
   "Search verses": "搜索经文",
   "Good morning": "早上好",
   "Good afternoon": "下午好",
@@ -118,6 +119,9 @@
   "offline_library": "离线资源库",
   "offline_library_desc": "在专用页面管理加密的圣经和赞美诗资源、查看 GitHub 最新发布、删除已安装资源并清理快速缓存。",
   "font_setting_title": "字体设置",
+  "font_setting_font": "字体",
+  "font_setting_text_size": "文字大小",
+  "font_setting_line_spacing": "行间距",
   "bible_filters_title": "圣经筛选",
   "bible_search_title": "圣经搜索",
   "faith_section_title": "信仰根基",
@@ -301,5 +305,12 @@
   "reset_chords_desc": "删除所有已下载的和弦，然后从 gyschordweb 重新下载。",
   "reset_chords_confirm": "删除所有已下载的和弦并从 gyschordweb 重新下载？",
   "chords_synced": "和弦已从 gyschordweb 更新",
-  "chords_sync_failed": "和弦同步失败"
+  "chords_sync_failed": "和弦同步失败",
+  "chord_settings_title": "和弦设置",
+  "chord_settings_size": "和弦大小",
+  "chord_settings_offset": "距音符数字的距离",
+  "chord_settings_padding": "徽章内边距",
+  "chord_settings_close": "近",
+  "chord_settings_far": "远",
+  "accent_custom": "自定义颜色"
 }

@@ -1,4 +1,4 @@
-﻿import '../../../components/components.dart';
+import '../../../components/components.dart';
 // ignore_for_file: constant_identifier_names
 // Enum values use snake_case for readability (e.g., sidebar_circle, flying_to_player)
 import 'dart:async';
@@ -108,103 +108,73 @@ class MidiInstrumentOption {
 /// Includes the patches most commonly used for congregational song
 /// accompaniment so the picker stays short and easy to scan.
 const List<MidiInstrumentFamily> kMidiInstrumentFamilies = [
-  MidiInstrumentFamily(
-    'Default',
-    [
-      MidiInstrumentOption(-1, 'Default (Acoustic Grand Piano)'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Piano',
-    [
-      MidiInstrumentOption(0, 'Acoustic Grand Piano'),
-      MidiInstrumentOption(1, 'Bright Acoustic Piano'),
-      MidiInstrumentOption(2, 'Electric Grand Piano'),
-      MidiInstrumentOption(4, 'Electric Piano 1'),
-      MidiInstrumentOption(5, 'Electric Piano 2'),
-      MidiInstrumentOption(6, 'Harpsichord'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Organ',
-    [
-      MidiInstrumentOption(16, 'Drawbar Organ'),
-      MidiInstrumentOption(19, 'Church Organ'),
-      MidiInstrumentOption(20, 'Reed Organ'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Guitar',
-    [
-      MidiInstrumentOption(24, 'Nylon Guitar'),
-      MidiInstrumentOption(25, 'Steel Guitar'),
-      MidiInstrumentOption(26, 'Jazz Guitar'),
-      MidiInstrumentOption(27, 'Clean Electric'),
-      MidiInstrumentOption(28, 'Muted Electric'),
-      MidiInstrumentOption(29, 'Overdriven'),
-      MidiInstrumentOption(30, 'Distortion'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Bass',
-    [
-      MidiInstrumentOption(32, 'Acoustic Bass'),
-      MidiInstrumentOption(33, 'Fingered Bass'),
-      MidiInstrumentOption(34, 'Picked Bass'),
-      MidiInstrumentOption(36, 'Slap Bass 1'),
-      MidiInstrumentOption(39, 'Synth Bass 1'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Strings',
-    [
-      MidiInstrumentOption(40, 'Violin'),
-      MidiInstrumentOption(41, 'Viola'),
-      MidiInstrumentOption(42, 'Cello'),
-      MidiInstrumentOption(46, 'Orchestral Harp'),
-      MidiInstrumentOption(48, 'String Ensemble'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Brass',
-    [
-      MidiInstrumentOption(56, 'Trumpet'),
-      MidiInstrumentOption(57, 'Trombone'),
-      MidiInstrumentOption(58, 'Tuba'),
-      MidiInstrumentOption(60, 'French Horn'),
-      MidiInstrumentOption(61, 'Brass Section'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Reed / Sax',
-    [
-      MidiInstrumentOption(65, 'Alto Sax'),
-      MidiInstrumentOption(66, 'Tenor Sax'),
-      MidiInstrumentOption(67, 'Baritone Sax'),
-      MidiInstrumentOption(68, 'Oboe'),
-      MidiInstrumentOption(71, 'Clarinet'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Flute',
-    [
-      MidiInstrumentOption(72, 'Piccolo'),
-      MidiInstrumentOption(73, 'Flute'),
-      MidiInstrumentOption(74, 'Recorder'),
-      MidiInstrumentOption(75, 'Pan Flute'),
-    ],
-  ),
-  MidiInstrumentFamily(
-    'Synth',
-    [
-      MidiInstrumentOption(80, 'Square Lead'),
-      MidiInstrumentOption(81, 'Sawtooth Lead'),
-      MidiInstrumentOption(88, 'New Age Pad'),
-      MidiInstrumentOption(89, 'Warm Pad'),
-      MidiInstrumentOption(90, 'Polysynth Pad'),
-      MidiInstrumentOption(91, 'Choir Pad'),
-    ],
-  ),
+  MidiInstrumentFamily('Default', [
+    MidiInstrumentOption(-1, 'Default (Acoustic Grand Piano)'),
+  ]),
+  MidiInstrumentFamily('Piano', [
+    MidiInstrumentOption(0, 'Acoustic Grand Piano'),
+    MidiInstrumentOption(1, 'Bright Acoustic Piano'),
+    MidiInstrumentOption(2, 'Electric Grand Piano'),
+    MidiInstrumentOption(4, 'Electric Piano 1'),
+    MidiInstrumentOption(5, 'Electric Piano 2'),
+    MidiInstrumentOption(6, 'Harpsichord'),
+  ]),
+  MidiInstrumentFamily('Organ', [
+    MidiInstrumentOption(16, 'Drawbar Organ'),
+    MidiInstrumentOption(19, 'Church Organ'),
+    MidiInstrumentOption(20, 'Reed Organ'),
+  ]),
+  MidiInstrumentFamily('Guitar', [
+    MidiInstrumentOption(24, 'Nylon Guitar'),
+    MidiInstrumentOption(25, 'Steel Guitar'),
+    MidiInstrumentOption(26, 'Jazz Guitar'),
+    MidiInstrumentOption(27, 'Clean Electric'),
+    MidiInstrumentOption(28, 'Muted Electric'),
+    MidiInstrumentOption(29, 'Overdriven'),
+    MidiInstrumentOption(30, 'Distortion'),
+  ]),
+  MidiInstrumentFamily('Bass', [
+    MidiInstrumentOption(32, 'Acoustic Bass'),
+    MidiInstrumentOption(33, 'Fingered Bass'),
+    MidiInstrumentOption(34, 'Picked Bass'),
+    MidiInstrumentOption(36, 'Slap Bass 1'),
+    MidiInstrumentOption(39, 'Synth Bass 1'),
+  ]),
+  MidiInstrumentFamily('Strings', [
+    MidiInstrumentOption(40, 'Violin'),
+    MidiInstrumentOption(41, 'Viola'),
+    MidiInstrumentOption(42, 'Cello'),
+    MidiInstrumentOption(46, 'Orchestral Harp'),
+    MidiInstrumentOption(48, 'String Ensemble'),
+  ]),
+  MidiInstrumentFamily('Brass', [
+    MidiInstrumentOption(56, 'Trumpet'),
+    MidiInstrumentOption(57, 'Trombone'),
+    MidiInstrumentOption(58, 'Tuba'),
+    MidiInstrumentOption(60, 'French Horn'),
+    MidiInstrumentOption(61, 'Brass Section'),
+  ]),
+  MidiInstrumentFamily('Reed / Sax', [
+    MidiInstrumentOption(65, 'Alto Sax'),
+    MidiInstrumentOption(66, 'Tenor Sax'),
+    MidiInstrumentOption(67, 'Baritone Sax'),
+    MidiInstrumentOption(68, 'Oboe'),
+    MidiInstrumentOption(71, 'Clarinet'),
+  ]),
+  MidiInstrumentFamily('Flute', [
+    MidiInstrumentOption(72, 'Piccolo'),
+    MidiInstrumentOption(73, 'Flute'),
+    MidiInstrumentOption(74, 'Recorder'),
+    MidiInstrumentOption(75, 'Pan Flute'),
+  ]),
+  MidiInstrumentFamily('Synth', [
+    MidiInstrumentOption(80, 'Square Lead'),
+    MidiInstrumentOption(81, 'Sawtooth Lead'),
+    MidiInstrumentOption(88, 'New Age Pad'),
+    MidiInstrumentOption(89, 'Warm Pad'),
+    MidiInstrumentOption(90, 'Polysynth Pad'),
+    MidiInstrumentOption(91, 'Choir Pad'),
+  ]),
 ];
 
 class MidiInstrumentFamily {
@@ -345,10 +315,12 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   // only rebuild the position-dependent parts of the widget tree (via
   // ValueListenableBuilder) instead of triggering a full State rebuild
   // on every pointer event.  This is what keeps the drag feeling smooth.
-  final ValueNotifier<double> _sidebarX =
-      ValueNotifier<double>(1.0); // 0 = left, 1 = right edge
-  final ValueNotifier<double> _sidebarY =
-      ValueNotifier<double>(0.5); // 0 = top, 1 = bottom (normalised)
+  final ValueNotifier<double> _sidebarX = ValueNotifier<double>(
+    1.0,
+  ); // 0 = left, 1 = right edge
+  final ValueNotifier<double> _sidebarY = ValueNotifier<double>(
+    0.5,
+  ); // 0 = top, 1 = bottom (normalised)
 
   // Animation controllers
   late final AnimationController _flyController; // fly between sidebar ↔ player
@@ -458,8 +430,11 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     // Slight overshoot makes the pop-up feel "popped" without feeling bouncy.
     _dragPopAnimation = Tween<double>(begin: 1.0, end: kMidiDragPopScale)
         .animate(
-      CurvedAnimation(parent: _dragPopController, curve: Curves.easeOutBack),
-    );
+          CurvedAnimation(
+            parent: _dragPopController,
+            curve: Curves.easeOutBack,
+          ),
+        );
 
     // Determine initial state based on isExpanded
     final initiallyExpanded = widget.isExpanded ?? false;
@@ -660,7 +635,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     widget.onExpandedChanged?.call(false);
 
     _morphController.reverse(from: _morphController.value).then((_) {
-      if (!mounted || _animationState != MidiPlayerAnimationState.collapsing_player) {
+      if (!mounted ||
+          _animationState != MidiPlayerAnimationState.collapsing_player) {
         return;
       }
       _animationState = MidiPlayerAnimationState.flying_to_sidebar;
@@ -683,7 +659,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
   /// Target snap position (0 = left, 1 = right) based on current X
   double get _targetSnapX {
     if (_screenWidth <= 0) return _sidebarX.value;
-    final actualLeft = kMidiCircleMargin +
+    final actualLeft =
+        kMidiCircleMargin +
         (_sidebarX.value *
             (_screenWidth - kMidiSidebarWidth - kMidiCircleMargin * 2));
     final centerX = actualLeft + (kMidiSidebarWidth / 2);
@@ -705,19 +682,17 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     final left = x <= 0.03
         ? -halfWidth + peek
         : x >= 0.97
-            ? _screenWidth - halfWidth - peek
-            : sliderLeft.clamp(peek, _screenWidth - kMidiSidebarWidth - peek);
+        ? _screenWidth - halfWidth - peek
+        : sliderLeft.clamp(peek, _screenWidth - kMidiSidebarWidth - peek);
 
     final maxBottom = _screenHeight * 0.75;
-    final minBottom =
-        kMidiCircleMargin + _bottomInset + kMidiNavBarReserve;
+    final minBottom = kMidiCircleMargin + _bottomInset + kMidiNavBarReserve;
     final bottom = minBottom + (y * (maxBottom - minBottom));
 
     return Offset(left, bottom);
   }
 
-  Offset get _playerPosition =>
-      Offset(_playerLeft, kMidiNavBarReserve);
+  Offset get _playerPosition => Offset(_playerLeft, kMidiNavBarReserve);
 
   Size get _playerSize => Size(_playerWidth, kMidiExpandedTotalHeight);
 
@@ -731,13 +706,19 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         return _effectiveSidebarPosition;
       case MidiPlayerAnimationState.flying_to_player:
         return Offset.lerp(
-            _effectiveSidebarPosition, _playerPosition, _flyAnimation.value)!;
+          _effectiveSidebarPosition,
+          _playerPosition,
+          _flyAnimation.value,
+        )!;
       case MidiPlayerAnimationState.flying_to_sidebar:
         // Depart from the player slot itself and travel straight to the
         // sidebar button while shrinking — one continuous motion, never
         // dipping toward the nav bar.
         return Offset.lerp(
-            _playerPosition, _effectiveSidebarPosition, _flyAnimation.value)!;
+          _playerPosition,
+          _effectiveSidebarPosition,
+          _flyAnimation.value,
+        )!;
       case MidiPlayerAnimationState.expanding_player:
       case MidiPlayerAnimationState.expanded_player:
         return _playerPosition;
@@ -777,6 +758,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         // clean "fly then bloom" instead of a blob growing mid-flight.
         return _sidebarSize;
       case MidiPlayerAnimationState.expanding_player:
+        // Bloom: the surface grows from pill to full player as it lands
+        // (morph 0→1). Without this, the size jumped to the full player
+        // instantly — a hard "pop" instead of an animated maximize.
+        return Size.lerp(_sidebarSize, _playerSize, _morphAnimation.value)!;
       case MidiPlayerAnimationState.expanded_player:
         return _playerSize;
       case MidiPlayerAnimationState.collapsing_player:
@@ -860,9 +845,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                           padding: const EdgeInsets.fromLTRB(20, 12, 20, 4),
                           child: Text(
                             family.label.toUpperCase(),
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: colors.primary,
                                   fontWeight: FontWeight.w800,
@@ -880,9 +863,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                                     color: colors.primary,
                                   )
                                 : null,
-                            onTap: () => Navigator.of(sheetContext).pop(
-                              option.program == -1 ? null : option.program,
-                            ),
+                            onTap: () => Navigator.of(
+                              sheetContext,
+                            ).pop(option.program == -1 ? null : option.program),
                           ),
                       ],
                     );
@@ -1081,20 +1064,20 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                     _snapController,
                   ]),
                   builder: (context, _) {
-            final position = _currentPosition;
-            final size = _currentSize;
-            final borderRadius = _currentBorderRadius;
+                    final position = _currentPosition;
+                    final size = _currentSize;
+                    final borderRadius = _currentBorderRadius;
                     final dragScale = _dragPopAnimation.value;
                     final bounceScale =
                         _animationState ==
-                                MidiPlayerAnimationState.sidebar_circle
-                            ? (widget.isPlaying
-                                ? 0.95 +
-                                    (_bounceAnimation.value * 0.1)
-                                : 1.0)
-                            : 1.0;
-                    final showHeader = _animationState ==
-                        MidiPlayerAnimationState.expanding_player ||
+                            MidiPlayerAnimationState.sidebar_circle
+                        ? (widget.isPlaying
+                              ? 0.95 + (_bounceAnimation.value * 0.1)
+                              : 1.0)
+                        : 1.0;
+                    final showHeader =
+                        _animationState ==
+                            MidiPlayerAnimationState.expanding_player ||
                         _animationState ==
                             MidiPlayerAnimationState.expanded_player;
 
@@ -1113,6 +1096,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                             scale: dragScale * bounceScale,
                             child: _AnimatedMorphSurface(
                               size: size,
+                              fullSize: _playerSize,
                               borderRadius: borderRadius,
                               colors: colors,
                               showHeader: showHeader,
@@ -1120,8 +1104,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                               headerBuilder: (_) => _buildHeader(colors),
                               controlsBuilder: (ctx) =>
                                   _buildExpandedControls(ctx, colors),
-                              circleBuilder: (_) =>
-                                  _buildCircleContent(colors),
+                              circleBuilder: (_) => _buildCircleContent(colors),
                             ),
                           ),
                         ),
@@ -1186,8 +1169,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 
   void _updateDragPosition(Offset delta) {
     if (_screenWidth <= 0 || _screenHeight <= 0) return;
-    final dx = delta.dx /
-        (_screenWidth - kMidiSidebarWidth - kMidiCircleMargin * 2);
+    final dx =
+        delta.dx / (_screenWidth - kMidiSidebarWidth - kMidiCircleMargin * 2);
     // Negate dy because Positioned.bottom measures from the bottom of the
     // parent, while drag deltas use screen coordinates (y grows downward).
     // Without negation, dragging up moves the circle down (inverted).
@@ -1232,9 +1215,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     // equalizer when playback toggles, and the equalizer rebuilds every
     // frame — both push orphan a11y-tree updates (AXTree spam).  The
     // whole pill is decorative; the expanded player carries the controls.
-    return ExcludeSemantics(
-      child: _buildCircleIcon(colors),
-    );
+    return ExcludeSemantics(child: _buildCircleIcon(colors));
   }
 
   Widget _buildCircleIcon(ColorScheme colors) {
@@ -1267,11 +1248,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       );
     }
     return Center(
-      child: Icon(
-        Icons.play_arrow_rounded,
-        size: 26,
-        color: colors.onPrimary,
-      ),
+      child: Icon(Icons.play_arrow_rounded, size: 26, color: colors.onPrimary),
     );
   }
 
@@ -1330,11 +1307,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                   ),
                 ),
               ),
-              Icon(
-                Icons.expand_more,
-                size: 20,
-                color: colors.onPrimary,
-              ),
+              Icon(Icons.expand_more, size: 20, color: colors.onPrimary),
             ],
           ),
         ),
@@ -1392,6 +1365,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           child: _MidiSeekSlider(
             position: _positionNotifier,
             duration: _durationNotifier,
+            isPlaying: widget.isPlaying,
             onSeek: widget.onSeek,
           ),
         ),
@@ -1413,9 +1387,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                   child: Text(
                     '${_formatTime(position)} / ${_formatTime(duration)}',
                     style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                          letterSpacing: 0.1,
-                        ),
+                      color: colors.onSurfaceVariant,
+                      letterSpacing: 0.1,
+                    ),
                   ),
                 );
               },
@@ -1522,9 +1496,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
               softWrap: false,
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w700,
-                  ),
+                color: colors.onSurfaceVariant,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
         ],
@@ -1579,9 +1553,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             icon: widget.showChord
                 ? Icons.music_note_rounded
                 : Icons.music_off_rounded,
-            color: widget.showChord
-                ? colors.primary
-                : colors.onSurfaceVariant,
+            color: widget.showChord ? colors.primary : colors.onSurfaceVariant,
             tooltip: widget.showChord ? 'Sembunyikan chord' : 'Tampilkan chord',
           ),
         _AnimatedIconButton(
@@ -1614,6 +1586,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
 class _AnimatedMorphSurface extends StatelessWidget {
   const _AnimatedMorphSurface({
     required this.size,
+    required this.fullSize,
     required this.borderRadius,
     required this.colors,
     required this.showHeader,
@@ -1624,6 +1597,12 @@ class _AnimatedMorphSurface extends StatelessWidget {
   });
 
   final Size size;
+
+  /// Full player size. The expanded content is laid out at this size and
+  /// clipped by the surface's ClipRRect while the surface grows/shrinks,
+  /// so the bloom animation never runs the flex layout at intermediate
+  /// (too-small) sizes (no RenderFlex overflow).
+  final Size fullSize;
   final BorderRadius borderRadius;
   final ColorScheme colors;
   final bool showHeader;
@@ -1671,6 +1650,7 @@ class _AnimatedMorphSurface extends StatelessWidget {
           ),
           child: _MorphContent(
             showHeader: showHeader,
+            fullSize: fullSize,
             contentVersion: contentVersion,
             headerBuilder: headerBuilder,
             controlsBuilder: controlsBuilder,
@@ -1698,6 +1678,7 @@ class _AnimatedMorphSurface extends StatelessWidget {
 class _MorphContent extends StatefulWidget {
   const _MorphContent({
     required this.showHeader,
+    required this.fullSize,
     required this.contentVersion,
     required this.headerBuilder,
     required this.controlsBuilder,
@@ -1705,6 +1686,7 @@ class _MorphContent extends StatefulWidget {
   });
 
   final bool showHeader;
+  final Size fullSize;
   final int contentVersion;
   final Widget Function(BuildContext) headerBuilder;
   final Widget Function(BuildContext) controlsBuilder;
@@ -1735,19 +1717,30 @@ class _MorphContentState extends State<_MorphContent> {
     }
     return Material(
       color: Colors.transparent,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            height: kMidiExpandedHeaderHeight,
-            child: widget.headerBuilder(context),
-          ),
-          SizedBox(
-            height: kMidiExpandedControlsHeight,
-            child: widget.controlsBuilder(context),
-          ),
-        ],
+      // Lay the expanded content out at the full player size and clip it
+      // to the current surface: while the surface blooms from pill to
+      // player the controls stay at their final layout (no flex overflow
+      // at intermediate sizes) and are progressively revealed.  bottomLeft
+      // keeps the content anchored to the fixed bottom-left corner of the
+      // player slot, so the bloom reads as the player rising from the dock.
+      child: OverflowBox(
+        alignment: Alignment.bottomLeft,
+        maxWidth: widget.fullSize.width,
+        maxHeight: widget.fullSize.height,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              height: kMidiExpandedHeaderHeight,
+              child: widget.headerBuilder(context),
+            ),
+            SizedBox(
+              height: kMidiExpandedControlsHeight,
+              child: widget.controlsBuilder(context),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1817,8 +1810,7 @@ class _AnimatedPlayButtonState extends State<_AnimatedPlayButton> {
                   height: 16,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    valueColor:
-                        AlwaysStoppedAnimation(widget.colors.onPrimary),
+                    valueColor: AlwaysStoppedAnimation(widget.colors.onPrimary),
                   ),
                 )
               : AnimatedSwitcher(
@@ -1883,11 +1875,7 @@ class _AnimatedIconButtonState extends State<_AnimatedIconButton> {
         child: SizedBox(
           width: 28,
           height: 28,
-          child: Icon(
-            widget.icon,
-            size: 18,
-            color: widget.color,
-          ),
+          child: Icon(widget.icon, size: 18, color: widget.color),
         ),
       ),
     );
@@ -1944,49 +1932,66 @@ class _MidiSeekSlider extends StatefulWidget {
   const _MidiSeekSlider({
     required this.position,
     required this.duration,
+    required this.isPlaying,
     required this.onSeek,
   });
 
   final ValueListenable<double> position;
   final ValueListenable<double> duration;
+  final bool isPlaying;
   final ValueChanged<double> onSeek;
 
   @override
   State<_MidiSeekSlider> createState() => _MidiSeekSliderState();
 }
 
-class _MidiSeekSliderState extends State<_MidiSeekSlider> {
+class _MidiSeekSliderState extends State<_MidiSeekSlider>
+    with SingleTickerProviderStateMixin {
   double? _dragSeekValue;
   double? _pendingSeekValue;
 
-  // Cached theme — avoids re-creating SliderThemeData on every tick.
-  SliderThemeData? _sliderTheme;
+  // Gentle "breathing" while playing: the active track swells and fades
+  // instead of sitting static.  Paused, the pulse parks at 1.0 (full).
+  late final AnimationController _pulseController = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  );
+  late final Animation<double> _pulse = Tween<double>(
+    begin: 0.65,
+    end: 1.0,
+  ).animate(CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut));
 
   @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    final colors = Theme.of(context).colorScheme;
-    _sliderTheme = SliderTheme.of(context).copyWith(
-      thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
-      overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
-      trackHeight: 5,
-      // Subtle glow on the thumb so the seek handle feels alive.
-      thumbColor: colors.onPrimary,
-      activeTrackColor: colors.onPrimary,
-      inactiveTrackColor: colors.onPrimary.withValues(alpha: 0.3),
-      overlayColor: colors.onPrimary.withValues(alpha: 0.12),
-    );
+  void initState() {
+    super.initState();
+    if (widget.isPlaying) {
+      _pulseController.repeat(reverse: true);
+    }
   }
 
   @override
   void didUpdateWidget(_MidiSeekSlider oldWidget) {
     super.didUpdateWidget(oldWidget);
+    if (oldWidget.isPlaying != widget.isPlaying) {
+      if (widget.isPlaying) {
+        _pulseController.repeat(reverse: true);
+      } else {
+        _pulseController.stop();
+        _pulseController.value = 1.0;
+      }
+    }
     final pending = _pendingSeekValue;
     if (pending != null &&
         (widget.duration.value <= 0 ||
             (widget.position.value - pending).abs() <= 0.35)) {
       _pendingSeekValue = null;
     }
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   @override
@@ -2008,7 +2013,6 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider> {
     final value = _dragSeekValue ?? _pendingSeekValue ?? position;
     final sliderValue = duration > 0 ? value.clamp(0.0, duration) : 0.0;
 
-    final theme = _sliderTheme;
     final slider = Slider(
       value: sliderValue,
       max: duration > 0 ? duration : 1,
@@ -2034,7 +2038,30 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider> {
     // accessibility_bridge.cc.  Gestures still work — only the a11y node
     // is dropped.
     return ExcludeSemantics(
-      child: theme == null ? slider : SliderTheme(data: theme, child: slider),
+      // The pulse drives a rebuild per frame while playing, so the
+      // theme is rebuilt here (cheap) rather than cached.
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, _) {
+          final colors = Theme.of(context).colorScheme;
+          final pulse = _pulse.value;
+          // Accent palette: the seekbar follows the theme accent
+          // (primary), and stays visible on the light controls card
+          // (onPrimary was white-on-white there).
+          final theme = SliderTheme.of(context).copyWith(
+            thumbShape: RoundSliderThumbShape(
+              enabledThumbRadius: 5.5 + 0.5 * pulse,
+            ),
+            overlayShape: const RoundSliderOverlayShape(overlayRadius: 12),
+            trackHeight: 5,
+            thumbColor: colors.primary,
+            activeTrackColor: colors.primary.withValues(alpha: pulse),
+            inactiveTrackColor: colors.primary.withValues(alpha: 0.22),
+            overlayColor: colors.primary.withValues(alpha: 0.12),
+          );
+          return SliderTheme(data: theme, child: slider);
+        },
+      ),
     );
   }
 }

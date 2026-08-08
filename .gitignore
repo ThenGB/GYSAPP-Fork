@@ -43,6 +43,9 @@ doc/api/
 .serena/
 .playwright-mcp/
 marionette-mcp/
+.reasonix/
+reasonix.toml
+.mcp.json
 
 # Node.js (ECC plugin for opencode)
 node_modules/

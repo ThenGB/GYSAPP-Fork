@@ -3,9 +3,11 @@ import 'dart:io';
 
 import 'package:chaleno/chaleno.dart';
 import 'package:dio/dio.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart'
+    show getApplicationDocumentsDirectory, getApplicationSupportDirectory, getTemporaryDirectory;
 
 import '../data/data.dart';
 
@@ -27,7 +29,15 @@ void _blocs() {
   di.registerFactory(() => HomeCubit(di(), di()));
   di.registerFactory(() => InitialCubit());
   di.registerFactory(() => DashboardCubit(di()));
-  di.registerFactory(() => BibleCubit());
+  // Lazy singleton: the Bible tab (BlocProvider(create: di())) and the
+  // version management page (di<BibleCubit>()) must share ONE instance —
+  // a factory here silently created two, so downloading/selecting a version
+  // in Settings never reached the open Bible pane.  It must be LAZY: the
+  // constructor opens the sqlite FFI database, and doing that during
+  // setupInjection (before the engine is running) deadlocks on the isolate
+  // spawn.  First access happens from the dashboard at first frame, when
+  // the FFI isolate can start.
+  di.registerLazySingleton<BibleCubit>(() => BibleCubit());
   di.registerFactory(() => LiteratureKesaksianCubit(di()));
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
@@ -41,11 +51,31 @@ void _blocs() {
 }
 
 Future<void> _utils(AppConfig appConfig) async {
-  // Use hardcoded paths instead of platform channel calls (avoids hang)
-  const base = '/data/data/id.sch.kanaan.egys';
-  final document = '$base/files';
-  final cache = '$base/cache';
-  final support = '$base/files';
+  // Native Android keeps its known app-data layout.  Other platforms get
+  // real, platform-correct directories from path_provider — the previous
+  // hardcoded '/data/data/id.sch.kanaan.egys' made every download (and
+  // HydratedBloc state) land in a nonexistent directory on desktop/iOS.
+  late final String document;
+  late final String cache;
+  late final String support;
+  if (kIsWeb) {
+    // Web has no file system; AppDirectory is only used by native paths.
+    document = 'web/files';
+    cache = 'web/cache';
+    support = 'web/files';
+  } else if (Platform.isAndroid) {
+    const base = '/data/data/id.sch.kanaan.egys';
+    document = '$base/files';
+    cache = '$base/cache';
+    support = '$base/files';
+  } else {
+    final documents = await getApplicationDocumentsDirectory();
+    final temp = await getTemporaryDirectory();
+    final appSupport = await getApplicationSupportDirectory();
+    document = documents.path;
+    cache = temp.path;
+    support = appSupport.path;
+  }
   di.registerSingleton(AppDirectory(document, cache, support));
   di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());
@@ -71,8 +101,14 @@ void _services() {
     () => ChordSyncService(di<AppDirectory>(), http.Client()),
   );
   di.registerLazySingleton(
+    () => InstalledAssetStoreHolder.store ?? createInstalledAssetStore(
+      '${di<AppDirectory>().support}/installed_assets',
+    ),
+  );
+  di.registerLazySingleton(
     () => InstalledAssetRegistry(
       supportDirectory: Directory(di<AppDirectory>().support),
+      store: di<InstalledAssetStore>(),
     ),
   );
   di.registerLazySingleton(() => EncryptedAssetPackageService());
@@ -84,7 +120,14 @@ void _services() {
     () => LocalAssetService(di(), installedAssetRegistry: di()),
   );
   di.registerLazySingleton(
-    () => AssetDistributionService(di(), di(), di(), di(), di(), di()),
+    () => AssetDistributionService(
+      di(),
+      di(),
+      di(),
+      di(),
+      di(),
+      di<InstalledAssetStore>(),
+    ),
   );
 
   di.registerLazySingleton(
@@ -93,7 +136,9 @@ void _services() {
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
   );
-  di.registerLazySingleton(() => OurMannnaService(di<Dio>(), di(), di(), di<AppDirectory>()));
+  di.registerLazySingleton(
+    () => OurMannnaService(di<Dio>(), di(), di()),
+  );
 }
 
 void _repositories() {
