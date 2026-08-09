@@ -10,8 +10,8 @@ import 'package:path_provider/path_provider.dart'
 /// Lightweight HydratedBloc storage for native platforms.
 ///
 /// State is kept in memory after startup and mirrored to small JSON files.
-/// Release builds avoid per-read/write developer logging and writes do not
-/// force an fsync for every state mutation.
+/// User-facing state must survive an abrupt process kill, so writes are
+/// explicitly flushed to disk before the storage call completes.
 class FastFileStorage implements Storage {
   static const String _blocStatePrefix = '__bloc_';
 
@@ -121,8 +121,12 @@ class FastFileStorage implements Storage {
     if (!_initialized) await init();
     final encoded = value is String ? value : jsonEncode(value);
     _memoryCache[key] = encoded;
-    // HydratedBloc can persist frequently. `flush: true` forces a physical
-    // disk sync for every mutation and causes avoidable I/O stalls.
-    await _file(key).writeAsString(encoded, flush: false);
+
+    // Hydrated state contains user preferences (reader layout, chord/MIDI
+    // options, etc.). `flush: false` can leave a recent write only in the OS
+    // page cache, so killing the app immediately after changing a setting may
+    // restore the previous value on the next launch. Flush each small state
+    // file before reporting the write as completed.
+    await _file(key).writeAsString(encoded, flush: true);
   }
 }
