@@ -7,9 +7,11 @@ import 'package:church/data/services/installed_bible_db.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
+import '../../../helpers/bible_db_fixture.dart';
+
 /// Runs the exact 5-query content load that BibleCubit.getContent performs
-/// against the real downloaded KJV database, to reproduce an empty Bible
-/// pane for non-TB versions.
+/// against an installed non-bundled Bible database. The fixture is generated
+/// during the test so the regression stays reproducible on clean checkouts.
 void main() {
   late Directory supportDir;
 
@@ -28,16 +30,14 @@ void main() {
     }
   });
 
-  test('getContent 5-query load on b_kjv.db returns Genesis 1', () async {
-    final sourceDb = File('Original Alkitab DB/b_kjv.db');
-    expect(sourceDb.existsSync(), isTrue);
-
+  test('getContent 5-query load on installed Bible returns Genesis 1', () async {
     final registry = InstalledAssetRegistry(supportDirectory: supportDir);
     InstalledBibleDb.debugUseRegistry(registry);
     final bibleFolder = Directory('${supportDir.path}/installed_assets/bible');
     await bibleFolder.create(recursive: true);
-    await File('${bibleFolder.path}/b_kjv.db')
-        .writeAsBytes(await sourceDb.readAsBytes());
+    final installedPath = '${bibleFolder.path}/b_kjv.db';
+    await createBibleDbFixture(installedPath);
+
     await registry.saveInstalled(
       const InstalledAssetRecord(
         kind: DistributedAssetKind.bible,
@@ -49,11 +49,10 @@ void main() {
     );
 
     final db = await InstalledBibleDb.open('b_kjv', readOnly: true);
-    expect(db, isNotNull, reason: 'b_kjv.db must open');
+    expect(db, isNotNull, reason: 'installed Bible database must open');
     final openedDb = db as Database;
     final repository = BibleRepositoryImpl();
 
-    // Mirrors bible_cubit.dart getContent Future.wait for the DB branch.
     final results = await Future.wait([
       repository.getVerses(openedDb, bookId: 1, chapterId: 1),
       repository.getBooks(openedDb),
@@ -65,10 +64,10 @@ void main() {
     final verses = results[0] as List;
     final books = results[1] as List;
 
-    expect(verses, isNotEmpty, reason: 'Genesis 1 must exist in KJV');
+    expect(verses, isNotEmpty, reason: 'Genesis 1 must exist in fixture');
     expect((verses.first as dynamic).verseId, 1);
     expect(books, isNotEmpty, reason: 'book list must load');
-    expect(books.length, greaterThanOrEqualTo(39));
+    expect(books.length, 66);
 
     await openedDb.close();
   });

@@ -17,7 +17,6 @@ ThemeData darkTheme(
   TypographyScale typographyScale = TypographyScale.normal,
 }) {
   final colorScheme = darkHymnalColorScheme(accentKey, customSeed: customSeed);
-
   final visualDensity = switch (density) {
     DisplayDensity.compact => VisualDensity.compact,
     DisplayDensity.standard => VisualDensity.standard,
@@ -100,35 +99,35 @@ ThemeData darkTheme(
           headlineLarge: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: fs(32),
+            fontSize: fs(38),
             height: 1.12,
             color: colorScheme.onSurface,
           ),
           headlineMedium: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: fs(28),
+            fontSize: fs(32),
             height: 1.16,
             color: colorScheme.onSurface,
           ),
           headlineSmall: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: fs(24),
+            fontSize: fs(27),
             height: 1.2,
             color: colorScheme.onSurface,
           ),
           titleLarge: TextStyle(
             fontFamily: _hymnalHeadingFont,
             fontWeight: FontWeight.w700,
-            fontSize: fs(20),
+            fontSize: fs(23),
             height: 1.22,
             color: colorScheme.onSurface,
           ),
           titleMedium: TextStyle(
             fontFamily: _hymnalUiFont,
-            fontWeight: FontWeight.w600,
-            fontSize: fs(16),
+            fontWeight: FontWeight.w700,
+            fontSize: fs(17),
             height: 1.34,
             color: colorScheme.onSurface,
           ),
@@ -136,20 +135,20 @@ ThemeData darkTheme(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w500,
             fontSize: fs(16),
-            height: 1.5,
+            height: 1.55,
             color: colorScheme.onSurface,
           ),
           bodyMedium: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w500,
-            fontSize: fs(14),
+            fontSize: fs(15),
             height: 1.5,
             color: colorScheme.onSurface,
           ),
           labelSmall: TextStyle(
             fontFamily: _hymnalUiFont,
             fontWeight: FontWeight.w700,
-            fontSize: fs(11),
+            fontSize: fs(12),
             height: 1.3,
             letterSpacing: 1.0,
             color: colorScheme.onSurfaceVariant,
@@ -175,7 +174,7 @@ ThemeData darkTheme(
     filledButtonTheme: FilledButtonThemeData(
       style: FilledButton.styleFrom(
         backgroundColor: colorScheme.primary,
-        foregroundColor: Colors.white,
+        foregroundColor: colorScheme.onPrimary,
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         textStyle: TextStyle(
@@ -183,7 +182,7 @@ ThemeData darkTheme(
           fontSize: fs(15),
           fontWeight: FontWeight.w700,
         ),
-        shape: RoundedRectangleBorder(borderRadius: r(8)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -192,16 +191,16 @@ ThemeData darkTheme(
         side: BorderSide(color: colorScheme.outlineVariant),
         minimumSize: const Size(0, 48),
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-        shape: RoundedRectangleBorder(borderRadius: r(8)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         elevation: 0,
         backgroundColor: colorScheme.primaryContainer,
-        foregroundColor: colorScheme.onSurface,
+        foregroundColor: colorScheme.onPrimaryContainer,
         minimumSize: const Size(0, 48),
-        shape: RoundedRectangleBorder(borderRadius: r(8)),
+        shape: RoundedRectangleBorder(borderRadius: r(16)),
       ),
     ),
     buttonTheme: const ButtonThemeData(textTheme: ButtonTextTheme.primary),
@@ -275,7 +274,7 @@ ThemeData darkTheme(
       height: 64,
       backgroundColor: Colors.transparent,
       surfaceTintColor: Colors.transparent,
-      indicatorColor: colorScheme.primary.withValues(alpha: 0.2),
+      indicatorColor: colorScheme.primary.withValues(alpha: 0.15),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
         final selected = states.contains(WidgetState.selected);
@@ -303,19 +302,19 @@ ThemeData darkTheme(
       selectedLabelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
         fontSize: fs(11),
-        fontWeight: FontWeight.w600,
+        fontWeight: FontWeight.w700,
       ),
       unselectedLabelStyle: TextStyle(
         fontFamily: _hymnalUiFont,
         fontSize: fs(11),
-        fontWeight: FontWeight.w500,
+        fontWeight: FontWeight.w700,
       ),
     ),
     bottomSheetTheme: BottomSheetThemeData(
       backgroundColor: colorScheme.surface,
       surfaceTintColor: Colors.transparent,
       modalBackgroundColor: colorScheme.surface,
-      modalBarrierColor: Colors.black.withValues(alpha: 0.2),
+      modalBarrierColor: Colors.black.withValues(alpha: 0.26),
       showDragHandle: true,
       dragHandleColor: colorScheme.outlineVariant,
       shape: const RoundedRectangleBorder(
@@ -328,7 +327,7 @@ ThemeData darkTheme(
       shape: RoundedRectangleBorder(borderRadius: r(20)),
     ),
     popupMenuTheme: PopupMenuThemeData(
-      color: colorScheme.surfaceContainerLow,
+      color: colorScheme.surfaceContainerLowest,
       surfaceTintColor: Colors.transparent,
       shape: RoundedRectangleBorder(borderRadius: r(16)),
       elevation: 6,
@@ -382,6 +381,7 @@ ThemeData darkTheme(
       thumbColor: colorScheme.primary,
       trackHeight: 5,
     ),
+    dividerColor: colorScheme.outlineVariant.withValues(alpha: 0.45),
   );
 }
 

@@ -16,13 +16,13 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     _validatePersistedAuth();
   }
 
+  void _debug(String message) {
+    if (kDebugMode) debugPrint('[DashboardCubit] $message');
+  }
+
   Future<void> loginSuccessCallback(String? token) async {
-    final short = token != null ? '${token.substring(0, token.length.clamp(0, 40))}...' : 'null';
-    debugPrint('[DashboardCubit] loginSuccessCallback token=$short');
-    final newState = state.copyWith(idToken: token);
-    debugPrint('[DashboardCubit] idToken ${state.idToken != null} -> ${newState.idToken != null}');
-    emit(newState);
-    debugPrint('[DashboardCubit] state.isLoggedIn after emit: ${state.isLoggedIn}');
+    emit(state.copyWith(idToken: token));
+    _debug('Authentication state updated: signedIn=${token != null}');
     if (token != null) {
       await getProfile(token);
     } else {
@@ -31,16 +31,15 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<void> getProfile(String token) async {
-    final short = token.substring(0, token.length.clamp(0, 40));
-    debugPrint('[DashboardCubit] getProfile called with token=$short...');
+    _debug('Refreshing account profile');
     final response = await accountRepository.getProfile(token);
     response.fold(
       (failure) {
-        debugPrint('[DashboardCubit] getProfile FAILED: $failure');
+        _debug('Profile refresh failed');
         emit(state.copyWith(idToken: null, account: null));
       },
       (res) {
-        debugPrint('[DashboardCubit] getProfile SUCCESS: account=${res.name}');
+        _debug('Profile refresh succeeded');
         emit(state.copyWith(account: res));
       },
     );
@@ -51,7 +50,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       final json = await AppConfigStore.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));
     } catch (e) {
-      debugPrint('[DashboardCubit] setConfigLiterature error: $e');
+      _debug('setConfigLiterature failed: $e');
     }
   }
 
@@ -59,7 +58,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     try {
       await setConfigLiterature();
     } catch (e) {
-      debugPrint('[DashboardCubit] initConfig error: $e');
+      _debug('initConfig failed: $e');
     }
   }
 

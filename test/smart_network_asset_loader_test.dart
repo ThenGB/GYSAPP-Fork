@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui';
 
 import 'package:church/main.dart';
@@ -11,7 +10,7 @@ class AssetFirstLoader extends SmartNetworkAssetLoader {
           assetsPath: 'assets/translations',
         );
 
-  int networkChecks = 0;
+  int networkRefreshes = 0;
 
   @override
   Future<bool> localTranslationExists(
@@ -22,16 +21,19 @@ class AssetFirstLoader extends SmartNetworkAssetLoader {
   }
 
   @override
-  Future<bool> isInternetConnectionAvailable() async {
-    networkChecks++;
-    return Completer<bool>().future;
+  Future<String> loadFromNetwork(String localeName) {
+    networkRefreshes++;
+    return Future<String>.delayed(
+      const Duration(milliseconds: 150),
+      () => '',
+    );
   }
 }
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
-  test('loads bundled translation without waiting for network', () async {
+  test('loads bundled translation without waiting for network refresh', () async {
     final loader = AssetFirstLoader();
 
     final translation = await loader
@@ -42,6 +44,6 @@ void main() {
         .timeout(const Duration(milliseconds: 100));
 
     expect(translation, contains('Home'));
-    expect(loader.networkChecks, 1);
+    expect(loader.networkRefreshes, 1);
   });
 }

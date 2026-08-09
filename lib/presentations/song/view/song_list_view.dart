@@ -1,4 +1,3 @@
-import '../../../components/components.dart';
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
@@ -7,12 +6,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
-import '../../../data/data.dart';
+import '../../../components/components.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../presentations.dart';
 
-const double _songListMaxContentWidth = 1080;
+const double _songListMaxContentWidth = 1120;
 const double _songPlaylistMaxContentWidth = 980;
+
+enum _SongBrowseLayout { list, grid }
 
 @RoutePage()
 class SongListView extends StatefulWidget {
@@ -22,7 +24,6 @@ class SongListView extends StatefulWidget {
   final Function(String pageNumber) onTapPageNumber;
   final Function(Song song) onOpenSong;
   final Function(String bookCode) onChangeBookCode;
-
   final String initialSearchText;
   final Function(String text) onSearchTermsChanged;
 
@@ -44,695 +45,137 @@ class SongListView extends StatefulWidget {
 
 class _SongListViewState extends State<SongListView>
     with SingleTickerProviderStateMixin {
-  late final TextEditingController searchController = TextEditingController(
+  late final TextEditingController _searchController = TextEditingController(
     text: widget.initialSearchText,
-  )..addListener(searchListener);
-  late final TabController tabController = TabController(length: 2, vsync: this)
-    ..addListener(tabListener);
+  )..addListener(_onSearchChanged);
+  late final TabController _tabController = TabController(length: 2, vsync: this)
+    ..addListener(_onTabChanged);
 
-  Timer? _debounce;
-  List<Song>? _filteredCache;
-  String? _lastFilterQuery;
+  Timer? _searchDebounce;
+  _SongBrowseLayout _layout = _SongBrowseLayout.grid;
+  List<Song>? _cachedFilteredSongs;
+  List<Song>? _cachedSource;
+  String _cachedQuery = '';
 
   @override
   void dispose() {
-    _debounce?.cancel();
-    searchController.dispose();
-    tabController.dispose();
+    _searchDebounce?.cancel();
+    _searchController.dispose();
+    _tabController.dispose();
     super.dispose();
   }
 
-  /// Memoized filter so keyboard-triggered resizes do not re-scan the whole
-  /// song list on every frame while the query is unchanged.
-  List<Song> _getFiltered(List<Song> data) {
-    final query = searchController.text;
-    if (_filteredCache != null && _lastFilterQuery == query) {
-      return _filteredCache!;
-    }
-    _filteredCache = getFilteredItems(data);
-    _lastFilterQuery = query;
-    return _filteredCache!;
-  }
-
-  void searchListener() {
-    _debounce?.cancel();
-    _debounce = Timer(const Duration(milliseconds: 250), () {
-      setState(() {});
+  void _onSearchChanged() {
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 220), () {
+      if (!mounted) return;
+      setState(() {
+        _cachedFilteredSongs = null;
+      });
     });
   }
 
-  void tabListener() {
-    setState(() {});
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging && mounted) setState(() {});
   }
 
-  List<Song> getFilteredItems(List<Song> data) {
-    var value = searchController.text;
-    List<Song> result = [];
-    bool isMatch(String text, String query) {
-      // Normalize the text and the query by converting them to lower case
-      var normalizedText = text.toLowerCase();
-      var normalizedQuery = query.toLowerCase();
+  List<Song> _filteredSongs(List<Song> source) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (_cachedFilteredSongs != null &&
+        identical(_cachedSource, source) &&
+        _cachedQuery == query) {
+      return _cachedFilteredSongs!;
+    }
 
-      // Split the query into words
-      var queryWords = normalizedQuery.split(RegExp(r'\s+'));
-
-      int lastIndex = 0; // Start from the beginning of the text
-      for (var qWord in queryWords) {
-        // Find the position of the query word in the text, starting from lastIndex
-        int wordPos = normalizedText.indexOf(qWord, lastIndex);
-
-        // If the word is not found, or is found before lastIndex, return false
-        if (wordPos == -1) {
-          return false;
-        }
-
-        // Update lastIndex to the position after the found word
-        lastIndex = wordPos + qWord.length;
+    bool orderedMatch(String value) {
+      if (query.isEmpty) return true;
+      final normalized = value.toLowerCase();
+      var cursor = 0;
+      for (final token in query.split(RegExp(r'\s+')).where((e) => e.isNotEmpty)) {
+        final index = normalized.indexOf(token, cursor);
+        if (index < 0) return false;
+        cursor = index + token.length;
       }
-
-      // All words are found in order with possible other words in between
       return true;
     }
 
-    if (value.isNotEmpty) {
-      result = List.from(
-        data.where((element) {
-          var title = element.title?.toLowerCase() ?? '';
-          var lyric = element.verses.isNotEmpty
-              ? element.verses.first.toLowerCase()
-              : '';
-          var search = value.toLowerCase();
+    final filtered = query.isEmpty
+        ? List<Song>.unmodifiable(source)
+        : source.where((song) {
+            final lyric = song.verses.isEmpty ? '' : song.verses.first;
+            return orderedMatch(song.number ?? '') ||
+                orderedMatch(song.title ?? '') ||
+                orderedMatch(lyric);
+          }).toList(growable: false);
 
-          bool containNumber =
-              element.number != null &&
-              isMatch(element.number.toString().toLowerCase(), search);
-          bool containTitle = isMatch(title, search);
-          bool containLyric = isMatch(lyric, search);
-
-          return containNumber || containTitle || containLyric;
-        }),
-      );
-    } else {
-      result = List.from(data);
-    }
-
-    return result;
+    _cachedSource = source;
+    _cachedQuery = query;
+    _cachedFilteredSongs = filtered;
+    return filtered;
   }
 
-  int forceRefresh = 0;
+  void _openSong(Song song) {
+    FocusManager.instance.primaryFocus?.unfocus();
+    widget.onSearchTermsChanged(_searchController.text);
+    final number = song.number;
+    if (number != null) widget.onTapPageNumber(number);
+  }
+
+  Future<void> _changeBook(String bookCode) async {
+    await widget.onChangeBookCode(bookCode);
+    _cachedFilteredSongs = null;
+    _cachedSource = null;
+    if (mounted) setState(() {});
+  }
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     return Scaffold(
-      backgroundColor: colors.surfaceContainerLowest,
+      backgroundColor: colors.surface,
       appBar: AppBar(
-        backgroundColor: colors.surfaceContainerLowest,
-        shape: Border(
-          bottom: BorderSide(
-            color: context.colorScheme.outlineVariant.withValues(alpha: 0.68),
-          ),
-        ),
-        leadingWidth: 56,
-        titleSpacing: 0,
         leading: IconButton(
           tooltip: 'Back',
           onPressed: widget.onBack,
           icon: const Icon(Icons.arrow_back_rounded),
         ),
-        centerTitle: true,
+        title: _TopTabs(
+          selectedIndex: _tabController.index,
+          onSelected: _tabController.animateTo,
+        ),
         actions: [
-          if (tabController.index == 1) ...[
-            // Single-button shuffle toggle.  The 6-chip mode selector
-            // used to live at the top of the playlist list; replacing
-            // it with a single header button keeps the initial view
-            // compact while still exposing the most common action.
-            // Other auto-next modes (one / number / playlist) remain
-            // reachable via the floating MIDI controls' cycle button.
-            BlocSelector<SongCubit, SongState, _ShuffleToggleView>(
-              selector: (state) {
-                final mode = state.playlistAutoNextMode;
-                final on =
-                    mode == SongPlaylistAutoNextMode.shuffleAll ||
-                    mode == SongPlaylistAutoNextMode.shufflePlaylist;
-                return _ShuffleToggleView(
-                  isOn: on,
-                  isPlaylist: mode == SongPlaylistAutoNextMode.shufflePlaylist,
-                );
-              },
-              builder: (context, view) {
-                return IconButton(
-                  visualDensity: VisualDensity.compact,
-                  tooltip: view.isOn
-                      ? (view.isPlaylist
-                            ? 'Shuffle playlist — matikan'
-                            : 'Shuffle all — matikan')
-                      : 'Aktifkan shuffle',
-                  onPressed: () => context.read<SongCubit>().toggleShuffle(),
-                  icon: Icon(
-                    Icons.shuffle_rounded,
-                    color: view.isOn ? context.colorScheme.primary : null,
-                  ),
-                );
-              },
+          if (_tabController.index == 1)
+            BlocSelector<SongCubit, SongState, bool>(
+              selector: (state) =>
+                  state.playlistAutoNextMode == SongPlaylistAutoNextMode.shuffleAll ||
+                  state.playlistAutoNextMode ==
+                      SongPlaylistAutoNextMode.shufflePlaylist,
+              builder: (context, active) => IconButton(
+                tooltip: active ? 'Matikan shuffle' : 'Aktifkan shuffle',
+                onPressed: context.read<SongCubit>().toggleShuffle,
+                icon: Icon(
+                  Icons.shuffle_rounded,
+                  color: active ? colors.primary : colors.onSurfaceVariant,
+                ),
+              ),
             ),
+          if (_tabController.index == 1)
             IconButton(
-              visualDensity: VisualDensity.compact,
+              tooltip: 'Buat playlist',
               onPressed: () => _showCreatePlaylistDialog(context),
               icon: const Icon(Icons.playlist_add_rounded),
             ),
-            const SizedBox(width: 8),
-          ],
+          const SizedBox(width: 4),
         ],
-        title: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _SongListTabButton(
-              selected: tabController.index == 0,
-              label: 'Lists'.tr(),
-              borderRadius: const BorderRadius.horizontal(
-                left: Radius.circular(100),
-              ),
-              onPressed: () => tabController.animateTo(0),
-            ),
-            _SongListTabButton(
-              selected: tabController.index == 1,
-              label: 'Playlist',
-              borderRadius: const BorderRadius.horizontal(
-                right: Radius.circular(100),
-              ),
-              onPressed: () => tabController.animateTo(1),
-            ),
-          ],
-        ),
       ),
       body: TabBarView(
-        controller: tabController,
+        controller: _tabController,
         children: [
-          Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [colors.surfaceContainerLowest, colors.surface],
-              ),
-            ),
-            child: Align(
-              alignment: Alignment.topCenter,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(
-                  maxWidth: _songListMaxContentWidth,
-                ),
-                child: Column(
-                  children: [
-                    const Divider(height: 1),
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-                      child: LayoutBuilder(
-                        builder: (context, constraints) {
-                          final compact = constraints.maxWidth < 460;
-                          return Row(
-                            children: [
-                              // Search field — modern rounded field with an
-                              // in-field clear button; the book selector is a
-                              // separate pill next to it (no more tag crammed
-                              // inside the field).
-                              Expanded(
-                                child: TextField(
-                                  controller: searchController,
-                                  decoration: InputDecoration(
-                                    filled: true,
-                                    fillColor: colors.surfaceContainerLow,
-                                    isDense: true,
-                                    prefixIcon: Icon(
-                                      Icons.search_rounded,
-                                      color: colors.primary,
-                                    ),
-                                    suffixIcon: AnimatedBuilder(
-                                      animation: searchController,
-                                      builder: (context, child) =>
-                                          searchController.text.isEmpty
-                                          ? const SizedBox.shrink()
-                                          : IconButton(
-                                              tooltip: 'Clear',
-                                              visualDensity:
-                                                  VisualDensity.compact,
-                                              icon: const Icon(
-                                                Icons.cancel_rounded,
-                                                size: 18,
-                                              ),
-                                              onPressed: () =>
-                                                  searchController.clear(),
-                                            ),
-                                    ),
-                                    contentPadding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                      vertical: 12,
-                                    ),
-                                    hintText: 'Search number or keyword'.tr(),
-                                    hintStyle: TextStyle(
-                                      color: colors.onSurfaceVariant
-                                          .withValues(alpha: 0.65),
-                                    ),
-                                    border: OutlineInputBorder(
-                                      borderRadius: context.appRadius(16),
-                                      borderSide: BorderSide.none,
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderRadius: context.appRadius(16),
-                                      borderSide: BorderSide(
-                                        color: colors.outlineVariant
-                                            .withValues(alpha: 0.5),
-                                      ),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderRadius: context.appRadius(16),
-                                      borderSide: BorderSide(
-                                        color: colors.primary,
-                                        width: 1.4,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              PopupMenuButton<String>(
-                                offset: const Offset(0, 48),
-                                onSelected: (value) async {
-                                  await widget.onChangeBookCode(value);
-                                  _filteredCache = null;
-                                  await Future.delayed(
-                                    const Duration(milliseconds: 100),
-                                  );
-                                  setState(() {
-                                    forceRefresh++;
-                                  });
-                                },
-                                initialValue: widget.currentBook().code,
-                                itemBuilder: (context) {
-                                  return widget
-                                      .books()
-                                      .map(
-                                        (e) => PopupMenuItem(
-                                          value: e.code,
-                                          child: Row(
-                                            children: [
-                                              Expanded(
-                                                child: Text(e.code ?? ''),
-                                              ),
-                                              if (e.code ==
-                                                  widget.currentBook().code)
-                                                Icon(
-                                                  Icons.check_rounded,
-                                                  size: 16,
-                                                  color: colors.primary,
-                                                ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                      .toList();
-                                },
-                                child: Container(
-                                  height: 48,
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    borderRadius: context.appRadius(16),
-                                    color: colors.primaryContainer.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                    border: Border.all(
-                                      color: colors.primary.withValues(
-                                        alpha: 0.4,
-                                      ),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Container(
-                                        width: 6,
-                                        height: 6,
-                                        decoration: BoxDecoration(
-                                          shape: BoxShape.circle,
-                                          color: colors.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        widget.currentBook().code ?? '',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: compact ? 12 : 13,
-                                          color: colors.onPrimaryContainer,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 2),
-                                      Icon(
-                                        Icons.keyboard_arrow_down_rounded,
-                                        size: 18,
-                                        color: colors.onPrimaryContainer,
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ),
-                    const Divider(height: 1),
-                    BlocBuilder<SongCubit, SongState>(
-                      buildWhen: (prev, cur) =>
-                          prev.histories != cur.histories ||
-                          prev.songBook != cur.songBook,
-                      builder: (context, state) {
-                        final last = state.lastOpenedSong;
-                        if (last == null || searchController.text.isNotEmpty) {
-                          return const SizedBox.shrink();
-                        }
-                        final textColor = colors.onSecondaryContainer;
-                        return Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: context.appRadius(16),
-                              onTap: () => widget.onOpenSong(last),
-                              child: Ink(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  borderRadius: context.appRadius(16),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.centerLeft,
-                                    end: Alignment.centerRight,
-                                    colors: [
-                                      colors.secondaryContainer.withValues(
-                                        alpha: 0.75,
-                                      ),
-                                      colors.secondaryContainer.withValues(
-                                        alpha: 0.22,
-                                      ),
-                                    ],
-                                  ),
-                                  border: Border.all(
-                                    color: colors.outlineVariant.withValues(
-                                      alpha: 0.35,
-                                    ),
-                                  ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: colors.shadow.withValues(
-                                        alpha: 0.06,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 3),
-                                    ),
-                                  ],
-                                ),
-                                child: Row(
-                                  children: [
-                                    // Play avatar — instantly signals the
-                                    // "resume listening" action.
-                                    Container(
-                                      width: 44,
-                                      height: 44,
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        gradient: LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            colors.primary,
-                                            colors.primary.withValues(
-                                              alpha: 0.75,
-                                            ),
-                                          ],
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: colors.primary.withValues(
-                                              alpha: 0.35,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 3),
-                                          ),
-                                        ],
-                                      ),
-                                      child: const Icon(
-                                        Icons.play_arrow_rounded,
-                                        color: Colors.white,
-                                        size: 26,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Icon(
-                                                Icons.history_rounded,
-                                                size: 13,
-                                                color: textColor.withValues(
-                                                  alpha: 0.7,
-                                                ),
-                                              ),
-                                              const SizedBox(width: 4),
-                                              Text(
-                                                'Terakhir dibuka',
-                                                style: Theme.of(context)
-                                                    .textTheme
-                                                    .labelSmall
-                                                    ?.copyWith(
-                                                      color: textColor
-                                                          .withValues(
-                                                            alpha: 0.8,
-                                                          ),
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      letterSpacing: 0.6,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                          const SizedBox(height: 3),
-                                          Text(
-                                            '${last.number ?? ''} \u2014 ${last.title ?? ''}',
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .titleSmall
-                                                ?.copyWith(
-                                                  color: textColor,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Icon(
-                                      Icons.chevron_right_rounded,
-                                      color: textColor.withValues(alpha: 0.6),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          final filteredItems = _getFiltered(
-                            widget.currentBook().songs,
-                          );
-                          if (filteredItems.isEmpty) {
-                            return Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(32),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(
-                                      Icons.search_off_rounded,
-                                      size: 48,
-                                      color: context
-                                          .colorScheme
-                                          .onSurfaceVariant
-                                          .withValues(alpha: 0.5),
-                                    ),
-                                    const SizedBox(height: 12),
-                                    Text(
-                                      'no_songs_found'.tr(),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            color: context
-                                                .colorScheme
-                                                .onSurfaceVariant,
-                                          ),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
-                          }
-                          return LayoutBuilder(
-                            builder: (context, constraints) {
-                              final cardWidth = constraints.maxWidth < 560
-                                  ? 170.0
-                                  : 200.0;
-                              final columns = (constraints.maxWidth / cardWidth)
-                                  .floor()
-                                  .clamp(1, 8);
-                              return GridView.builder(
-                                // ignore: deprecated_member_use
-                                cacheExtent: 300,
-                                padding: const EdgeInsets.fromLTRB(
-                                  14,
-                                  10,
-                                  14,
-                                  24,
-                                ),
-                                keyboardDismissBehavior:
-                                    ScrollViewKeyboardDismissBehavior.onDrag,
-                                gridDelegate:
-                                    SliverGridDelegateWithFixedCrossAxisCount(
-                                      crossAxisCount: columns,
-                                      mainAxisSpacing: 10,
-                                      crossAxisSpacing: 10,
-                                      childAspectRatio:
-                                          constraints.maxWidth < 560
-                                          ? 1.05
-                                          : 1.55,
-                                    ),
-                                itemCount: filteredItems.length,
-                                itemBuilder: (context, index) {
-                                  var item = filteredItems[index];
-                                  final colors = context.colorScheme;
-                                  return RepaintBoundary(
-                                    child: Material(
-                                      color: colors.surfaceContainerLow,
-                                      borderRadius: context.appRadius(14),
-                                      clipBehavior: Clip.antiAlias,
-                                      child: InkWell(
-                                        onTap: () {
-                                          FocusManager.instance.primaryFocus
-                                              ?.unfocus();
-                                          widget.onSearchTermsChanged(
-                                            searchController.text,
-                                          );
-                                          final number = item.number;
-                                          if (number == null) return;
-                                          widget.onTapPageNumber(number);
-                                        },
-                                        child: Stack(
-                                          children: [
-                                            Positioned(
-                                              top: 4,
-                                              right: 2,
-                                              child: IconButton(
-                                                tooltip: 'Tambah ke playlist',
-                                                visualDensity:
-                                                    VisualDensity.compact,
-                                                padding: EdgeInsets.zero,
-                                                onPressed: () {
-                                                  context
-                                                      .read<SongCubit>()
-                                                      .addSongToActivePlaylist(
-                                                        item,
-                                                      );
-                                                  Fluttertoast.showToast(
-                                                    msg:
-                                                        'Ditambahkan ke playlist',
-                                                  );
-                                                },
-                                                icon: Icon(
-                                                  Icons.playlist_add_rounded,
-                                                  size: 20,
-                                                  color: colors.onSurfaceVariant
-                                                      .withValues(alpha: 0.8),
-                                                ),
-                                              ),
-                                            ),
-                                            Padding(
-                                              padding:
-                                                  const EdgeInsets.fromLTRB(
-                                                    12,
-                                                    10,
-                                                    10,
-                                                    8,
-                                                  ),
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                    item.number ?? '',
-                                                    style: TextStyle(
-                                                      fontFamily: DesignSystem
-                                                          .fontHeading,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                      fontSize: context
-                                                          .appFontSize(20),
-                                                      color: colors.primary,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 4),
-                                                  Text(
-                                                    (item.title ?? '')
-                                                        .capitalizeEachWord(),
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style: Theme.of(context)
-                                                        .textTheme
-                                                        .bodyMedium
-                                                        ?.copyWith(
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          height: 1.25,
-                                                        ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _buildBrowseTab(context),
           _PlaylistTab(
             books: widget.books,
             onOpenSong: (song) {
-              widget.onSearchTermsChanged(searchController.text);
+              widget.onSearchTermsChanged(_searchController.text);
               FocusManager.instance.primaryFocus?.unfocus();
               widget.onOpenSong(song);
             },
@@ -743,17 +186,94 @@ class _SongListViewState extends State<SongListView>
     );
   }
 
+  Widget _buildBrowseTab(BuildContext context) {
+    final colors = context.colorScheme;
+    final book = widget.currentBook();
+    final songs = _filteredSongs(book.songs);
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [colors.surface, colors.surfaceContainerLowest],
+        ),
+      ),
+      child: SafeArea(
+        top: false,
+        child: Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _songListMaxContentWidth),
+            child: Column(
+              children: [
+                _SelectorToolbar(
+                  searchController: _searchController,
+                  currentBook: book,
+                  books: widget.books(),
+                  layout: _layout,
+                  onLayoutChanged: (layout) => setState(() => _layout = layout),
+                  onBookChanged: _changeBook,
+                ),
+                BlocBuilder<SongCubit, SongState>(
+                  buildWhen: (previous, current) =>
+                      previous.histories != current.histories ||
+                      previous.songBook != current.songBook,
+                  builder: (context, state) {
+                    final last = state.lastOpenedSong;
+                    if (last == null || _searchController.text.isNotEmpty) {
+                      return const SizedBox.shrink();
+                    }
+                    return _ResumeSongCard(
+                      song: last,
+                      onTap: () => widget.onOpenSong(last),
+                    );
+                  },
+                ),
+                Expanded(
+                  child: songs.isEmpty
+                      ? _EmptySongResults(query: _searchController.text)
+                      : AnimatedSwitcher(
+                          duration: DesignSystem.animNormal,
+                          switchInCurve: Curves.easeOutCubic,
+                          switchOutCurve: Curves.easeInCubic,
+                          child: _layout == _SongBrowseLayout.grid
+                              ? _SongGrid(
+                                  key: const ValueKey('song-grid'),
+                                  songs: songs,
+                                  onOpen: _openSong,
+                                )
+                              : _SongList(
+                                  key: const ValueKey('song-list'),
+                                  songs: songs,
+                                  onOpen: _openSong,
+                                ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _showCreatePlaylistDialog(BuildContext context) async {
     final cubit = context.read<SongCubit>();
     final controller = TextEditingController();
     final name = await showDialog<String>(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('playlist_create_title'.tr()),
+        title: const Text('Buat playlist'),
         content: TextField(
           controller: controller,
           autofocus: true,
-          decoration: const InputDecoration(hintText: 'Nama playlist'),
+          textInputAction: TextInputAction.done,
+          decoration: const InputDecoration(
+            labelText: 'Nama playlist',
+            prefixIcon: Icon(Icons.queue_music_rounded),
+          ),
+          onSubmitted: (value) => Navigator.of(context).pop(value),
         ),
         actions: [
           TextButton(
@@ -762,214 +282,707 @@ class _SongListViewState extends State<SongListView>
           ),
           FilledButton(
             onPressed: () => Navigator.of(context).pop(controller.text),
-            child: Text('Buat'.tr()),
+            child: const Text('Buat'),
           ),
         ],
       ),
     );
-    if (!mounted || name == null) return;
+    controller.dispose();
+    if (!mounted || name == null || name.trim().isEmpty) return;
     cubit.createPlaylist(name);
   }
 }
 
-class _SongListTabButton extends StatelessWidget {
-  final bool selected;
-  final String label;
-  final BorderRadius borderRadius;
-  final VoidCallback onPressed;
+class _TopTabs extends StatelessWidget {
+  const _TopTabs({required this.selectedIndex, required this.onSelected});
 
-  const _SongListTabButton({
-    required this.selected,
-    required this.label,
-    required this.borderRadius,
-    required this.onPressed,
-  });
+  final int selectedIndex;
+  final ValueChanged<int> onSelected;
 
   @override
   Widget build(BuildContext context) {
-    final compact = MediaQuery.sizeOf(context).width < 430;
-    return OutlinedButton(
-      style: OutlinedButton.styleFrom(
-        minimumSize: Size(compact ? 72 : 84, 32),
-        backgroundColor: selected
-            ? context.colorScheme.primaryContainer.withValues(alpha: 0.4)
-            : context.colorScheme.surfaceContainerLow,
-        side: BorderSide(
-          width: 1,
-          color: selected
-              ? context.colorScheme.primary
-              : context.colorScheme.outlineVariant,
+    return SegmentedButton<int>(
+      segments: const [
+        ButtonSegment(
+          value: 0,
+          icon: Icon(Icons.library_music_rounded, size: 17),
+          label: Text('Pujian'),
         ),
-        shape: RoundedRectangleBorder(borderRadius: borderRadius),
-        foregroundColor: selected
-            ? context.colorScheme.primary
-            : context.colorScheme.onSurfaceVariant,
-        padding: EdgeInsets.symmetric(horizontal: compact ? 10 : 12),
+        ButtonSegment(
+          value: 1,
+          icon: Icon(Icons.queue_music_rounded, size: 17),
+          label: Text('Playlist'),
+        ),
+      ],
+      selected: {selectedIndex},
+      onSelectionChanged: (selection) => onSelected(selection.first),
+      showSelectedIcon: false,
+      style: const ButtonStyle(
+        visualDensity: VisualDensity.compact,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
-      onPressed: onPressed,
-      child: Text(
-        label,
-        style: TextStyle(
-          fontFamily: DesignSystem.fontUI,
-          fontWeight: FontWeight.w700,
-          fontSize: context.appFontSize(12),
+    );
+  }
+}
+
+class _SelectorToolbar extends StatelessWidget {
+  const _SelectorToolbar({
+    required this.searchController,
+    required this.currentBook,
+    required this.books,
+    required this.layout,
+    required this.onLayoutChanged,
+    required this.onBookChanged,
+  });
+
+  final TextEditingController searchController;
+  final SongBook currentBook;
+  final List<SongBook> books;
+  final _SongBrowseLayout layout;
+  final ValueChanged<_SongBrowseLayout> onLayoutChanged;
+  final ValueChanged<String> onBookChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: searchController,
+                  textInputAction: TextInputAction.search,
+                  decoration: InputDecoration(
+                    hintText: 'Cari nomor, judul, atau lirik',
+                    prefixIcon: const Icon(Icons.search_rounded),
+                    suffixIcon: AnimatedBuilder(
+                      animation: searchController,
+                      builder: (context, _) => searchController.text.isEmpty
+                          ? const SizedBox.shrink()
+                          : IconButton(
+                              tooltip: 'Hapus pencarian',
+                              onPressed: searchController.clear,
+                              icon: const Icon(Icons.close_rounded, size: 19),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              _BookPicker(
+                currentBook: currentBook,
+                books: books,
+                onSelected: onBookChanged,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      currentBook.code ?? 'Pujian',
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    Text(
+                      '${currentBook.songs.length} pujian',
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SegmentedButton<_SongBrowseLayout>(
+                segments: const [
+                  ButtonSegment(
+                    value: _SongBrowseLayout.list,
+                    icon: Icon(Icons.view_agenda_outlined, size: 18),
+                    tooltip: 'Daftar',
+                  ),
+                  ButtonSegment(
+                    value: _SongBrowseLayout.grid,
+                    icon: Icon(Icons.grid_view_rounded, size: 18),
+                    tooltip: 'Kotak',
+                  ),
+                ],
+                selected: {layout},
+                onSelectionChanged: (selection) =>
+                    onLayoutChanged(selection.first),
+                showSelectedIcon: false,
+                style: const ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _BookPicker extends StatelessWidget {
+  const _BookPicker({
+    required this.currentBook,
+    required this.books,
+    required this.onSelected,
+  });
+
+  final SongBook currentBook;
+  final List<SongBook> books;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return PopupMenuButton<String>(
+      tooltip: 'Pilih buku pujian',
+      initialValue: currentBook.code,
+      onSelected: onSelected,
+      itemBuilder: (context) => [
+        for (final book in books)
+          PopupMenuItem(
+            value: book.code,
+            child: Row(
+              children: [
+                Expanded(child: Text(book.code ?? '')),
+                if (book.code == currentBook.code)
+                  Icon(Icons.check_rounded, color: colors.primary, size: 18),
+              ],
+            ),
+          ),
+      ],
+      child: Container(
+        height: 48,
+        padding: const EdgeInsets.symmetric(horizontal: 13),
+        decoration: BoxDecoration(
+          color: colors.primaryContainer.withValues(alpha: 0.42),
+          borderRadius: context.appRadius(16),
+          border: Border.all(
+            color: colors.primary.withValues(alpha: 0.28),
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.menu_book_rounded, size: 18, color: colors.primary),
+            const SizedBox(width: 7),
+            Text(
+              currentBook.code ?? '',
+              style: context.textTheme.labelLarge?.copyWith(
+                color: colors.onPrimaryContainer,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Icon(
+              Icons.keyboard_arrow_down_rounded,
+              size: 18,
+              color: colors.onPrimaryContainer,
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _PlaylistTab extends StatefulWidget {
-  final List<SongBook> Function() books;
-  final ValueChanged<Song> onOpenSong;
-  final VoidCallback onCreatePlaylist;
+class _ResumeSongCard extends StatelessWidget {
+  const _ResumeSongCard({required this.song, required this.onTap});
 
-  const _PlaylistTab({
-    required this.books,
-    required this.onOpenSong,
-    required this.onCreatePlaylist,
-  });
-
-  @override
-  State<_PlaylistTab> createState() => _PlaylistTabState();
-}
-
-class _PlaylistTabState extends State<_PlaylistTab> {
-  // Memoized song→map lookup. Playlist mutations (rename / reorder / remove)
-  // rebuild the list without re-scanning every song in the book. The cache
-  // is keyed on the book-list content (identity + each book's song identity)
-  // so in-place song data updates (e.g. a lyrics refresh) also invalidate it.
-  Map<String, Song>? _songMapCache;
-  List<Object?>? _songMapKey;
-
-  Map<String, Song> _songMap() {
-    final books = widget.books();
-    final key = <Object?>[
-      for (final book in books) book.code,
-      for (final book in books) book.songs,
-    ];
-    if (_songMapCache != null && _listEquals(_songMapKey, key)) {
-      return _songMapCache!;
-    }
-    final songMap = <String, Song>{};
-    for (final book in books) {
-      for (final song in book.songs) {
-        songMap['${book.code}:${song.number}'] = song;
-      }
-    }
-    _songMapCache = songMap;
-    _songMapKey = key;
-    return songMap;
-  }
-
-  static bool _listEquals(List<Object?>? a, List<Object?>? b) {
-    if (identical(a, b)) return true;
-    if (a == null || b == null || a.length != b.length) return false;
-    for (var i = 0; i < a.length; i++) {
-      if (!identical(a[i], b[i])) return false;
-    }
-    return true;
-  }
+  final Song song;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SongCubit, SongState>(
-      buildWhen: (prev, curr) =>
-          prev.playlists != curr.playlists ||
-          prev.playlistAutoNextMode != curr.playlistAutoNextMode ||
-          prev.isPlaylistLoopModeActive != curr.isPlaylistLoopModeActive ||
-          prev.activePlaylistId != curr.activePlaylistId ||
-          prev.songBook != curr.songBook,
-      builder: (context, state) {
-        final cubit = context.read<SongCubit>();
-        final songMap = _songMap();
-        if (state.playlists.isEmpty) {
-          return Align(
-            alignment: Alignment.topCenter,
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxWidth: _songPlaylistMaxContentWidth,
-              ),
-              child: NoDataFound(
-                title: 'Belum ada playlist',
-                description:
-                    'Buat playlist lalu tambahkan lagu dari tab Lists.',
-                action: FilledButton.icon(
-                  onPressed: widget.onCreatePlaylist,
-                  icon: const Icon(Icons.playlist_add_rounded),
-                  label: const Text('Buat Playlist'),
+    final colors = context.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 2, 16, 8),
+      child: Material(
+        color: colors.secondaryContainer.withValues(alpha: 0.55),
+        borderRadius: context.appRadius(18),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: colors.primary,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    Icons.play_arrow_rounded,
+                    color: colors.onPrimary,
+                    size: 26,
+                  ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'LANJUTKAN',
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: colors.onSecondaryContainer,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        '${song.number ?? ''} · ${song.title ?? ''}',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: colors.onSecondaryContainer,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colors.onSecondaryContainer,
+                ),
+              ],
             ),
-          );
-        }
-
-        Widget frame(Widget child) => Align(
-          alignment: Alignment.topCenter,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: _songPlaylistMaxContentWidth,
-            ),
-            child: child,
           ),
-        );
+        ),
+      ),
+    );
+  }
+}
 
-        return ListView.builder(
-          physics: const BouncingScrollPhysics(),
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
-          itemCount: state.playlists.length,
-          itemBuilder: (context, index) {
-            final playlist = state.playlists[index];
-            return frame(
-              RepaintBoundary(
-                child: _PlaylistCard(
-                  playlist: playlist,
-                  active:
-                      state.isPlaylistLoopModeActive &&
-                      playlist.id == state.activePlaylistId,
-                  songMap: songMap,
-                  onActivate: () => cubit.setActivePlaylist(playlist.id),
-                  onDelete: () => cubit.deletePlaylist(playlist.id),
-                  onRemoveSong: (index) =>
-                      cubit.removeSongFromPlaylist(playlist.id, index),
-                  onOpenSong: widget.onOpenSong,
-                ),
-              ),
-            );
-          },
+class _SongGrid extends StatelessWidget {
+  const _SongGrid({super.key, required this.songs, required this.onOpen});
+
+  final List<Song> songs;
+  final ValueChanged<Song> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final targetWidth = constraints.maxWidth < 500 ? 158.0 : 210.0;
+        final columns = (constraints.maxWidth / targetWidth).floor().clamp(2, 5);
+        return GridView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: columns,
+            mainAxisSpacing: 10,
+            crossAxisSpacing: 10,
+            childAspectRatio: constraints.maxWidth < 500 ? 0.95 : 1.35,
+          ),
+          itemCount: songs.length,
+          itemBuilder: (context, index) => RepaintBoundary(
+            child: _SongGridCard(song: songs[index], onOpen: onOpen),
+          ),
         );
       },
     );
   }
 }
 
-/// Lightweight value type for the AppBar shuffle toggle so the
-/// BlocSelector can rebuild the button only when the relevant
-/// fields of the cubit state change.
-class _ShuffleToggleView {
-  const _ShuffleToggleView({required this.isOn, required this.isPlaylist});
-  final bool isOn;
-  final bool isPlaylist;
+class _SongGridCard extends StatelessWidget {
+  const _SongGridCard({required this.song, required this.onOpen});
+
+  final Song song;
+  final ValueChanged<Song> onOpen;
 
   @override
-  bool operator ==(Object other) =>
-      other is _ShuffleToggleView &&
-      other.isOn == isOn &&
-      other.isPlaylist == isPlaylist;
-
-  @override
-  int get hashCode => Object.hash(isOn, isPlaylist);
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final lyric = song.verses.isEmpty ? '' : song.verses.first.trim();
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: context.appRadius(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => onOpen(song),
+        child: Ink(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.34),
+            ),
+            borderRadius: context.appRadius(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(14, 12, 8, 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: context.appRadius(999),
+                      ),
+                      child: Text(
+                        song.number ?? '—',
+                        style: context.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: colors.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    const Spacer(),
+                    _AddToPlaylistButton(song: song),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  song.title ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    height: 1.22,
+                  ),
+                ),
+                if (lyric.isNotEmpty) ...[
+                  const SizedBox(height: 6),
+                  Expanded(
+                    child: Text(
+                      lyric,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.bodySmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                        height: 1.4,
+                      ),
+                    ),
+                  ),
+                ] else
+                  const Spacer(),
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.music_note_rounded,
+                      size: 15,
+                      color: colors.primary,
+                    ),
+                    const SizedBox(width: 5),
+                    Text(
+                      song.code ?? 'Pujian',
+                      style: context.textTheme.labelSmall?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const Spacer(),
+                    Icon(
+                      Icons.arrow_forward_rounded,
+                      size: 17,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _PlaylistCard extends StatefulWidget {
-  final SongPlaylist playlist;
-  final bool active;
-  final Map<String, Song> songMap;
-  final VoidCallback onActivate;
-  final VoidCallback onDelete;
-  final ValueChanged<int> onRemoveSong;
-  final ValueChanged<Song> onOpenSong;
+class _SongList extends StatelessWidget {
+  const _SongList({super.key, required this.songs, required this.onOpen});
 
+  final List<Song> songs;
+  final ValueChanged<Song> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      itemCount: songs.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) => RepaintBoundary(
+        child: _SongListCard(song: songs[index], onOpen: onOpen),
+      ),
+    );
+  }
+}
+
+class _SongListCard extends StatelessWidget {
+  const _SongListCard({required this.song, required this.onOpen});
+
+  final Song song;
+  final ValueChanged<Song> onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final lyric = song.verses.isEmpty ? '' : song.verses.first.trim();
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: context.appRadius(16),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => onOpen(song),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(12, 10, 8, 10),
+          child: Row(
+            children: [
+              Container(
+                width: 52,
+                height: 52,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: colors.primaryContainer.withValues(alpha: 0.72),
+                  borderRadius: context.appRadius(14),
+                ),
+                child: Text(
+                  song.number ?? '—',
+                  maxLines: 1,
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: colors.onPrimaryContainer,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      song.title ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (lyric.isNotEmpty) ...[
+                      const SizedBox(height: 3),
+                      Text(
+                        lyric,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              _AddToPlaylistButton(song: song),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: colors.onSurfaceVariant.withValues(alpha: 0.72),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AddToPlaylistButton extends StatelessWidget {
+  const _AddToPlaylistButton({required this.song});
+
+  final Song song;
+
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      tooltip: 'Tambah ke playlist',
+      onPressed: () {
+        context.read<SongCubit>().addSongToActivePlaylist(song);
+        Fluttertoast.showToast(msg: 'Ditambahkan ke playlist');
+      },
+      icon: const Icon(Icons.playlist_add_rounded, size: 20),
+    );
+  }
+}
+
+class _EmptySongResults extends StatelessWidget {
+  const _EmptySongResults({required this.query});
+
+  final String query;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 72,
+              height: 72,
+              decoration: BoxDecoration(
+                color: colors.surfaceContainerHigh,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.search_off_rounded,
+                color: colors.onSurfaceVariant,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 14),
+            Text(
+              query.trim().isEmpty ? 'Belum ada pujian' : 'Pujian tidak ditemukan',
+              style: context.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              query.trim().isEmpty
+                  ? 'Pilih buku pujian lain untuk melihat daftar.'
+                  : 'Coba nomor, judul, atau kata dari lirik yang berbeda.',
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaylistTab extends StatelessWidget {
+  const _PlaylistTab({
+    required this.books,
+    required this.onOpenSong,
+    required this.onCreatePlaylist,
+  });
+
+  final List<SongBook> Function() books;
+  final ValueChanged<Song> onOpenSong;
+  final VoidCallback onCreatePlaylist;
+
+  Map<String, Song> _songMap() {
+    final map = <String, Song>{};
+    for (final book in books()) {
+      for (final song in book.songs) {
+        map['${book.code}:${song.number}'] = song;
+      }
+    }
+    return map;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SongCubit, SongState>(
+      buildWhen: (previous, current) =>
+          previous.playlists != current.playlists ||
+          previous.activePlaylistId != current.activePlaylistId ||
+          previous.isPlaylistLoopModeActive != current.isPlaylistLoopModeActive ||
+          previous.songBook != current.songBook,
+      builder: (context, state) {
+        final cubit = context.read<SongCubit>();
+        if (state.playlists.isEmpty) {
+          return _EmptyPlaylists(onCreatePlaylist: onCreatePlaylist);
+        }
+        final songMap = _songMap();
+        return Align(
+          alignment: Alignment.topCenter,
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: _songPlaylistMaxContentWidth),
+            child: ListView.separated(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
+              itemCount: state.playlists.length,
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
+              itemBuilder: (context, index) {
+                final playlist = state.playlists[index];
+                final active = playlist.id == state.activePlaylistId;
+                return _PlaylistCard(
+                  playlist: playlist,
+                  active: active,
+                  songMap: songMap,
+                  onActivate: () => cubit.setActivePlaylist(playlist.id),
+                  onDelete: () => cubit.deletePlaylist(playlist.id),
+                  onRemoveSong: (songIndex) =>
+                      cubit.removeSongFromPlaylist(playlist.id, songIndex),
+                  onOpenSong: onOpenSong,
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _EmptyPlaylists extends StatelessWidget {
+  const _EmptyPlaylists({required this.onCreatePlaylist});
+
+  final VoidCallback onCreatePlaylist;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.queue_music_rounded, size: 54, color: colors.primary),
+            const SizedBox(height: 14),
+            Text(
+              'Belum ada playlist',
+              style: context.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Buat playlist untuk menyiapkan urutan pujian yang ingin diputar.',
+              textAlign: TextAlign.center,
+              style: context.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 18),
+            FilledButton.icon(
+              onPressed: onCreatePlaylist,
+              icon: const Icon(Icons.add_rounded),
+              label: const Text('Buat Playlist'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PlaylistCard extends StatelessWidget {
   const _PlaylistCard({
     required this.playlist,
     required this.active,
@@ -980,139 +993,141 @@ class _PlaylistCard extends StatefulWidget {
     required this.onOpenSong,
   });
 
-  @override
-  State<_PlaylistCard> createState() => _PlaylistCardState();
-}
-
-class _PlaylistCardState extends State<_PlaylistCard> {
-  // Collapsed by default so the playlist tab renders compactly on
-  // first paint.  The user can tap the card header (or the chevron)
-  // to expand and see the song list.
-  bool _expanded = false;
-
-  void _toggleExpanded() {
-    setState(() => _expanded = !_expanded);
-  }
+  final SongPlaylist playlist;
+  final bool active;
+  final Map<String, Song> songMap;
+  final VoidCallback onActivate;
+  final VoidCallback onDelete;
+  final ValueChanged<int> onRemoveSong;
+  final ValueChanged<Song> onOpenSong;
 
   @override
   Widget build(BuildContext context) {
-    final songs = widget.playlist.songs
-        .map((item) => widget.songMap['${item.code}:${item.number}'])
-        .whereType<Song>()
-        .toList();
+    final colors = context.colorScheme;
+    final songs = playlist.songs
+        .map((item) => songMap['${item.code}:${item.number}'])
+        .toList(growable: false);
+    return Material(
+      color: active
+          ? colors.primaryContainer.withValues(alpha: 0.36)
+          : colors.surfaceContainerLow,
+      borderRadius: context.appRadius(18),
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
+        leading: Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: active ? colors.primary : colors.surfaceContainerHighest,
+            borderRadius: context.appRadius(13),
+          ),
+          child: Icon(
+            active ? Icons.playlist_play_rounded : Icons.queue_music_rounded,
+            color: active ? colors.onPrimary : colors.primary,
+          ),
+        ),
+        title: Text(
+          playlist.name,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: context.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+        subtitle: Text(
+          '${playlist.songs.length} pujian${active ? ' · Aktif' : ''}',
+        ),
+        trailing: PopupMenuButton<String>(
+          tooltip: 'Opsi playlist',
+          onSelected: (value) {
+            if (value == 'activate') onActivate();
+            if (value == 'delete') onDelete();
+          },
+          itemBuilder: (context) => [
+            if (!active)
+              const PopupMenuItem(
+                value: 'activate',
+                child: ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: Icon(Icons.play_circle_outline_rounded),
+                  title: Text('Jadikan aktif'),
+                ),
+              ),
+            const PopupMenuItem(
+              value: 'delete',
+              child: ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Icon(Icons.delete_outline_rounded),
+                title: Text('Hapus playlist'),
+              ),
+            ),
+          ],
+        ),
+        children: [
+          if (playlist.songs.isEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 18),
+              child: Text(
+                'Belum ada pujian di playlist ini.',
+                style: context.textTheme.bodyMedium?.copyWith(
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            )
+          else
+            for (var index = 0; index < playlist.songs.length; index++)
+              _PlaylistSongRow(
+                item: playlist.songs[index],
+                resolvedSong: songs[index],
+                onOpen: onOpenSong,
+                onRemove: () => onRemoveSong(index),
+              ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: context.colorScheme.surfaceContainerLow,
-        borderRadius: context.appRadius(12),
-        border: Border.all(
-          color: context.colorScheme.outlineVariant.withValues(alpha: 0.3),
+class _PlaylistSongRow extends StatelessWidget {
+  const _PlaylistSongRow({
+    required this.item,
+    required this.resolvedSong,
+    required this.onOpen,
+    required this.onRemove,
+  });
+
+  final SongPlaylistItem item;
+  final Song? resolvedSong;
+  final ValueChanged<Song> onOpen;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: CircleAvatar(
+        backgroundColor: context.colorScheme.surfaceContainerHighest,
+        child: Text(
+          item.number,
+          style: context.textTheme.labelMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+          ),
         ),
       ),
-      child: Column(
-        children: [
-          ListTile(
-            leading: Icon(
-              widget.active
-                  ? Icons.playlist_play_rounded
-                  : Icons.queue_music_rounded,
-              color: widget.active ? context.colorScheme.primary : null,
-            ),
-            title: Text(widget.playlist.name),
-            subtitle: Text(
-              '${songs.length} lagu${widget.active ? ' • Aktif' : ''}',
-            ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  tooltip: _expanded ? 'Ciutkan' : 'Bentangkan',
-                  onPressed: _toggleExpanded,
-                  icon: AnimatedRotation(
-                    turns: _expanded ? 0.5 : 0.0,
-                    duration: const Duration(milliseconds: 200),
-                    child: const Icon(Icons.expand_more_rounded),
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    if (value == 'active') widget.onActivate();
-                    if (value == 'delete') widget.onDelete();
-                  },
-                  itemBuilder: (context) => [
-                    PopupMenuItem(
-                      value: 'active',
-                      child: Text('Jadikan aktif'.tr()),
-                    ),
-                    PopupMenuItem(
-                      value: 'delete',
-                      child: Text('Hapus playlist'.tr()),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            onTap: _toggleExpanded,
-          ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeOutCubic,
-            child: _expanded
-                ? (songs.isEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text('Playlist kosong'.tr()),
-                          ),
-                        )
-                      : Column(
-                          children: songs.indexed.map((entry) {
-                            final index = entry.$1;
-                            final song = entry.$2;
-                            return Column(
-                              children: [
-                                const Divider(height: 1),
-                                ListTile(
-                                  dense: true,
-                                  leading: SizedBox(
-                                    width: 36,
-                                    child: Text(
-                                      song.number ?? '',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontFamily: DesignSystem.fontHeading,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: context.appFontSize(16),
-                                      ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    song.title ?? '',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                  onTap: () {
-                                    widget.onActivate();
-                                    widget.onOpenSong(song);
-                                  },
-                                  trailing: IconButton(
-                                    tooltip: 'Hapus dari playlist',
-                                    icon: const Icon(
-                                      Icons.remove_circle_outline,
-                                    ),
-                                    onPressed: () => widget.onRemoveSong(index),
-                                  ),
-                                ),
-                              ],
-                            );
-                          }).toList(),
-                        ))
-                : const SizedBox.shrink(),
-          ),
-        ],
+      title: Text(
+        item.title,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+      ),
+      subtitle: Text(item.code),
+      enabled: resolvedSong != null,
+      onTap: resolvedSong == null ? null : () => onOpen(resolvedSong!),
+      trailing: IconButton(
+        tooltip: 'Hapus dari playlist',
+        onPressed: onRemove,
+        icon: const Icon(Icons.remove_circle_outline_rounded, size: 20),
       ),
     );
   }
