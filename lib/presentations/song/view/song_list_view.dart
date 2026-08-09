@@ -582,7 +582,6 @@ class _SongGrid extends StatelessWidget {
         final targetWidth = constraints.maxWidth < 500 ? 158.0 : 210.0;
         final columns = (constraints.maxWidth / targetWidth).floor().clamp(2, 5);
         return GridView.builder(
-          scrollCacheExtent: const ScrollCacheExtent.pixels(420),
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -718,7 +717,6 @@ class _SongList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      scrollCacheExtent: const ScrollCacheExtent.pixels(500),
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: songs.length,
