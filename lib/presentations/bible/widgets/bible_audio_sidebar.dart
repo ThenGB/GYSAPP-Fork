@@ -599,10 +599,22 @@ class _SidebarPanel extends StatelessWidget {
                 const SizedBox(height: 12),
                 _buildVoiceSection(context),
                 const SizedBox(height: 10),
-                OutlinedButton.icon(
+                OutlinedButton(
                   onPressed: onOpenSettings,
-                  icon: const Icon(Icons.tune_rounded, size: 18),
-                  label: Text('audio_settings_shortcut'.tr()),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.tune_rounded, size: 18),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          'audio_settings_shortcut'.tr(),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
