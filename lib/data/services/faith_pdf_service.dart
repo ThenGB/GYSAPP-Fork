@@ -66,20 +66,23 @@ class FaithPdfService {
       for (final raw in rawItems) {
         if (raw is! Map) continue;
         final number = int.tryParse(raw['number']?.toString() ?? '');
-        final name = raw['name']?.toString().trim() ?? '';
-        final downloadUrl = raw['downloadUrl']?.toString().trim() ?? '';
-        final uri = Uri.tryParse(downloadUrl);
+        final rawName = raw['name']?.toString().trim() ?? '';
+        final rawDownloadUrl = raw['downloadUrl']?.toString().trim() ?? '';
         if (number == null || number < 1 || number > 10) continue;
-        if (name.isEmpty || uri == null) continue;
-        if (!_isAllowedReleaseUri(uri)) continue;
+        if (rawName.isEmpty || rawDownloadUrl.isEmpty) continue;
 
-        // The first migrated manifest used spaces for several files although
-        // the real release assets use dots (e.g. 01-Yesus.Kristus.pdf). When
-        // such legacy metadata is encountered, resolve names against GitHub's
-        // release asset list instead of blindly opening a guaranteed 404 URL.
-        if (name.contains(' ') || downloadUrl.contains('%20')) {
-          manifestNeedsReleaseResolution = true;
-        }
+        final wasLegacyName =
+            rawName.contains(' ') || rawDownloadUrl.contains('%20');
+        final name = wasLegacyName ? rawName.replaceAll(' ', '.') : rawName;
+        final downloadUrl = wasLegacyName
+            ? rawDownloadUrl
+                .replaceAll('%20', '.')
+                .replaceAll(' ', '.')
+            : rawDownloadUrl;
+        final uri = Uri.tryParse(downloadUrl);
+        if (uri == null || !_isAllowedReleaseUri(uri)) continue;
+
+        manifestNeedsReleaseResolution |= wasLegacyName;
         result.putIfAbsent(
           number,
           () => FaithPdfDocument(
