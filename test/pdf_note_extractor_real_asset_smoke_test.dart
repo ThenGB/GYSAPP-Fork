@@ -7,6 +7,13 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:church/data/services/pdf_note_extractor.dart';
 
 void main() {
+  final flutterRoot = Platform.environment['FLUTTER_ROOT'] ?? '';
+  final linuxCiWithoutPdfium = Platform.isLinux &&
+      Platform.environment['CI'] == 'true' &&
+      !File(
+        '$flutterRoot/bin/cache/artifacts/engine/linux-x64/lib/libpdfium.so',
+      ).existsSync();
+
   group('PdfNoteExtractor real-asset smoke', () {
     test(
       'detects notes and holds on first songs of MDR/ASM books',
@@ -90,9 +97,9 @@ void main() {
           }
         }
       },
-      // This smoke test intentionally opens four real bundled PDF masters.
-      // Cold Linux CI runners can spend >30s loading pdfrx/native PDF data;
-      // keep all assertions but give the genuine integration workload room.
+      skip: linuxCiWithoutPdfium
+          ? 'Flutter Linux CI image does not provide the PDFium native runtime required by pdfrx.'
+          : false,
       timeout: const Timeout(Duration(minutes: 2)),
     );
   });
