@@ -83,8 +83,9 @@ state.write_text(text, encoding='utf-8')
 # filesystem WAV cache that dart:io cannot provide at runtime.
 midi = Path('lib/data/services/midi_engine_service.dart')
 text = midi.read_text(encoding='utf-8-sig')
-text = text.replace(
-    '''      // Check disk cache first
+replace_pairs = [
+    (
+        '''      // Check disk cache first
       final wavFile = File(_wavCachePath(cacheKey));
       if (await wavFile.exists()) {
         try {
@@ -110,7 +111,7 @@ text = text.replace(
         }
       }
 ''',
-    '''      // Browser builds do not have a dart:io filesystem. They still keep
+        '''      // Browser builds do not have a dart:io filesystem. They still keep
       // the in-memory source cache and the streaming render path below.
       final wavFile = kIsWeb ? null : File(_wavCachePath(cacheKey));
       if (wavFile != null && await wavFile.exists()) {
@@ -137,64 +138,63 @@ text = text.replace(
         }
       }
 ''',
-    1,
-)
-text = text.replace(
-    '''      // Save to disk cache for future use
+    ),
+    (
+        '''      // Save to disk cache for future use
       await _ensureCacheDir();
       await wavFile.writeAsBytes(rendered.wavBytes);
 ''',
-    '''      // Persist WAV cache on native platforms only. Web keeps the rendered
+        '''      // Persist WAV cache on native platforms only. Web keeps the rendered
       // source in memory, which avoids an unsupported dart:io call.
       if (wavFile != null) {
         await _ensureCacheDir();
         await wavFile.writeAsBytes(rendered.wavBytes);
       }
 ''',
-    1,
-)
-text = text.replace(
-    '''      if (startAt == Duration.zero) {
+    ),
+    (
+        '''      if (startAt == Duration.zero) {
         final wavFile = File(_wavCachePath(cacheKey));
         if (await wavFile.exists()) {''',
-    '''      if (!kIsWeb && startAt == Duration.zero) {
+        '''      if (!kIsWeb && startAt == Duration.zero) {
         final wavFile = File(_wavCachePath(cacheKey));
         if (await wavFile.exists()) {''',
-    1,
-)
-text = text.replace(
-    '''      await _ensureCacheDir();
+    ),
+    (
+        '''      await _ensureCacheDir();
       await File(_wavCachePath(cacheKey)).writeAsBytes(rendered.wavBytes);
 ''',
-    '''      if (!kIsWeb) {
+        '''      if (!kIsWeb) {
         await _ensureCacheDir();
         await File(_wavCachePath(cacheKey)).writeAsBytes(rendered.wavBytes);
       }
 ''',
-    1,
-)
-text = text.replace(
-    '''  Future<void> _ensureCacheDir() async {
+    ),
+    (
+        '''  Future<void> _ensureCacheDir() async {
     final dir = Directory(_cacheDir);''',
-    '''  Future<void> _ensureCacheDir() async {
+        '''  Future<void> _ensureCacheDir() async {
     if (kIsWeb) return;
     final dir = Directory(_cacheDir);''',
-    1,
-)
-text = text.replace(
-    '''  Future<AudioSource?> _loadFromDiskCache(
+    ),
+    (
+        '''  Future<AudioSource?> _loadFromDiskCache(
     String midiPath,
     MidiRenderSettings settings,
   ) async {
     try {''',
-    '''  Future<AudioSource?> _loadFromDiskCache(
+        '''  Future<AudioSource?> _loadFromDiskCache(
     String midiPath,
     MidiRenderSettings settings,
   ) async {
     if (kIsWeb) return null;
     try {''',
-    1,
-)
+    ),
+]
+for old, new in replace_pairs:
+    if old not in text:
+        raise SystemExit(f'MIDI patch pattern not found: {old[:80]!r}')
+    text = text.replace(old, new, 1)
 midi.write_text(text, encoding='utf-8')
 
 # Installed asset stores expose one platform-appropriate clear operation so a
@@ -356,13 +356,23 @@ text = text.replace(
 )
 injection.write_text(text, encoding='utf-8')
 
-# Keep test fakes current with the store interface and verify secure auth reset.
-for path in [
-    'test/data/services/installed_asset_store_io_test.dart',
-    'test/data/services/installed_asset_store_web_test.dart',
-]:
-    p = Path(path)
-    source = p.read_text(encoding='utf-8-sig')
-    # Existing concrete stores need no fake method; add behavior test later via
-    # focused source test instead of making assumptions about current fixtures.
-    p.write_text(source, encoding='utf-8')
+# Keep the one in-memory test fake aligned with the InstalledAssetStore
+# interface. Concrete IO/IndexedDB stores are tested independently.
+fake_test = Path('test/data/services/asset_distribution_install_test.dart')
+text = fake_test.read_text(encoding='utf-8-sig')
+if 'Future<void> clear() async => _files.clear();' not in text:
+    text = text.replace(
+        '''  @override
+  Future<bool> exists(String relativePath) async =>
+      _files.containsKey(relativePath);
+}''',
+        '''  @override
+  Future<bool> exists(String relativePath) async =>
+      _files.containsKey(relativePath);
+
+  @override
+  Future<void> clear() async => _files.clear();
+}''',
+        1,
+    )
+fake_test.write_text(text, encoding='utf-8')
