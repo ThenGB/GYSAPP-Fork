@@ -7,6 +7,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../components/components.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../presentations.dart';
 
@@ -584,7 +585,7 @@ class _SongGrid extends StatelessWidget {
         final targetWidth = constraints.maxWidth < 500 ? 158.0 : 210.0;
         final columns = (constraints.maxWidth / targetWidth).floor().clamp(2, 5);
         return GridView.builder(
-          cacheExtent: 420,
+          scrollCacheExtent: 420,
           padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -720,11 +721,11 @@ class _SongList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
-      cacheExtent: 500,
+      scrollCacheExtent: 500,
       padding: const EdgeInsets.fromLTRB(16, 6, 16, 28),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       itemCount: songs.length,
-      separatorBuilder: (_, __) => const SizedBox(height: 8),
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) => RepaintBoundary(
         child: _SongListCard(song: songs[index], onOpen: onOpen),
       ),
@@ -920,7 +921,7 @@ class _PlaylistTab extends StatelessWidget {
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
               itemCount: state.playlists.length,
-              separatorBuilder: (_, __) => const SizedBox(height: 10),
+              separatorBuilder: (_, _) => const SizedBox(height: 10),
               itemBuilder: (context, index) {
                 final playlist = state.playlists[index];
                 final active = playlist.id == state.activePlaylistId;
