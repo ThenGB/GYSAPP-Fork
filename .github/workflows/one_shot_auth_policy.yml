@@ -1,0 +1,58 @@
+name: One-shot auth policy validation
+
+on:
+  push:
+    branches:
+      - agent/cross-platform-auth-viewer-hardening
+
+permissions:
+  contents: write
+
+concurrency:
+  group: one-shot-auth-policy
+  cancel-in-progress: true
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/cross-platform-auth-viewer-hardening
+          fetch-depth: 0
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+
+      - name: Apply auth policy
+        run: python .github/scripts/phase5_auth_policy.py
+
+      - name: Format
+        run: dart format lib/presentations/auth/auth_flow_policy.dart lib/presentations/auth/view/login_view.dart test/auth_flow_policy_test.dart
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze --no-pub
+
+      - name: Auth regression tests
+        run: flutter test --no-pub test/auth_flow_policy_test.dart test/auth_session_credential_test.dart test/security_hygiene_test.dart
+
+      - name: Build Web release
+        run: flutter build web --release --no-pub
+
+      - name: Commit validated changes
+        run: |
+          rm .github/workflows/one_shot_auth_policy.yml
+          rm .github/scripts/phase5_auth_policy.py
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Centralize cross-platform authentication routing"
+          git push origin HEAD:agent/cross-platform-auth-viewer-hardening
