@@ -1,6 +1,3 @@
-export '../data/utilities/extensions/context_ext.dart';
-export '../data/utilities/platform_utils.dart';
-export '../data/utilities/variables/assets.dart';
 export 'design_system/design_system_exports.dart';
 export 'themes/app_accent.dart';
 export 'themes/app_theme_extras.dart';
