@@ -1,0 +1,52 @@
+name: Patch Selector Cache Compatibility
+
+on:
+  push:
+    branches:
+      - 'agent/app-modernization-audit'
+    paths:
+      - '.github/workflows/patch_selector_cache.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-selector:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Remove incompatible explicit cache extents
+        shell: python
+        run: |
+          from pathlib import Path
+
+          path = Path('lib/presentations/song/view/song_list_view.dart')
+          source = path.read_text(encoding='utf-8')
+          source = source.replace(
+              '          scrollCacheExtent: const ScrollCacheExtent.pixels(420),\n',
+              '',
+          )
+          source = source.replace(
+              '      scrollCacheExtent: const ScrollCacheExtent.pixels(500),\n',
+              '',
+          )
+          path.write_text(source, encoding='utf-8')
+
+      - name: Commit compatibility fix
+        shell: bash
+        run: |
+          if git diff --quiet -- lib/presentations/song/view/song_list_view.dart; then
+            echo "Selector cache compatibility already fixed"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add lib/presentations/song/view/song_list_view.dart
+          git commit -m "Fix selector scroll cache compatibility"
+          git push origin HEAD:${GITHUB_REF_NAME}
