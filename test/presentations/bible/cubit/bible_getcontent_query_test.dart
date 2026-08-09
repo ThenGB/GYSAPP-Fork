@@ -7,7 +7,7 @@ import 'package:church/data/services/installed_bible_db.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../../helpers/bible_db_fixture.dart';
+import '../../../helpers/bible_db_fixture.dart';
 
 /// Runs the exact 5-query content load that BibleCubit.getContent performs
 /// against an installed non-bundled Bible database. The fixture is generated
@@ -53,7 +53,6 @@ void main() {
     final openedDb = db as Database;
     final repository = BibleRepositoryImpl();
 
-    // Mirrors bible_cubit.dart getContent Future.wait for the DB branch.
     final results = await Future.wait([
       repository.getVerses(openedDb, bookId: 1, chapterId: 1),
       repository.getBooks(openedDb),
