@@ -1,5 +1,5 @@
 name: church
-description: A new Flutter project.
+description: GYS APP - cross-platform worship, Bible, hymnal, and ministry companion.
 publish_to: "none"
 version: 2.1.0+133
 
@@ -67,6 +67,7 @@ dependencies:
   hive_flutter: ^1.1.0
   shared_preferences: ^2.5.5
   google_sign_in: ^7.2.0
+  google_sign_in_web: ^1.1.0
   sign_in_with_apple: ^8.1.0
   idb_shim: ^2.9.6+2
   sqflite_common_ffi_web: ^1.1.2

@@ -1,8 +1,7 @@
+import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -17,29 +16,16 @@ import '../../../components/components.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
 import '../cubit/auth_cubit.dart';
+import '../widgets/google_web_button.dart';
 
 void _authDebug(String message) {
-  if (!kDebugMode) return;
-  final normalized = message.toLowerCase();
-  const sensitiveTerms = <String>[
-    'token',
-    'cookie',
-    'credential',
-    'response',
-    'account',
-    'email',
-    'profile',
-  ];
-  if (sensitiveTerms.any(normalized.contains)) {
-    debugPrint('[LoginView] Sensitive authentication diagnostic redacted');
-    return;
-  }
-  debugPrint(message);
+  if (kDebugMode) debugPrint('[LoginView] $message');
 }
 
 @RoutePage()
 class LoginView extends StatefulWidget implements AutoRouteWrapper {
   final Function(String token) onLoggedIn;
+
   const LoginView({super.key, required this.onLoggedIn});
 
   @override
@@ -47,479 +33,584 @@ class LoginView extends StatefulWidget implements AutoRouteWrapper {
 
   @override
   Widget wrappedRoute(BuildContext context) {
-    return BlocProvider<AuthCubit>(create: (context) => di(), child: this);
+    return BlocProvider<AuthCubit>(create: (_) => di(), child: this);
   }
 }
 
 class _LoginViewState extends State<LoginView> {
-  InAppWebViewController? _webViewController;
-  bool _loginHandled = false;
-  bool _doingOAuth = false;
-
   static const _serverClientId =
       '705603488262-70g3bcfan59307rrk610m32n4uhf2tge.apps.googleusercontent.com';
+  static const _appleWebClientId = String.fromEnvironment(
+    'APPLE_WEB_CLIENT_ID',
+  );
+  static const _appleWebRedirectUri = String.fromEnvironment(
+    'APPLE_WEB_REDIRECT_URI',
+  );
+  static const _authBaseUrl = 'https://e.gys.or.id';
 
-  void _handleToken(Map<String, dynamic> msg) {
-    _authDebug('[LoginView] _handleToken msg=$msg, _loginHandled=$_loginHandled');
-    _authDebug('[LoginView] CMD: ${msg['cmd']}');
-    final cmd = msg['cmd'];
-    if (cmd == 'googlelogin' && !_loginHandled) {
-      _dispatchLogin();
-      return;
-    }
-    if ((cmd == 'googlelogged' || cmd == 'applelogged') && !_loginHandled) {
-      _loginHandled = true;
-      final t = msg['token'] ?? '';
-      _authDebug('[LoginView] Calling onLoggedIn with token=${t.length > 40 ? t.substring(0, 40) : t}...');
-      widget.onLoggedIn(t);
+  InAppWebViewController? _webViewController;
+  StreamSubscription<GoogleSignInAuthenticationEvent>? _googleAuthSubscription;
+  bool _loginHandled = false;
+  bool _doingOAuth = false;
+  bool _webGoogleReady = false;
+  bool _webBusy = false;
+  String? _webAuthError;
+
+  @override
+  void initState() {
+    super.initState();
+    if (kIsWeb) unawaited(_initializeGoogleWeb());
+  }
+
+  @override
+  void dispose() {
+    _googleAuthSubscription?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _initializeGoogleWeb() async {
+    try {
+      final signIn = GoogleSignIn.instance;
+      await signIn.initialize(clientId: _serverClientId);
+      await _googleAuthSubscription?.cancel();
+      _googleAuthSubscription = signIn.authenticationEvents.listen(
+        (event) {
+          if (event is GoogleSignInAuthenticationEventSignIn) {
+            unawaited(_exchangeGoogleAccount(event.user));
+          }
+        },
+        onError: (Object error, StackTrace stackTrace) {
+          _authDebug('Google web auth event failed (${error.runtimeType})');
+          if (mounted) {
+            setState(() => _webAuthError = 'Google Sign-In gagal. Coba lagi.');
+          }
+        },
+      );
+      signIn.attemptLightweightAuthentication();
+      if (mounted) setState(() => _webGoogleReady = true);
+    } catch (error) {
+      _authDebug('Google web initialization failed (${error.runtimeType})');
+      if (mounted) {
+        setState(() => _webAuthError = 'Google Sign-In belum dapat dimuat.');
+      }
     }
   }
 
-  void _dispatchLogin() {
-    if (kIsWeb) {
-      // dart:io Platform throws on web — no native Google/Apple flows there.
-      _handleGoogleViaWebView();
+  void _completeLogin(Object? token) {
+    if (_loginHandled) return;
+    final value = token?.toString().trim() ?? '';
+    if (value.isEmpty || value == 'null') return;
+    _loginHandled = true;
+    widget.onLoggedIn(value);
+  }
+
+  void _handleToken(Map<String, dynamic> message) {
+    if (_loginHandled) return;
+    final command = message['cmd']?.toString().toLowerCase();
+    switch (command) {
+      case 'googlelogin':
+        _dispatchGoogleLogin();
+        return;
+      case 'applelogin':
+        _dispatchAppleLogin();
+        return;
+      case 'googlelogged':
+      case 'applelogged':
+        _completeLogin(message['token']);
+        return;
+    }
+  }
+
+  void _dispatchGoogleLogin() {
+    // Debug deliberately exercises the hosted browser flow on every native
+    // platform, as requested. Web itself uses the official GIS button.
+    if (kDebugMode && !kIsWeb) {
+      _startHostedOAuth('/auth/google');
       return;
     }
-    if (kDebugMode) {
-      _handleGoogleViaWebView();
-      return;
-    }
-    if (Platform.isAndroid) {
-      _handleGoogleNative();
-    } else if (Platform.isIOS || Platform.isMacOS) {
-      _handleAppleNative();
+
+    if (kIsWeb) return;
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      unawaited(_handleGoogleNative());
     } else {
-      _handleGoogleViaWebView();
+      // iOS/macOS/Windows keep Google available through the same e-GYS web
+      // flow without requiring a second native Google client configuration.
+      _startHostedOAuth('/auth/google');
     }
   }
 
-  // ── Debug: redirect flow ─────────────────────────────────────────────
-  void _handleGoogleViaWebView() {
-    if (_doingOAuth) return;
+  void _dispatchAppleLogin() {
+    if (kDebugMode && !kIsWeb) {
+      _startHostedOAuth('/auth/apple');
+      return;
+    }
+
+    if (kIsWeb) {
+      unawaited(_handleAppleWeb());
+      return;
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.macOS) {
+      unawaited(_handleAppleNative());
+    } else {
+      _startHostedOAuth('/auth/apple');
+    }
+  }
+
+  void _startHostedOAuth(String path) {
+    if (_doingOAuth || _webViewController == null) return;
     _doingOAuth = true;
-    _authDebug('[LoginView] Navigating to /auth/google');
-    _webViewController?.loadUrl(
-      urlRequest: URLRequest(
-        url: WebUri('https://e.gys.or.id/auth/google'),
+    _authDebug('Starting hosted OAuth flow: $path');
+    unawaited(
+      _webViewController!.loadUrl(
+        urlRequest: URLRequest(url: WebUri('$_authBaseUrl$path')),
       ),
     );
   }
 
-  Future<void> _tryExtractToken(InAppWebViewController controller) async {
+  Future<void> _tryExtractHostedSession(
+    InAppWebViewController controller,
+  ) async {
     if (_loginHandled) return;
-    _authDebug('[LoginView] _tryExtractToken called, _loginHandled=$_loginHandled');
 
-    // 1. Try localStorage/sessionStorage for a real token
     final jsToken = await controller.evaluateJavascript(source: '''
       (function() {
         try {
-          var t = localStorage.getItem("token") ||
-                  localStorage.getItem("access_token") ||
-                  localStorage.getItem("jwt") ||
-                  localStorage.getItem("id_token") ||
-                  sessionStorage.getItem("token");
-          if (t && t !== "null" && t !== "undefined") return t;
-          if (typeof window.__TOKEN__ !== 'undefined') return window.__TOKEN__;
-          return null;
-        } catch(e) { return null; }
+          const keys = ["token", "access_token", "jwt", "id_token"];
+          for (const key of keys) {
+            const value = localStorage.getItem(key) || sessionStorage.getItem(key);
+            if (value && value !== "null" && value !== "undefined") return value;
+          }
+          return (typeof window.__TOKEN__ !== 'undefined') ? window.__TOKEN__ : null;
+        } catch (_) { return null; }
       })();
     ''');
-    if (jsToken != null &&
-        jsToken is String &&
-        jsToken.isNotEmpty &&
-        jsToken != 'null') {
-      _authDebug('[LoginView] jsToken from localStorage: ${jsToken.substring(0, jsToken.length.clamp(0, 40))}...');
-      _authDebug('[LoginView] Token from localStorage');
-      _handleToken({'cmd': 'googlelogged', 'token': jsToken});
+    if (jsToken is String && jsToken.trim().isNotEmpty && jsToken != 'null') {
+      _completeLogin(jsToken);
       return;
     }
 
-    // 2. Check if user is actually logged in on the website
     final isLoggedIn = await controller.evaluateJavascript(source: '''
       (function() {
         try {
-          // Check for logout button / user menu / profile link
-          var logoutBtn = document.querySelector('a[href*="logout"], button[onclick*="logout"], .user-menu, .user-info, .profile-name, [data-user]');
-          if (logoutBtn) return true;
-          // Check for common logged-in indicators
-          var body = document.body.innerText || '';
-          if (body.indexOf('Keluar') !== -1 || body.indexOf('Logout') !== -1 || body.indexOf('Profil') !== -1) return true;
-          // Check if there's no login button visible
-          var loginBtn = document.querySelector('a[href*="login"], #mobile-google-signin');
-          if (loginBtn && loginBtn.offsetParent !== null) return false;
-          return false;
-        } catch(e) { return false; }
+          if (document.querySelector('a[href*="logout"], .user-menu, .user-info, .profile-name, [data-user]')) return true;
+          const body = document.body && document.body.innerText || '';
+          return body.includes('Keluar') || body.includes('Logout') || body.includes('Profil');
+        } catch (_) { return false; }
       })();
     ''');
-    _authDebug('[LoginView] Page login check: isLoggedIn=$isLoggedIn');
+    if (isLoggedIn != true) return;
 
-    // 3. Get session cookies as credential
     final cookies = await CookieManager.instance().getCookies(
-      url: WebUri('https://e.gys.or.id'),
+      url: WebUri(_authBaseUrl),
     );
     final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
-    _authDebug('[LoginView] Session cookies: ${cookies.length} cookies');
+    if (cookieHeader.isEmpty) return;
 
-    if (isLoggedIn == true && cookieHeader.isNotEmpty) {
-      // Try to get a real JWT token from /users/profile using cookies
-      try {
-        final resp = await http.get(
-          Uri.parse('https://e.gys.or.id/users/profile'),
-          headers: {'Cookie': cookieHeader},
-        );
-        _authDebug('[LoginView] Profile API: ${resp.statusCode}');
-        if (resp.statusCode == 200) {
-          _authDebug('[LoginView] Profile API body preview: ${resp.body.substring(0, resp.body.length.clamp(0, 200))}');
-          try {
-            final data = json.decode(resp.body);
-            if (data is Map && data['token'] != null && !_loginHandled) {
-              _authDebug('[LoginView] Got JWT from /users/profile');
-              _loginHandled = true;
-              widget.onLoggedIn(data['token']);
-              return;
-            }
-          } catch (_) {
-            final tokenMatch = RegExp(r'(?:token|jwt|access_token)["\s:=]+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)').firstMatch(resp.body);
-            if (tokenMatch != null) {
-              final token = tokenMatch.group(1)!;
-              _authDebug('[LoginView] Extracted JWT from HTML response');
-              _loginHandled = true;
-              widget.onLoggedIn(token);
-              return;
-            }
-          }
+    // Prefer an application token when the backend exposes one. The session
+    // cookie is retained only as a compatibility fallback for hosted debug
+    // auth; it is never printed to logs.
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_authBaseUrl/users/profile'),
+            headers: {'Cookie': cookieHeader},
+          )
+          .timeout(const Duration(seconds: 15));
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body is Map && body['token'] != null) {
+          _completeLogin(body['token']);
+          return;
         }
-      } catch (e) {
-        _authDebug('[LoginView] Profile API error: $e');
       }
+    } catch (_) {
+      // Session fallback below keeps older backend deployments usable.
+    }
+    _completeLogin(cookieHeader);
+  }
 
-      // Fallback: pass session cookies as token (limited functionality)
-      _authDebug('[LoginView] No JWT from API, passing session cookies as token');
-      _loginHandled = true;
-      widget.onLoggedIn(cookieHeader);
+  Future<void> _handleGoogleNative() async {
+    try {
+      final signIn = GoogleSignIn.instance;
+      await signIn.initialize(serverClientId: _serverClientId);
+      if (!signIn.supportsAuthenticate()) {
+        _startHostedOAuth('/auth/google');
+        return;
+      }
+      final account = await signIn.authenticate();
+      await _exchangeGoogleAccount(account);
+    } catch (error) {
+      _authDebug('Native Google sign-in failed (${error.runtimeType})');
+      _startHostedOAuth('/auth/google');
+    }
+  }
+
+  Future<void> _exchangeGoogleAccount(GoogleSignInAccount account) async {
+    final idToken = account.authentication.idToken;
+    if (idToken == null || idToken.isEmpty) {
+      if (mounted) {
+        setState(() => _webAuthError = 'Google tidak mengembalikan ID token.');
+      }
       return;
     }
-
-    _authDebug('[LoginView] No login detected after OAuth redirect');
+    await _exchangeGoogleIdToken(idToken);
   }
 
-  // ── Native Google Sign-In ────────────────────────────────────────────
-  Future<void> _handleGoogleNative() async {
-    _authDebug('[LoginView] Starting native GIS...');
+  Future<void> _exchangeGoogleIdToken(String idToken) async {
+    if (_loginHandled) return;
+    _setWebBusy(true);
     try {
-      final googleSignIn = GoogleSignIn.instance;
-      await googleSignIn.initialize(
-        serverClientId: _serverClientId,
-      );
-      _authDebug('[LoginView] GIS instance initialized, authenticating...');
-      final account = await googleSignIn.authenticate();
-      _authDebug('[LoginView] GIS account: ${account.email}');
-      final auth = account.authentication;
-      final idToken = auth.idToken;
-      _authDebug('[LoginView] GIS idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
-      if (idToken == null || idToken.isEmpty) {
-        _authDebug('[LoginView] ERROR: idToken is null/empty, falling back to WebView');
-        _handleGoogleViaWebView();
-        return;
-      }
-      _authDebug('[LoginView] Posting to /auth/google/callbackgis...');
-      final response = await http.post(
-        Uri.parse('https://e.gys.or.id/auth/google/callbackgis'),
-        body: {
-          'credential': idToken,
-          'select_by': 'btn',
-          'client_id': _serverClientId,
-        },
-      );
-      _authDebug('[LoginView] callbackgis response: ${response.statusCode} ${response.body}');
-      if (response.statusCode == 200) {
-        final res = json.decode(response.body);
-        final hasToken = res['token'] != null;
-        _authDebug('[LoginView] callbackgis status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
-        if (hasToken && !_loginHandled) {
-          _authDebug('[LoginView] Got app token! Calling onLoggedIn with token=${res['token'].toString().substring(0, res['token'].toString().length.clamp(0, 40))}...');
-          _loginHandled = true;
-          widget.onLoggedIn(res['token']);
-        } else {
-          _authDebug('[LoginView] No token in response: $res');
-        }
-      } else {
-        _authDebug('[LoginView] callbackgis failed: ${response.statusCode}');
-      }
-    } catch (e, st) {
-      _authDebug('[LoginView] Google sign-in error: $e\n$st');
-      _authDebug('[LoginView] Falling back to WebView');
-      _handleGoogleViaWebView();
+      final response = await http
+          .post(
+            Uri.parse('$_authBaseUrl/auth/google/callbackgis'),
+            body: {
+              'credential': idToken,
+              'select_by': 'btn',
+              'client_id': _serverClientId,
+            },
+          )
+          .timeout(const Duration(seconds: 20));
+      _completeBackendToken(response, provider: 'Google');
+    } catch (error) {
+      _setWebError('Google Sign-In gagal tersambung ke e-GYS.');
+      _authDebug('Google token exchange failed (${error.runtimeType})');
+    } finally {
+      _setWebBusy(false);
     }
   }
 
-  // ── Native Apple Sign-In ────────────────────────────────────────────
   Future<void> _handleAppleNative() async {
-    _authDebug('[LoginView] Starting native Apple Sign-In...');
     try {
-      final available = await SignInWithApple.isAvailable();
-      if (!available) {
-        _authDebug('[LoginView] Apple Sign-In not available, falling back to WebView');
-        _handleGoogleViaWebView();
+      if (!await SignInWithApple.isAvailable()) {
+        _startHostedOAuth('/auth/apple');
         return;
       }
-      _authDebug('[LoginView] Apple Sign-In available, requesting credentials...');
-      final appleCredential = await SignInWithApple.getAppleIDCredential(
-        scopes: [
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: const [
           AppleIDAuthorizationScopes.email,
           AppleIDAuthorizationScopes.fullName,
         ],
       );
-      final idToken = appleCredential.identityToken;
-      _authDebug('[LoginView] Apple idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
-      if (idToken == null || idToken.isEmpty) {
-        _authDebug('[LoginView] ERROR: Apple idToken is null/empty, falling back to WebView');
-        _handleGoogleViaWebView();
+      await _exchangeAppleCredential(credential);
+    } catch (error) {
+      _authDebug('Native Apple sign-in failed (${error.runtimeType})');
+      _startHostedOAuth('/auth/apple');
+    }
+  }
+
+  Future<void> _handleAppleWeb() async {
+    if (_appleWebClientId.isEmpty || _appleWebRedirectUri.isEmpty) {
+      _setWebError(
+        'Apple Web Sign-In belum dikonfigurasi untuk deployment ini.',
+      );
+      return;
+    }
+    _setWebBusy(true);
+    try {
+      final credential = await SignInWithApple.getAppleIDCredential(
+        scopes: const [
+          AppleIDAuthorizationScopes.email,
+          AppleIDAuthorizationScopes.fullName,
+        ],
+        webAuthenticationOptions: WebAuthenticationOptions(
+          clientId: _appleWebClientId,
+          redirectUri: Uri.parse(_appleWebRedirectUri),
+        ),
+      );
+      await _exchangeAppleCredential(credential);
+    } catch (error) {
+      _setWebError('Apple Sign-In gagal. Coba lagi.');
+      _authDebug('Apple web sign-in failed (${error.runtimeType})');
+    } finally {
+      _setWebBusy(false);
+    }
+  }
+
+  Future<void> _exchangeAppleCredential(
+    AuthorizationCredentialAppleID credential,
+  ) async {
+    final idToken = credential.identityToken;
+    if (idToken == null || idToken.isEmpty) {
+      _setWebError('Apple tidak mengembalikan identity token.');
+      return;
+    }
+
+    final response = await http
+        .post(
+          Uri.parse('$_authBaseUrl/auth/apple/callback'),
+          body: {
+            'identity_token': idToken,
+            'code': credential.authorizationCode,
+            if (credential.email != null) 'email': credential.email!,
+            if (credential.givenName != null) 'first_name': credential.givenName!,
+            if (credential.familyName != null)
+              'last_name': credential.familyName!,
+          },
+        )
+        .timeout(const Duration(seconds: 20));
+    _completeBackendToken(response, provider: 'Apple');
+  }
+
+  void _completeBackendToken(http.Response response, {required String provider}) {
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      _setWebError('$provider Sign-In ditolak oleh e-GYS.');
+      return;
+    }
+    try {
+      final body = jsonDecode(response.body);
+      if (body is Map && body['token'] != null) {
+        _completeLogin(body['token']);
         return;
       }
-      _authDebug('[LoginView] Posting to /auth/apple/callback...');
-      final response = await http.post(
-        Uri.parse('https://e.gys.or.id/auth/apple/callback'),
-        body: {
-          'identity_token': idToken,
-          'code': appleCredential.authorizationCode,
-          if (appleCredential.email != null) 'email': appleCredential.email,
-          if (appleCredential.givenName != null) 'first_name': appleCredential.givenName,
-          if (appleCredential.familyName != null) 'last_name': appleCredential.familyName,
-        },
-      );
-      _authDebug('[LoginView] Apple callback response: ${response.statusCode} ${response.body}');
-      if (response.statusCode == 200) {
-        final res = json.decode(response.body);
-        final hasToken = res['token'] != null;
-        _authDebug('[LoginView] Apple callback status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
-        if (hasToken && !_loginHandled) {
-          _authDebug('[LoginView] Got app token from Apple! Calling onLoggedIn');
-          _loginHandled = true;
-          widget.onLoggedIn(res['token']);
-        } else {
-          _authDebug('[LoginView] No token in Apple response: $res');
-        }
-      } else {
-        _authDebug('[LoginView] Apple callback failed: ${response.statusCode}');
-      }
-    } catch (e, st) {
-      _authDebug('[LoginView] Apple sign-in error: $e\n$st');
-      _authDebug('[LoginView] Falling back to WebView');
-      _handleGoogleViaWebView();
-    }
+    } catch (_) {}
+    _setWebError('$provider Sign-In selesai, tetapi token aplikasi tidak tersedia.');
+  }
+
+  void _setWebBusy(bool value) {
+    if (!mounted || _webBusy == value) return;
+    setState(() => _webBusy = value);
+  }
+
+  void _setWebError(String message) {
+    if (!mounted) return;
+    setState(() => _webAuthError = message);
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
-        // flutter_inappwebview has no web implementation — building the
-        // webview on web throws UnsupportedError. Show a crash-free card
-        // that opens the login page in a new browser tab instead.
-        if (kIsWeb) {
-          return _buildWebFallback(context);
-        }
-        return Scaffold(
-        body: Stack(
-          fit: StackFit.passthrough,
-          children: [
-            Container(
-              color: context.colorScheme.surface,
-              child: InAppWebView(
-                onLoadStop: (controller, url) async {
-                  context.read<AuthCubit>().toggleLoading(false);
-                  final urlStr = url?.toString() ?? '';
-                  _authDebug('[LoginView] onLoadStop: $urlStr');
-                  if (_doingOAuth &&
-                      urlStr.contains('e.gys.or.id') &&
-                      !urlStr.contains('/auth/google') &&
-                      !urlStr.contains('accounts.google.com')) {
-                    _doingOAuth = false;
-                    await Future.delayed(const Duration(seconds: 2));
-                    await _tryExtractToken(controller);
-                  }
-                },
-                onLoadStart: (controller, url) {
-                  context.read<AuthCubit>().toggleLoading(true);
-                  _authDebug('[LoginView] onLoadStart: $url');
-                },
-                onProgressChanged: (controller, progress) {
-                  context.read<AuthCubit>().onProgress(progress);
-                },
-                initialSettings: InAppWebViewSettings(
-                  transparentBackground: true,
-                  cacheEnabled: true,
-                  supportMultipleWindows: true,
-                  javaScriptCanOpenWindowsAutomatically: true,
-                  thirdPartyCookiesEnabled: true,
-                  domStorageEnabled: true,
-                  databaseEnabled: true,
-                  userAgent:
-                      'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 '
-                      '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-                ),
-                onConsoleMessage: (controller, consoleMessage) {
-                  _authDebug('[WebViewConsole] ${consoleMessage.message}');
-                },
-                onCreateWindow: (controller, createWindowAction) async {
-                  _authDebug('[LoginView] onCreateWindow: ${createWindowAction.request.url}');
-                  if (mounted) {
-                    showModalBottomSheet(
-                      context: context,
-                      useSafeArea: true,
-                      isScrollControlled: true,
-                      isDismissible: true,
-                      builder: (sheetContext) {
-                        return SizedBox(
-                          height: MediaQuery.of(context).size.height * 0.85,
-                          child: InAppWebView(
-                            windowId: createWindowAction.windowId,
-                            initialSettings: InAppWebViewSettings(
-                              userAgent:
-                                  'Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 '
-                                  '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
-                            ),
-                            onCloseWindow: (ctrl) {
-                              if (Navigator.of(sheetContext).canPop()) {
-                                Navigator.of(sheetContext).pop();
-                              }
-                            },
-                          ),
-                        );
-                      },
-                    );
-                  }
-                  return true;
-                },
-                onCloseWindow: (controller) {},
-                onWebViewCreated: (controller) {
-                  _webViewController = controller;
-                  _webViewController?.addJavaScriptHandler(
-                    handlerName: 'mobile',
-                    callback: (arguments) {
-                      _authDebug('[LoginView] mobile: $arguments');
-                      final json = (arguments as List).firstOrNull as Map<String, dynamic>;
-                      _handleToken(json);
-                    },
-                  );
-                },
-                shouldOverrideUrlLoading:
-                    (controller, navigationAction) async {
-                  return NavigationActionPolicy.ALLOW;
-                },
-                initialUrlRequest: URLRequest(
-                  url: WebUri.uri(
-                    Uri.parse(
-                      'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}',
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned.fill(
-              child: AnimatedCrossFade(
-                duration: kThemeAnimationDuration,
-                crossFadeState: state.isLoading
-                    ? CrossFadeState.showFirst
-                    : CrossFadeState.showSecond,
-                secondChild: const SizedBox(),
-                alignment: Alignment.center,
-                layoutBuilder:
-                    (topChild, topChildKey, bottomChild, bottomChildKey) {
-                      return SizedBox(
-                        width: double.infinity,
-                        height: double.infinity,
-                        child: topChild,
-                      );
-                    },
-                firstChild: Container(
-                  color: context.colorScheme.surface,
-                  child: Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        CircularProgressIndicator.adaptive(
-                          value: (state.progress / 100).clamp(0, 1),
-                        ),
-                        const SizedBox(height: 16),
-                        Text('${state.progress} %'),
-                        Text('Loading'.tr()),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            SafeArea(
-              child: Container(
-                alignment: Alignment.center,
-                width: double.infinity,
-                height: 56,
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: const [CircleAvatar(child: BackButton())],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    },
+        if (kIsWeb) return _buildWebLogin(context);
+        return _buildHostedLogin(context, state);
+      },
     );
   }
 
-  /// Web fallback: opens the login page in a new browser tab. The
-  /// in-app webview flow is Android/iOS/desktop only.
-  Widget _buildWebFallback(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
+  Widget _buildHostedLogin(BuildContext context, AuthState state) {
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          ColoredBox(
+            color: context.colorScheme.surface,
+            child: InAppWebView(
+              initialUrlRequest: URLRequest(
+                url: WebUri(
+                  '$_authBaseUrl/login?theme=${context.isDark ? 'dark' : 'light'}',
+                ),
+              ),
+              initialSettings: InAppWebViewSettings(
+                transparentBackground: true,
+                cacheEnabled: true,
+                supportMultipleWindows: true,
+                javaScriptCanOpenWindowsAutomatically: true,
+                thirdPartyCookiesEnabled: true,
+                domStorageEnabled: true,
+                databaseEnabled: true,
+              ),
+              onWebViewCreated: (controller) {
+                _webViewController = controller;
+                controller.addJavaScriptHandler(
+                  handlerName: 'mobile',
+                  callback: (arguments) {
+                    if (arguments.isEmpty || arguments.first is! Map) return;
+                    _handleToken(
+                      (arguments.first as Map).cast<String, dynamic>(),
+                    );
+                  },
+                );
+              },
+              onLoadStart: (_, url) {
+                context.read<AuthCubit>().toggleLoading(true);
+                _authDebug('Hosted page loading: ${url?.host ?? ''}');
+              },
+              onLoadStop: (controller, url) async {
+                context.read<AuthCubit>().toggleLoading(false);
+                final urlString = url?.toString() ?? '';
+                if (_doingOAuth &&
+                    urlString.contains('e.gys.or.id') &&
+                    !urlString.contains('/auth/google') &&
+                    !urlString.contains('/auth/apple') &&
+                    !urlString.contains('accounts.google.com')) {
+                  _doingOAuth = false;
+                  await _tryExtractHostedSession(controller);
+                }
+              },
+              onProgressChanged: (_, progress) {
+                context.read<AuthCubit>().onProgress(progress);
+              },
+              onCreateWindow: (_, action) async {
+                if (!mounted) return false;
+                await showModalBottomSheet<void>(
+                  context: context,
+                  useSafeArea: true,
+                  isScrollControlled: true,
+                  builder: (sheetContext) => SizedBox(
+                    height: MediaQuery.sizeOf(context).height * 0.85,
+                    child: InAppWebView(
+                      windowId: action.windowId,
+                      onCloseWindow: (_) => Navigator.of(sheetContext).maybePop(),
+                    ),
+                  ),
+                );
+                return true;
+              },
+            ),
+          ),
+          if (state.isLoading)
+            ColoredBox(
+              color: context.colorScheme.surface.withValues(alpha: 0.94),
+              child: Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator.adaptive(
+                      value: state.progress > 0 && state.progress < 100
+                          ? state.progress / 100
+                          : null,
+                    ),
+                    const SizedBox(height: 14),
+                    Text('${state.progress}% · ${'Loading'.tr()}'),
+                  ],
+                ),
+              ),
+            ),
+          const SafeArea(
+            child: Align(
+              alignment: Alignment.topLeft,
+              child: Padding(
+                padding: EdgeInsets.all(8),
+                child: CircleAvatar(child: BackButton()),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWebLogin(BuildContext context) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final appleConfigured =
+        _appleWebClientId.isNotEmpty && _appleWebRedirectUri.isNotEmpty;
+
     return Scaffold(
       appBar: AppBar(leading: const BackButton()),
       body: Center(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 420),
+            constraints: const BoxConstraints(maxWidth: 460),
             child: Card(
               elevation: 0,
+              clipBehavior: Clip.antiAlias,
               shape: RoundedRectangleBorder(
-                borderRadius: context.appRadius(20),
+                borderRadius: context.appRadius(22),
                 side: BorderSide(color: colors.outlineVariant),
               ),
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(28),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.login_rounded, size: 40, color: colors.primary),
-                    const SizedBox(height: 12),
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer,
+                        borderRadius: context.appRadius(18),
+                      ),
+                      child: Icon(
+                        Icons.account_circle_rounded,
+                        size: 34,
+                        color: colors.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Text(
-                      'Login'.tr(),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      'Login GYS',
+                      style: theme.textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Login melalui browser',
+                      'Gunakan akun Google atau Apple. Token provider langsung ditukar dengan sesi e-GYS dan tidak dicetak ke log.',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: colors.onSurfaceVariant,
                       ),
                     ),
+                    const SizedBox(height: 24),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      child: !_webGoogleReady
+                          ? const SizedBox(
+                              key: ValueKey('google-loading'),
+                              height: 44,
+                              child: Center(
+                                child: CircularProgressIndicator.adaptive(),
+                              ),
+                            )
+                          : Center(
+                              key: const ValueKey('google-ready'),
+                              child: buildGoogleWebSignInButton(),
+                            ),
+                    ),
+                    const SizedBox(height: 12),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 44,
+                      child: OutlinedButton.icon(
+                        onPressed: _webBusy || !appleConfigured
+                            ? null
+                            : _handleAppleWeb,
+                        icon: const Icon(Icons.apple_rounded),
+                        label: const Text('Continue with Apple'),
+                      ),
+                    ),
+                    if (!appleConfigured) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        'Apple Web memerlukan APPLE_WEB_CLIENT_ID dan APPLE_WEB_REDIRECT_URI pada build release.',
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                    if (_webBusy) ...[
+                      const SizedBox(height: 18),
+                      const LinearProgressIndicator(),
+                    ],
+                    if (_webAuthError != null) ...[
+                      const SizedBox(height: 16),
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: colors.errorContainer,
+                          borderRadius: context.appRadius(12),
+                        ),
+                        child: Text(
+                          _webAuthError!,
+                          textAlign: TextAlign.center,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: colors.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 16),
-                    FilledButton.icon(
-                      onPressed: () async {
-                        final url =
-                            'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}';
-                        await launchUrl(
-                          Uri.parse(url),
-                          mode: LaunchMode.externalApplication,
-                        );
-                      },
-                      icon: const Icon(Icons.open_in_new_rounded),
-                      label: Text('Buka halaman login'),
+                    TextButton.icon(
+                      onPressed: () => launchUrl(
+                        Uri.parse('$_authBaseUrl/login'),
+                        mode: LaunchMode.platformDefault,
+                      ),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      label: const Text('Buka login e-GYS'),
                     ),
                   ],
                 ),
