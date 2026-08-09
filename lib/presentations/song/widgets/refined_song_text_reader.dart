@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -10,10 +9,12 @@ import '../../../data/services/chord_text_layout.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../cubit/song_cubit.dart';
 
-/// A focused text-only hymn reader that is independent from the PDF viewer.
+/// Dedicated text-only reading surface.
 ///
-/// Keeping this surface separate prevents PDF layout callbacks from disturbing
-/// lyric/chord layout and lets text mode use its own centered reading model.
+/// This stays independent from pdfrx so PDF layout/zoom changes cannot disturb
+/// lyric/chord geometry. The default presentation is horizontally and
+/// vertically centered, with long lyric rows shrinking just enough to keep
+/// chord anchors and syllables on the same coordinate system.
 class RefinedSongTextReader extends StatefulWidget {
   const RefinedSongTextReader({super.key, required this.onOpenMenu});
 
@@ -26,6 +27,12 @@ class RefinedSongTextReader extends StatefulWidget {
 class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
   int _verseIndex = 0;
   String? _songIdentity;
+
+  Song? _currentSong(SongState state) {
+    if (state.songs.isEmpty) return null;
+    final index = state.pageIndex.clamp(0, state.songs.length - 1);
+    return state.songs[index];
+  }
 
   void _syncSong(Song? song) {
     final identity = song == null ? null : '${song.code}:${song.number}';
@@ -45,23 +52,24 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
         }
 
         final verses = song.verses.isEmpty ? const [''] : song.verses;
-        final safeVerse = _verseIndex.clamp(0, verses.length - 1);
-        if (safeVerse != _verseIndex) _verseIndex = safeVerse;
-        final lines = verses[safeVerse]
+        final verseIndex = _verseIndex.clamp(0, verses.length - 1);
+        final lines = verses[verseIndex]
             .split('\n')
             .map((line) => line.trimRight())
             .where((line) => line.trim().isNotEmpty)
-            .toList();
+            .toList(growable: false);
 
-        final allChords = state.currentChords.entries
-            .toList()
+        final allChords = state.currentChords.entries.toList()
           ..sort((a, b) => a.key.compareTo(b.key));
         final flattened = allChords.expand((entry) => entry.value).toList()
           ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
         final verseChords = state.showChord
-            ? chordsForVerse(flattened, safeVerse, verses.length)
+            ? chordsForVerse(flattened, verseIndex, verses.length)
             : const <ChordData>[];
-        final perLine = distributeChordsToLines(verseChords, lines.length);
+        final chordsByLine = distributeChordsToLines(
+          verseChords,
+          lines.length,
+        );
 
         return Material(
           color: context.colorScheme.surface,
@@ -73,22 +81,20 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
                   song: song,
                   state: state,
                   onOpenMenu: widget.onOpenMenu,
-                  onPreviousSong: context.read<SongCubit>().goToPreviousSong,
-                  onNextSong: context.read<SongCubit>().goToNextSong,
                 ),
                 Expanded(
                   child: _ReadingViewport(
                     state: state,
                     song: song,
-                    verseIndex: safeVerse,
+                    verseIndex: verseIndex,
                     verseCount: verses.length,
                     lines: lines,
-                    chordsByLine: perLine,
-                    onPreviousVerse: safeVerse > 0
-                        ? () => setState(() => _verseIndex--)
+                    chordsByLine: chordsByLine,
+                    onPreviousVerse: verseIndex > 0
+                        ? () => setState(() => _verseIndex = verseIndex - 1)
                         : null,
-                    onNextVerse: safeVerse + 1 < verses.length
-                        ? () => setState(() => _verseIndex++)
+                    onNextVerse: verseIndex + 1 < verses.length
+                        ? () => setState(() => _verseIndex = verseIndex + 1)
                         : null,
                   ),
                 ),
@@ -99,12 +105,6 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
       },
     );
   }
-
-  Song? _currentSong(SongState state) {
-    if (state.songs.isEmpty) return null;
-    final index = state.pageIndex.clamp(0, state.songs.length - 1);
-    return state.songs[index];
-  }
 }
 
 class _TextReaderHeader extends StatelessWidget {
@@ -112,22 +112,19 @@ class _TextReaderHeader extends StatelessWidget {
     required this.song,
     required this.state,
     required this.onOpenMenu,
-    required this.onPreviousSong,
-    required this.onNextSong,
   });
 
   final Song song;
   final SongState state;
   final VoidCallback onOpenMenu;
-  final VoidCallback onPreviousSong;
-  final VoidCallback onNextSong;
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final cubit = context.read<SongCubit>();
     return Container(
       height: 66,
-      padding: const EdgeInsets.symmetric(horizontal: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 6),
       decoration: BoxDecoration(
         color: colors.surface.withValues(alpha: 0.98),
         border: Border(
@@ -144,8 +141,8 @@ class _TextReaderHeader extends StatelessWidget {
             icon: const Icon(Icons.menu_rounded),
           ),
           IconButton(
-            tooltip: _previousSongLabel(context),
-            onPressed: onPreviousSong,
+            tooltip: _label(context, 'Pujian Sebelumnya', 'Previous Hymn'),
+            onPressed: cubit.goToPreviousSong,
             icon: const Icon(Icons.chevron_left_rounded),
           ),
           Expanded(
@@ -159,7 +156,7 @@ class _TextReaderHeader extends StatelessWidget {
                   style: context.textTheme.labelSmall?.copyWith(
                     color: colors.primary,
                     fontWeight: FontWeight.w800,
-                    letterSpacing: 0.8,
+                    letterSpacing: 0.7,
                   ),
                 ),
                 const SizedBox(height: 1),
@@ -176,8 +173,8 @@ class _TextReaderHeader extends StatelessWidget {
             ),
           ),
           IconButton(
-            tooltip: _nextSongLabel(context),
-            onPressed: onNextSong,
+            tooltip: _label(context, 'Pujian Berikutnya', 'Next Hymn'),
+            onPressed: cubit.goToNextSong,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
           _TextReaderMenu(state: state),
@@ -197,8 +194,9 @@ class _TextReaderMenu extends StatelessWidget {
     final cubit = context.read<SongCubit>();
     final chordEnabled = state.bookCode != 'HYMNE';
     final isFlat = state.chordAccidentalMode == ChordService.accidentalFlat;
+
     return PopupMenuButton<String>(
-      tooltip: _readerMenuLabel(context),
+      tooltip: _label(context, 'Pilihan Tampilan', 'Viewer Options'),
       icon: const Icon(Icons.tune_rounded),
       onSelected: (value) {
         switch (value) {
@@ -215,7 +213,7 @@ class _TextReaderMenu extends StatelessWidget {
             cubit.toggleAudio();
             break;
           case 'appearance':
-            _showTextAppearance(context);
+            _showAppearance(context, cubit);
             break;
         }
       },
@@ -224,7 +222,7 @@ class _TextReaderMenu extends StatelessWidget {
           value: 'pdf',
           child: _MenuRow(
             icon: Icons.picture_as_pdf_outlined,
-            label: _pdfModeLabel(context),
+            label: _label(context, 'Kembali ke PDF', 'Back to PDF'),
           ),
         ),
         PopupMenuItem(
@@ -232,9 +230,9 @@ class _TextReaderMenu extends StatelessWidget {
           enabled: chordEnabled,
           child: _MenuRow(
             icon: state.showChord
-                ? Icons.check_circle_rounded
-                : Icons.music_note_outlined,
-            label: _chordLabel(context),
+                ? Icons.music_note_rounded
+                : Icons.music_off_rounded,
+            label: 'Chord',
             emphasized: state.showChord,
           ),
         ),
@@ -243,7 +241,7 @@ class _TextReaderMenu extends StatelessWidget {
           enabled: chordEnabled,
           child: _MenuRow(
             leadingText: isFlat ? '♭' : '♯',
-            label: isFlat ? _flatLabel(context) : _sharpLabel(context),
+            label: isFlat ? 'Flat (♭)' : 'Sharp (♯)',
             emphasized: chordEnabled,
           ),
         ),
@@ -262,18 +260,18 @@ class _TextReaderMenu extends StatelessWidget {
           value: 'appearance',
           child: _MenuRow(
             icon: Icons.format_align_center_rounded,
-            label: _appearanceLabel(context),
+            label: _label(context, 'Tampilan Lirik', 'Lyrics Appearance'),
           ),
         ),
       ],
     );
   }
 
-  void _showTextAppearance(BuildContext context) {
-    final cubit = context.read<SongCubit>();
+  void _showAppearance(BuildContext context, SongCubit cubit) {
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
+      useSafeArea: true,
       builder: (_) => BlocProvider.value(
         value: cubit,
         child: const _TextAppearanceSheet(),
@@ -354,8 +352,6 @@ class _ReadingViewport extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final horizontal = _horizontalAlignment(state.lyricsTextAlign);
-    final vertical = _verticalAlignment(state.lyricsVerticalAlign);
     final textTheme = state.getTextThemeByFontName(state.defaultFont);
     final baseStyle = textTheme.bodyLarge?.copyWith(
       color: colors.onSurface,
@@ -368,59 +364,69 @@ class _ReadingViewport extends StatelessWidget {
       children: [
         Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 104),
+            padding: const EdgeInsets.fromLTRB(18, 16, 18, 110),
             child: Align(
-              alignment: vertical,
+              alignment: _verticalAlignment(state.lyricsVerticalAlign),
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 880),
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 180),
-                    switchInCurve: Curves.easeOutCubic,
-                    child: Column(
-                      key: ValueKey('${song.code}-${song.number}-$verseIndex'),
-                      crossAxisAlignment: horizontal,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        if (verseCount > 1) ...[
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 5,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.primaryContainer.withValues(
-                                alpha: 0.65,
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 880),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 180),
+                      switchInCurve: Curves.easeOutCubic,
+                      child: Column(
+                        key: ValueKey('${song.code}-${song.number}-$verseIndex'),
+                        crossAxisAlignment: _horizontalAlignment(
+                          state.lyricsTextAlign,
+                        ),
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (verseCount > 1) ...[
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 5,
                               ),
-                              borderRadius: context.appRadius(999),
-                            ),
-                            child: Text(
-                              _verseCounter(context, verseIndex + 1, verseCount),
-                              style: context.textTheme.labelMedium?.copyWith(
-                                color: colors.onPrimaryContainer,
-                                fontWeight: FontWeight.w800,
+                              decoration: BoxDecoration(
+                                color: colors.primaryContainer.withValues(
+                                  alpha: 0.65,
+                                ),
+                                borderRadius: context.appRadius(999),
+                              ),
+                              child: Text(
+                                _label(
+                                  context,
+                                  'Bait ${verseIndex + 1} dari $verseCount',
+                                  'Verse ${verseIndex + 1} of $verseCount',
+                                ),
+                                style: context.textTheme.labelMedium?.copyWith(
+                                  color: colors.onPrimaryContainer,
+                                  fontWeight: FontWeight.w800,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(height: 18),
+                            const SizedBox(height: 18),
+                          ],
+                          for (var index = 0; index < lines.length; index++) ...[
+                            _AnchoredLyricLine(
+                              lyric: lines[index],
+                              placements: index < chordsByLine.length &&
+                                      state.showChord
+                                  ? fallbackPlacementsForLine(
+                                      chordsByLine[index],
+                                    )
+                                  : const [],
+                              transposeStep: state.transposeStep,
+                              baseTransposeOffset: state.baseTransposeOffset,
+                              accidentalMode: state.chordAccidentalMode,
+                              lyricStyle: baseStyle,
+                              textAlign: _textAlign(state.lyricsTextAlign),
+                            ),
+                            SizedBox(height: 12 * state.defaultTextHeight),
+                          ],
                         ],
-                        for (var index = 0; index < lines.length; index++) ...[
-                          _AnchoredLyricLine(
-                            lyric: lines[index],
-                            placements: index < chordsByLine.length &&
-                                    state.showChord
-                                ? fallbackPlacementsForLine(chordsByLine[index])
-                                : const [],
-                            transposeStep: state.transposeStep,
-                            baseTransposeOffset: state.baseTransposeOffset,
-                            accidentalMode: state.chordAccidentalMode,
-                            lyricStyle: baseStyle,
-                            textAlign: _textAlign(state.lyricsTextAlign),
-                          ),
-                          SizedBox(height: 12 * state.defaultTextHeight),
-                        ],
-                      ],
+                      ),
                     ),
                   ),
                 ),
@@ -435,14 +441,17 @@ class _ReadingViewport extends StatelessWidget {
           child: Row(
             children: [
               IconButton.filledTonal(
-                tooltip: _previousVerseLabel(context),
+                tooltip: _label(context, 'Bait Sebelumnya', 'Previous Verse'),
                 onPressed: onPreviousVerse,
                 icon: const Icon(Icons.keyboard_arrow_up_rounded),
               ),
               const Spacer(),
               if (state.showChord)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: colors.surfaceContainerHigh.withValues(alpha: 0.92),
                     borderRadius: context.appRadius(999),
@@ -451,7 +460,7 @@ class _ReadingViewport extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    '${state.chordAccidentalMode == ChordService.accidentalFlat ? '♭' : '♯'} · ${state.activeKeyLabel ?? '—'}',
+                    '${state.chordAccidentalMode == ChordService.accidentalFlat ? '♭' : '♯'} · ${state.activeKeyLabel.trim().isEmpty ? '—' : state.activeKeyLabel}',
                     style: context.textTheme.labelMedium?.copyWith(
                       color: colors.primary,
                       fontWeight: FontWeight.w800,
@@ -460,7 +469,7 @@ class _ReadingViewport extends StatelessWidget {
                 ),
               const Spacer(),
               IconButton.filledTonal(
-                tooltip: _nextVerseLabel(context),
+                tooltip: _label(context, 'Bait Berikutnya', 'Next Verse'),
                 onPressed: onNextVerse,
                 icon: const Icon(Icons.keyboard_arrow_down_rounded),
               ),
@@ -493,22 +502,24 @@ class _AnchoredLyricLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final direction = Directionality.of(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = math.max(40.0, constraints.maxWidth);
         final base = lyricStyle ?? context.textTheme.bodyLarge!;
-        final painter = TextPainter(
+        final naturalPainter = TextPainter(
           text: TextSpan(text: lyric, style: base.copyWith(height: 1)),
-          textDirection: TextDirection.ltr,
+          textDirection: direction,
           maxLines: 1,
         )..layout();
-        final naturalWidth = math.max(1.0, painter.width);
+        final naturalWidth = math.max(1.0, naturalPainter.width);
         final widthScale = math.min(1.0, maxWidth / naturalWidth);
-        final fittedFont = (base.fontSize ?? 18) * math.max(0.70, widthScale);
-        final fittedStyle = base.copyWith(fontSize: fittedFont);
+        final fittedFontSize =
+            (base.fontSize ?? 18) * math.max(0.70, widthScale);
+        final fittedStyle = base.copyWith(fontSize: fittedFontSize);
         final fittedPainter = TextPainter(
           text: TextSpan(text: lyric, style: fittedStyle.copyWith(height: 1)),
-          textDirection: TextDirection.ltr,
+          textDirection: direction,
           maxLines: 1,
         )..layout();
         final textWidth = math.min(maxWidth, fittedPainter.width);
@@ -534,12 +545,15 @@ class _AnchoredLyricLine extends StatelessWidget {
           );
           final chordPainter = TextPainter(
             text: TextSpan(text: label, style: chordStyle),
-            textDirection: TextDirection.ltr,
+            textDirection: direction,
             maxLines: 1,
           )..layout();
           var left = origin + placement.safePosition * textWidth;
           left = math.max(left, previousRight + 5);
-          left = left.clamp(0.0, math.max(0.0, maxWidth - chordPainter.width));
+          left = left.clamp(
+            0.0,
+            math.max(0.0, maxWidth - chordPainter.width),
+          );
           previousRight = left + chordPainter.width;
           chordWidgets.add(
             Positioned(
@@ -556,7 +570,10 @@ class _AnchoredLyricLine extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               if (placements.isNotEmpty)
-                SizedBox(height: 20, child: Stack(children: chordWidgets)),
+                SizedBox(
+                  height: 20,
+                  child: Stack(clipBehavior: Clip.none, children: chordWidgets),
+                ),
               Text(
                 lyric,
                 maxLines: 1,
@@ -590,7 +607,7 @@ class _TextAppearanceSheet extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  _appearanceLabel(context),
+                  _label(context, 'Tampilan Lirik', 'Lyrics Appearance'),
                   style: context.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w800,
                   ),
@@ -601,17 +618,17 @@ class _TextAppearanceSheet extends StatelessWidget {
                     ButtonSegment(
                       value: 'left',
                       icon: const Icon(Icons.format_align_left_rounded),
-                      label: Text(_leftLabel(context)),
+                      label: Text(_label(context, 'Kiri', 'Left')),
                     ),
                     ButtonSegment(
                       value: 'center',
                       icon: const Icon(Icons.format_align_center_rounded),
-                      label: Text(_centerLabel(context)),
+                      label: Text(_label(context, 'Tengah', 'Center')),
                     ),
                     ButtonSegment(
                       value: 'right',
                       icon: const Icon(Icons.format_align_right_rounded),
-                      label: Text(_rightLabel(context)),
+                      label: Text(_label(context, 'Kanan', 'Right')),
                     ),
                   ],
                   selected: {state.lyricsTextAlign},
@@ -624,24 +641,28 @@ class _TextAppearanceSheet extends StatelessWidget {
                     ButtonSegment(
                       value: 'top',
                       icon: const Icon(Icons.vertical_align_top_rounded),
-                      label: Text(_topLabel(context)),
+                      label: Text(_label(context, 'Atas', 'Top')),
                     ),
                     ButtonSegment(
                       value: 'center',
                       icon: const Icon(Icons.vertical_align_center_rounded),
-                      label: Text(_centerLabel(context)),
+                      label: Text(_label(context, 'Tengah', 'Center')),
+                    ),
+                    ButtonSegment(
+                      value: 'bottom',
+                      icon: const Icon(Icons.vertical_align_bottom_rounded),
+                      label: Text(_label(context, 'Bawah', 'Bottom')),
                     ),
                   ],
-                  selected: {
-                    state.lyricsVerticalAlign == 'bottom'
-                        ? 'center'
-                        : state.lyricsVerticalAlign,
-                  },
+                  selected: {state.lyricsVerticalAlign},
                   onSelectionChanged: (selection) =>
                       cubit.changeLyricsVerticalAlign(selection.first),
                 ),
                 const SizedBox(height: 14),
-                Text(_textSizeLabel(context), style: context.textTheme.labelLarge),
+                Text(
+                  _label(context, 'Ukuran Teks', 'Text Size'),
+                  style: context.textTheme.labelLarge,
+                ),
                 Slider(
                   value: state.defaultTextScale.clamp(0.8, 1.8),
                   min: 0.8,
@@ -649,7 +670,10 @@ class _TextAppearanceSheet extends StatelessWidget {
                   divisions: 20,
                   onChanged: cubit.changeTextScale,
                 ),
-                Text(_lineHeightLabel(context), style: context.textTheme.labelLarge),
+                Text(
+                  _label(context, 'Jarak Baris', 'Line Height'),
+                  style: context.textTheme.labelLarge,
+                ),
                 Slider(
                   value: state.defaultTextHeight.clamp(1.1, 2.0),
                   min: 1.1,
@@ -680,12 +704,16 @@ class _EmptyTextReader extends StatelessWidget {
           child: FilledButton.tonalIcon(
             onPressed: onOpenMenu,
             icon: const Icon(Icons.library_music_outlined),
-            label: Text(_chooseSongLabel(context)),
+            label: Text(_label(context, 'Pilih Pujian', 'Choose Hymn')),
           ),
         ),
       ),
     );
   }
+}
+
+String _label(BuildContext context, String id, String en) {
+  return Localizations.localeOf(context).languageCode == 'id' ? id : en;
 }
 
 CrossAxisAlignment _horizontalAlignment(String value) => switch (value) {
@@ -705,59 +733,3 @@ TextAlign _textAlign(String value) => switch (value) {
   'right' => TextAlign.right,
   _ => TextAlign.center,
 };
-
-String _readerMenuLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Pilihan Tampilan'
-        : 'Viewer Options';
-String _pdfModeLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Kembali ke PDF'
-        : 'Back to PDF';
-String _chordLabel(BuildContext context) => 'Chord';
-String _sharpLabel(BuildContext context) => 'Sharp (♯)';
-String _flatLabel(BuildContext context) => 'Flat (♭)';
-String _appearanceLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Tampilan Lirik'
-        : 'Lyrics Appearance';
-String _verseCounter(BuildContext context, int current, int total) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Bait $current dari $total'
-        : 'Verse $current of $total';
-String _previousSongLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Pujian Sebelumnya'
-        : 'Previous Hymn';
-String _nextSongLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Pujian Berikutnya'
-        : 'Next Hymn';
-String _previousVerseLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Bait Sebelumnya'
-        : 'Previous Verse';
-String _nextVerseLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Bait Berikutnya'
-        : 'Next Verse';
-String _leftLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Kiri' : 'Left';
-String _centerLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Tengah' : 'Center';
-String _rightLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Kanan' : 'Right';
-String _topLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Atas' : 'Top';
-String _textSizeLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Ukuran Teks'
-        : 'Text Size';
-String _lineHeightLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Jarak Baris'
-        : 'Line Height';
-String _chooseSongLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Pilih Pujian'
-        : 'Choose Hymn';
