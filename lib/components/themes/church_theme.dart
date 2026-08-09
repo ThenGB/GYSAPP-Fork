@@ -12,16 +12,16 @@ ThemeData applyChurchVisualSystem(
   required ThemePreferences preferences,
 }) {
   final colors = base.colorScheme;
-  final extras = base.extension<AppThemeExtras>() ??
+  final extras =
+      base.extension<AppThemeExtras>() ??
       const AppThemeExtras(
         radiusScale: 1,
         typographyScale: 1,
         densityFactor: 1,
       );
 
-  BorderRadius radius(double value) => BorderRadius.circular(
-        (value * extras.radiusScale).clamp(4.0, 32.0),
-      );
+  BorderRadius radius(double value) =>
+      BorderRadius.circular((value * extras.radiusScale).clamp(4.0, 32.0));
 
   final sanctuarySurface = _surfaceForTone(
     colors.surface,
@@ -161,26 +161,26 @@ Color _surfaceForTone(
   if (brightness == Brightness.dark) {
     return switch (tone) {
       SurfaceTone.light => Color.alphaBlend(
-          Colors.white.withValues(alpha: 0.025),
-          base,
-        ),
+        Colors.white.withValues(alpha: 0.025),
+        base,
+      ),
       SurfaceTone.medium => base,
       SurfaceTone.dark => Color.alphaBlend(
-          Colors.black.withValues(alpha: 0.09),
-          base,
-        ),
+        Colors.black.withValues(alpha: 0.09),
+        base,
+      ),
     };
   }
 
   return switch (tone) {
     SurfaceTone.light => base,
     SurfaceTone.medium => Color.alphaBlend(
-        accent.withValues(alpha: 0.022),
-        base,
-      ),
+      accent.withValues(alpha: 0.022),
+      base,
+    ),
     SurfaceTone.dark => Color.alphaBlend(
-        Colors.black.withValues(alpha: 0.035),
-        base,
-      ),
+      Colors.black.withValues(alpha: 0.035),
+      base,
+    ),
   };
 }

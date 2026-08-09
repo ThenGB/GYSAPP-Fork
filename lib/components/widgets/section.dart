@@ -4,12 +4,7 @@ import '../themes/app_theme_extras.dart';
 import '../../data/utilities/extensions/context_ext.dart';
 
 class Section extends StatelessWidget {
-  const Section({
-    super.key,
-    this.label,
-    this.subtitle,
-    required this.child,
-  });
+  const Section({super.key, this.label, this.subtitle, required this.child});
 
   final Widget Function(double gap) child;
   final String? label;
@@ -62,7 +57,7 @@ class Section extends StatelessWidget {
                             label!,
                             style: context.textTheme.titleSmall?.copyWith(
                               color: colors.onSurface,
-                              fontWeight: FontWeight.w750,
+                              fontWeight: FontWeight.w700,
                               letterSpacing: 0.05,
                             ),
                           ),

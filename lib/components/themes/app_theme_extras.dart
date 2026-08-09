@@ -48,7 +48,8 @@ class AppThemeExtras extends ThemeExtension<AppThemeExtras> {
 
 extension AppThemeExtrasX on BuildContext {
   AppThemeExtras get appThemeExtras =>
-      Theme.of(this).extension<AppThemeExtras>() ?? const AppThemeExtras(
+      Theme.of(this).extension<AppThemeExtras>() ??
+      const AppThemeExtras(
         radiusScale: 1,
         typographyScale: 1,
         densityFactor: 1,
@@ -56,8 +57,8 @@ extension AppThemeExtrasX on BuildContext {
 
   /// Corner radius scaled by the user's Corner Radius preference.
   BorderRadius appRadius(double base) => BorderRadius.circular(
-        (base * appThemeExtras.radiusScale).roundToDouble(),
-      );
+    (base * appThemeExtras.radiusScale).roundToDouble(),
+  );
 
   /// Font size scaled by the user's Typography Scale preference.
   double appFontSize(double base) => base * appThemeExtras.typographyScale;

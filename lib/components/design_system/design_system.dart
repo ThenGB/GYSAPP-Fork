@@ -86,8 +86,8 @@ class DesignSystem {
   // NAVIGATION - Compact navigation sizes
   // ═══════════════════════════════════════════════════════════════
 
-  static const double navBarHeightPortrait = 64;  // Reduced from 84
-  static const double navBarHeightLandscape = 56;   // Reduced from 66
+  static const double navBarHeightPortrait = 64; // Reduced from 84
+  static const double navBarHeightLandscape = 56; // Reduced from 66
   static const double navBarHeightCompact = 48;
 }
 

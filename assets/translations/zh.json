@@ -360,5 +360,9 @@
   "chord_settings_padding": "徽章内边距",
   "chord_settings_close": "近",
   "chord_settings_far": "远",
-  "accent_custom": "自定义颜色"
+  "accent_custom": "自定义颜色",
+  "surface_tone": "表面色调",
+  "surface_light": "明亮",
+  "surface_medium": "柔和",
+  "surface_dark": "深色"
 }

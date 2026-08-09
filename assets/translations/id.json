@@ -360,5 +360,9 @@
   "chord_settings_padding": "Padding badge",
   "chord_settings_close": "Dekat",
   "chord_settings_far": "Jauh",
-  "accent_custom": "Warna Custom"
+  "accent_custom": "Warna Custom",
+  "surface_tone": "Nuansa permukaan",
+  "surface_light": "Terang",
+  "surface_medium": "Teduh",
+  "surface_dark": "Dalam"
 }
