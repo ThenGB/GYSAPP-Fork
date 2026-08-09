@@ -10,9 +10,11 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
 import '../../../di/injection.dart';
+import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 import '../../song/widgets/draggable_midi_controls.dart';
+import '../../song/widgets/refined_song_text_reader.dart';
 import '../widgets/dashboard_drawer.dart';
 
 class DashboardNavigationDestination {
@@ -214,6 +216,48 @@ class _DashboardViewState extends State<DashboardView>
     }
   }
 
+  void _openSongSelector() {
+    final cubit = context.read<SongCubit>();
+    router.push(
+      SongListRoute(
+        books: () => cubit.state.songBook,
+        currentBook: () =>
+            cubit.state.currentSong ??
+            SongBook(code: cubit.state.bookCode, songs: const []),
+        initialSearchText: cubit.state.searchTerms,
+        onSearchTermsChanged: cubit.onSearchTermsChanged,
+        onChangeBookCode: cubit.changeBookcode,
+        onTapPageNumber: (pageNumber) async {
+          Song? target;
+          for (final song in cubit.state.songs) {
+            if (song.number == pageNumber) {
+              target = song;
+              break;
+            }
+          }
+          await router.maybePop();
+          if (target != null) await cubit.openSongFromLibrary(target);
+        },
+        onOpenSong: (song) async {
+          await router.maybePop();
+          final active = cubit.activePlaylist;
+          final inActivePlaylist =
+              active?.songs.any((item) => item.matches(song)) ?? false;
+          if (active != null && inActivePlaylist) {
+            await cubit.openSongFromPlaylist(
+              song,
+              active.id,
+              autoplay: cubit.state.isPlaylistLoopModeActive,
+            );
+          } else {
+            await cubit.openSongFromLibrary(song);
+          }
+        },
+        onBack: () => router.maybePop(),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const pages = dashboardNavigationDestinations;
@@ -279,11 +323,35 @@ class _DashboardViewState extends State<DashboardView>
                     fit: StackFit.expand,
                     clipBehavior: Clip.none,
                     children: [
-                      // The active screen paints all the way to the bottom.
-                      // Navigation is a true overlay instead of a
-                      // bottomNavigationBar, so no rectangular strip is
-                      // reserved behind the rounded dock.
-                      Positioned.fill(child: child),
+                      Positioned.fill(
+                        child: tabsRouter.activeIndex == 2
+                            ? BlocBuilder<SongCubit, SongState>(
+                                buildWhen: (previous, current) =>
+                                    previous.isImageMode != current.isImageMode ||
+                                    previous.pageIndex != current.pageIndex ||
+                                    previous.bookCode != current.bookCode ||
+                                    previous.currentChords != current.currentChords ||
+                                    previous.showChord != current.showChord ||
+                                    previous.transposeStep != current.transposeStep ||
+                                    previous.chordAccidentalMode !=
+                                        current.chordAccidentalMode ||
+                                    previous.defaultTextScale !=
+                                        current.defaultTextScale ||
+                                    previous.defaultTextHeight !=
+                                        current.defaultTextHeight ||
+                                    previous.lyricsTextAlign !=
+                                        current.lyricsTextAlign ||
+                                    previous.lyricsVerticalAlign !=
+                                        current.lyricsVerticalAlign,
+                                builder: (context, songState) =>
+                                    songState.isImageMode
+                                    ? RefinedSongTextReader(
+                                        onOpenMenu: _openSongSelector,
+                                      )
+                                    : child,
+                              )
+                            : child,
+                      ),
                       BlocBuilder<SongCubit, SongState>(
                         buildWhen: (prev, curr) =>
                             prev.showAudio != curr.showAudio ||
