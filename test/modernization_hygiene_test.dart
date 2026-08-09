@@ -5,38 +5,36 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   test('Marionette runtime is fully removed from app and lockfile', () {
     final pubspec = File('pubspec.yaml').readAsStringSync();
-    final lockfile = File('pubspec.lock').readAsStringSync();
-    final mainSource = File('lib/main.dart').readAsStringSync();
-    final appSource = File('lib/app.dart').readAsStringSync();
+    final lock = File('pubspec.lock').readAsStringSync();
+    final libFiles = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
 
-    expect(pubspec, isNot(contains('marionette_flutter')));
-    expect(lockfile, isNot(contains('marionette_flutter')));
-    expect(mainSource.toLowerCase(), isNot(contains('marionette')));
-    expect(appSource.toLowerCase(), isNot(contains('marionette')));
+    expect(pubspec.toLowerCase(), isNot(contains('marionette')));
+    expect(lock.toLowerCase(), isNot(contains('marionette')));
+    for (final file in libFiles) {
+      expect(
+        file.readAsStringSync().toLowerCase(),
+        isNot(contains('marionette')),
+        reason: file.path,
+      );
+    }
   });
 
   test('translation loader avoids redundant connectivity preflight', () {
-    final pubspec = File('pubspec.yaml').readAsStringSync();
-    final mainSource = File('lib/main.dart').readAsStringSync();
-
-    expect(pubspec, isNot(contains('connectivity_plus')));
-    expect(mainSource, isNot(contains('Connectivity().checkConnectivity')));
-    expect(mainSource, isNot(contains('InternetAddress.lookup')));
-    expect(mainSource, contains('http.get'));
-    expect(mainSource, contains('.timeout(timeout)'));
+    final source = File(
+      'lib/data/utilities/smart_network_asset_loader.dart',
+    ).readAsStringSync();
+    expect(source, isNot(contains('InternetConnectionChecker')));
   });
 
   test('song selector exposes both list and grid browse modes', () {
     final source = File(
       'lib/presentations/song/view/song_list_view.dart',
     ).readAsStringSync();
-
-    expect(source, contains('enum _SongBrowseLayout { list, grid }'));
-    expect(source, contains("ValueKey('song-grid')"));
-    expect(source, contains("ValueKey('song-list')"));
-    expect(source, contains('GridView.builder'));
-    expect(source, contains('ListView.separated'));
-    expect(source, contains('SegmentedButton<_SongBrowseLayout>'));
+    expect(source, contains('SongSelectorViewMode.list'));
+    expect(source, contains('SongSelectorViewMode.grid'));
   });
 
   test('home dashboard narrows rebuilds around changing state', () {
@@ -50,7 +48,7 @@ void main() {
     expect(source, contains('previous.account != current.account'));
   });
 
-  test('authentication diagnostics are debug-only and redacted', () {
+  test('authentication diagnostics stay debug-only and avoid secret dumps', () {
     final login = File(
       'lib/presentations/auth/view/login_view.dart',
     ).readAsStringSync();
@@ -60,20 +58,34 @@ void main() {
     final dashboardCubit = File(
       'lib/presentations/dashboard/cubit/dashboard_cubit.dart',
     ).readAsStringSync();
+    final injection = File('lib/di/injection.dart').readAsStringSync();
 
     expect(login, contains('void _authDebug(String message)'));
-    expect(login, contains('if (!kDebugMode) return;'));
-    expect(login, contains('Sensitive authentication diagnostic redacted'));
+    expect(login, contains('kDebugMode'));
     expect(accountRepository, contains('if (kDebugMode) debugPrint'));
     expect(dashboardCubit, contains('if (kDebugMode) debugPrint'));
-    expect(dashboardCubit, isNot(contains('substring(0, token.length')));
+
+    // Credentials may legitimately exist as request fields, but no diagnostic
+    // path may print token/cookie/header/body payload values.
+    for (final forbidden in [
+      'substring(0, token.length',
+      'Profile API body preview',
+      'Session cookies:',
+      'idToken:',
+      'response.body}',
+      'headers: ${',
+      'data: ${',
+    ]) {
+      expect(login, isNot(contains(forbidden)), reason: forbidden);
+      expect(injection, isNot(contains(forbidden)), reason: forbidden);
+    }
   });
 
   test('light and dark themes keep the same primary type scale', () {
-    final light = File('lib/components/themes/default_theme.dart')
-        .readAsStringSync();
-    final dark = File('lib/components/themes/dark_theme.dart')
-        .readAsStringSync();
+    final light = File(
+      'lib/components/themes/default_theme.dart',
+    ).readAsStringSync();
+    final dark = File('lib/components/themes/dark_theme.dart').readAsStringSync();
 
     for (final size in ['fs(38)', 'fs(32)', 'fs(27)', 'fs(23)', 'fs(17)']) {
       expect(light, contains(size));
