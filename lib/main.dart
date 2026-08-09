@@ -3,29 +3,19 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
-import 'package:marionette_flutter/marionette_flutter.dart';
 import 'package:path_provider/path_provider.dart' as paths;
 
 import 'app.dart';
 
-void main() async {
+void main() {
   runZonedGuarded(
     () async {
-      if (kDebugMode && !kIsWeb) {
-        // Marionette: lets AI agents inspect and drive the app at runtime
-        // (VM-service based). Debug builds only. Web does not support it
-        // (same guard as initApplication in app.dart).
-        MarionetteBinding.ensureInitialized();
-      }
-      // Only ensure initialization - actual binding done in app.dart via initApplication()
       WidgetsFlutterBinding.ensureInitialized();
-
       await initApplication();
       runApp(
         EasyLocalization(
@@ -38,8 +28,10 @@ void main() async {
           path: 'assets/translations',
           assetLoader: SmartNetworkAssetLoader(
             localeUrl: (String localeName) {
-              var url = 'https://e.gys.or.id/assets/translations/';
-              log('GETTING Locale from network $url$localeName.json');
+              const url = 'https://e.gys.or.id/assets/translations/';
+              if (kDebugMode) {
+                log('GETTING Locale from network $url$localeName.json');
+              }
               return url;
             },
             assetsPath: 'assets/translations',
@@ -52,59 +44,41 @@ void main() async {
       );
     },
     (error, stack) {
-      log(
-        'Uncaught zoned error',
-        error: error,
-        stackTrace: stack,
-      );
+      log('Uncaught zoned error', error: error, stackTrace: stack);
     },
   );
 }
 
-/// ```dart
-/// SmartNetworkAssetLoader(
-///           assetsPath: 'assets/translations',
-///           localCacheDuration: Duration(days: 1),
-///           localeUrl: (String localeName) => Constants.appLangUrl,
-///           timeout: Duration(seconds: 30),
-///         )
-/// ```
+/// Loads bundled translations immediately, then refreshes the on-disk cache
+/// in the background on native platforms. Network refresh is deliberately
+/// fire-and-forget so localization never delays the first usable frame.
 class SmartNetworkAssetLoader extends AssetLoader {
-  final Function localeUrl;
-
+  final String Function(String localeName) localeUrl;
   final Duration timeout;
-
   final String assetsPath;
-
   final Duration localCacheDuration;
 
-  SmartNetworkAssetLoader(
-      {required this.localeUrl,
-      this.timeout = const Duration(seconds: 30),
-      required this.assetsPath,
-      this.localCacheDuration = const Duration(days: 1)});
+  SmartNetworkAssetLoader({
+    required this.localeUrl,
+    this.timeout = const Duration(seconds: 30),
+    required this.assetsPath,
+    this.localCacheDuration = const Duration(days: 1),
+  });
 
   @override
   Future<Map<String, dynamic>> load(String path, Locale locale) async {
     final localeName = locale.languageCode;
     var string = '';
 
-    // Web has no local filesystem (dart:io File throws, and path_provider
-    // has no web implementation registered unless the app explicitly
-    // depends on path_provider_web) — skip the file cache and rely on the
-    // bundled assets + network refresh is skipped as well (the JSON ships
-    // with the app bundle).
+    // Web has no native filesystem. Native platforms can reuse a fresh cache
+    // while always falling back to the translation JSON shipped with the app.
     if (!kIsWeb && await localTranslationExists(localeName)) {
       string = await loadFromLocalFile(localeName);
     }
 
-    // Stale-cache guard: after an app update the bundled translations can
-    // contain keys the cached file (fetched days ago) does not have.  The
-    // cached file is merged over the bundle, but the bundle's keys are the
-    // source of truth for the CURRENT app version — any key missing from the
-    // cache is filled in from the bundle so new UI labels never render as
-    // raw keys (e.g. "bible_book") after an update.
-    if (string != '') {
+    // Merge newly shipped keys into an older cached translation. This keeps
+    // a network cache from hiding labels introduced by an app update.
+    if (string.isNotEmpty) {
       try {
         final bundledStr = await rootBundle.loadString(
           '$assetsPath/$localeName.json',
@@ -119,15 +93,13 @@ class SmartNetworkAssetLoader extends AssetLoader {
             merged = true;
           }
         }
-        if (merged) {
-          string = json.encode(cachedMap);
-        }
+        if (merged) string = json.encode(cachedMap);
       } catch (_) {
-        // Keep the cached file if the bundle can't be read.
+        // Keep the cached file if the bundle cannot be read.
       }
     }
 
-    if (string == '') {
+    if (string.isEmpty) {
       string = await rootBundle.loadString('$assetsPath/$localeName.json');
     }
 
@@ -135,98 +107,65 @@ class SmartNetworkAssetLoader extends AssetLoader {
       unawaited(_refreshFromNetwork(localeName));
     }
 
-    return json.decode(string) as Map<String, dynamic>;
+    return (json.decode(string) as Map).cast<String, dynamic>();
   }
 
   Future<void> _refreshFromNetwork(String localeName) async {
     try {
-      if (await isInternetConnectionAvailable()) {
-        await loadFromNetwork(localeName);
-      }
+      // Avoid connectivity/DNS preflight checks. The real HTTP request already
+      // has a strict timeout and is a more reliable reachability signal.
+      await loadFromNetwork(localeName);
     } catch (e) {
-      log(e.toString());
+      if (kDebugMode) log('Translation refresh failed: $e');
     }
-  }
-
-  Future<bool> localeExists(String localePath) => Future.value(true);
-
-  Future<bool> isInternetConnectionAvailable() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    if (connectivityResult.contains(ConnectivityResult.none)) {
-      return false;
-    } else {
-      try {
-        final result = await InternetAddress.lookup('google.com');
-        if (result.isNotEmpty && result[0].rawAddress.isNotEmpty) {
-          return true;
-        }
-      } on SocketException catch (_) {
-        return false;
-      }
-    }
-
-    return false;
   }
 
   Future<String> loadFromNetwork(String localeName) async {
-    String url = localeUrl(localeName);
-
-    url = '$url$localeName.json';
-
+    final url = '${localeUrl(localeName)}$localeName.json';
     try {
       final response = await http.get(Uri.parse(url)).timeout(timeout);
+      if (response.statusCode != 200) return '';
 
-      if (response.statusCode == 200) {
-        var content = utf8.decode(response.bodyBytes);
+      final content = utf8.decode(response.bodyBytes);
+      final decoded = json.decode(content);
+      if (decoded is! Map) return '';
 
-        // check valid json before saving it
-        if (json.decode(content) != null) {
-          await saveTranslation(localeName, content);
-          return content;
-        }
-      }
+      await saveTranslation(localeName, content);
+      return content;
     } catch (e) {
-      log(e.toString());
+      if (kDebugMode) log('Translation download failed: $e');
+      return '';
     }
-
-    return '';
   }
 
-  Future<bool> localTranslationExists(String localeName,
-      {bool ignoreCacheDuration = false}) async {
-    var translationFile = await getFileForLocale(localeName);
+  Future<bool> localTranslationExists(
+    String localeName, {
+    bool ignoreCacheDuration = false,
+  }) async {
+    final translationFile = await getFileForLocale(localeName);
+    if (!await translationFile.exists()) return false;
 
-    if (!await translationFile.exists()) {
-      return false;
-    }
-
-    // don't check file's age
     if (!ignoreCacheDuration) {
-      var difference =
-          DateTime.now().difference(await translationFile.lastModified());
-
-      if (difference > (localCacheDuration)) {
-        return false;
-      }
+      final difference = DateTime.now().difference(
+        await translationFile.lastModified(),
+      );
+      if (difference > localCacheDuration) return false;
     }
-
     return true;
   }
 
   Future<String> loadFromLocalFile(String localeName) async {
-    return await (await getFileForLocale(localeName)).readAsString();
+    return (await getFileForLocale(localeName)).readAsString();
   }
 
   Future<void> saveTranslation(String localeName, String content) async {
-    var file = File(await getFilenameForLocale(localeName));
+    final file = File(await getFilenameForLocale(localeName));
     await file.create(recursive: true);
-    await file.writeAsString(content);
-    log('saved');
+    await file.writeAsString(content, flush: false);
   }
 
   Future<String> get _localPath async {
     final directory = await paths.getTemporaryDirectory();
-
     return directory.path;
   }
 

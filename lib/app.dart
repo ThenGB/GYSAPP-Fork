@@ -5,9 +5,8 @@ import 'dart:io' show Directory, File, Platform;
 import 'package:awesome_notifications/awesome_notifications.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
-import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart' show PointerDeviceKind;
-import 'package:marionette_flutter/marionette_flutter.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
@@ -16,6 +15,7 @@ import 'package:pdfrx/pdfrx.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'
     show databaseFactoryFfiWeb;
+
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -25,7 +25,7 @@ import 'domain/entity/appconfig/appconfig.dart';
 import 'presentations/presentations.dart';
 import 'router/router.dart';
 
-Future initApplication() async {
+Future<void> initApplication() async {
   final initStopwatch = Stopwatch()..start();
   void initLog(String message) {
     if (kDebugMode) {
@@ -34,41 +34,24 @@ Future initApplication() async {
   }
 
   initLog('starting');
-  var appConfig = AppConfig(
+  final appConfig = AppConfig(
     appName: 'GYS APP',
     baseUrlApi: 'https://e.gys.or.id/api/v1',
   );
-  final isFlutterTest = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
 
-  // Only initialize MarionetteBinding on native platforms in debug mode
-  // Web platforms don't fully support MarionetteBinding
-  WidgetsBinding widgetsBinding;
-  if (kDebugMode && !isFlutterTest && !kIsWeb) {
-    try {
-      MarionetteBinding.ensureInitialized();
-      widgetsBinding = MarionetteBinding.instance;
-    } catch (e) {
-      // Fallback if Marionette fails
-      log('MarionetteBinding init failed, using default: $e', name: 'App');
-      widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-    }
-  } else {
-    widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
-  }
-  // Native splash: mobile only.  On desktop the splash window serves no
-  // purpose and the preserved first frame leaves the window interactive
-  // while the render tree has never been laid out — a hover/click during
-  // startup then crashes with "Cannot hit test a render box that has
-  // never been laid out".  Desktop renders the first frame immediately.
-  final preserveNativeSplash = !kIsWeb &&
-      (Platform.isAndroid || Platform.isIOS);
+  // A single Flutter binding is used for every build mode. Debug tooling must
+  // not replace the application binding or add work to the production app.
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+
+  // Native splash is useful on mobile only. Desktop renders the first frame
+  // immediately to avoid hit testing an unlaid-out preserved surface.
+  final preserveNativeSplash =
+      !kIsWeb && (Platform.isAndroid || Platform.isIOS);
   if (preserveNativeSplash) {
     FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   }
-  // sqlite backend per platform: sqflite's method channel only exists on
-  // Android/iOS.  Desktop (Windows/Linux/macOS) gets the FFI implementation;
-  // web gets the WASM/IndexedDB implementation.  Without these, downloaded
-  // (non-TB) bible versions throw MissingPluginException and load empty.
+
+  // Select the SQLite backend before any database-backed feature is created.
   initLog('sqlite init begin');
   if (kIsWeb) {
     databaseFactory = databaseFactoryFfiWeb;
@@ -77,61 +60,55 @@ Future initApplication() async {
       sqfliteFfiInit();
       databaseFactory = databaseFactoryFfiNoIsolate;
     } catch (e, st) {
-      log('sqflite FFI init failed, continuing: $e', error: e, stackTrace: st, name: 'App');
+      log(
+        'sqflite FFI init failed, continuing: $e',
+        error: e,
+        stackTrace: st,
+        name: 'App',
+      );
     }
   }
   initLog('sqlite init done');
-  if (!kIsWeb) {
-    _initializePdfRuntime();
-  }
-  initLog('flutter binding ready');
 
-  if (!kIsWeb) {
+  // PDF runtime initialization is already guarded and non-blocking.
+  if (!kIsWeb) _initializePdfRuntime();
+
+  // One-time migration for pre-2.1 Android data. Keep it isolated from other
+  // platforms because the path below is Android application-private storage.
+  if (!kIsWeb && Platform.isAndroid) {
     try {
-      // Use native File I/O instead of SharedPreferences (avoids platform channel hang)
       final versionFile = File('/data/data/id.sch.kanaan.egys/cache/app_version');
-      // Hardcoded version to avoid PackageInfo platform channel call
-      const currentAppVersion = '2.0.30';
-      String storedAppVersion = '0.0.0';
+      const currentMigrationVersion = '2.1.0';
+      var storedVersion = '0.0.0';
       if (await versionFile.exists()) {
-        storedAppVersion = (await versionFile.readAsString()).trim();
+        storedVersion = (await versionFile.readAsString()).trim();
       }
 
-      bool isOlderThan2_1(String v) {
-        final parts = v.split('.');
+      bool isOlderThan2_1(String version) {
+        final parts = version.split('.');
         if (parts.length < 2) return true;
         final major = int.tryParse(parts[0]) ?? 0;
         final minor = int.tryParse(parts[1]) ?? 0;
-        if (major < 2) return true;
-        if (major == 2 && minor < 1) return true;
-        return false;
+        return major < 2 || (major == 2 && minor < 1);
       }
 
-      if (currentAppVersion != storedAppVersion) {
-        if (isOlderThan2_1(storedAppVersion)) {
-          initLog('Updating from older version (< 2.1). Wiping app data...');
-          // Wipe app data but preserve essential Android directories
-          Future<void> _wipeDir(String p) async {
-            final dir = Directory(p);
-            if (await dir.exists()) {
-              // Delete contents but not the directory itself
-              await for (final entity in dir.list()) {
-                final name = entity.path.split('/').last;
-                // Skip code_cache — Flutter DevFS needs it
-                if (name == 'code_cache') continue;
-                await entity.delete(recursive: true);
-              }
-            }
+      if (isOlderThan2_1(storedVersion)) {
+        initLog('Applying pre-2.1 storage migration');
+        final dataDir = Directory('/data/data/id.sch.kanaan.egys');
+        if (await dataDir.exists()) {
+          await for (final entity in dataDir.list()) {
+            final name = entity.path.split('/').last;
+            if (name == 'code_cache') continue;
+            await entity.delete(recursive: true);
           }
-
-          await _wipeDir('/data/data/id.sch.kanaan.egys');
-          // Ensure code_cache exists for Flutter DevFS
-          await Directory(
-            '/data/data/id.sch.kanaan.egys/code_cache',
-          ).create(recursive: true);
         }
+        await Directory('/data/data/id.sch.kanaan.egys/code_cache')
+            .create(recursive: true);
+      }
+
+      if (storedVersion != currentMigrationVersion) {
         await versionFile.parent.create(recursive: true);
-        await versionFile.writeAsString(currentAppVersion);
+        await versionFile.writeAsString(currentMigrationVersion, flush: false);
       }
     } catch (e, st) {
       log('Migration check failed', error: e, stackTrace: st, name: 'App');
@@ -141,60 +118,48 @@ Future initApplication() async {
   HydratedBloc.storage = FastFileStorage();
   await (HydratedBloc.storage as FastFileStorage).init();
   initLog('hydrated storage ready');
-  initLog('about to call EasyLocalization.ensureInitialized');
+
   try {
     await EasyLocalization.ensureInitialized().timeout(
       const Duration(seconds: 5),
     );
     initLog('localization ready');
   } catch (e) {
-    initLog('EasyLocalization failed or timed out: $e — continuing without it');
+    initLog('EasyLocalization failed or timed out: $e');
   }
-  initLog('about to call setupInjection');
-  try {
-    await setupInjection(appConfig).timeout(const Duration(seconds: 10));
-    initLog('dependency injection ready');
-  } catch (e) {
-    initLog('setupInjection failed or timed out: $e — continuing anyway');
-  }
+
+  // DI registration is required by App/MaterialApp. Unlike optional startup
+  // services, do not silently continue with an incomplete dependency graph.
+  await setupInjection(appConfig).timeout(const Duration(seconds: 10));
+  initLog('dependency injection ready');
 
   if (isNotificationConfiguredForCurrentPlatform) {
     unawaited(
       _setupNotification()
           .then((_) => initLog('notifications ready'))
           .catchError((Object error, StackTrace stackTrace) {
-            if (kDebugMode) {
-              log(
-                'Notification setup failed',
-                error: error,
-                stackTrace: stackTrace,
-              );
-            }
-          }),
+        if (kDebugMode) {
+          log(
+            'Notification setup failed',
+            error: error,
+            stackTrace: stackTrace,
+          );
+        }
+      }),
     );
   }
+
   FlutterError.onError = FlutterError.presentError;
   AppConfigStore.useFallbackConfig();
-  initLog('using bundled app config');
 
-  // Mobile keeps the native splash until init finishes. The web splash
-  // (HTML <picture id="splash">) also has to be removed through this API —
-  // without the call the overlay stays on top of the app forever.
   if (preserveNativeSplash || kIsWeb) {
     FlutterNativeSplash.remove();
   }
   initLog('done');
-  log('App Initialization DONE');
 }
 
 void _initializePdfRuntime() {
   if (Platform.isWindows) {
-    // Legacy builds ship pdfium.dll next to the executable; fresh
-    // native-assets builds (Flutter 3.44+) keep it under
-    // build/native_assets/windows and pdfrx resolves it automatically
-    // when the module path is left null.  Forcing the runner-dir path
-    // broke every app start after `flutter clean` (pdfium.dll was gone,
-    // "Failed to load explicit PDFium module path ... error 126").
     final runnerDll = File(
       '${File(Platform.resolvedExecutable).parent.path}\\pdfium.dll',
     );
@@ -202,9 +167,6 @@ void _initializePdfRuntime() {
       Pdfrx.pdfiumModulePath = runnerDll.path;
     }
   }
-  // Fire-and-forget with a guard: a pdfium init failure (e.g. missing
-  // DLL after flutter clean) must never block app start — it runs in a
-  // worker isolate and is only needed when a PDF is actually opened.
   unawaited(
     pdfrxFlutterInitialize().catchError((Object e, StackTrace st) {
       log('pdfrx init failed', error: e, stackTrace: st, name: 'App');
@@ -212,7 +174,7 @@ void _initializePdfRuntime() {
   );
 }
 
-Future _setupNotification() async {
+Future<void> _setupNotification() async {
   await AwesomeNotifications().initialize(
     null,
     [
@@ -232,26 +194,22 @@ Future _setupNotification() async {
   );
 }
 
-var defaultAddress = AddressCheckOption(
-  ////8.8.8.8 and 8.8.4.4 are Google's public DNS servers
+final defaultAddress = AddressCheckOption(
   uri: Uri.parse('https://e.gys.or.id/api/v1/users/profile'),
   timeout: const Duration(seconds: 3),
 );
 
-var internetChecker = InternetConnectionChecker.createInstance(
-  checkInterval: const Duration(seconds: 1),
+final internetChecker = InternetConnectionChecker.createInstance(
+  // The app performs explicit reachability checks. A one-second recurring
+  // interval is unnecessarily aggressive if a listener is attached later.
+  checkInterval: const Duration(seconds: 30),
   checkTimeout: const Duration(seconds: 5),
   addresses: [defaultAddress],
 );
 
-class App extends StatefulWidget {
+class App extends StatelessWidget {
   const App({super.key});
 
-  @override
-  State<App> createState() => _AppState();
-}
-
-class _AppState extends State<App> {
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -260,10 +218,6 @@ class _AppState extends State<App> {
         BlocProvider<BackupCubit>(create: (context) => di()),
         BlocProvider<SongCubit>(create: (context) => di()),
       ],
-      // Only rebuild the MaterialApp.router when theme-defining fields
-      // change.  Text scale and theme mode are picked up in a tighter
-      // builder below so the router does not reconfigure while the user
-      // is dragging the text scale slider.
       child: BlocBuilder<InitialCubit, InitialState>(
         buildWhen: (prev, curr) =>
             prev.defaultFont != curr.defaultFont ||
@@ -296,8 +250,6 @@ class _AppState extends State<App> {
               typographyScale: state.themePreferences.typographyScale,
             ),
             themeMode: state.themeMode.toThemeMode,
-            // Tighter rebuild for MediaQuery overrides — only text scale and
-            // theme mode drive this wrapper.
             builder: (context, child) {
               return BlocBuilder<InitialCubit, InitialState>(
                 buildWhen: (prev, curr) =>
@@ -308,8 +260,6 @@ class _AppState extends State<App> {
                     data: context.mediaQuery.copyWith(
                       alwaysUse24HourFormat: true,
                       textScaler: TextScaler.linear(state.defaultTextScale),
-                      // Force brightness based on theme mode to prevent
-                      // system dark mode override.
                       platformBrightness:
                           state.themeMode.toThemeMode == ThemeMode.dark
                           ? Brightness.dark
@@ -327,42 +277,26 @@ class _AppState extends State<App> {
   }
 }
 
-/// Smooth scroll behavior. iOS keeps its native bouncing physics.
-/// Android and desktop use clamping physics: bouncing physics breaks
-/// RefreshIndicator (pull-to-refresh springs back instead of arming,
-/// see flutter/flutter#49169), so every platform that hosts
-/// pull-to-refresh keeps native clamping.
 class _SmoothScrollBehavior extends MaterialScrollBehavior {
   const _SmoothScrollBehavior();
 
   @override
-  Set<PointerDeviceKind> get dragDevices {
-    // Include mouse: Flutter desktop excludes it by default, so dragging
-    // with a mouse did nothing — the scroll only worked via the wheel
-    // (which jumps per notch). With mouse drag enabled the Bouncing
-    // physics below make scrolling fluid.
-    return const {
-      PointerDeviceKind.touch,
-      PointerDeviceKind.mouse,
-      PointerDeviceKind.stylus,
-      PointerDeviceKind.trackpad,
-      PointerDeviceKind.invertedStylus,
-    };
-  }
+  Set<PointerDeviceKind> get dragDevices => const {
+    PointerDeviceKind.touch,
+    PointerDeviceKind.mouse,
+    PointerDeviceKind.stylus,
+    PointerDeviceKind.trackpad,
+    PointerDeviceKind.invertedStylus,
+  };
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) {
     switch (getPlatform(context)) {
       case TargetPlatform.android:
-        // Clamping: bouncing physics on Android makes RefreshIndicator
-        // bounce back instead of triggering the refresh.
         return const ClampingScrollPhysics();
       case TargetPlatform.iOS:
         return const BouncingScrollPhysics();
       default:
-        // Desktop + web: clamping so RefreshIndicator arms on mouse drag
-        // instead of bouncing back. AlwaysScrollable keeps pull-to-refresh
-        // reachable when the content is shorter than the viewport.
         return const AlwaysScrollableScrollPhysics(
           parent: ClampingScrollPhysics(),
         );

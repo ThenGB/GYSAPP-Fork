@@ -1,40 +1,16 @@
 name: church
 description: A new Flutter project.
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: "none" # Remove this line if you wish to publish to pub.dev
-
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number is used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-# In Windows, build-name is used as the major, minor, and patch parts
-# of the product and file versions while build-number is used as the build suffix.
+publish_to: "none"
 version: 2.1.0+133
 
 environment:
   sdk: ">=3.8.0 <4.0.0"
   flutter: ^3.24.0
-#  sdk: ">=3.0.0 <=3.5.3"
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
 dependencies:
   flutter:
     sdk: flutter
 
-  # The following adds the Cupertino Icons font to your application.
-  # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
   auto_route: ^11.1.0
   freezed_annotation: ^3.1.0
@@ -52,11 +28,6 @@ dependencies:
   json_annotation: ^4.11.0
   internet_connection_checker: ^3.0.0
   sqflite: ^2.3.0
-  # Desktop sqlite backend (Windows/Linux/macOS): without it, downloaded
-  # (non-TB) bible DBs can't open — openDatabase throws
-  # MissingPluginException and the pane loads empty.  sqlite3 3.x bundles
-  # the native lib through Dart native-assets (like pdfium), so no
-  # CMake/plugin build step is needed on Windows.
   sqflite_common_ffi: ^2.4.2
   sqlite3: ^3.3.2
   dartz: ^0.10.1
@@ -89,11 +60,9 @@ dependencies:
   http: ^1.2.2
   crypto: ^3.0.6
   app_links: ^7.0.0
-  connectivity_plus: ^6.1.0
   archive: ^4.0.0
   dart_melty_soundfont: ^2.0.0
   flutter_soloud: ^4.0.4
-  marionette_flutter: ^0.6.0
   hive: ^2.2.3
   hive_flutter: ^1.1.0
   shared_preferences: ^2.5.5
@@ -111,11 +80,6 @@ dev_dependencies:
   device_preview: ^1.2.0
   device_preview_screenshot: ^1.0.0
   mocktail: ^1.0.0
-  # The "flutter_lints" package below contains a set of recommended lints to
-  # encourage good coding practices. The lint set provided by the package is
-  # activated in the `analysis_options.yaml` file located at the root of your
-  # package. See that file for information about deactivating specific lint
-  # rules and activating additional ones.
   flutter_lints: ^6.0.0
   auto_route_generator: ^10.5.0
   build_runner: ^2.3.3
@@ -124,41 +88,18 @@ dev_dependencies:
   bloc_test: ^10.0.0
   path_provider_platform_interface: 2.1.3
   plugin_platform_interface: 2.1.8
+
 dependency_overrides:
   dart_melty_soundfont:
     path: third_party/dart_melty_soundfont
   path_provider_foundation: 2.4.2
-  # Fork with CoInitializeEx fix for the WebView2 environment callback
-  # (CO_E_NOTINITIALIZED / error -2147221008 on Windows).
   flutter_inappwebview_windows:
     path: vendor/flutter_inappwebview_windows
-  # Wakelock ga jalan di versi terbaru
-  #  25 septermber 2023
-  # wakelock_windows:
-  #   git:
-  #     url: https://github.com/formigas/wakelock.git
-  #     path: wakelock_windows/
-  #     ref: main
-  # wakelock:
-  #   git:
-  #     url: https://github.com/formigas/wakelock.git
-  #     path: wakelock/
-  #     ref: main
-  # Update flutter 3.16 21 dec
-  # intl: 0.19.0
   intl: ^0.20.2
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter packages.
 flutter:
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
 
-  # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/
     - assets/images/logo/
@@ -174,82 +115,7 @@ flutter:
     - assets/data/midi/
     - assets/data/midi/kr/
     - assets/data/soundfont/
-    - google_fonts/
-  #   - images/a_dot_ham.jpeg
 
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/assets-and-images/#from-packages
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
-  #
-  # Only weights actually used in source (w400, w500, w600, w700, w800,
-  # w900) are bundled.  w100 / w200 / w300 fall back to the system
-  # default, shaving ~700 KB off the install size.
-  fonts:
-    - family: Roboto
-      fonts:
-        - asset: google_fonts/Roboto-Regular.ttf
-          weight: 400
-        - asset: google_fonts/Roboto-Medium.ttf
-          weight: 500
-        - asset: google_fonts/Roboto-Bold.ttf
-          weight: 700
-        - asset: google_fonts/Roboto-Black.ttf
-          weight: 900
-    - family: Inter
-      fonts:
-        - asset: google_fonts/Inter-Regular.ttf
-          weight: 400
-        - asset: google_fonts/Inter-Medium.ttf
-          weight: 500
-        - asset: google_fonts/Inter-Bold.ttf
-          weight: 700
-        - asset: google_fonts/Inter-Black.ttf
-          weight: 900
-    - family: EB Garamond
-      fonts:
-        - asset: google_fonts/EBGaramond-Regular.ttf
-          weight: 400
-    - family: Manrope
-      fonts:
-        - asset: google_fonts/Manrope-Regular.ttf
-          weight: 400
-    - family: FlowCircular
-      fonts:
-        - asset: google_fonts/FlowCircular-Regular.ttf
-          weight: 400
-    - family: Quicksand
-      fonts:
-        - asset: google_fonts/Quicksand-Regular.ttf
-          weight: 400
-        - asset: google_fonts/Quicksand-Medium.ttf
-          weight: 500
-        - asset: google_fonts/Quicksand-SemiBold.ttf
-          weight: 600
-        - asset: google_fonts/Quicksand-Bold.ttf
-          weight: 700
-  #       - asset: fonts/Schyler-Regular.ttf
-  #       - asset: fonts/Schyler-Italic.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/custom-fonts/#from-packages
 flutter_assets:
   assets_path: assets/
   output_path: lib/data/utilities/variables/
