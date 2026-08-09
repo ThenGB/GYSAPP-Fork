@@ -36,9 +36,10 @@ class InitialCubit extends HydratedCubit<InitialState> {
       ),
     );
 
-    // Appearance is local and tiny; restore it before showing Dashboard so the
-    // first real frame uses the user's saved theme and is never overwritten by
-    // a late background reload.
+    // Appearance is tiny local state. Never let platform preference I/O hold
+    // the splash indefinitely: HydratedBloc is the durable source after the
+    // first successful launch, while SharedPreferences remains a migration /
+    // compatibility copy.
     await _loadThemePreferences();
     if (isClosed) return;
 
@@ -116,9 +117,28 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   Future<void> _loadThemePreferences() async {
+    final hydratedPreferences = state.themePreferences;
+    final hydratedThemeMode = state.themeMode;
+    final hydratedAccentKey = state.accentKey;
+    final hasHydratedAppearance = !state.isFreshInstall;
+
     try {
       final themeRepo = di<ThemePreferencesRepository>();
-      await themeRepo.init();
+      await themeRepo.init().timeout(const Duration(seconds: 2));
+
+      // From the second successful launch onward, HydratedBloc is the primary
+      // source. This prevents a stale SharedPreferences write (for example if
+      // Android killed the process immediately after a setting changed) from
+      // overwriting the newer hydrated state during startup.
+      if (hasHydratedAppearance) {
+        unawaited(themeRepo.savePreferences(hydratedPreferences));
+        unawaited(themeRepo.saveThemeMode(hydratedThemeMode));
+        return;
+      }
+
+      // First launch / migration path: import an existing platform preference
+      // copy if one exists, then HydratedBloc will persist it with the rest of
+      // InitialState.
       final prefs = themeRepo.preferences;
       final savedThemeMode = themeRepo.themeMode;
       if (isClosed) return;
@@ -129,6 +149,21 @@ class InitialCubit extends HydratedCubit<InitialState> {
           themeMode: savedThemeMode,
         ),
       );
+    } on TimeoutException catch (e) {
+      log(
+        'Theme preference load timed out; using hydrated appearance',
+        name: 'InitialCubit',
+        error: e,
+      );
+      if (!isClosed && hasHydratedAppearance) {
+        emit(
+          state.copyWith(
+            themePreferences: hydratedPreferences,
+            accentKey: hydratedAccentKey,
+            themeMode: hydratedThemeMode,
+          ),
+        );
+      }
     } catch (e) {
       log('Failed to load theme preferences', name: 'InitialCubit', error: e);
       // Keep the hydrated values instead of overwriting them with defaults.
