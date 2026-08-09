@@ -9,6 +9,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
