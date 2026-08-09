@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart' as pdfrx;
@@ -80,7 +81,8 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
   }
 
   Future<void> _resumeReading() async {
-    final target = _savedPage.clamp(1, _pageCount);
+    if (_pageCount <= 0) return;
+    final target = _savedPage.clamp(1, _pageCount).toInt();
     if (mounted) setState(() => _showResume = false);
     await _controller.goToPage(
       pageNumber: target,
@@ -91,7 +93,7 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
 
   Future<void> _goToAdjacentPage(int delta) async {
     if (!_controller.isReady || _pageCount <= 0) return;
-    final target = (_currentPage + delta).clamp(1, _pageCount);
+    final target = (_currentPage + delta).clamp(1, _pageCount).toInt();
     if (target == _currentPage) return;
     await _controller.goToPage(
       pageNumber: target,
