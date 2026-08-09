@@ -110,7 +110,7 @@ void _services() {
   );
   di.registerLazySingleton(
     () => InstalledAssetRegistry(
-      supportDirectory: Directory(di<AppDirectory>().support),
+      supportPath: di<AppDirectory>().support,
       store: di<InstalledAssetStore>(),
     ),
   );
