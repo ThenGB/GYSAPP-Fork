@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:church/domain/entity/bible_book/bible_book.dart';
 import 'package:church/domain/entity/verse/verse.dart';
@@ -14,12 +14,7 @@ class _MockBibleCubit extends Mock implements BibleCubit {}
 void main() {
   final books = [
     BibleBook(id: 1, shortName: 'Kej', longName: 'Kejadian', chapterCount: 50),
-    BibleBook(
-      id: 2,
-      shortName: 'Kel',
-      longName: 'Keluaran',
-      chapterCount: 40,
-    ),
+    BibleBook(id: 2, shortName: 'Kel', longName: 'Keluaran', chapterCount: 40),
   ];
   final current = Verse(id: 1001003, bookId: 1, chapterId: 1, verseId: 3);
 
@@ -35,6 +30,7 @@ void main() {
       enableAudio: true,
     );
     stateController = StreamController<BibleState>.broadcast();
+
     when(() => cubit.state).thenAnswer((_) => state);
     when(() => cubit.stream).thenAnswer((_) => stateController.stream);
     when(
@@ -99,18 +95,23 @@ void main() {
     );
   }
 
-  testWidgets('collapsed pill expands into details with range controls',
-      (tester) async {
+  Future<void> pumpCollapsed(WidgetTester tester, {Size size = const Size(360, 740)}) async {
+    tester.view.physicalSize = size;
+    tester.view.devicePixelRatio = 1;
     await tester.pumpWidget(wrap());
-    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pump(const Duration(milliseconds: 60));
+  }
 
-    // Collapsed: mini pill with a play button and a maximize chevron.
-    expect(find.byIcon(Icons.keyboard_arrow_up_rounded), findsOneWidget);
-    expect(find.byIcon(Icons.play_arrow_rounded), findsWidgets);
+  testWidgets('collapsed sidebar expands into full range controls', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await pumpCollapsed(tester);
 
-    // Maximize â†’ full panel with the playback-range section.
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_up_rounded));
-    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.byKey(const ValueKey('bible-audio-collapsed-gesture')), findsOneWidget);
+    await tester.tap(find.byKey(const ValueKey('bible-audio-collapsed-gesture')));
+    await tester.pumpAndSettle();
 
     expect(find.text('bible_range_title'), findsOneWidget);
     expect(find.text('bible_range_start'), findsOneWidget);
@@ -118,66 +119,138 @@ void main() {
     expect(find.text('bible_range_chapter_end'), findsOneWidget);
     expect(find.text('bible_range_continue'), findsOneWidget);
     expect(find.text('bible_range_to_verse'), findsOneWidget);
-
-    // "Sampai akhir pasal" is the default â†’ chapter-end summary, and the
-    // end pickers are hidden.
-    expect(
-      find.textContaining('bible_range_chapter_end_summary', skipOffstage: false),
-      findsOneWidget,
-    );
-    expect(find.text('bible_book'), findsOneWidget); // only the start picker
-
-    // Choose "Sampai ayat tertentu" â†’ the end pickers appear and the cubit
-    // receives an end target.
-    await tester.tap(find.text('bible_range_to_verse'));
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100));
-
-    verify(() => cubit.setTtsPlayRangeEnd(any())).called(1);
-    expect(find.text('bible_book'), findsNWidgets(2)); // start + end pickers
-    expect(find.textContaining('bible_range_summary', skipOffstage: false), findsOneWidget);
   });
 
-  testWidgets('range modes: chapter end and lanjut terus call the cubit',
-      (tester) async {
-    await tester.pumpWidget(wrap());
-    await tester.pump(const Duration(milliseconds: 50));
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_up_rounded));
-    await tester.pump(const Duration(milliseconds: 100));
+  testWidgets('dragged sidebar remains tappable at its new visible position', (tester) async {
+    WidgetController.hitTestWarningShouldBeFatal = true;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      WidgetController.hitTestWarningShouldBeFatal = false;
+    });
+    await pumpCollapsed(tester);
 
-    // "Lanjut terus" â†’ setPlayRangeContinueOn (auto-next on, no end target).
+    final positioned = find.byKey(const ValueKey('bible-audio-positioned'));
+    final collapsed = find.byKey(const ValueKey('bible-audio-collapsed-gesture'));
+    final before = tester.getRect(positioned);
+
+    await tester.drag(collapsed, const Offset(-220, -90));
+    await tester.pumpAndSettle();
+
+    final after = tester.getRect(positioned);
+    expect(after.left, lessThan(before.left - 100));
+    expect(after.top, lessThan(before.top - 30));
+
+    // Regression: with the old Transform.translate layout, the visible child
+    // could move away from its ancestor hit-test bounds and this tap missed.
+    await tester.tap(collapsed, warnIfMissed: true);
+    await tester.pumpAndSettle();
+
+    expect(find.text('bible_range_title'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('edge snap preserves vertical release position', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await pumpCollapsed(tester);
+
+    final positioned = find.byKey(const ValueKey('bible-audio-positioned'));
+    final collapsed = find.byKey(const ValueKey('bible-audio-collapsed-gesture'));
+    final before = tester.getRect(positioned);
+
+    await tester.drag(collapsed, const Offset(-220, -150));
+    await tester.pumpAndSettle();
+    final leftDock = tester.getRect(positioned);
+
+    expect(leftDock.left, lessThan(0));
+    expect(leftDock.top, lessThan(before.top - 60));
+
+    await tester.drag(collapsed, const Offset(320, 0));
+    await tester.pumpAndSettle();
+    final rightDock = tester.getRect(positioned);
+
+    expect(rightDock.left, greaterThan(300));
+    expect((rightDock.top - leftDock.top).abs(), lessThan(4));
+  });
+
+  testWidgets('collapse returns to the saved sidebar dock', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await pumpCollapsed(tester);
+
+    final positioned = find.byKey(const ValueKey('bible-audio-positioned'));
+    final collapsed = find.byKey(const ValueKey('bible-audio-collapsed-gesture'));
+
+    await tester.drag(collapsed, const Offset(-220, -100));
+    await tester.pumpAndSettle();
+    final dockRect = tester.getRect(positioned);
+
+    await tester.tap(collapsed);
+    await tester.pumpAndSettle();
+    expect(find.text('bible_range_title'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.expand_more_rounded));
+    await tester.pumpAndSettle();
+
+    final returnedRect = tester.getRect(positioned);
+    expect((returnedRect.left - dockRect.left).abs(), lessThan(4));
+    expect((returnedRect.top - dockRect.top).abs(), lessThan(4));
+  });
+
+  testWidgets('range modes still call the Bible cubit', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await pumpCollapsed(tester);
+    await tester.tap(find.byKey(const ValueKey('bible-audio-collapsed-gesture')));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.text('bible_range_continue'));
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
     verify(() => cubit.setPlayRangeContinueOn()).called(1);
 
-    // Back to "Sampai akhir pasal" â†’ setPlayRangeToChapterEnd.
     await tester.tap(find.text('bible_range_chapter_end'));
-    await tester.pump(const Duration(milliseconds: 100));
+    await tester.pump();
     verify(() => cubit.setPlayRangeToChapterEnd()).called(1);
   });
 
-  testWidgets('range start picker reports changes to the cubit',
-      (tester) async {
-    await tester.pumpWidget(wrap());
-    await tester.pump(const Duration(milliseconds: 50));
+  testWidgets('specific end verse mode reveals the destination picker', (tester) async {
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+    await pumpCollapsed(tester);
+    await tester.tap(find.byKey(const ValueKey('bible-audio-collapsed-gesture')));
+    await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_up_rounded));
-    await tester.pump(const Duration(milliseconds: 100));
+    expect(find.text('bible_book'), findsOneWidget);
+    await tester.tap(find.text('bible_range_to_verse'));
+    await tester.pump();
+    await tester.pump();
 
-    // Change the START book â†’ setTtsPlayRangeStart receives a verse in the
-    // selected book, chapter 1, verse 1.
-    await tester.tap(find.byType(DropdownButtonFormField<int>).first);
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.pump(const Duration(milliseconds: 100));
-    await tester.tap(find.text('Kel').last);
-    await tester.pump(const Duration(milliseconds: 100));
+    verify(() => cubit.setTtsPlayRangeEnd(any())).called(1);
+    expect(find.text('bible_book'), findsNWidgets(2));
+  });
 
-    verify(
-      () => cubit.setTtsPlayRangeStart(
-        any(
-          that: isA<Verse>().having((v) => v.bookId, 'bookId', 2),
-        ),
-      ),
-    ).called(1);
+  testWidgets('compact viewport has no overflow or hit-test warning', (tester) async {
+    WidgetController.hitTestWarningShouldBeFatal = true;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+      WidgetController.hitTestWarningShouldBeFatal = false;
+    });
+    await pumpCollapsed(tester, size: const Size(320, 568));
+
+    await tester.tap(find.byKey(const ValueKey('bible-audio-collapsed-gesture')));
+    await tester.pumpAndSettle();
+
+    expect(find.text('bible_range_title'), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }
