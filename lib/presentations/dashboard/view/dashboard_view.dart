@@ -9,6 +9,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
+import '../../../data/services/chord_service.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
@@ -183,6 +184,7 @@ class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
   final _appLinks = AppLinks();
   TabsRouter? tabRouter;
+  bool _midiExpanded = false;
 
   @override
   void initState() {
@@ -216,6 +218,11 @@ class _DashboardViewState extends State<DashboardView>
     } on PlatformException {
       // Deep links are optional and must not prevent startup.
     }
+  }
+
+  void _setMidiExpanded(bool expanded) {
+    if (!mounted || expanded == _midiExpanded) return;
+    setState(() => _midiExpanded = expanded);
   }
 
   void _openSongSelector() {
@@ -332,9 +339,13 @@ class _DashboardViewState extends State<DashboardView>
                                     previous.isImageMode != current.isImageMode ||
                                     previous.pageIndex != current.pageIndex ||
                                     previous.bookCode != current.bookCode ||
-                                    previous.currentChords != current.currentChords ||
+                                    previous.currentPdfPath !=
+                                        current.currentPdfPath ||
+                                    previous.currentChords !=
+                                        current.currentChords ||
                                     previous.showChord != current.showChord ||
-                                    previous.transposeStep != current.transposeStep ||
+                                    previous.transposeStep !=
+                                        current.transposeStep ||
                                     previous.chordAccidentalMode !=
                                         current.chordAccidentalMode ||
                                     previous.defaultTextScale !=
@@ -354,6 +365,31 @@ class _DashboardViewState extends State<DashboardView>
                               )
                             : child,
                       ),
+                      if (tabsRouter.activeIndex == 2)
+                        BlocBuilder<SongCubit, SongState>(
+                          buildWhen: (previous, current) =>
+                              previous.isImageMode != current.isImageMode ||
+                              previous.bookCode != current.bookCode ||
+                              previous.chordAccidentalMode !=
+                                  current.chordAccidentalMode,
+                          builder: (context, songState) {
+                            if (songState.isImageMode ||
+                                songState.bookCode == 'HYMNE') {
+                              return const SizedBox.shrink();
+                            }
+                            return Positioned(
+                              top: MediaQuery.viewPaddingOf(context).top + 78,
+                              right: 12,
+                              child: _ChordNotationChip(
+                                mode: songState.chordAccidentalMode,
+                                tooltipPrefix: 'Notasi Chord',
+                                onPressed: context
+                                    .read<SongCubit>()
+                                    .toggleAccidentalMode,
+                              ),
+                            );
+                          },
+                        ),
                       BlocBuilder<SongCubit, SongState>(
                         buildWhen: (prev, curr) =>
                             prev.showAudio != curr.showAudio ||
@@ -406,9 +442,39 @@ class _DashboardViewState extends State<DashboardView>
                             onToggleChord: songCubit.toggleChord,
                             chordAccidentalMode: midiState.chordAccidentalMode,
                             onToggleAccidental: songCubit.toggleAccidentalMode,
+                            onExpandedChanged: _setMidiExpanded,
                           );
                         },
                       ),
+                      if (_midiExpanded)
+                        BlocBuilder<SongCubit, SongState>(
+                          buildWhen: (previous, current) =>
+                              previous.showAudio != current.showAudio ||
+                              previous.bookCode != current.bookCode ||
+                              previous.chordAccidentalMode !=
+                                  current.chordAccidentalMode,
+                          builder: (context, midiState) {
+                            if (!midiState.showAudio ||
+                                midiState.bookCode == 'HYMNE') {
+                              return const SizedBox.shrink();
+                            }
+                            return Positioned(
+                              right: 18,
+                              bottom:
+                                  kMidiNavBarReserve +
+                                  kMidiExpandedTotalHeight -
+                                  17,
+                              child: _ChordNotationChip(
+                                mode: midiState.chordAccidentalMode,
+                                tooltipPrefix: 'Notasi Chord MIDI',
+                                attached: true,
+                                onPressed: context
+                                    .read<SongCubit>()
+                                    .toggleAccidentalMode,
+                              ),
+                            );
+                          },
+                        ),
                       Positioned(
                         left: kDashboardNavHorizontalInset,
                         right: kDashboardNavHorizontalInset,
@@ -429,6 +495,74 @@ class _DashboardViewState extends State<DashboardView>
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ChordNotationChip extends StatelessWidget {
+  const _ChordNotationChip({
+    required this.mode,
+    required this.onPressed,
+    required this.tooltipPrefix,
+    this.attached = false,
+  });
+
+  final String mode;
+  final VoidCallback onPressed;
+  final String tooltipPrefix;
+  final bool attached;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final isFlat = mode == ChordService.accidentalFlat;
+    return Tooltip(
+      message: '$tooltipPrefix: ${isFlat ? 'Flat (♭)' : 'Sharp (♯)'}',
+      child: Material(
+        elevation: attached ? 7 : 4,
+        shadowColor: colors.shadow.withValues(alpha: 0.24),
+        color: attached
+            ? colors.primaryContainer
+            : colors.surfaceContainerHigh.withValues(alpha: 0.96),
+        shape: StadiumBorder(
+          side: BorderSide(color: colors.primary.withValues(alpha: 0.28)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: attached ? 10 : 11,
+              vertical: attached ? 6 : 7,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isFlat ? '♭' : '♯',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: attached
+                        ? colors.onPrimaryContainer
+                        : colors.primary,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+                if (!attached) ...[
+                  const SizedBox(width: 5),
+                  Text(
+                    isFlat ? 'Flat' : 'Sharp',
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
