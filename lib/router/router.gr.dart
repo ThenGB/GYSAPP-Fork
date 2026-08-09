@@ -70,7 +70,7 @@ class BibleAudioSettingRoute extends PageRouteInfo<BibleAudioSettingRouteArgs> {
   BibleAudioSettingRoute({
     Key? key,
     required BibleState initialState,
-    required void Function(BibleState) onSave,
+    required dynamic Function(BibleState) onSave,
     List<PageRouteInfo>? children,
   }) : super(
          BibleAudioSettingRoute.name,
@@ -108,7 +108,7 @@ class BibleAudioSettingRouteArgs {
 
   final BibleState initialState;
 
-  final void Function(BibleState) onSave;
+  final dynamic Function(BibleState) onSave;
 
   @override
   String toString() {

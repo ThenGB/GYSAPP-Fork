@@ -11,8 +11,6 @@ import 'package:fluttertoast/fluttertoast.dart';
 import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../data/services/bible_tts_service.dart';
-import '../../../data/utilities/platform_utils.dart';
-import '../../../router/router.dart';
 import '../cubit/bible_cubit.dart';
 import '../cubit/bible_state.dart';
 
@@ -84,12 +82,6 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
       _nativeVoices = native;
       _voicesLoading = false;
     });
-  }
-
-  List<edge.Voice> _edgeVoicesFor(String langPrefix) {
-    return _edgeVoices
-        .where((v) => v.locale.startsWith('$langPrefix-'))
-        .toList();
   }
 
   List<Map> _nativeVoicesFor(String locale) {
@@ -399,7 +391,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   }
 
   // ─── helpers ───────────────────────────────────────────────────────────
-  Map<String, Map<String, String>> _nativeVoiceByLocale = {};
+  final Map<String, Map<String, String>> _nativeVoiceByLocale = {};
 }
 
 class _Card extends StatelessWidget {

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/widgets.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -30,7 +31,8 @@ abstract class Menulink with _$Menulink {
       return NetworkImage(icon);
     } else if (isAssetIcon) {
       return AssetImage(icon);
-    } else if (isFileIcon) {
+    } else if (isFileIcon && !kIsWeb) {
+      // dart:io File is unavailable on web — fall back to the app icon.
       return FileImage(File(icon));
     } else {
       return const AssetImage(Assets.assetsImagesAppicon);

@@ -1,10 +1,10 @@
+import 'dart:async';
 import 'dart:developer';
 import 'dart:io' show Platform;
 import 'dart:math' as math;
 
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_tts/flutter_tts.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 import 'package:sqflite_common/sqflite.dart' show Database;
 
@@ -240,8 +240,11 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   /// Plays the Bible starting from [fromVerseId] (or the current verse when
   /// null). When [onlyThisVerse] is true, a single verse is spoken; otherwise
-  /// the chapter is read from that verse to the end, optionally continuing to
-  /// the next chapter when [autoNextChapter] (state) is enabled.
+  /// the chapter is read from that verse to the end.  Playback continues past
+  /// the chapter only when the range says so: "lanjut terus"
+  /// ([autoNextChapter]) or a specific end target ([ttsPlayRangeEnd]) that
+  /// lies beyond the current chapter; by default it stops at the end of the
+  /// chapter.
   Future<void> speakTheBible({
     int? fromVerseId,
     bool onlyThisVerse = false,
@@ -285,12 +288,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
     for (var i = 0; i < verses.length; i++) {
       if (!state.isSpeaking) break;
-      while (state.isTtsPaused && state.isSpeaking) {
-        await Future.delayed(const Duration(milliseconds: 250));
-      }
+      await _waitWhilePaused();
       if (!state.isSpeaking) break;
 
       final verse = verses[i];
+      // Never read past the configured range end.
+      final end = state.ttsPlayRangeEnd;
+      if (end != null && verse.id > end.id) break;
       emit(
         state.copyWith(
           currentBible: verse,
@@ -299,7 +303,27 @@ class BibleCubit extends HydratedCubit<BibleState> {
           currentEndWord: 0,
         ),
       );
+
+      // Preload the NEXT verse while this one plays so the transition is
+      // seamless: the next speak() then joins the in-flight synthesis (or
+      // hits the cache) instead of starting a network round-trip after this
+      // verse has already finished.
+      if (i + 1 < verses.length) {
+        unawaited(
+          tts.preload(
+            _buildTtsSentence(verses[i + 1]),
+            engine: activeTtsEngine,
+          ),
+        );
+      } else if (_continuesBeyondChapter && !state.isSpeakingSelectedOnly) {
+        unawaited(_preloadNextChapterVerses());
+      }
+
       await Future.delayed(const Duration(milliseconds: 600));
+      if (!state.isSpeaking) break;
+      // A pause can land during the pacing delay above — re-check before
+      // speaking so a paused loop does not start the next verse.
+      await _waitWhilePaused();
       if (!state.isSpeaking) break;
 
       final sentence = _buildTtsSentence(verse);
@@ -307,18 +331,31 @@ class BibleCubit extends HydratedCubit<BibleState> {
         sentence,
         engine: activeTtsEngine,
       );
-      if (!ok) {
+      if (!ok && !state.isTtsPaused) {
         log('TTS speak failed for verse ${verse.verseId}', name: 'BibleCubit');
+        emit(state.copyWith(isSpeaking: false));
+        return;
+      }
+
+      // Stop right after the range end verse has been spoken.
+      if (end != null && verse.id >= end.id) {
         emit(state.copyWith(isSpeaking: false));
         return;
       }
     }
 
     // Auto-continue to the next chapter when enabled and this chapter ended.
+    // "Lanjut terus" (no end target) keeps going forever; a specific end
+    // target also continues across chapters until that verse is reached.
     if (state.isSpeaking &&
-        state.autoNextChapter &&
+        _continuesBeyondChapter &&
         verses.isNotEmpty &&
         !state.isSpeakingSelectedOnly) {
+      final end = state.ttsPlayRangeEnd;
+      if (end != null && verses.last.id >= end.id) {
+        emit(state.copyWith(isSpeaking: false));
+        return;
+      }
       final next = await _nextChapterForTts();
       if (next != null) {
         await speakTheBible(fromVerseId: next);
@@ -328,15 +365,43 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(isSpeaking: false));
   }
 
+  /// True when playback should cross chapter boundaries: either "lanjut
+  /// terus" (no end target → [autoNextChapter]) or a specific end target
+  /// that lies beyond the current chapter.
+  bool get _continuesBeyondChapter =>
+      state.autoNextChapter || state.ttsPlayRangeEnd != null;
+
   /// Resolves the first verse id of the next chapter (or null at the end of
   /// the Bible). Used by the auto-next-chapter playback option.
   Future<int?> _nextChapterForTts() async {
+    final next = _resolveNextChapter();
+    if (next == null) return null;
+    final (book, chapter) = next;
+    try {
+      await getContent(
+        Verse(
+          id: book.id * 1000000 + chapter * 1000 + 1,
+          bookId: book.id,
+          chapterId: chapter,
+          verseId: 1,
+        ),
+      );
+      return state.verses.firstOrNull?.verseId;
+    } catch (e) {
+      log('Auto-next chapter failed: $e', name: 'BibleCubit');
+      return null;
+    }
+  }
+
+  /// Resolves (book, chapter) of the next chapter without changing state —
+  /// used both by auto-next playback and by seamless preloading.
+  (BibleBook, int)? _resolveNextChapter() {
     final currentBook = state.currentBook ?? state.books.firstOrNull;
     if (currentBook == null) return null;
     final currentVerse = state.currentBible;
     if (currentVerse == null) return null;
 
-    BibleBook? nextBook = currentBook;
+    BibleBook nextBook = currentBook;
     final currentChapterCount = currentBook.chapterCount ?? 1;
     int nextChapter = currentVerse.chapterId + 1;
     if (nextChapter > currentChapterCount) {
@@ -345,19 +410,50 @@ class BibleCubit extends HydratedCubit<BibleState> {
       if (idx == -1 || idx + 1 >= state.books.length) return null;
       nextBook = state.books[idx + 1];
     }
+    return (nextBook, nextChapter);
+  }
+
+  /// Preloads the verses of the next chapter into the TTS cache so the
+  /// chapter transition is seamless when auto-next is enabled. Does not
+  /// change the visible state. Preloads the FIRST verses of the chapter in
+  /// reverse order (verse 1 cached last → survives LRU eviction since it is
+  /// played first at the transition seam) and only up to the cache
+  /// capacity — synthesizing every verse of a 176-verse Psalm would be
+  /// wasted network work since only the last 16 survive eviction.
+  Future<void> _preloadNextChapterVerses() async {
+    final next = _resolveNextChapter();
+    if (next == null) return;
+    final (book, chapter) = next;
     try {
-      await getContent(
-        Verse(
-          id: nextBook.id * 1000000 + nextChapter * 1000 + 1,
-          bookId: nextBook.id,
-          chapterId: nextChapter,
-          verseId: 1,
-        ),
+      final verses = await getVersesByIdRange(
+        book.id * 1000000 + chapter * 1000 + 1,
+        book.id * 1000000 + chapter * 1000 + 999,
       );
-      return state.verses.firstOrNull?.verseId;
+      final cap = BibleTtsService.edgeCacheMax;
+      // Preload the first min(len, cap) verses, newest-first, so the
+      // soonest-played verses (verse 1 at the transition) are the most
+      // recently cached and survive LRU eviction.
+      final head = verses.length < cap ? verses.length : cap;
+      for (var i = head - 1; i >= 0; i--) {
+        if (!_isPlaybackActive) return;
+        await tts.preload(
+          _buildTtsSentence(verses[i]),
+          engine: activeTtsEngine,
+        );
+      }
     } catch (e) {
-      log('Auto-next chapter failed: $e', name: 'BibleCubit');
-      return null;
+      log('Next-chapter preload failed: $e', name: 'BibleCubit');
+    }
+  }
+
+  bool get _isPlaybackActive => state.isSpeaking && !state.isTtsPaused;
+
+  /// Blocks while speech is paused (and still supposed to be speaking), so
+  /// the reading loop waits instead of skipping verses or starting the next
+  /// verse while the user has hit pause.
+  Future<void> _waitWhilePaused() async {
+    while (state.isTtsPaused && state.isSpeaking) {
+      await Future.delayed(const Duration(milliseconds: 250));
     }
   }
 
@@ -397,8 +493,48 @@ class BibleCubit extends HydratedCubit<BibleState> {
     return response;
   }
 
-  void toggleAudio() {
-    emit(state.copyWith(enableAudio: !state.enableAudio));
+  /// Opens (true) or closes (false) the floating audio playback sidebar.
+  void setAudioPanelOpen(bool open) {
+    emit(state.copyWith(enableAudio: open));
+  }
+
+  /// Sets the TTS playback start target (book + chapter + verse).  Null
+  /// resets to "current position".  The sidebar's range controls and verse
+  /// taps feed this.
+  void setTtsPlayRangeStart(Verse? verse) {
+    emit(state.copyWith(ttsPlayRangeStart: verse));
+  }
+
+  /// "Sampai akhir pasal" — the default range: read to the end of the
+  /// current chapter and stop.  This is the state a fresh install starts
+  /// with (no auto-next, no specific end target).
+  void setPlayRangeToChapterEnd() {
+    emit(state.copyWith(ttsPlayRangeEnd: null, autoNextChapter: false));
+  }
+
+  /// "Lanjut terus" — reading continues automatically through the following
+  /// chapters/books.  This replaces the old standalone auto-next toggle.
+  void setPlayRangeContinueOn() {
+    emit(state.copyWith(ttsPlayRangeEnd: null, autoNextChapter: true));
+  }
+
+  /// "Sampai ayat tertentu" — reading stops right after [verse].
+  void setTtsPlayRangeEnd(Verse? verse) {
+    emit(state.copyWith(ttsPlayRangeEnd: verse, autoNextChapter: false));
+  }
+
+  /// Plays the Bible from [start] (book+chapter+verse; null = the current
+  /// reading position or the last configured range start), honouring the
+  /// configured playback range end.
+  Future<void> playBibleRange({Verse? start}) async {
+    final target = start ?? state.ttsPlayRangeStart ?? state.currentBible;
+    if (target == null) return;
+    if (target.bookId != state.currentBible?.bookId ||
+        target.chapterId != state.currentBible?.chapterId) {
+      emit(state.copyWith(selectedVerse: [], ttsPlayRangeStart: target));
+      await getContent(target);
+    }
+    await speakTheBible(fromVerseId: target.verseId);
   }
 
   /// Selects the TTS engine: 'edge' (default) or 'native'. Edge falls back
@@ -415,7 +551,13 @@ class BibleCubit extends HydratedCubit<BibleState> {
     emit(state.copyWith(autoNextChapter: value));
   }
 
-  void setEdgeVoice(String voice) => emit(state.copyWith(edgeVoice: voice));
+  void setEdgeVoice(String voice) {
+    emit(state.copyWith(edgeVoice: voice));
+    // Apply immediately so the next spoken verse uses the new voice — the
+    // settings page reaches the same field through initTts(), but the
+    // in-reader voice picker must not wait for a full re-init.
+    tts.edgeVoice = voice;
+  }
   void setEdgeRate(String rate) => emit(state.copyWith(edgeRate: rate));
   void setEdgePitch(String pitch) => emit(state.copyWith(edgePitch: pitch));
   void setEdgeVolume(String volume) =>
@@ -1184,13 +1326,23 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   void selectBible(Verse bible) {
     List<Verse> temp = List.from(state.selectedVerse);
-    if (temp.contains(bible)) {
+    final wasSelected = temp.contains(bible);
+    if (wasSelected) {
       temp.remove(bible);
     } else {
       temp.add(bible);
     }
     temp = temp.toSet().toList();
-    emit(state.copyWith(selectedVerse: temp));
+    emit(
+      state.copyWith(
+        selectedVerse: temp,
+        // Tapping a verse while the audio panel is open sets the playback
+        // start target directly ("mulai dari ayat ini").
+        ttsPlayRangeStart: (!wasSelected && state.enableAudio)
+            ? bible
+            : state.ttsPlayRangeStart,
+      ),
+    );
   }
 
   void removeSelection() {

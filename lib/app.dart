@@ -38,7 +38,7 @@ Future initApplication() async {
     appName: 'GYS APP',
     baseUrlApi: 'https://e.gys.or.id/api/v1',
   );
-  final isFlutterTest = Platform.environment.containsKey('FLUTTER_TEST');
+  final isFlutterTest = !kIsWeb && Platform.environment.containsKey('FLUTTER_TEST');
 
   // Only initialize MarionetteBinding on native platforms in debug mode
   // Web platforms don't fully support MarionetteBinding
@@ -81,57 +81,61 @@ Future initApplication() async {
     }
   }
   initLog('sqlite init done');
-  _initializePdfRuntime();
+  if (!kIsWeb) {
+    _initializePdfRuntime();
+  }
   initLog('flutter binding ready');
 
-  try {
-    // Use native File I/O instead of SharedPreferences (avoids platform channel hang)
-    final versionFile = File('/data/data/id.sch.kanaan.egys/cache/app_version');
-    // Hardcoded version to avoid PackageInfo platform channel call
-    const currentAppVersion = '2.0.30';
-    String storedAppVersion = '0.0.0';
-    if (await versionFile.exists()) {
-      storedAppVersion = (await versionFile.readAsString()).trim();
-    }
+  if (!kIsWeb) {
+    try {
+      // Use native File I/O instead of SharedPreferences (avoids platform channel hang)
+      final versionFile = File('/data/data/id.sch.kanaan.egys/cache/app_version');
+      // Hardcoded version to avoid PackageInfo platform channel call
+      const currentAppVersion = '2.0.30';
+      String storedAppVersion = '0.0.0';
+      if (await versionFile.exists()) {
+        storedAppVersion = (await versionFile.readAsString()).trim();
+      }
 
-    bool isOlderThan2_1(String v) {
-      final parts = v.split('.');
-      if (parts.length < 2) return true;
-      final major = int.tryParse(parts[0]) ?? 0;
-      final minor = int.tryParse(parts[1]) ?? 0;
-      if (major < 2) return true;
-      if (major == 2 && minor < 1) return true;
-      return false;
-    }
+      bool isOlderThan2_1(String v) {
+        final parts = v.split('.');
+        if (parts.length < 2) return true;
+        final major = int.tryParse(parts[0]) ?? 0;
+        final minor = int.tryParse(parts[1]) ?? 0;
+        if (major < 2) return true;
+        if (major == 2 && minor < 1) return true;
+        return false;
+      }
 
-    if (currentAppVersion != storedAppVersion) {
-      if (isOlderThan2_1(storedAppVersion)) {
-        initLog('Updating from older version (< 2.1). Wiping app data...');
-        // Wipe app data but preserve essential Android directories
-        Future<void> _wipeDir(String p) async {
-          final dir = Directory(p);
-          if (await dir.exists()) {
-            // Delete contents but not the directory itself
-            await for (final entity in dir.list()) {
-              final name = entity.path.split('/').last;
-              // Skip code_cache — Flutter DevFS needs it
-              if (name == 'code_cache') continue;
-              await entity.delete(recursive: true);
+      if (currentAppVersion != storedAppVersion) {
+        if (isOlderThan2_1(storedAppVersion)) {
+          initLog('Updating from older version (< 2.1). Wiping app data...');
+          // Wipe app data but preserve essential Android directories
+          Future<void> _wipeDir(String p) async {
+            final dir = Directory(p);
+            if (await dir.exists()) {
+              // Delete contents but not the directory itself
+              await for (final entity in dir.list()) {
+                final name = entity.path.split('/').last;
+                // Skip code_cache — Flutter DevFS needs it
+                if (name == 'code_cache') continue;
+                await entity.delete(recursive: true);
+              }
             }
           }
-        }
 
-        await _wipeDir('/data/data/id.sch.kanaan.egys');
-        // Ensure code_cache exists for Flutter DevFS
-        await Directory(
-          '/data/data/id.sch.kanaan.egys/code_cache',
-        ).create(recursive: true);
+          await _wipeDir('/data/data/id.sch.kanaan.egys');
+          // Ensure code_cache exists for Flutter DevFS
+          await Directory(
+            '/data/data/id.sch.kanaan.egys/code_cache',
+          ).create(recursive: true);
+        }
+        await versionFile.parent.create(recursive: true);
+        await versionFile.writeAsString(currentAppVersion);
       }
-      await versionFile.parent.create(recursive: true);
-      await versionFile.writeAsString(currentAppVersion);
+    } catch (e, st) {
+      log('Migration check failed', error: e, stackTrace: st, name: 'App');
     }
-  } catch (e, st) {
-    log('Migration check failed', error: e, stackTrace: st, name: 'App');
   }
 
   HydratedBloc.storage = FastFileStorage();
@@ -173,7 +177,10 @@ Future initApplication() async {
   AppConfigStore.useFallbackConfig();
   initLog('using bundled app config');
 
-  if (preserveNativeSplash) {
+  // Mobile keeps the native splash until init finishes. The web splash
+  // (HTML <picture id="splash">) also has to be removed through this API —
+  // without the call the overlay stays on top of the app forever.
+  if (preserveNativeSplash || kIsWeb) {
     FlutterNativeSplash.remove();
   }
   initLog('done');

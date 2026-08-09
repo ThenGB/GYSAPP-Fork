@@ -140,7 +140,14 @@ class SelectedVerseMenu extends StatelessWidget {
                         text += '\n$number. $verse';
                       }
                       text += '\n\n$footer';
-                      SharePlus.instance.share(ShareParams(text: text));
+                      try {
+                        await SharePlus.instance.share(
+                          ShareParams(text: text),
+                        );
+                      } catch (_) {
+                        // Share is unavailable on some platforms (e.g. web
+                        // without the share_plus web plugin) — ignore.
+                      }
                     },
                     child: Text('Share'.tr()),
                   ),

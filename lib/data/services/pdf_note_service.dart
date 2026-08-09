@@ -5,6 +5,8 @@ import 'dart:io';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:pdfrx/pdfrx.dart';
+import 'chord_service.dart';
+import 'chord_text_layout.dart';
 import 'pdf_note_extractor.dart';
 
 /// Parsed PDF path with optional `#page=N&pages=M` fragment.
@@ -224,10 +226,15 @@ class PdfNoteService {
   Future<PdfDocument> _getOrOpenDocument(String path) async {
     if (_docCache.containsKey(path)) return _docCache[path]!;
 
-    final isFile = path.startsWith('/') || path.contains(':/');
+    // Normalize separators first — Windows paths written by other layers may
+    // mix backslashes and forward slashes (e.g. "...\church/installed_assets/
+    // ..."), which would break the file-vs-asset heuristic below.
+    final normalized = path.replaceAll('\\', '/');
+    final isFile =
+        normalized.startsWith('/') || normalized.contains(':/');
     final doc = isFile
-        ? await PdfDocument.openFile(path)
-        : await PdfDocument.openAsset(path);
+        ? await PdfDocument.openFile(normalized)
+        : await PdfDocument.openAsset(normalized);
 
     // Simple cache management: only keep 3 docs open
     if (_docCache.length >= 3) {
@@ -410,6 +417,61 @@ class PdfNoteService {
     } catch (e) {
       log('PdfNoteService: Failed to extract infos for $key: $e');
       return _infoCache[key] = [];
+    }
+  }
+
+  /// Builds note-aligned chorded text lines for the pages of one song.
+  ///
+  /// This is the text-mode equivalent of gyschordweb's `loadChordLayout`:
+  /// for every song page it extracts the note positions AND the lyric text
+  /// lines from the PDF text layer, then pairs each chord (via its `noteIdx`)
+  /// with the lyric line below its note row and computes the chord's
+  /// horizontal position (0..1) relative to that line.  [chords] maps
+  /// song-relative page numbers (1-based) to that page's chords.
+  ///
+  /// Returns the flattened chorded lines of every page, ready to be matched
+  /// against the JSON verse lines in text mode.
+  Future<List<ChordedTextLine>> loadChordedLines({
+    required String pdfPath,
+    required int startPage,
+    int? pageCount,
+    required Map<int, List<ChordData>> chords,
+  }) async {
+    final cleanPath = pdfPath.split('#').first;
+    try {
+      final doc = await _getOrOpenDocument(cleanPath);
+      final docPageCount = doc.pages.length;
+      if (docPageCount <= 0) return const [];
+
+      final songPageCount = pageCount ?? 1;
+      final out = <ChordedTextLine>[];
+      for (var songPage = 1; songPage <= songPageCount; songPage++) {
+        final pageNumber = startPage + songPage - 1;
+        if (pageNumber < 1 || pageNumber > docPageCount) break;
+        final pageChords = chords[songPage] ?? const <ChordData>[];
+        if (pageChords.isEmpty) continue;
+
+        final page = doc.pages[pageNumber - 1];
+        final result = await loadNotePositionsAndInfos(page, cleanPath);
+        if (result.infos.isEmpty) continue;
+
+        final rawText = await page.loadText();
+        if (rawText == null) continue;
+        final lyricLines = extractLyricLines(rawText, page.width);
+        if (lyricLines.isEmpty) continue;
+
+        out.addAll(
+          buildChordedLines(
+            noteInfos: result.infos,
+            lyricLines: lyricLines,
+            entries: pageChords,
+          ),
+        );
+      }
+      return out;
+    } catch (e) {
+      log('PdfNoteService: Failed to build chorded lines for $pdfPath: $e');
+      return const [];
     }
   }
 

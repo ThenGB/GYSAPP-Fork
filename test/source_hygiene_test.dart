@@ -276,7 +276,11 @@ void main() {
 
     expect(songViewSource, contains('_fitPdfToPage'));
     expect(songViewSource, contains('_pdfViewerController'));
-    expect(viewerSource, contains('calcMatrixForFit'));
+    // The fit is applied through the retry-with-fallback helper rather than
+    // the pdfrx direct matrix call, so the viewer stays visible even when
+    // the pdfrx ready callback stalls.
+    expect(viewerSource, contains('_fitToPageInstant'));
+    expect(viewerSource, contains('_scheduleFitWithFallback'));
     expect(viewerSource, contains('PdfViewerSizeDelegateProviderLegacy'));
     expect(viewerSource, isNot(contains('debugPrint(')));
   });

@@ -7,6 +7,7 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:http/http.dart' as http;
@@ -298,7 +299,7 @@ class _LinkGroup extends StatelessWidget {
       context.showSnackBar('Fitur ini tidak tersedia');
       return;
     }
-    if (link.url.startsWith('app://') && Platform.isAndroid) {
+    if (link.url.startsWith('app://') && !kIsWeb && Platform.isAndroid) {
       context.showSnackBar('Aplikasi tidak ditemukan');
       return;
     }

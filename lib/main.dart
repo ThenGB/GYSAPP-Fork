@@ -17,9 +17,10 @@ import 'app.dart';
 void main() async {
   runZonedGuarded(
     () async {
-      if (kDebugMode) {
+      if (kDebugMode && !kIsWeb) {
         // Marionette: lets AI agents inspect and drive the app at runtime
-        // (VM-service based). Debug builds only.
+        // (VM-service based). Debug builds only. Web does not support it
+        // (same guard as initApplication in app.dart).
         MarionetteBinding.ensureInitialized();
       }
       // Only ensure initialization - actual binding done in app.dart via initApplication()
@@ -88,23 +89,38 @@ class SmartNetworkAssetLoader extends AssetLoader {
     final localeName = locale.languageCode;
     var string = '';
 
-    if (await localTranslationExists(localeName)) {
+    // Web has no local filesystem (dart:io File throws, and path_provider
+    // has no web implementation registered unless the app explicitly
+    // depends on path_provider_web) — skip the file cache and rely on the
+    // bundled assets + network refresh is skipped as well (the JSON ships
+    // with the app bundle).
+    if (!kIsWeb && await localTranslationExists(localeName)) {
       string = await loadFromLocalFile(localeName);
     }
 
     // Stale-cache guard: after an app update the bundled translations can
-    // contain keys the cached file (fetched days ago) does not have. If the
-    // cached map is missing keys present in the bundle, prefer the bundle —
-    // otherwise users see raw keys like "workspace_settings" in the UI.
+    // contain keys the cached file (fetched days ago) does not have.  The
+    // cached file is merged over the bundle, but the bundle's keys are the
+    // source of truth for the CURRENT app version — any key missing from the
+    // cache is filled in from the bundle so new UI labels never render as
+    // raw keys (e.g. "bible_book") after an update.
     if (string != '') {
       try {
-        final bundled = await rootBundle.loadString(
+        final bundledStr = await rootBundle.loadString(
           '$assetsPath/$localeName.json',
         );
-        final cachedCount = (json.decode(string) as Map).length;
-        final bundledCount = (json.decode(bundled) as Map).length;
-        if (cachedCount < bundledCount) {
-          string = bundled;
+        final cachedMap = (json.decode(string) as Map).cast<String, dynamic>();
+        final bundledMap =
+            (json.decode(bundledStr) as Map).cast<String, dynamic>();
+        var merged = false;
+        for (final entry in bundledMap.entries) {
+          if (!cachedMap.containsKey(entry.key)) {
+            cachedMap[entry.key] = entry.value;
+            merged = true;
+          }
+        }
+        if (merged) {
+          string = json.encode(cachedMap);
         }
       } catch (_) {
         // Keep the cached file if the bundle can't be read.
@@ -115,7 +131,9 @@ class SmartNetworkAssetLoader extends AssetLoader {
       string = await rootBundle.loadString('$assetsPath/$localeName.json');
     }
 
-    unawaited(_refreshFromNetwork(localeName));
+    if (!kIsWeb) {
+      unawaited(_refreshFromNetwork(localeName));
+    }
 
     return json.decode(string) as Map<String, dynamic>;
   }

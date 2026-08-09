@@ -8,7 +8,6 @@ import 'package:timeago/timeago.dart' as timeago;
 import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../data/models/theme_preferences.dart';
-import '../../../data/services/chord_service.dart';
 import '../../../di/injection.dart';
 import '../../../domain/domain.dart';
 import '../../../router/router.dart';

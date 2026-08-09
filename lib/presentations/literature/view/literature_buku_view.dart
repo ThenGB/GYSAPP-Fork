@@ -1,7 +1,9 @@
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../components/widgets/web_fallback_view.dart';
 import '../../../router/router.dart';
 
 @RoutePage()
@@ -25,6 +27,10 @@ class _LiteratureBukuViewState extends State<LiteratureBukuView> {
 
   @override
   Widget build(BuildContext context) {
+    // flutter_inappwebview has no web implementation — don't build it.
+    if (kIsWeb) {
+      return WebFallbackView(title: 'Buku', url: widget.url);
+    }
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       appBar: AppBar(
