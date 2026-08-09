@@ -23,11 +23,13 @@ class AccountRepositoryImpl implements AccountRepository {
       final response = await http.get('/users/profile');
       _debug('Profile response status: ${response.statusCode}');
 
-      final payload = _profilePayload(response.data);
+      final payload = _normalizeProfilePayload(_profilePayload(response.data));
       var account = Account.fromJson(payload);
 
-      // The JSON endpoint is authoritative. Only request the HTML profile page
-      // when older API payloads omit membership/branch metadata entirely.
+      // The JSON endpoint is authoritative when it contains semantic member
+      // data. Older responses often contain only generic account status such
+      // as ACTIVE; Account.resolvedMemberType deliberately treats those as
+      // unknown so this enrichment path can recover Jemaat/Simpatisan.
       if (account.resolvedMemberType == null ||
           account.resolvedBranchName == null) {
         account = await _enrichFromLegacyProfile(account);
@@ -45,8 +47,6 @@ class AccountRepositoryImpl implements AccountRepository {
     const authorizationHeader = 'Authorization';
     const cookieHeader = 'Cookie';
 
-    // Hosted browser auth uses an explicit encoded credential prefix. This
-    // avoids guessing whether an opaque provider token "looks like" cookies.
     final sessionCookie = decodeHostedSessionCredential(token);
     if (sessionCookie != null) {
       http.options.headers.remove(authorizationHeader);
@@ -81,9 +81,87 @@ class AccountRepositoryImpl implements AccountRepository {
     }
     if (data is Map) return data.cast<String, dynamic>();
 
-    // Some API revisions return the account object directly.
     if (map.containsKey('id') || map.containsKey('email')) return map;
     throw const FormatException('Profile payload is empty');
+  }
+
+  Map<String, dynamic> _normalizeProfilePayload(
+    Map<String, dynamic> payload,
+  ) {
+    final normalized = Map<String, dynamic>.from(payload);
+
+    // Some e-GYS revisions wrap account metadata one level deeper. Merge only
+    // missing values so the top-level API contract remains authoritative.
+    for (final key in ['profile', 'user', 'membership', 'account']) {
+      final nested = payload[key];
+      if (nested is! Map) continue;
+      for (final entry in nested.entries) {
+        normalized.putIfAbsent(entry.key.toString(), () => entry.value);
+      }
+    }
+
+    void alias(String target, List<String> candidates) {
+      if (_isMeaningfulScalar(normalized[target])) return;
+      for (final candidate in candidates) {
+        final value = normalized[candidate];
+        if (_isMeaningfulScalar(value)) {
+          normalized[target] = value;
+          return;
+        }
+      }
+    }
+
+    alias('member_type', [
+      'memberType',
+      'membership_type',
+      'membershipType',
+      'jenisAnggota',
+      'jenis_anggota',
+      'member_status',
+      'memberStatus',
+    ]);
+    alias('baptized', [
+      'is_baptized',
+      'isBaptized',
+      'baptism_status',
+      'baptismStatus',
+      'baptized_status',
+      'baptizedStatus',
+    ]);
+    alias('branchname', [
+      'branchName',
+      'branch_name',
+      'churchName',
+      'church_name',
+      'congregationName',
+      'congregation_name',
+    ]);
+    alias('wilayah', [
+      'region',
+      'regionName',
+      'region_name',
+      'wilayahName',
+      'wilayah_name',
+      'congregation',
+    ]);
+    alias('profilepicture', [
+      'profilePicture',
+      'profile_picture',
+      'avatar',
+      'avatarUrl',
+      'avatar_url',
+      'photoUrl',
+      'photo_url',
+    ]);
+    alias('mobilephone', ['mobilePhone', 'mobile_phone', 'phone', 'phoneNumber']);
+
+    return normalized;
+  }
+
+  bool _isMeaningfulScalar(dynamic value) {
+    if (value == null || value is Map || value is Iterable) return false;
+    final text = value.toString().trim().toLowerCase();
+    return text.isNotEmpty && text != 'null' && text != '-';
   }
 
   Future<Account> _enrichFromLegacyProfile(Account account) async {
@@ -127,18 +205,15 @@ class AccountRepositoryImpl implements AccountRepository {
   }
 
   String? _extractMemberType(String text) {
-    // Check negative baptism wording FIRST. "belum dibaptis" also contains
-    // "dibaptis"; the previous ordering therefore misclassified some
-    // Simpatisan as Jemaat.
     final normalized = text.toLowerCase();
     if (RegExp(
-      r'\b(belum\s+(?:di)?baptis|(?:di)?baptis\s+belum|not\s+baptized|simpatisan)\b',
+      r'\b(simpatisan|belum\s+(?:di)?baptis|(?:di)?baptis\s+belum|not\s+baptized|unbaptized|(?:status\s+)?baptis(?:an)?\s*[:\-]?\s*(?:belum|tidak|no))\b',
       caseSensitive: false,
     ).hasMatch(normalized)) {
       return 'Simpatisan';
     }
     if (RegExp(
-      r'\b(sudah\s+(?:di)?baptis|(?:di)?baptis\s+sudah|baptized|jemaat)\b',
+      r'\b(jemaat|sudah\s+(?:di)?baptis|(?:di)?baptis\s+sudah|baptized|(?:status\s+)?baptis(?:an)?\s*[:\-]?\s*(?:sudah|ya|yes))\b',
       caseSensitive: false,
     ).hasMatch(normalized)) {
       return 'Jemaat';
@@ -148,15 +223,13 @@ class AccountRepositoryImpl implements AccountRepository {
 
   String? _extractBranchName(String text) {
     final match = RegExp(
-      r'\b(?:wilayah|region|cabang|branch)\s*[:\-]?\s*([^|•;,]{2,80})',
+      r'\b(?:wilayah|region|cabang|branch|jemaat)\s*[:\-]?\s*([^|•;,]{2,80})',
       caseSensitive: false,
     ).firstMatch(text);
     if (match == null) return null;
 
     final value = match.group(1)?.trim() ?? '';
     if (value.isEmpty) return null;
-    // Stop before another common profile label when the flattened HTML has
-    // placed multiple fields on the same line.
     return value
         .split(
           RegExp(
