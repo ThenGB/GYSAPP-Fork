@@ -16,7 +16,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   final AuthTokenStore authTokenStore;
 
   DashboardCubit(this.accountRepository, this.authTokenStore)
-      : super(const DashboardState()) {
+    : super(const DashboardState()) {
     unawaited(initConfig());
     unawaited(_restoreSecureAuth());
   }
