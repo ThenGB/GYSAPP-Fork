@@ -12,8 +12,11 @@ on:
 permissions:
   contents: read
 
+# Push and pull_request events for the same PR branch should share one runner.
+# Using github.ref here created separate refs (refs/heads/... vs refs/pull/...)
+# and made stale duplicate suites run in parallel.
 concurrency:
-  group: flutter-quality-${{ github.ref }}
+  group: flutter-quality-${{ github.event.pull_request.head.ref || github.ref_name }}
   cancel-in-progress: true
 
 jobs:

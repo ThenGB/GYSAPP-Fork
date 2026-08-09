@@ -8,7 +8,7 @@ import 'package:church/data/services/installed_bible_db.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-import '../../helpers/bible_db_fixture.dart';
+import '../../../helpers/bible_db_fixture.dart';
 
 /// Regression tests for downloaded (non-bundled) Bible versions.
 ///
