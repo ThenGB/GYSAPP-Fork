@@ -24,4 +24,7 @@ abstract class InstalledAssetStore {
 
   /// Whether a stored file exists.
   Future<bool> exists(String relativePath);
+
+  /// Removes every installed distributed asset.
+  Future<void> clear();
 }

@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:developer';
 import 'dart:math' show max, min;
 import '../../../components/components.dart';
@@ -189,14 +189,16 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
     if (oldWidget.twoPageMode != widget.twoPageMode ||
         oldWidget.verticalScrolling != widget.verticalScrolling) {
-      // Layout changed â€” PdfViewer is rebuilt via new key on assetPath,
-      // but twoPageMode/verticalScrolling need a setState.
       _needsInitialFit = true;
-      // Invalidate cached params so the next build creates fresh params
-      // with the correct layout mode.  Without this the old params (which
-      // may have different scrollPhysics or layoutPages) are reused.
+      _cachedLayout = null;
+      _cachedLayoutKey = null;
       _cachedParams = null;
       setState(() {});
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
+        _invalidatePdfIfReady();
+        _scheduleFitWithFallback();
+      });
     }
     if (oldWidget.showChord != widget.showChord ||
         oldWidget.chords != widget.chords ||
@@ -858,19 +860,11 @@ class _SongPdfViewerState extends State<SongPdfViewer>
       // pinch-to-zoom.
     );
 
-    // Force recreation when the requested range OR the viewing mode changes
-    // so pdfrx applies initialPageNumber, rebuilds the page layout against
-    // the right pages, and re-runs the deterministic initial-fit zoom for the
-    // new mode (single/two-page/vertical).  A mode switch therefore gets a
-    // fresh, correctly-fitted viewer instead of pdfrx's onLayoutUpdate
-    // "preserve current zoom" behavior fighting the new layout.
-    final modeToken = widget.twoPageMode
-        ? '2'
-        : widget.verticalScrolling
-        ? 'v'
-        : '1';
+    // Document identity stays stable across layout-mode changes. pdfrx can
+    // re-layout the same document in place, which preserves caches and avoids
+    // the visible destroy/recreate flash when switching 1/2-page or vertical.
     final viewerKey = ValueKey(
-      '${request.sourceId}#p${request.startPage}#n${request.pageCount}#m$modeToken#v$_viewerInstance',
+      '${request.sourceId}#p${request.startPage}#n${request.pageCount}#v$_viewerInstance',
     );
 
     final viewer = request.isFile
@@ -944,12 +938,10 @@ class _SongPdfViewerState extends State<SongPdfViewer>
                         label: displayIndex,
                         canGoPrev: canGoPrev,
                         canGoNext: canGoNext,
-                        onPrev: () => unawaited(
-                          _goToPage(_currentPageIndex - step),
-                        ),
-                        onNext: () => unawaited(
-                          _goToPage(_currentPageIndex + step),
-                        ),
+                        onPrev: () =>
+                            unawaited(_goToPage(_currentPageIndex - step)),
+                        onNext: () =>
+                            unawaited(_goToPage(_currentPageIndex + step)),
                       ),
                     ),
                   ],
@@ -1022,8 +1014,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   void _onSwipeEnd(PointerUpEvent event) {
     final dx = event.position.dx - _swipeStartX;
     final dy = event.position.dy - _swipeStartY;
-    final elapsed =
-        DateTime.now().difference(_swipeStartTime).inMilliseconds;
+    final elapsed = DateTime.now().difference(_swipeStartTime).inMilliseconds;
     if (elapsed == 0 || elapsed > 600) return;
 
     final vx = dx / elapsed * 1000;
@@ -1177,10 +1168,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
           left.width,
           left.height,
         );
-        documentSize = Size(
-          left.width + margin * 2,
-          left.height + margin * 2,
-        );
+        documentSize = Size(left.width + margin * 2, left.height + margin * 2);
       }
     } else {
       // Normal mode: only the current page is on-screen.  All
@@ -1249,8 +1237,8 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     // paint, but State objects are still allocated).  Skip them.
     final expectedPageNumber = request.startPage + _currentPageIndex;
     final isCurrentPage = page.pageNumber == expectedPageNumber;
-    final isNextPageInTwoPageMode = widget.twoPageMode &&
-        page.pageNumber == expectedPageNumber + 1;
+    final isNextPageInTwoPageMode =
+        widget.twoPageMode && page.pageNumber == expectedPageNumber + 1;
     if (!isCurrentPage && !isNextPageInTwoPageMode) return [];
 
     // Map absolute PDF page number â†’ song-relative page number (1-based).

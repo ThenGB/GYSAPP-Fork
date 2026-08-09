@@ -1,7 +1,8 @@
 import 'dart:typed_data';
 
 import 'package:idb_shim/idb_browser.dart' show IdbFactory, idbFactoryBrowser;
-import 'package:idb_shim/idb_client.dart' show Database, idbModeReadOnly, idbModeReadWrite;
+import 'package:idb_shim/idb_client.dart'
+    show Database, idbModeReadOnly, idbModeReadWrite;
 
 import 'installed_asset_store.dart';
 
@@ -93,5 +94,13 @@ class IndexedDbInstalledAssetStore implements InstalledAssetStore {
     final value = await store.getObject(relativePath);
     await tx.completed;
     return value != null;
+  }
+
+  @override
+  Future<void> clear() async {
+    final db = await _db();
+    final tx = db.transaction(_storeName, idbModeReadWrite);
+    await tx.objectStore(_storeName).clear();
+    await tx.completed;
   }
 }

@@ -60,13 +60,8 @@ class MidiPlaybackState {
   }
 
   @override
-  int get hashCode => Object.hash(
-        isPlaying,
-        position,
-        duration,
-        isLoading,
-        currentSong,
-      );
+  int get hashCode =>
+      Object.hash(isPlaying, position, duration, isLoading, currentSong);
 }
 
 class MidiEngineService {
@@ -231,9 +226,10 @@ class MidiEngineService {
         return;
       }
 
-      // Check disk cache first
-      final wavFile = File(_wavCachePath(cacheKey));
-      if (await wavFile.exists()) {
+      // Browser builds do not have a dart:io filesystem. They still keep
+      // the in-memory source cache and the streaming render path below.
+      final wavFile = kIsWeb ? null : File(_wavCachePath(cacheKey));
+      if (wavFile != null && await wavFile.exists()) {
         try {
           final wavBytes = await wavFile.readAsBytes();
           final source = await SoLoud.instance.loadMem(
@@ -265,9 +261,12 @@ class MidiEngineService {
         settings: settings,
       );
 
-      // Save to disk cache for future use
-      await _ensureCacheDir();
-      await wavFile.writeAsBytes(rendered.wavBytes);
+      // Persist WAV cache on native platforms only. Web keeps the rendered
+      // source in memory, which avoids an unsupported dart:io call.
+      if (wavFile != null) {
+        await _ensureCacheDir();
+        await wavFile.writeAsBytes(rendered.wavBytes);
+      }
 
       // Load into memory
       final source = await SoLoud.instance.loadMem(
@@ -354,12 +353,7 @@ class MidiEngineService {
           _setCurrentSource(cachedSource);
           final duration =
               SoLoud.instance.getLength(cachedSource).inMilliseconds / 1000;
-          _setState(
-            _state.copyWith(
-              isLoading: false,
-              duration: duration,
-            ),
-          );
+          _setState(_state.copyWith(isLoading: false, duration: duration));
           if (autoplay) {
             await play();
           }
@@ -371,7 +365,7 @@ class MidiEngineService {
       // Without this the cache-ahead feature only helps while the source
       // survives in memory; after a prune or app restart the next song
       // re-renders from scratch even though the WAV is on disk.
-      if (startAt == Duration.zero) {
+      if (!kIsWeb && startAt == Duration.zero) {
         final wavFile = File(_wavCachePath(cacheKey));
         if (await wavFile.exists()) {
           try {
@@ -387,12 +381,7 @@ class MidiEngineService {
             _setCurrentSource(source);
             final duration =
                 SoLoud.instance.getLength(source).inMilliseconds / 1000;
-            _setState(
-              _state.copyWith(
-                isLoading: false,
-                duration: duration,
-              ),
-            );
+            _setState(_state.copyWith(isLoading: false, duration: duration));
             log(
               'loadMidi: loaded from disk cache for $midiPath',
               name: 'MidiEngine',
@@ -510,8 +499,10 @@ class MidiEngineService {
 
       if (_disposed || generation != _renderGeneration) return;
 
-      await _ensureCacheDir();
-      await File(_wavCachePath(cacheKey)).writeAsBytes(rendered.wavBytes);
+      if (!kIsWeb) {
+        await _ensureCacheDir();
+        await File(_wavCachePath(cacheKey)).writeAsBytes(rendered.wavBytes);
+      }
 
       final renderedSource = await SoLoud.instance.loadMem(
         'midi-cache-$cacheKey',
@@ -618,6 +609,7 @@ class MidiEngineService {
   }
 
   Future<void> _ensureCacheDir() async {
+    if (kIsWeb) return;
     final dir = Directory(_cacheDir);
     if (!await dir.exists()) {
       await dir.create(recursive: true);
@@ -766,6 +758,7 @@ class MidiEngineService {
     String midiPath,
     MidiRenderSettings settings,
   ) async {
+    if (kIsWeb) return null;
     try {
       final normalized = settings.normalized;
       final cacheKey = generateMidiPreloadKey(
