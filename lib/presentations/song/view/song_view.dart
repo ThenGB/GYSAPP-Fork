@@ -1,4 +1,4 @@
-﻿import 'dart:ui' as ui show TextDirection;
+import 'dart:ui' as ui show TextDirection;
 
 import '../../../components/components.dart';
 // ignore_for_file: use_build_context_synchronously
@@ -332,7 +332,10 @@ class _SongViewState extends State<SongView> {
                           // (1-based).  The text view flattens every page's
                           // chords so lines from any verse (which may sit on
                           // any PDF page) get their notes' chords.
-                          final songChords = state.currentChords;
+                          final isActiveSong = index == currentPageIndex;
+                          final songChords = isActiveSong
+                              ? state.currentChords
+                              : const <int, List<ChordData>>{};
                           return RepaintBoundary(
                             child: _SongTextPage(
                               song: song,
@@ -346,8 +349,12 @@ class _SongViewState extends State<SongView> {
                               onPreviousVerse: _previousVerse,
                               onNextVerse: () => _nextVerse(song),
                               chords: songChords,
-                              pdfPath: state.currentPdfPath,
-                              showChords: shouldRenderChordForSongState(state),
+                              pdfPath: isActiveSong
+                                  ? state.currentPdfPath
+                                  : null,
+                              showChords:
+                                  isActiveSong &&
+                                  shouldRenderChordForSongState(state),
                               transposeStep: state.transposeStep,
                               baseTransposeOffset: state.baseTransposeOffset,
                               chordAccidentalMode: state.chordAccidentalMode,
@@ -484,7 +491,9 @@ class _SongViewState extends State<SongView> {
     final song = state.songs[currentPageIndex];
     final text = '${song.number} - ${song.title}';
     try {
-      await SharePlus.instance.share(ShareParams(text: text, subject: song.title));
+      await SharePlus.instance.share(
+        ShareParams(text: text, subject: song.title),
+      );
     } catch (_) {
       // Share is unavailable on some platforms â€” ignore.
     }
@@ -964,9 +973,7 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle>
                               softWrap: false,
                               overflow: TextOverflow.visible,
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .titleMedium
+                              style: Theme.of(context).textTheme.titleMedium
                                   ?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     fontSize: context.appFontSize(15),
@@ -981,15 +988,14 @@ class _SongHeaderTitleState extends State<_SongHeaderTitle>
                                   vertical: 1,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: colors.surfaceContainerHigh
-                                      .withValues(alpha: 0.8),
+                                  color: colors.surfaceContainerHigh.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   borderRadius: context.appRadius(999),
                                 ),
                                 child: Text(
                                   widget.number!,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .labelSmall
+                                  style: Theme.of(context).textTheme.labelSmall
                                       ?.copyWith(
                                         fontWeight: FontWeight.w700,
                                         color: colors.onSurfaceVariant,
@@ -1240,9 +1246,7 @@ class _SongTextPageState extends State<_SongTextPage>
       var nonEmptyCursor = 0;
       for (var i = 0; i < lines.length; i++) {
         if (lines[i].isEmpty) {
-          result.add(
-            Text(lines[i], textAlign: textAlign, style: lyricsStyle),
-          );
+          result.add(Text(lines[i], textAlign: textAlign, style: lyricsStyle));
           continue;
         }
         final lineIndex = nonEmptyCursor++;
@@ -1253,9 +1257,7 @@ class _SongTextPageState extends State<_SongTextPage>
           byIndexFallback,
         );
         if (chorded == null || chorded.chords.isEmpty) {
-          result.add(
-            Text(lines[i], textAlign: textAlign, style: lyricsStyle),
-          );
+          result.add(Text(lines[i], textAlign: textAlign, style: lyricsStyle));
           continue;
         }
         result.add(
@@ -1277,9 +1279,7 @@ class _SongTextPageState extends State<_SongTextPage>
     // PROPORTIONAL fallback: the layout is still loading (render plain lines
     // so chords appear without flicker once ready) or could not be built.
     if (_layoutLoading) {
-      return [
-        Text(verseText, textAlign: textAlign, style: lyricsStyle),
-      ];
+      return [Text(verseText, textAlign: textAlign, style: lyricsStyle)];
     }
 
     final verseChords = chordsForVerse(
@@ -1311,9 +1311,7 @@ class _SongTextPageState extends State<_SongTextPage>
           ),
         );
       }
-      result.add(
-        Text(lines[i], textAlign: textAlign, style: lyricsStyle),
-      );
+      result.add(Text(lines[i], textAlign: textAlign, style: lyricsStyle));
     }
     return result;
   }
@@ -1780,7 +1778,7 @@ class _PageModeMenuButtonState extends State<_PageModeMenuButton> {
                 ),
                 _ModeButton(
                   icon: Icons.swap_vert_rounded,
-                  label: 'â†“',
+                  label: 'Vert',
                   tooltip: isSinglePage ? 'Hanya 1 halaman' : 'Scroll vertikal',
                   selected: isVertical,
                   disabled: isSinglePage,
@@ -2087,115 +2085,252 @@ class _NoteAlignedChordLine extends StatelessWidget {
     required this.textScale,
   });
 
+  double _measure(String value, TextStyle? style) {
+    if (value.isEmpty) return 0;
+    final painter = TextPainter(
+      text: TextSpan(text: value, style: style),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return painter.width;
+  }
+
+  List<_WrappedLyricRow> _wrapRows(double maxWidth) {
+    if (text.isEmpty || !maxWidth.isFinite || maxWidth <= 0) {
+      return [_WrappedLyricRow(text: text, start: 0, end: text.length)];
+    }
+
+    final tokens = RegExp(r'\S+\s*').allMatches(text).toList();
+    if (tokens.isEmpty) {
+      return [_WrappedLyricRow(text: text, start: 0, end: text.length)];
+    }
+
+    final rows = <_WrappedLyricRow>[];
+    var buffer = '';
+    var rowStart = tokens.first.start;
+    var rowEnd = rowStart;
+
+    void flush() {
+      if (buffer.isEmpty) return;
+      final visible = buffer.trimRight();
+      rows.add(
+        _WrappedLyricRow(
+          text: visible,
+          start: rowStart,
+          end: rowStart + visible.length,
+        ),
+      );
+      buffer = '';
+    }
+
+    for (final token in tokens) {
+      final value = token.group(0) ?? '';
+      final candidate = '$buffer$value';
+      if (buffer.isNotEmpty &&
+          _measure(candidate.trimRight(), lyricsStyle) > maxWidth) {
+        flush();
+        rowStart = token.start;
+        buffer = value;
+        rowEnd = token.end;
+      } else {
+        if (buffer.isEmpty) rowStart = token.start;
+        buffer = candidate;
+        rowEnd = token.end;
+      }
+    }
+    flush();
+
+    if (rows.isEmpty) {
+      rows.add(_WrappedLyricRow(text: text, start: 0, end: rowEnd));
+    }
+    return rows;
+  }
+
+  int _characterOffsetFor(double position) {
+    if (text.isEmpty) return 0;
+    final painter = TextPainter(
+      text: TextSpan(text: text, style: lyricsStyle),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    if (painter.width <= 0) return 0;
+    return painter
+        .getPositionForOffset(
+          Offset(position.clamp(0.0, 1.0) * painter.width, 0),
+        )
+        .offset
+        .clamp(0, text.length);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chordFontSize = (12 * textScale).clamp(9.0, 20.0);
-    final chordHeight = chordFontSize + 6;
+    final chordHeight = chordFontSize + 7;
     final chordStyle = TextStyle(
       fontFamily: DesignSystem.fontHeading,
       fontSize: chordFontSize,
       fontWeight: FontWeight.w800,
       color: theme.colorScheme.onPrimaryContainer,
     );
-
-    final labels = placements
-        .map(
-          (p) => (
-            label: ChordService.transposeChord(
-              p.chord,
-              transposeStep,
-              baseTransposeOffset: baseTransposeOffset,
-              accidentalMode: chordAccidentalMode,
-            ),
-            position: p.safePosition,
-          ),
-        )
-        .toList();
-
     final alignment = switch (textAlign) {
       TextAlign.center => Alignment.center,
       TextAlign.right => Alignment.centerRight,
       _ => Alignment.centerLeft,
     };
 
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Align(
-          alignment: alignment,
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final maxWidth = constraints.maxWidth;
-              if (maxWidth <= 0) return const SizedBox.shrink();
-
-              // Measure the rendered width of this lyric line so the chord
-              // positions (fractions of the PDF line extent) map to the
-              // actual text extent on screen.
-              final painter = TextPainter(
-                text: TextSpan(text: text, style: lyricsStyle),
-                textDirection: ui.TextDirection.ltr,
-              )..layout(maxWidth: maxWidth);
-              final lineWidth = painter.width.clamp(0.0, maxWidth);
-
-              // Nudge overlapping chord badges to the right (gyschordweb's
-              // fixLyricsChordCollisions): keep the original position unless
-              // it would overlap the previous badge.
-              final lefts = <double>[];
-              var prevRight = double.negativeInfinity;
-              for (final label in labels) {
-                final labelPainter = TextPainter(
-                  text: TextSpan(text: label.label, style: chordStyle),
-                  textDirection: ui.TextDirection.ltr,
-                )..layout();
-                final halfW = labelPainter.width / 2 + 2;
-                var left = label.position * lineWidth;
-                final minLeft = prevRight + halfW + 4;
-                if (left < minLeft) {
-                  left = minLeft.clamp(
-                    halfW + 2,
-                    (lineWidth - halfW - 2).clamp(halfW + 2, lineWidth),
-                  );
-                }
-                prevRight = left + halfW;
-                lefts.add(left);
-              }
-
-              return SizedBox(
-                height: chordHeight + 4,
-                width: lineWidth,
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    for (var i = 0; i < labels.length; i++)
-                      Positioned(
-                        left: lefts[i],
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 1,
-                          ),
-                          decoration: BoxDecoration(
-                            color: theme.colorScheme.primaryContainer
-                                .withValues(alpha: 0.55),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            labels[i].label,
-                            style: chordStyle,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            },
+    final labels = placements
+        .map(
+          (placement) => _ResolvedChordPlacement(
+            label: ChordService.transposeChord(
+              placement.chord,
+              transposeStep,
+              baseTransposeOffset: baseTransposeOffset,
+              accidentalMode: chordAccidentalMode,
+            ),
+            characterOffset: _characterOffsetFor(placement.safePosition),
           ),
-        ),
-        Text(text, textAlign: textAlign, style: lyricsStyle),
-      ],
+        )
+        .toList();
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final maxWidth = constraints.maxWidth;
+        if (maxWidth <= 0) return const SizedBox.shrink();
+        final rows = _wrapRows(maxWidth);
+
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final row in rows)
+              Align(
+                alignment: alignment,
+                child: Builder(
+                  builder: (context) {
+                    final rowWidth = _measure(
+                      row.text,
+                      lyricsStyle,
+                    ).clamp(1.0, maxWidth);
+                    final rowChords = labels
+                        .where(
+                          (placement) =>
+                              placement.characterOffset >= row.start &&
+                              placement.characterOffset <= row.end,
+                        )
+                        .map((placement) {
+                          final localEnd =
+                              (placement.characterOffset - row.start).clamp(
+                                0,
+                                row.text.length,
+                              );
+                          final before = row.text.substring(0, localEnd);
+                          final x = _measure(
+                            before,
+                            lyricsStyle,
+                          ).clamp(0.0, rowWidth);
+                          return (label: placement.label, x: x);
+                        })
+                        .toList();
+
+                    var previousRight = double.negativeInfinity;
+                    final resolvedLefts = <double>[];
+                    for (final chord in rowChords) {
+                      final labelWidth = _measure(chord.label, chordStyle) + 8;
+                      var left = chord.x - (labelWidth / 2);
+                      left = left.clamp(
+                        0.0,
+                        (rowWidth - labelWidth).clamp(0.0, rowWidth),
+                      );
+                      if (left < previousRight + 4) {
+                        left = (previousRight + 4).clamp(
+                          0.0,
+                          (rowWidth - labelWidth).clamp(0.0, rowWidth),
+                        );
+                      }
+                      previousRight = left + labelWidth;
+                      resolvedLefts.add(left);
+                    }
+
+                    return SizedBox(
+                      width: rowWidth,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (rowChords.isNotEmpty)
+                            SizedBox(
+                              height: chordHeight,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  for (var i = 0; i < rowChords.length; i++)
+                                    Positioned(
+                                      left: resolvedLefts[i],
+                                      top: 0,
+                                      child: DecoratedBox(
+                                        decoration: BoxDecoration(
+                                          color: theme
+                                              .colorScheme
+                                              .primaryContainer
+                                              .withValues(alpha: 0.62),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                            vertical: 1,
+                                          ),
+                                          child: Text(
+                                            rowChords[i].label,
+                                            style: chordStyle,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          Text(
+                            row.text,
+                            textAlign: textAlign,
+                            style: lyricsStyle,
+                            maxLines: 1,
+                            softWrap: false,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+          ],
+        );
+      },
     );
   }
+}
+
+class _WrappedLyricRow {
+  final String text;
+  final int start;
+  final int end;
+
+  const _WrappedLyricRow({
+    required this.text,
+    required this.start,
+    required this.end,
+  });
+}
+
+class _ResolvedChordPlacement {
+  final String label;
+  final int characterOffset;
+
+  const _ResolvedChordPlacement({
+    required this.label,
+    required this.characterOffset,
+  });
 }
