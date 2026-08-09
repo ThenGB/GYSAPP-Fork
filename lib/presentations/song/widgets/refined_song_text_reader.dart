@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../components/components.dart';
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/chord_text_layout.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../cubit/song_cubit.dart';
 
