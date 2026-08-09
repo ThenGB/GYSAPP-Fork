@@ -1,9 +1,8 @@
-import 'dart:io';
-
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -336,7 +335,7 @@ class _AccountBadge extends StatelessWidget {
             label,
             style: context.textTheme.labelSmall?.copyWith(
               color: colors.onPrimaryContainer,
-              fontWeight: FontWeight.w750,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -476,8 +475,15 @@ class _ActivityTile extends StatelessWidget {
 class _DrawerFooter extends StatelessWidget {
   const _DrawerFooter();
 
-  bool get _canExitApp =>
-      !kIsWeb && (Platform.isAndroid || Platform.isWindows || Platform.isLinux);
+  bool get _canExitApp {
+    if (kIsWeb) return false;
+    return switch (defaultTargetPlatform) {
+      TargetPlatform.android ||
+      TargetPlatform.windows ||
+      TargetPlatform.linux => true,
+      _ => false,
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -503,7 +509,7 @@ class _DrawerFooter extends StatelessWidget {
                   version.isEmpty ? 'GYS App' : 'GYS App · v$version',
                   style: context.textTheme.labelSmall?.copyWith(
                     color: colors.onSurfaceVariant,
-                    fontWeight: FontWeight.w650,
+                    fontWeight: FontWeight.w600,
                   ),
                 );
               },
