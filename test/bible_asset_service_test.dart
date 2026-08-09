@@ -1,47 +1,32 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:get_it/get_it.dart';
-import 'package:hydrated_bloc/hydrated_bloc.dart';
-import 'package:sqflite_common/sqflite.dart';
-
 import 'package:church/data/services/asset_distribution/installed_asset_registry.dart';
 import 'package:church/data/services/asset_distribution/installed_asset_store.dart';
 import 'package:church/data/services/local_bible_asset_service.dart';
-import 'package:church/domain/entity/bible_book/bible_book.dart';
-import 'package:church/domain/entity/bible_ref/bible_ref.dart';
-import 'package:church/domain/entity/pericope/pericope.dart';
-import 'package:church/domain/entity/pericope_paralel/pericope_paralel.dart';
-import 'package:church/domain/entity/verse/verse.dart';
+import 'package:church/domain/entity/bible/bible_book_entity.dart';
+import 'package:church/domain/entity/bible/bible_verse_entity.dart';
 import 'package:church/domain/repository/bible_repository.dart';
+import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:get_it/get_it.dart';
+import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 class _FakeBibleRepository implements BibleRepository {
   @override
-  Future<List<BibleBook>> getBooks(Database db, {int? bookId}) async => [];
+  Future<Either<dynamic, List<BibleBook>>> getBooks(String version) async =>
+      const Right([]);
+
   @override
-  Future<List<Verse>> getVerses(Database db,
-          {required int bookId, required int chapterId}) async =>
-      [];
+  Future<Either<dynamic, List<BibleVerse>>> getVerses(
+    String version, {
+    required int bookId,
+    required int chapterId,
+  }) async => const Right([]);
+
   @override
-  Future<List<Pericope>> getPericope(Database db,
-          {required int bookId, required int chapterId}) async =>
-      [];
-  @override
-  Future<List<PericopeParalel>> getPericopeParalel(Database db,
-          {required int bc}) async =>
-      [];
-  @override
-  Future<List<BibleRef>> getRef(Database db, {required int bc}) async => [];
-  @override
-  Future<List<Verse>> getVersesByIdRange(Database db,
-          {required int fromId, required int? toId}) async =>
-      [];
-  @override
-  Future<List<Verse>> search(
-          Database db, String searchText, List<BibleBook> selectedBooks) async =>
-      [];
+  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }
 
 class _MemStorage implements Storage {
@@ -69,6 +54,8 @@ class _EmptyStore implements InstalledAssetStore {
   Future<void> deleteFile(String relativePath) async {}
   @override
   Future<bool> exists(String relativePath) async => false;
+  @override
+  Future<void> clear() async {}
 }
 
 void main() {
@@ -86,9 +73,7 @@ void main() {
       ),
     );
   });
-  tearDown(() async {
-    await di.reset();
-  });
+
   tearDown(() async {
     await di.reset();
   });
@@ -99,11 +84,11 @@ void main() {
     Future<T> timed<T>(String name, Future<T> Function() fn) async {
       final sw = Stopwatch()..start();
       try {
-        final r = await fn();
+        final result = await fn();
         debugPrint('OK   $name (${sw.elapsedMilliseconds}ms)');
-        return r;
-      } catch (e) {
-        debugPrint('FAIL $name (${sw.elapsedMilliseconds}ms): $e');
+        return result;
+      } catch (error) {
+        debugPrint('FAIL $name (${sw.elapsedMilliseconds}ms): $error');
         rethrow;
       }
     }
