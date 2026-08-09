@@ -744,10 +744,14 @@ class _SidebarPanel extends StatelessWidget {
             children: [
               Icon(Icons.timeline_rounded, size: 17, color: colors.primary),
               const SizedBox(width: 7),
-              Text(
-                'bible_range_title'.tr(),
-                style: context.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
+              Expanded(
+                child: Text(
+                  'bible_range_title'.tr(),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],
