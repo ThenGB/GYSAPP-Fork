@@ -23,6 +23,8 @@ class FaithPdfService {
   static const _manifestUri =
       'https://raw.githubusercontent.com/ThenGB/GYSApp-Data/main/latest/faith-pdfs-manifest.json';
   static const _allowedDownloadHost = 'github.com';
+  static const _releaseApiBase =
+      'https://api.github.com/repos/ThenGB/GYSApp-Data/releases/tags/';
 
   final http.Client _client;
   Map<int, FaithPdfDocument>? _catalog;
@@ -60,18 +62,27 @@ class FaithPdfService {
       if (rawItems is! List) return cached ?? const {};
 
       final result = <int, FaithPdfDocument>{};
+      var manifestNeedsReleaseResolution = false;
       for (final raw in rawItems) {
         if (raw is! Map) continue;
         final number = int.tryParse(raw['number']?.toString() ?? '');
-        final name = raw['name']?.toString().trim() ?? '';
-        final downloadUrl = raw['downloadUrl']?.toString().trim() ?? '';
-        final uri = Uri.tryParse(downloadUrl);
+        final rawName = raw['name']?.toString().trim() ?? '';
+        final rawDownloadUrl = raw['downloadUrl']?.toString().trim() ?? '';
         if (number == null || number < 1 || number > 10) continue;
-        if (name.isEmpty || uri == null) continue;
-        if (uri.scheme != 'https' || uri.host != _allowedDownloadHost) continue;
-        if (!uri.path.startsWith('/ThenGB/GYSApp-Data/releases/download/')) {
-          continue;
-        }
+        if (rawName.isEmpty || rawDownloadUrl.isEmpty) continue;
+
+        final wasLegacyName =
+            rawName.contains(' ') || rawDownloadUrl.contains('%20');
+        final name = wasLegacyName ? rawName.replaceAll(' ', '.') : rawName;
+        final downloadUrl = wasLegacyName
+            ? rawDownloadUrl
+                .replaceAll('%20', '.')
+                .replaceAll(' ', '.')
+            : rawDownloadUrl;
+        final uri = Uri.tryParse(downloadUrl);
+        if (uri == null || !_isAllowedReleaseUri(uri)) continue;
+
+        manifestNeedsReleaseResolution |= wasLegacyName;
         result.putIfAbsent(
           number,
           () => FaithPdfDocument(
@@ -82,15 +93,73 @@ class FaithPdfService {
         );
       }
 
-      if (result.length == 10) {
-        _catalog = result;
+      final tag = decoded['tag']?.toString().trim() ?? '';
+      final resolved = manifestNeedsReleaseResolution && tag.isNotEmpty
+          ? await _resolveReleaseAssets(tag, fallback: result)
+          : result;
+
+      if (resolved.length == 10) {
+        _catalog = resolved;
         _catalogFetchedAt = DateTime.now();
-        return result;
       }
-      return cached ?? result;
+      return resolved.isNotEmpty ? resolved : (cached ?? const {});
     } catch (_) {
       return cached ?? const {};
     }
+  }
+
+  Future<Map<int, FaithPdfDocument>> _resolveReleaseAssets(
+    String tag, {
+    required Map<int, FaithPdfDocument> fallback,
+  }) async {
+    try {
+      final response = await _client
+          .get(
+            Uri.parse('$_releaseApiBase${Uri.encodeComponent(tag)}'),
+            headers: const {
+              'Accept': 'application/vnd.github+json',
+              'X-GitHub-Api-Version': '2022-11-28',
+              'User-Agent': 'GYS-App',
+            },
+          )
+          .timeout(const Duration(seconds: 8));
+      if (response.statusCode != 200) return fallback;
+
+      final decoded = jsonDecode(response.body);
+      if (decoded is! Map) return fallback;
+      final assets = decoded['assets'];
+      if (assets is! List) return fallback;
+
+      final resolved = Map<int, FaithPdfDocument>.from(fallback);
+      for (final raw in assets) {
+        if (raw is! Map) continue;
+        final name = raw['name']?.toString().trim() ?? '';
+        if (!name.toLowerCase().endsWith('.pdf')) continue;
+        final match = RegExp(r'^(\d{2})-').firstMatch(name);
+        final number = int.tryParse(match?.group(1) ?? '');
+        final uri = Uri.tryParse(
+          raw['browser_download_url']?.toString().trim() ?? '',
+        );
+        if (number == null || number < 1 || number > 10 || uri == null) {
+          continue;
+        }
+        if (!_isAllowedReleaseUri(uri)) continue;
+        resolved[number] = FaithPdfDocument(
+          beliefNumber: number,
+          name: name,
+          uri: uri,
+        );
+      }
+      return resolved;
+    } catch (_) {
+      return fallback;
+    }
+  }
+
+  bool _isAllowedReleaseUri(Uri uri) {
+    return uri.scheme == 'https' &&
+        uri.host == _allowedDownloadHost &&
+        uri.path.startsWith('/ThenGB/GYSApp-Data/releases/download/');
   }
 
   void dispose() => _client.close();

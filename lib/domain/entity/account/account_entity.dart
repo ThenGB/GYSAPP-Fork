@@ -29,9 +29,11 @@ abstract class Account with _$Account {
 
   /// Canonical GYS membership label used by the UI.
   ///
-  /// Older and newer e-GYS payloads use different fields, so UI code should
-  /// not depend on one response shape. Explicit member labels win; baptism
-  /// status is the final semantic fallback.
+  /// e-GYS has returned several profile shapes over time. Only values that
+  /// actually describe membership are accepted here. Generic account status
+  /// values such as "ACTIVE" intentionally return null so the repository can
+  /// enrich the profile from the legacy member page instead of suppressing
+  /// the Jemaat/Simpatisan lookup.
   String? get resolvedMemberType {
     for (final candidate in [memberType, jenisAnggota]) {
       final normalized = _normalizeMemberLabel(candidate);
@@ -74,16 +76,24 @@ String? _normalizeMemberLabel(String? value) {
   if (normalized.contains('simpatis') ||
       normalized.contains('belum baptis') ||
       normalized.contains('belum dibaptis') ||
-      normalized == 'visitor') {
+      normalized.contains('not baptized') ||
+      normalized.contains('unbaptized') ||
+      normalized == 'visitor' ||
+      normalized == 'sympathizer') {
     return 'Simpatisan';
   }
   if (normalized.contains('jemaat') ||
       normalized.contains('sudah baptis') ||
       normalized.contains('sudah dibaptis') ||
-      normalized == 'member') {
+      normalized == 'baptized' ||
+      normalized == 'member' ||
+      normalized == 'church member') {
     return 'Jemaat';
   }
-  return raw;
+
+  // Do not leak generic account states (ACTIVE, VERIFIED, USER, etc.) into
+  // the membership badge. Returning null allows profile enrichment to run.
+  return null;
 }
 
 bool? _parseBaptized(dynamic value) {
@@ -100,6 +110,7 @@ bool? _parseBaptized(dynamic value) {
     'true',
     'yes',
     'y',
+    'ya',
     'sudah',
     'sudah baptis',
     'sudah dibaptis',
@@ -112,10 +123,12 @@ bool? _parseBaptized(dynamic value) {
     'false',
     'no',
     'n',
+    'tidak',
     'belum',
     'belum baptis',
     'belum dibaptis',
     'not baptized',
+    'unbaptized',
   }.contains(normalized)) {
     return false;
   }
