@@ -98,7 +98,13 @@ void _services() {
   di.registerLazySingleton<AuthTokenStore>(() => SecureAuthTokenStore());
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => PdfChunkService());
-  di.registerLazySingleton(() => AppResetService(appDirectory: di()));
+  di.registerLazySingleton(
+    () => AppResetService(
+      appDirectory: di(),
+      authTokenStore: di(),
+      installedAssetStore: di<InstalledAssetStore>(),
+    ),
+  );
   di.registerLazySingleton(
     () => ChordSyncService(di<AppDirectory>(), http.Client()),
   );

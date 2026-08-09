@@ -64,120 +64,127 @@ void main() {
   String checksumOf(Uint8List bytes) =>
       sha256.convert(bytes).toString().toUpperCase();
 
-  test('downloadAndInstall writes decrypted file and registry record',
-      () async {
-    final store = _MemoryInstalledAssetStore();
-    final registry = InstalledAssetRegistry(
-      supportDirectory: supportDir,
-      store: store,
-    );
-    final packageService = EncryptedAssetPackageService();
-    final payload = Uint8List.fromList(List.generate(64, (i) => i + 1));
-    final packageBytes = packageService.buildPackageBytesForTesting(payload);
+  test(
+    'downloadAndInstall writes decrypted file and registry record',
+    () async {
+      final store = _MemoryInstalledAssetStore();
+      final registry = InstalledAssetRegistry(
+        supportDirectory: supportDir,
+        store: store,
+      );
+      final packageService = EncryptedAssetPackageService();
+      final payload = Uint8List.fromList(List.generate(64, (i) => i + 1));
+      final packageBytes = packageService.buildPackageBytesForTesting(payload);
 
-    final client = _MockAssetClient();
-    when(() => client.fetchLatestManifest(AssetReleaseTrack.bibles))
-        .thenAnswer((_) async => manifest(checksum: checksumOf(packageBytes)));
-    when(
-      () => client.downloadPackage(
-        any(),
-        any(),
-        onProgress: any(named: 'onProgress'),
-      ),
-    ).thenAnswer((invocation) async {
-      final destination = invocation.positionalArguments[1] as String;
-      await File(destination).writeAsBytes(packageBytes);
-    });
+      final client = _MockAssetClient();
+      when(
+        () => client.fetchLatestManifest(AssetReleaseTrack.bibles),
+      ).thenAnswer((_) async => manifest(checksum: checksumOf(packageBytes)));
+      when(
+        () => client.downloadPackage(
+          any(),
+          any(),
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenAnswer((invocation) async {
+        final destination = invocation.positionalArguments[1] as String;
+        await File(destination).writeAsBytes(packageBytes);
+      });
 
-    final service = AssetDistributionService(
-      registry,
-      client,
-      packageService,
-      _MockCacheMaintenance(),
-      _MockLocalAssetService(),
-      store,
-    );
+      final service = AssetDistributionService(
+        registry,
+        client,
+        packageService,
+        _MockCacheMaintenance(),
+        _MockLocalAssetService(),
+        store,
+      );
 
-    const definition = AssetDefinition(
-      kind: DistributedAssetKind.bible,
-      code: 'b_kjv',
-      title: 'KJV',
-      installFileName: 'b_kjv.db',
-      bundledByDefault: false,
-      releaseTrack: AssetReleaseTrack.bibles,
-    );
+      const definition = AssetDefinition(
+        kind: DistributedAssetKind.bible,
+        code: 'b_kjv',
+        title: 'KJV',
+        installFileName: 'b_kjv.db',
+        bundledByDefault: false,
+        releaseTrack: AssetReleaseTrack.bibles,
+      );
 
-    await service.downloadAndInstall(definition);
+      await service.downloadAndInstall(definition);
 
-    // Native path: the decrypted payload lands in the install dir.
-    final installedFile = File(
-      '${registry.bibleInstallDirectory.path}/b_kjv.db',
-    );
-    expect(installedFile.existsSync(), isTrue);
-    expect(await installedFile.readAsBytes(), payload);
+      // Native path: the decrypted payload lands in the install dir.
+      final installedFile = File(
+        '${registry.bibleInstallDirectory.path}/b_kjv.db',
+      );
+      expect(installedFile.existsSync(), isTrue);
+      expect(await installedFile.readAsBytes(), payload);
 
-    final record = await registry.getInstalledRecord(
-      DistributedAssetKind.bible,
-      'b_kjv',
-    );
-    expect(record, isNotNull);
-    expect(record!.installedPath, 'b_kjv.db');
-    expect(record.version, '2026.05.21');
-  });
+      final record = await registry.getInstalledRecord(
+        DistributedAssetKind.bible,
+        'b_kjv',
+      );
+      expect(record, isNotNull);
+      expect(record!.installedPath, 'b_kjv.db');
+      expect(record.version, '2026.05.21');
+    },
+  );
 
-  test('downloadAndInstall surfaces checksum mismatch before install', () async {
-    final store = _MemoryInstalledAssetStore();
-    final registry = InstalledAssetRegistry(
-      supportDirectory: supportDir,
-      store: store,
-    );
-    final packageService = EncryptedAssetPackageService();
-    final payload = Uint8List.fromList(List.generate(32, (i) => i));
-    final packageBytes = packageService.buildPackageBytesForTesting(payload);
+  test(
+    'downloadAndInstall surfaces checksum mismatch before install',
+    () async {
+      final store = _MemoryInstalledAssetStore();
+      final registry = InstalledAssetRegistry(
+        supportDirectory: supportDir,
+        store: store,
+      );
+      final packageService = EncryptedAssetPackageService();
+      final payload = Uint8List.fromList(List.generate(32, (i) => i));
+      final packageBytes = packageService.buildPackageBytesForTesting(payload);
 
-    final client = _MockAssetClient();
-    when(() => client.fetchLatestManifest(AssetReleaseTrack.bibles))
-        .thenAnswer((_) async => manifest(checksum: 'DEADBEEF'));
-    when(
-      () => client.downloadPackage(
-        any(),
-        any(),
-        onProgress: any(named: 'onProgress'),
-      ),
-    ).thenAnswer((invocation) async {
-      final destination = invocation.positionalArguments[1] as String;
-      await File(destination).writeAsBytes(packageBytes);
-    });
+      final client = _MockAssetClient();
+      when(
+        () => client.fetchLatestManifest(AssetReleaseTrack.bibles),
+      ).thenAnswer((_) async => manifest(checksum: 'DEADBEEF'));
+      when(
+        () => client.downloadPackage(
+          any(),
+          any(),
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenAnswer((invocation) async {
+        final destination = invocation.positionalArguments[1] as String;
+        await File(destination).writeAsBytes(packageBytes);
+      });
 
-    final service = AssetDistributionService(
-      registry,
-      client,
-      packageService,
-      _MockCacheMaintenance(),
-      _MockLocalAssetService(),
-      store,
-    );
+      final service = AssetDistributionService(
+        registry,
+        client,
+        packageService,
+        _MockCacheMaintenance(),
+        _MockLocalAssetService(),
+        store,
+      );
 
-    const definition = AssetDefinition(
-      kind: DistributedAssetKind.bible,
-      code: 'b_kjv',
-      title: 'KJV',
-      installFileName: 'b_kjv.db',
-      bundledByDefault: false,
-      releaseTrack: AssetReleaseTrack.bibles,
-    );
+      const definition = AssetDefinition(
+        kind: DistributedAssetKind.bible,
+        code: 'b_kjv',
+        title: 'KJV',
+        installFileName: 'b_kjv.db',
+        bundledByDefault: false,
+        releaseTrack: AssetReleaseTrack.bibles,
+      );
 
-    await expectLater(
-      service.downloadAndInstall(definition),
-      throwsStateError,
-    );
+      await expectLater(
+        service.downloadAndInstall(definition),
+        throwsStateError,
+      );
 
-    // Nothing may have been installed on checksum failure.
-    expect(
-      File('${registry.bibleInstallDirectory.path}/b_kjv.db').existsSync(),
-      isFalse,
-    );
-  });
+      // Nothing may have been installed on checksum failure.
+      expect(
+        File('${registry.bibleInstallDirectory.path}/b_kjv.db').existsSync(),
+        isFalse,
+      );
+    },
+  );
 
   test('downloadAndInstall rejects a manifest without a checksum', () async {
     final store = _MemoryInstalledAssetStore();
@@ -191,8 +198,9 @@ void main() {
 
     final client = _MockAssetClient();
     // Empty checksum = manifest omits the integrity field entirely.
-    when(() => client.fetchLatestManifest(AssetReleaseTrack.bibles))
-        .thenAnswer((_) async => manifest(checksum: ''));
+    when(
+      () => client.fetchLatestManifest(AssetReleaseTrack.bibles),
+    ).thenAnswer((_) async => manifest(checksum: ''));
     when(
       () => client.downloadPackage(
         any(),
@@ -222,10 +230,7 @@ void main() {
       releaseTrack: AssetReleaseTrack.bibles,
     );
 
-    await expectLater(
-      service.downloadAndInstall(definition),
-      throwsStateError,
-    );
+    await expectLater(service.downloadAndInstall(definition), throwsStateError);
 
     expect(
       File('${registry.bibleInstallDirectory.path}/b_kjv.db').existsSync(),
@@ -233,82 +238,85 @@ void main() {
     );
   });
 
-  test('downloadAndInstall rejects a manifest with a path-traversal name',
-      () async {
-    final store = _MemoryInstalledAssetStore();
-    final registry = InstalledAssetRegistry(
-      supportDirectory: supportDir,
-      store: store,
-    );
-    final packageService = EncryptedAssetPackageService();
-    final payload = Uint8List.fromList(List.generate(32, (i) => i));
-    final packageBytes = packageService.buildPackageBytesForTesting(payload);
-
-    final client = _MockAssetClient();
-    when(() => client.fetchLatestManifest(AssetReleaseTrack.bibles))
-        .thenAnswer((_) async {
-      return RemoteAssetManifest(
-        track: AssetReleaseTrack.bibles,
-        releaseTag: 'bibles-2026.05.21',
-        publishedAt: DateTime.utc(2026, 5, 21),
-        packages: [
-          RemoteAssetPackage(
-            code: 'b_kjv',
-            version: '2026.05.21',
-            fileName: '../../escape.gyspkg',
-            downloadUrl: 'https://example.invalid/b_kjv.gyspkg',
-            installFileName: 'b_kjv.db',
-            sizeBytes: 100,
-            checksumSha256: checksumOf(packageBytes),
-          ),
-        ],
+  test(
+    'downloadAndInstall rejects a manifest with a path-traversal name',
+    () async {
+      final store = _MemoryInstalledAssetStore();
+      final registry = InstalledAssetRegistry(
+        supportDirectory: supportDir,
+        store: store,
       );
-    });
-    when(
-      () => client.downloadPackage(
-        any(),
-        any(),
-        onProgress: any(named: 'onProgress'),
-      ),
-    ).thenAnswer((invocation) async {
-      final destination = invocation.positionalArguments[1] as String;
-      await File(destination).writeAsBytes(packageBytes);
-    });
+      final packageService = EncryptedAssetPackageService();
+      final payload = Uint8List.fromList(List.generate(32, (i) => i));
+      final packageBytes = packageService.buildPackageBytesForTesting(payload);
 
-    final service = AssetDistributionService(
-      registry,
-      client,
-      packageService,
-      _MockCacheMaintenance(),
-      _MockLocalAssetService(),
-      store,
-    );
+      final client = _MockAssetClient();
+      when(
+        () => client.fetchLatestManifest(AssetReleaseTrack.bibles),
+      ).thenAnswer((_) async {
+        return RemoteAssetManifest(
+          track: AssetReleaseTrack.bibles,
+          releaseTag: 'bibles-2026.05.21',
+          publishedAt: DateTime.utc(2026, 5, 21),
+          packages: [
+            RemoteAssetPackage(
+              code: 'b_kjv',
+              version: '2026.05.21',
+              fileName: '../../escape.gyspkg',
+              downloadUrl: 'https://example.invalid/b_kjv.gyspkg',
+              installFileName: 'b_kjv.db',
+              sizeBytes: 100,
+              checksumSha256: checksumOf(packageBytes),
+            ),
+          ],
+        );
+      });
+      when(
+        () => client.downloadPackage(
+          any(),
+          any(),
+          onProgress: any(named: 'onProgress'),
+        ),
+      ).thenAnswer((invocation) async {
+        final destination = invocation.positionalArguments[1] as String;
+        await File(destination).writeAsBytes(packageBytes);
+      });
 
-    const definition = AssetDefinition(
-      kind: DistributedAssetKind.bible,
-      code: 'b_kjv',
-      title: 'KJV',
-      installFileName: 'b_kjv.db',
-      bundledByDefault: false,
-      releaseTrack: AssetReleaseTrack.bibles,
-    );
+      final service = AssetDistributionService(
+        registry,
+        client,
+        packageService,
+        _MockCacheMaintenance(),
+        _MockLocalAssetService(),
+        store,
+      );
 
-    await expectLater(
-      service.downloadAndInstall(definition),
-      throwsStateError,
-    );
+      const definition = AssetDefinition(
+        kind: DistributedAssetKind.bible,
+        code: 'b_kjv',
+        title: 'KJV',
+        installFileName: 'b_kjv.db',
+        bundledByDefault: false,
+        releaseTrack: AssetReleaseTrack.bibles,
+      );
 
-    // The raw-name check throws before any download/decrypt/install runs:
-    // the mock downloadPackage must never have been invoked, so no file can
-    // have been written anywhere (escape or otherwise).
-    verifyNever(
-      () => client.downloadPackage(
-        any(),
-        any(),
-        onProgress: any(named: 'onProgress'),
-      ),
-    );
-  });
+      await expectLater(
+        service.downloadAndInstall(definition),
+        throwsStateError,
+      );
+
+      // The raw-name check throws before any download/decrypt/install runs:
+      // the mock downloadPackage must never have been invoked, so no file can
+      // have been written anywhere (escape or otherwise).
+      verifyNever(
+        () => client.downloadPackage(
+          any(),
+          any(),
+          onProgress: any(named: 'onProgress'),
+        ),
+      );
+    },
+  );
 }
 
 /// In-memory [InstalledAssetStore] — mirrors the idb_shim web store contract
@@ -323,7 +331,8 @@ class _MemoryInstalledAssetStore implements InstalledAssetStore {
   }
 
   @override
-  Future<Uint8List?> readFile(String relativePath) async => _files[relativePath];
+  Future<Uint8List?> readFile(String relativePath) async =>
+      _files[relativePath];
 
   @override
   Future<void> writeFile(String relativePath, Uint8List bytes) async {
@@ -338,6 +347,9 @@ class _MemoryInstalledAssetStore implements InstalledAssetStore {
   @override
   Future<bool> exists(String relativePath) async =>
       _files.containsKey(relativePath);
+
+  @override
+  Future<void> clear() async => _files.clear();
 }
 
 class _MockAssetClient extends Mock implements GitHubReleaseAssetClient {}

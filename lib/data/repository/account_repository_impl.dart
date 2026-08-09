@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 
 import '../../domain/entity/account/account_entity.dart';
 import '../../domain/repository/account_repository.dart';
+import '../services/auth_session_credential.dart';
 import '../utilities/variables/failure.dart';
 
 class AccountRepositoryImpl implements AccountRepository {
@@ -44,14 +45,12 @@ class AccountRepositoryImpl implements AccountRepository {
     const authorizationHeader = 'Authorization';
     const cookieHeader = 'Cookie';
 
-    // Embedded hosted-auth debug flows can return a session cookie while the
-    // native/provider exchange returns the application bearer token. Header
-    // names stay literal so this repository remains web-compilable without
-    // importing dart:io merely for HttpHeaders constants.
-    final looksLikeCookie = token.contains('=') && token.contains(';');
-    if (looksLikeCookie) {
+    // Hosted browser auth uses an explicit encoded credential prefix. This
+    // avoids guessing whether an opaque provider token "looks like" cookies.
+    final sessionCookie = decodeHostedSessionCredential(token);
+    if (sessionCookie != null) {
       http.options.headers.remove(authorizationHeader);
-      http.options.headers[cookieHeader] = token;
+      http.options.headers[cookieHeader] = sessionCookie;
       _debug('Using hosted-session authentication');
     } else {
       http.options.headers.remove(cookieHeader);

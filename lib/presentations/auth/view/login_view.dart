@@ -13,6 +13,7 @@ import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../components/components.dart';
+import '../../../data/services/auth_session_credential.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
 import '../cubit/auth_cubit.dart';
@@ -173,7 +174,8 @@ class _LoginViewState extends State<LoginView> {
   ) async {
     if (_loginHandled) return;
 
-    final jsToken = await controller.evaluateJavascript(source: '''
+    final jsToken = await controller.evaluateJavascript(
+      source: '''
       (function() {
         try {
           const keys = ["token", "access_token", "jwt", "id_token"];
@@ -184,13 +186,15 @@ class _LoginViewState extends State<LoginView> {
           return (typeof window.__TOKEN__ !== 'undefined') ? window.__TOKEN__ : null;
         } catch (_) { return null; }
       })();
-    ''');
+    ''',
+    );
     if (jsToken is String && jsToken.trim().isNotEmpty && jsToken != 'null') {
       _completeLogin(jsToken);
       return;
     }
 
-    final isLoggedIn = await controller.evaluateJavascript(source: '''
+    final isLoggedIn = await controller.evaluateJavascript(
+      source: '''
       (function() {
         try {
           if (document.querySelector('a[href*="logout"], .user-menu, .user-info, .profile-name, [data-user]')) return true;
@@ -198,7 +202,8 @@ class _LoginViewState extends State<LoginView> {
           return body.includes('Keluar') || body.includes('Logout') || body.includes('Profil');
         } catch (_) { return false; }
       })();
-    ''');
+    ''',
+    );
     if (isLoggedIn != true) return;
 
     final cookies = await CookieManager.instance().getCookies(
@@ -227,7 +232,7 @@ class _LoginViewState extends State<LoginView> {
     } catch (_) {
       // Session fallback below keeps older backend deployments usable.
     }
-    _completeLogin(cookieHeader);
+    _completeLogin(encodeHostedSessionCredential(cookieHeader));
   }
 
   Future<void> _handleGoogleNative() async {
@@ -343,7 +348,8 @@ class _LoginViewState extends State<LoginView> {
             'identity_token': idToken,
             'code': credential.authorizationCode,
             if (credential.email != null) 'email': credential.email!,
-            if (credential.givenName != null) 'first_name': credential.givenName!,
+            if (credential.givenName != null)
+              'first_name': credential.givenName!,
             if (credential.familyName != null)
               'last_name': credential.familyName!,
           },
@@ -352,7 +358,10 @@ class _LoginViewState extends State<LoginView> {
     _completeBackendToken(response, provider: 'Apple');
   }
 
-  void _completeBackendToken(http.Response response, {required String provider}) {
+  void _completeBackendToken(
+    http.Response response, {
+    required String provider,
+  }) {
     if (response.statusCode < 200 || response.statusCode >= 300) {
       _setWebError('$provider Sign-In ditolak oleh e-GYS.');
       return;
@@ -364,7 +373,9 @@ class _LoginViewState extends State<LoginView> {
         return;
       }
     } catch (_) {}
-    _setWebError('$provider Sign-In selesai, tetapi token aplikasi tidak tersedia.');
+    _setWebError(
+      '$provider Sign-In selesai, tetapi token aplikasi tidak tersedia.',
+    );
   }
 
   void _setWebBusy(bool value) {
@@ -450,7 +461,8 @@ class _LoginViewState extends State<LoginView> {
                     height: MediaQuery.sizeOf(context).height * 0.85,
                     child: InAppWebView(
                       windowId: action.windowId,
-                      onCloseWindow: (_) => Navigator.of(sheetContext).maybePop(),
+                      onCloseWindow: (_) =>
+                          Navigator.of(sheetContext).maybePop(),
                     ),
                   ),
                 );
