@@ -4,17 +4,17 @@ on:
   push:
     branches:
       - main
-      - 'agent/**'
   pull_request:
     branches:
       - main
+  workflow_dispatch:
 
 permissions:
   contents: read
 
 concurrency:
   group: flutter-quality-${{ github.event.pull_request.head.ref || github.ref_name }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   FLUTTER_VERSION: '3.44.9'
@@ -41,7 +41,7 @@ jobs:
         run: flutter analyze --no-pub
 
       - name: Unit and widget tests
-        run: flutter test --no-pub
+        run: flutter test --no-pub --reporter compact
 
   web-release:
     runs-on: ubuntu-latest

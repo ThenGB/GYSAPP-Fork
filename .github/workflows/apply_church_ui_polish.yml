@@ -1,0 +1,45 @@
+name: Apply Church UI Polish
+
+on:
+  push:
+    branches:
+      - agent/church-design-system-release-pipeline
+    paths:
+      - '.github/workflows/apply_church_ui_polish.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: agent/church-design-system-release-pipeline
+          fetch-depth: 0
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.44.9'
+          channel: stable
+          cache: true
+
+      - name: Apply UI polish
+        run: python3 .github/scripts/apply_church_ui_polish.py
+
+      - name: Format changed Dart files
+        run: dart format lib/components lib/presentations/initial/bloc/initial_cubit.dart lib/presentations/settings/view/settings_view.dart lib/presentations/home/view/home_view.dart lib/presentations/dashboard/view/dashboard_view.dart
+
+      - name: Commit polished UI
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git rm .github/workflows/apply_church_ui_polish.yml
+          git rm .github/scripts/apply_church_ui_polish.py
+          git add lib assets/translations
+          git commit -m "Polish church UI surfaces and customization"
+          git push origin HEAD:agent/church-design-system-release-pipeline
