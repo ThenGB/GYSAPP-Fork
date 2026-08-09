@@ -18,6 +18,25 @@ import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
 import '../cubit/auth_cubit.dart';
 
+void _authDebug(String message) {
+  if (!kDebugMode) return;
+  final normalized = message.toLowerCase();
+  const sensitiveTerms = <String>[
+    'token',
+    'cookie',
+    'credential',
+    'response',
+    'account',
+    'email',
+    'profile',
+  ];
+  if (sensitiveTerms.any(normalized.contains)) {
+    debugPrint('[LoginView] Sensitive authentication diagnostic redacted');
+    return;
+  }
+  debugPrint(message);
+}
+
 @RoutePage()
 class LoginView extends StatefulWidget implements AutoRouteWrapper {
   final Function(String token) onLoggedIn;
@@ -41,8 +60,8 @@ class _LoginViewState extends State<LoginView> {
       '705603488262-70g3bcfan59307rrk610m32n4uhf2tge.apps.googleusercontent.com';
 
   void _handleToken(Map<String, dynamic> msg) {
-    debugPrint('[LoginView] _handleToken msg=$msg, _loginHandled=$_loginHandled');
-    debugPrint('[LoginView] CMD: ${msg['cmd']}');
+    _authDebug('[LoginView] _handleToken msg=$msg, _loginHandled=$_loginHandled');
+    _authDebug('[LoginView] CMD: ${msg['cmd']}');
     final cmd = msg['cmd'];
     if (cmd == 'googlelogin' && !_loginHandled) {
       _dispatchLogin();
@@ -51,7 +70,7 @@ class _LoginViewState extends State<LoginView> {
     if ((cmd == 'googlelogged' || cmd == 'applelogged') && !_loginHandled) {
       _loginHandled = true;
       final t = msg['token'] ?? '';
-      debugPrint('[LoginView] Calling onLoggedIn with token=${t.length > 40 ? t.substring(0, 40) : t}...');
+      _authDebug('[LoginView] Calling onLoggedIn with token=${t.length > 40 ? t.substring(0, 40) : t}...');
       widget.onLoggedIn(t);
     }
   }
@@ -79,7 +98,7 @@ class _LoginViewState extends State<LoginView> {
   void _handleGoogleViaWebView() {
     if (_doingOAuth) return;
     _doingOAuth = true;
-    debugPrint('[LoginView] Navigating to /auth/google');
+    _authDebug('[LoginView] Navigating to /auth/google');
     _webViewController?.loadUrl(
       urlRequest: URLRequest(
         url: WebUri('https://e.gys.or.id/auth/google'),
@@ -89,7 +108,7 @@ class _LoginViewState extends State<LoginView> {
 
   Future<void> _tryExtractToken(InAppWebViewController controller) async {
     if (_loginHandled) return;
-    debugPrint('[LoginView] _tryExtractToken called, _loginHandled=$_loginHandled');
+    _authDebug('[LoginView] _tryExtractToken called, _loginHandled=$_loginHandled');
 
     // 1. Try localStorage/sessionStorage for a real token
     final jsToken = await controller.evaluateJavascript(source: '''
@@ -110,8 +129,8 @@ class _LoginViewState extends State<LoginView> {
         jsToken is String &&
         jsToken.isNotEmpty &&
         jsToken != 'null') {
-      debugPrint('[LoginView] jsToken from localStorage: ${jsToken.substring(0, jsToken.length.clamp(0, 40))}...');
-      debugPrint('[LoginView] Token from localStorage');
+      _authDebug('[LoginView] jsToken from localStorage: ${jsToken.substring(0, jsToken.length.clamp(0, 40))}...');
+      _authDebug('[LoginView] Token from localStorage');
       _handleToken({'cmd': 'googlelogged', 'token': jsToken});
       return;
     }
@@ -133,14 +152,14 @@ class _LoginViewState extends State<LoginView> {
         } catch(e) { return false; }
       })();
     ''');
-    debugPrint('[LoginView] Page login check: isLoggedIn=$isLoggedIn');
+    _authDebug('[LoginView] Page login check: isLoggedIn=$isLoggedIn');
 
     // 3. Get session cookies as credential
     final cookies = await CookieManager.instance().getCookies(
       url: WebUri('https://e.gys.or.id'),
     );
     final cookieHeader = cookies.map((c) => '${c.name}=${c.value}').join('; ');
-    debugPrint('[LoginView] Session cookies: ${cookies.length} cookies');
+    _authDebug('[LoginView] Session cookies: ${cookies.length} cookies');
 
     if (isLoggedIn == true && cookieHeader.isNotEmpty) {
       // Try to get a real JWT token from /users/profile using cookies
@@ -149,13 +168,13 @@ class _LoginViewState extends State<LoginView> {
           Uri.parse('https://e.gys.or.id/users/profile'),
           headers: {'Cookie': cookieHeader},
         );
-        debugPrint('[LoginView] Profile API: ${resp.statusCode}');
+        _authDebug('[LoginView] Profile API: ${resp.statusCode}');
         if (resp.statusCode == 200) {
-          debugPrint('[LoginView] Profile API body preview: ${resp.body.substring(0, resp.body.length.clamp(0, 200))}');
+          _authDebug('[LoginView] Profile API body preview: ${resp.body.substring(0, resp.body.length.clamp(0, 200))}');
           try {
             final data = json.decode(resp.body);
             if (data is Map && data['token'] != null && !_loginHandled) {
-              debugPrint('[LoginView] Got JWT from /users/profile');
+              _authDebug('[LoginView] Got JWT from /users/profile');
               _loginHandled = true;
               widget.onLoggedIn(data['token']);
               return;
@@ -164,7 +183,7 @@ class _LoginViewState extends State<LoginView> {
             final tokenMatch = RegExp(r'(?:token|jwt|access_token)["\s:=]+([A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+\.[A-Za-z0-9\-_]+)').firstMatch(resp.body);
             if (tokenMatch != null) {
               final token = tokenMatch.group(1)!;
-              debugPrint('[LoginView] Extracted JWT from HTML response');
+              _authDebug('[LoginView] Extracted JWT from HTML response');
               _loginHandled = true;
               widget.onLoggedIn(token);
               return;
@@ -172,39 +191,39 @@ class _LoginViewState extends State<LoginView> {
           }
         }
       } catch (e) {
-        debugPrint('[LoginView] Profile API error: $e');
+        _authDebug('[LoginView] Profile API error: $e');
       }
 
       // Fallback: pass session cookies as token (limited functionality)
-      debugPrint('[LoginView] No JWT from API, passing session cookies as token');
+      _authDebug('[LoginView] No JWT from API, passing session cookies as token');
       _loginHandled = true;
       widget.onLoggedIn(cookieHeader);
       return;
     }
 
-    debugPrint('[LoginView] No login detected after OAuth redirect');
+    _authDebug('[LoginView] No login detected after OAuth redirect');
   }
 
   // ── Native Google Sign-In ────────────────────────────────────────────
   Future<void> _handleGoogleNative() async {
-    debugPrint('[LoginView] Starting native GIS...');
+    _authDebug('[LoginView] Starting native GIS...');
     try {
       final googleSignIn = GoogleSignIn.instance;
       await googleSignIn.initialize(
         serverClientId: _serverClientId,
       );
-      debugPrint('[LoginView] GIS instance initialized, authenticating...');
+      _authDebug('[LoginView] GIS instance initialized, authenticating...');
       final account = await googleSignIn.authenticate();
-      debugPrint('[LoginView] GIS account: ${account.email}');
+      _authDebug('[LoginView] GIS account: ${account.email}');
       final auth = account.authentication;
       final idToken = auth.idToken;
-      debugPrint('[LoginView] GIS idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
+      _authDebug('[LoginView] GIS idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
       if (idToken == null || idToken.isEmpty) {
-        debugPrint('[LoginView] ERROR: idToken is null/empty, falling back to WebView');
+        _authDebug('[LoginView] ERROR: idToken is null/empty, falling back to WebView');
         _handleGoogleViaWebView();
         return;
       }
-      debugPrint('[LoginView] Posting to /auth/google/callbackgis...');
+      _authDebug('[LoginView] Posting to /auth/google/callbackgis...');
       final response = await http.post(
         Uri.parse('https://e.gys.or.id/auth/google/callbackgis'),
         body: {
@@ -213,39 +232,39 @@ class _LoginViewState extends State<LoginView> {
           'client_id': _serverClientId,
         },
       );
-      debugPrint('[LoginView] callbackgis response: ${response.statusCode} ${response.body}');
+      _authDebug('[LoginView] callbackgis response: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final res = json.decode(response.body);
         final hasToken = res['token'] != null;
-        debugPrint('[LoginView] callbackgis status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
+        _authDebug('[LoginView] callbackgis status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
         if (hasToken && !_loginHandled) {
-          debugPrint('[LoginView] Got app token! Calling onLoggedIn with token=${res['token'].toString().substring(0, res['token'].toString().length.clamp(0, 40))}...');
+          _authDebug('[LoginView] Got app token! Calling onLoggedIn with token=${res['token'].toString().substring(0, res['token'].toString().length.clamp(0, 40))}...');
           _loginHandled = true;
           widget.onLoggedIn(res['token']);
         } else {
-          debugPrint('[LoginView] No token in response: $res');
+          _authDebug('[LoginView] No token in response: $res');
         }
       } else {
-        debugPrint('[LoginView] callbackgis failed: ${response.statusCode}');
+        _authDebug('[LoginView] callbackgis failed: ${response.statusCode}');
       }
     } catch (e, st) {
-      debugPrint('[LoginView] Google sign-in error: $e\n$st');
-      debugPrint('[LoginView] Falling back to WebView');
+      _authDebug('[LoginView] Google sign-in error: $e\n$st');
+      _authDebug('[LoginView] Falling back to WebView');
       _handleGoogleViaWebView();
     }
   }
 
   // ── Native Apple Sign-In ────────────────────────────────────────────
   Future<void> _handleAppleNative() async {
-    debugPrint('[LoginView] Starting native Apple Sign-In...');
+    _authDebug('[LoginView] Starting native Apple Sign-In...');
     try {
       final available = await SignInWithApple.isAvailable();
       if (!available) {
-        debugPrint('[LoginView] Apple Sign-In not available, falling back to WebView');
+        _authDebug('[LoginView] Apple Sign-In not available, falling back to WebView');
         _handleGoogleViaWebView();
         return;
       }
-      debugPrint('[LoginView] Apple Sign-In available, requesting credentials...');
+      _authDebug('[LoginView] Apple Sign-In available, requesting credentials...');
       final appleCredential = await SignInWithApple.getAppleIDCredential(
         scopes: [
           AppleIDAuthorizationScopes.email,
@@ -253,13 +272,13 @@ class _LoginViewState extends State<LoginView> {
         ],
       );
       final idToken = appleCredential.identityToken;
-      debugPrint('[LoginView] Apple idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
+      _authDebug('[LoginView] Apple idToken: ${idToken != null ? "${idToken.substring(0, 20)}..." : "null"}');
       if (idToken == null || idToken.isEmpty) {
-        debugPrint('[LoginView] ERROR: Apple idToken is null/empty, falling back to WebView');
+        _authDebug('[LoginView] ERROR: Apple idToken is null/empty, falling back to WebView');
         _handleGoogleViaWebView();
         return;
       }
-      debugPrint('[LoginView] Posting to /auth/apple/callback...');
+      _authDebug('[LoginView] Posting to /auth/apple/callback...');
       final response = await http.post(
         Uri.parse('https://e.gys.or.id/auth/apple/callback'),
         body: {
@@ -270,24 +289,24 @@ class _LoginViewState extends State<LoginView> {
           if (appleCredential.familyName != null) 'last_name': appleCredential.familyName,
         },
       );
-      debugPrint('[LoginView] Apple callback response: ${response.statusCode} ${response.body}');
+      _authDebug('[LoginView] Apple callback response: ${response.statusCode} ${response.body}');
       if (response.statusCode == 200) {
         final res = json.decode(response.body);
         final hasToken = res['token'] != null;
-        debugPrint('[LoginView] Apple callback status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
+        _authDebug('[LoginView] Apple callback status=200, hasToken=$hasToken, _loginHandled=$_loginHandled');
         if (hasToken && !_loginHandled) {
-          debugPrint('[LoginView] Got app token from Apple! Calling onLoggedIn');
+          _authDebug('[LoginView] Got app token from Apple! Calling onLoggedIn');
           _loginHandled = true;
           widget.onLoggedIn(res['token']);
         } else {
-          debugPrint('[LoginView] No token in Apple response: $res');
+          _authDebug('[LoginView] No token in Apple response: $res');
         }
       } else {
-        debugPrint('[LoginView] Apple callback failed: ${response.statusCode}');
+        _authDebug('[LoginView] Apple callback failed: ${response.statusCode}');
       }
     } catch (e, st) {
-      debugPrint('[LoginView] Apple sign-in error: $e\n$st');
-      debugPrint('[LoginView] Falling back to WebView');
+      _authDebug('[LoginView] Apple sign-in error: $e\n$st');
+      _authDebug('[LoginView] Falling back to WebView');
       _handleGoogleViaWebView();
     }
   }
@@ -312,7 +331,7 @@ class _LoginViewState extends State<LoginView> {
                 onLoadStop: (controller, url) async {
                   context.read<AuthCubit>().toggleLoading(false);
                   final urlStr = url?.toString() ?? '';
-                  debugPrint('[LoginView] onLoadStop: $urlStr');
+                  _authDebug('[LoginView] onLoadStop: $urlStr');
                   if (_doingOAuth &&
                       urlStr.contains('e.gys.or.id') &&
                       !urlStr.contains('/auth/google') &&
@@ -324,7 +343,7 @@ class _LoginViewState extends State<LoginView> {
                 },
                 onLoadStart: (controller, url) {
                   context.read<AuthCubit>().toggleLoading(true);
-                  debugPrint('[LoginView] onLoadStart: $url');
+                  _authDebug('[LoginView] onLoadStart: $url');
                 },
                 onProgressChanged: (controller, progress) {
                   context.read<AuthCubit>().onProgress(progress);
@@ -342,10 +361,10 @@ class _LoginViewState extends State<LoginView> {
                       '(KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36',
                 ),
                 onConsoleMessage: (controller, consoleMessage) {
-                  debugPrint('[WebViewConsole] ${consoleMessage.message}');
+                  _authDebug('[WebViewConsole] ${consoleMessage.message}');
                 },
                 onCreateWindow: (controller, createWindowAction) async {
-                  debugPrint('[LoginView] onCreateWindow: ${createWindowAction.request.url}');
+                  _authDebug('[LoginView] onCreateWindow: ${createWindowAction.request.url}');
                   if (mounted) {
                     showModalBottomSheet(
                       context: context,
@@ -380,7 +399,7 @@ class _LoginViewState extends State<LoginView> {
                   _webViewController?.addJavaScriptHandler(
                     handlerName: 'mobile',
                     callback: (arguments) {
-                      debugPrint('[LoginView] mobile: $arguments');
+                      _authDebug('[LoginView] mobile: $arguments');
                       final json = (arguments as List).firstOrNull as Map<String, dynamic>;
                       _handleToken(json);
                     },

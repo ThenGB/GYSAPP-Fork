@@ -8,19 +8,17 @@ import 'package:church/data/services/installed_bible_db.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
-/// Regression test for "downloaded (non-TB) bible versions load empty".
+import '../../../helpers/bible_db_fixture.dart';
+
+/// Regression tests for downloaded (non-bundled) Bible versions.
 ///
-/// Desktop sqflite has no method channel, so opening a downloaded .db used to
-/// throw MissingPluginException and the pane rendered empty. This test
-/// exercises the full desktop path with the real KJV database: install bytes
-/// into the registry store, resolve the file, open with the FFI factory and
-/// read Genesis 1:1 through the repository.
+/// The SQLite fixture is created during the test so desktop FFI and repository
+/// loading are validated without relying on developer-only files outside Git.
 void main() {
   late Directory supportDir;
   late Directory bibleFolder;
 
   setUpAll(() {
-    // Same initialisation app.dart performs on desktop.
     sqfliteFfiInit();
     databaseFactory = databaseFactoryFfi;
   });
@@ -40,15 +38,10 @@ void main() {
   });
 
   test('installed b_kjv.db opens and returns Genesis 1:1', () async {
-    // Locate the real bundled sample DB shipped in the repo.
-    final sourceDb = File('Original Alkitab DB/b_kjv.db');
-    expect(sourceDb.existsSync(), isTrue,
-        reason: 'b_kjv.db sample must exist for this regression test');
-
     final registry = InstalledAssetRegistry(supportDirectory: supportDir);
     InstalledBibleDb.debugUseRegistry(registry);
     final installedPath = '${bibleFolder.path}/b_kjv.db';
-    await File(installedPath).writeAsBytes(await sourceDb.readAsBytes());
+    await createBibleDbFixture(installedPath);
 
     await registry.saveInstalled(
       const InstalledAssetRecord(
@@ -60,9 +53,8 @@ void main() {
       ),
     );
 
-    // The cubit's selectBibleCodeByName path (non-bundled branch).
     final db = await InstalledBibleDb.open('b_kjv', readOnly: true);
-    expect(db, isNotNull, reason: 'sqlite must open the downloaded bible');
+    expect(db, isNotNull, reason: 'sqlite must open the installed Bible');
     final openedDb = db as Database;
 
     final repository = BibleRepositoryImpl();
@@ -94,8 +86,6 @@ void main() {
   });
 
   test('open returns null for a code that is not installed', () async {
-    // The cubit's split/main switch treats a null open as failure and keeps
-    // the previous handle — verify the null trigger works on desktop.
     final registry = InstalledAssetRegistry(supportDirectory: supportDir);
     InstalledBibleDb.debugUseRegistry(registry);
 
@@ -109,8 +99,6 @@ void main() {
     final registry = InstalledAssetRegistry(supportDirectory: supportDir);
     InstalledBibleDb.debugUseRegistry(registry);
 
-    // Tampered registry/caller codes must not resolve outside the install
-    // dir (defense-in-depth, mirroring the store/registry isWithin guards).
     expect(
       () => InstalledBibleDb.open('../escape', readOnly: true),
       throwsArgumentError,

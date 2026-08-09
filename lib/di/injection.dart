@@ -7,15 +7,17 @@ import 'package:flutter/foundation.dart' show kDebugMode, kIsWeb;
 import 'package:get_it/get_it.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart'
-    show getApplicationDocumentsDirectory, getApplicationSupportDirectory, getTemporaryDirectory;
+    show
+        getApplicationDocumentsDirectory,
+        getApplicationSupportDirectory,
+        getTemporaryDirectory;
 
 import '../data/data.dart';
-
 import '../data/utilities/encrypt.dart';
 import '../domain/domain.dart';
 import '../presentations/presentations.dart';
 
-var di = GetIt.I;
+final di = GetIt.I;
 AppConfig get config => di<AppConfig>();
 
 Future<void> setupInjection(AppConfig config) async {
@@ -29,20 +31,18 @@ void _blocs() {
   di.registerFactory(() => HomeCubit(di(), di()));
   di.registerFactory(() => InitialCubit());
   di.registerFactory(() => DashboardCubit(di()));
-  // Lazy singleton: the Bible tab (BlocProvider(create: di())) and the
-  // version management page (di<BibleCubit>()) must share ONE instance —
-  // a factory here silently created two, so downloading/selecting a version
-  // in Settings never reached the open Bible pane.  It must be LAZY: the
-  // constructor opens the sqlite FFI database, and doing that during
-  // setupInjection (before the engine is running) deadlocks on the isolate
-  // spawn.  First access happens from the dashboard at first frame, when
-  // the FFI isolate can start.
+
+  // Bible and Song are expensive, long-lived feature controllers. Register
+  // them lazily so app bootstrap only builds their engines when a widget first
+  // requests the feature rather than while setupInjection is still blocking
+  // runApp().
   di.registerLazySingleton<BibleCubit>(() => BibleCubit());
+  di.registerLazySingleton<SongCubit>(() => SongCubit(di(), di(), di()));
+
   di.registerFactory(() => LiteratureKesaksianCubit(di()));
   di.registerFactory(() => LiteratureWartaCubit(di()));
   di.registerFactory(() => LiteratureRenunganCubit(di()));
   di.registerFactory(() => LiteraturePanduanCubit(di()));
-  di.registerSingleton(SongCubit(di(), di(), di()));
   di.registerFactory(() => FaithCubit());
   di.registerFactory(() => SettingsCubit());
   di.registerFactory(() => AssetManagementCubit(di(), di()));
@@ -51,15 +51,11 @@ void _blocs() {
 }
 
 Future<void> _utils(AppConfig appConfig) async {
-  // Native Android keeps its known app-data layout.  Other platforms get
-  // real, platform-correct directories from path_provider — the previous
-  // hardcoded '/data/data/id.sch.kanaan.egys' made every download (and
-  // HydratedBloc state) land in a nonexistent directory on desktop/iOS.
   late final String document;
   late final String cache;
   late final String support;
+
   if (kIsWeb) {
-    // Web has no file system; AppDirectory is only used by native paths.
     document = 'web/files';
     cache = 'web/cache';
     support = 'web/files';
@@ -69,13 +65,18 @@ Future<void> _utils(AppConfig appConfig) async {
     cache = '$base/cache';
     support = '$base/files';
   } else {
-    final documents = await getApplicationDocumentsDirectory();
-    final temp = await getTemporaryDirectory();
-    final appSupport = await getApplicationSupportDirectory();
-    document = documents.path;
-    cache = temp.path;
-    support = appSupport.path;
+    // These platform-channel calls are independent. Resolve them concurrently
+    // instead of adding their latency serially to cold start.
+    final directories = await Future.wait([
+      getApplicationDocumentsDirectory(),
+      getTemporaryDirectory(),
+      getApplicationSupportDirectory(),
+    ]);
+    document = directories[0].path;
+    cache = directories[1].path;
+    support = directories[2].path;
   }
+
   di.registerSingleton(AppDirectory(document, cache, support));
   di.registerSingleton(EncryptData(di()));
   di.registerFactory(() => Chaleno());
@@ -83,11 +84,11 @@ Future<void> _utils(AppConfig appConfig) async {
   di.registerFactory(() => Dio()..interceptors.add(loggingInterceptor));
   di.registerLazySingletonAsync(() async {
     try {
-      var credentials = await AppConfigStore.jsonConfig('mailer_credentials');
-      String username = credentials['username'];
-      String password = credentials['password'];
+      final credentials = await AppConfigStore.jsonConfig('mailer_credentials');
+      final username = credentials['username'] as String? ?? '';
+      final password = credentials['password'] as String? ?? '';
       return Mailer(username, password);
-    } catch (e) {
+    } catch (_) {
       return Mailer('', '');
     }
   });
@@ -101,9 +102,10 @@ void _services() {
     () => ChordSyncService(di<AppDirectory>(), http.Client()),
   );
   di.registerLazySingleton(
-    () => InstalledAssetStoreHolder.store ?? createInstalledAssetStore(
-      '${di<AppDirectory>().support}/installed_assets',
-    ),
+    () => InstalledAssetStoreHolder.store ??
+        createInstalledAssetStore(
+          '${di<AppDirectory>().support}/installed_assets',
+        ),
   );
   di.registerLazySingleton(
     () => InstalledAssetRegistry(
@@ -129,16 +131,13 @@ void _services() {
       di<InstalledAssetStore>(),
     ),
   );
-
   di.registerLazySingleton(
     () => MidiEngineService(
       di(),
       cacheDir: '${di<AppDirectory>().songMusicFolder}/render_cache',
     ),
   );
-  di.registerLazySingleton(
-    () => OurMannnaService(di<Dio>(), di(), di()),
-  );
+  di.registerLazySingleton(() => OurMannnaService(di<Dio>(), di(), di()));
 }
 
 void _repositories() {
@@ -149,7 +148,9 @@ void _repositories() {
   di.registerFactory<AccountRepository>(
     () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi),
   );
-  di.registerFactory<ThemePreferencesRepository>(() => ThemePreferencesRepository());
+  di.registerFactory<ThemePreferencesRepository>(
+    () => ThemePreferencesRepository(),
+  );
 }
 
 class AppDirectory {
@@ -172,17 +173,16 @@ class AppDirectory {
   String get backupFolder => '$cache/backup';
   String get encryptFolder => '$cache/encrypted';
   String get decryptFolder => '$cache/encrypted';
-  // Synced chord JSON files (from gyschordweb), not bundled anymore.
   String get chordFolder => '$support/chords';
 }
 
-InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
-  onError: (e, handler) {
+final InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
+  onError: (error, handler) {
     if (kDebugMode) {
-      log(e.message ?? '', name: 'HTTP ERROR ');
-      log(e.response?.data.toString() ?? '', name: 'HTTP ERROR ');
+      log(error.message ?? '', name: 'HTTP ERROR');
+      log(error.response?.data.toString() ?? '', name: 'HTTP ERROR');
     }
-    return handler.reject(e);
+    return handler.reject(error);
   },
   onRequest: (options, handler) {
     if (kDebugMode) {
@@ -190,11 +190,11 @@ InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
     }
     return handler.next(options);
   },
-  onResponse: (e, handler) {
+  onResponse: (response, handler) {
     if (kDebugMode) {
-      log(e.data.toString(), name: 'HTTP RESPONSE');
+      log(response.data.toString(), name: 'HTTP RESPONSE');
     }
-    return handler.next(e);
+    return handler.next(response);
   },
 );
 
