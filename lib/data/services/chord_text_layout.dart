@@ -7,53 +7,27 @@ import 'pdf_note_extractor.dart';
 
 /// Text-mode chord placement helpers.
 ///
-/// Two strategies are available:
-///
-/// 1. **Note-aligned (preferred)** — mirrors gyschordweb's lyrics-viewer.js.
-///    The chord data is note-aligned to the PDF page (each [ChordData] carries
-///    a `noteIdx`).  The PDF page's own layout is used to find, for every
-///    note row, the lyric text line directly below it; a chord's horizontal
-///    position is then `(note.xPct - line.startPct) / line.widthPct`, i.e. the
-///    chord lands exactly above the note (which sits on the matching syllable)
-///    in the text view too.
-/// 2. **Proportional fallback** — distributes a song's chords across its
-///    lyric lines in noteIdx order using proportional slices.  Used only when
-///    the PDF layout cannot be extracted (missing PDF, extraction failure).
-///
-/// The matching of JSON verse lines to PDF lyric lines follows gyschordweb:
-/// normalized text comparison (verse labels like "1." / "Reff." stripped),
-/// then a per-line-index fallback (hymns repeat the same melody for every
-/// verse, so line *i* of any verse uses the chords of line *i* of the verse
-/// whose text matched the PDF).
-
-/// One chord placed at a horizontal fraction (0.0–1.0) of its lyric line.
+/// The primary path mirrors gyschordweb: PDF note positions are projected onto
+/// the lyric line underneath them, then converted into a 0..1 horizontal
+/// anchor. When PDF layout cannot be extracted, the fallback still preserves
+/// the relative noteIdx spacing instead of simply distributing chord labels at
+/// equal distances.
 class TextChordPlacement {
+  const TextChordPlacement({required this.chord, required this.position});
+
   final String chord;
   final double position;
 
-  const TextChordPlacement({required this.chord, required this.position});
-
-  /// Position is expected in 0.0–1.0; clamp defensively.
   double get safePosition => position.clamp(0.0, 1.0);
 }
 
-/// A PDF lyric line with the chords that belong above it.
 class ChordedTextLine {
+  const ChordedTextLine({required this.text, required this.chords});
+
   final String text;
   final List<TextChordPlacement> chords;
-
-  const ChordedTextLine({required this.text, required this.chords});
 }
 
-/// Builds chorded lines for one PDF page: for each note row, finds the
-/// closest lyric line below it (within [maxRowGapPct]) and places the page's
-/// chords that fall in that row's note range at their x-position relative to
-/// the lyric line's text extent.
-///
-/// Mirrors gyschordweb's `buildChordedLines`:
-/// ```
-/// pos = clamp((note.xPct - lyr.startPct) / lyr.widthPct, 0, 1)
-/// ```
 List<ChordedTextLine> buildChordedLines({
   required List<NoteInfo> noteInfos,
   required List<PdfLyricLine> lyricLines,
@@ -64,11 +38,10 @@ List<ChordedTextLine> buildChordedLines({
     return const [];
   }
 
-  // Group notes into rows by rowY (the extractor already assigns one rowY per
-  // visual music row; sort by rowY descending = top to bottom).
+  final sortedNotes = List<NoteInfo>.from(noteInfos)
+    ..sort((a, b) => b.rowY.compareTo(a.rowY));
   final rows = <({double rowY, int firstIdx, int lastIdx})>[];
-  noteInfos.sort((a, b) => b.rowY.compareTo(a.rowY));
-  for (final info in noteInfos) {
+  for (final info in sortedNotes) {
     final last = rows.isEmpty ? null : rows.last;
     if (last != null && (last.rowY - info.rowY).abs() < 2.0) {
       rows[rows.length - 1] = (
@@ -81,46 +54,53 @@ List<ChordedTextLine> buildChordedLines({
     }
   }
 
-  // Find, for each note row, the closest lyric line strictly below it.
   final out = <ChordedTextLine>[];
   for (final row in rows) {
     PdfLyricLine? lyric;
-    double bestDist = double.infinity;
+    var bestDist = double.infinity;
     for (final line in lyricLines) {
       if (line.y < row.rowY && row.rowY - line.y <= maxRowGapPct) {
-        final d = row.rowY - line.y;
-        if (d < bestDist) {
-          bestDist = d;
+        final distance = row.rowY - line.y;
+        if (distance < bestDist) {
+          bestDist = distance;
           lyric = line;
         }
       }
     }
-    if (lyric == null) continue;
+    if (lyric == null || lyric.widthPct.abs() < 0.001) continue;
 
     final placements = <TextChordPlacement>[];
     for (final entry in entries) {
       if (entry.noteIdx < row.firstIdx || entry.noteIdx > row.lastIdx) continue;
-      final note = noteInfos
-          .where((n) => n.idx == entry.noteIdx)
-          .firstOrNull;
+      final note = sortedNotes.firstWhereOrNull((note) => note.idx == entry.noteIdx);
       if (note == null) continue;
-      final pos = ((note.xPct - lyric.startPct) / lyric.widthPct).clamp(0.0, 1.0);
-      placements.add(TextChordPlacement(chord: entry.chord, position: pos));
+      final position =
+          ((note.xPct - lyric.startPct) / lyric.widthPct).clamp(0.0, 1.0);
+      placements.add(
+        TextChordPlacement(chord: entry.chord, position: position),
+      );
     }
     if (placements.isEmpty) continue;
+    placements.sort((a, b) => a.position.compareTo(b.position));
     out.add(ChordedTextLine(text: lyric.text, chords: placements));
   }
   return out;
 }
 
-String _normalizeLine(String s) {
-  return s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+/// Keep every Unicode letter/number intact and only remove separators and
+/// punctuation that are irrelevant for line matching. The previous
+/// `[^a-z0-9]` normalizer silently erased non-ASCII text and accented letters.
+String _normalizeLine(String value) {
+  return value
+      .toLowerCase()
+      .replaceAll(
+        RegExp(r'''[\s\.,;:!?"'`~@#\$%\^&*+=_|/\\<>\-–—…，。！？；：、（）()\[\]{}]+'''),
+        '',
+      );
 }
 
-/// Strips verse labels ("1.", "Reff.", "(2)", "Ulangan", …) at the start of a
-/// line.  Mirrors gyschordweb's `stripVerseLabel`.
-String stripVerseLabel(String s) {
-  return s.replaceFirst(
+String stripVerseLabel(String value) {
+  return value.replaceFirst(
     RegExp(
       r'^\s*(?:reff?|refrain|chorus|ulangan|[(（]?[0-9]+[)）]?[.\s]*)+',
       caseSensitive: false,
@@ -129,30 +109,33 @@ String stripVerseLabel(String s) {
   );
 }
 
-/// Finds the chorded PDF line that best matches [jsonLine], mirroring
-/// gyschordweb's `findChordedLine`: exact match first, then containment and
-/// common-prefix scoring; only matches with a score >= 0.6 are accepted.
-ChordedTextLine? findChordedLine(String jsonLine, List<ChordedTextLine> lines) {
+ChordedTextLine? findChordedLine(
+  String jsonLine,
+  List<ChordedTextLine> lines,
+) {
   final target = _normalizeLine(stripVerseLabel(jsonLine));
   if (target.isEmpty || lines.isEmpty) return null;
 
   ChordedTextLine? best;
   var bestScore = 0.0;
   for (final line in lines) {
-    final cand = _normalizeLine(stripVerseLabel(line.text));
-    if (cand.isEmpty) continue;
-    if (cand == target) return line;
+    final candidate = _normalizeLine(stripVerseLabel(line.text));
+    if (candidate.isEmpty) continue;
+    if (candidate == target) return line;
+
     double score;
-    if (cand.contains(target) || target.contains(cand)) {
-      final lenRatio =
-          math.min(cand.length, target.length) / math.max(cand.length, target.length);
-      score = 0.85 * lenRatio;
+    if (candidate.contains(target) || target.contains(candidate)) {
+      final ratio = math.min(candidate.length, target.length) /
+          math.max(candidate.length, target.length);
+      score = 0.85 * ratio;
     } else {
-      var j = 0;
-      while (j < cand.length && j < target.length && cand[j] == target[j]) {
-        j++;
+      var commonPrefix = 0;
+      while (commonPrefix < candidate.length &&
+          commonPrefix < target.length &&
+          candidate[commonPrefix] == target[commonPrefix]) {
+        commonPrefix++;
       }
-      score = j / math.max(cand.length, target.length);
+      score = commonPrefix / math.max(candidate.length, target.length);
     }
     if (score > bestScore) {
       bestScore = score;
@@ -162,10 +145,6 @@ ChordedTextLine? findChordedLine(String jsonLine, List<ChordedTextLine> lines) {
   return bestScore >= 0.6 ? best : null;
 }
 
-/// Per-line-index fallback map, mirroring gyschordweb's
-/// `buildVerseChordFallback`: hymn melodies repeat across verses, so line *i*
-/// of any verse should use the chords of line *i* of the verse whose text
-/// matched the PDF.  `byIndex[i]` holds the chorded line for line index *i*.
 List<ChordedTextLine?> buildVerseChordFallback(
   List<String> verses,
   List<ChordedTextLine> allLines,
@@ -176,25 +155,22 @@ List<ChordedTextLine?> buildVerseChordFallback(
   for (final verse in verses) {
     final lines = verse
         .split('\n')
-        .map((l) => l.trim())
-        .where((l) => l.isNotEmpty)
+        .map((line) => line.trim())
+        .where((line) => line.isNotEmpty)
         .toList();
-    for (var i = 0; i < lines.length; i++) {
-      if (byIndex.length > i && byIndex[i] != null) continue;
-      final match = findChordedLine(lines[i], allLines);
-      if (match != null) {
-        while (byIndex.length <= i) {
-          byIndex.add(null);
-        }
-        byIndex[i] = match;
+    for (var index = 0; index < lines.length; index++) {
+      if (byIndex.length > index && byIndex[index] != null) continue;
+      final match = findChordedLine(lines[index], allLines);
+      if (match == null) continue;
+      while (byIndex.length <= index) {
+        byIndex.add(null);
       }
+      byIndex[index] = match;
     }
   }
   return byIndex;
 }
 
-/// Resolves the chorded line for [jsonLine] at line index [lineIndex],
-/// preferring a direct text match and falling back to the by-index map.
 ChordedTextLine? resolveChordedLineForVerseLine(
   String jsonLine,
   int lineIndex,
@@ -209,12 +185,6 @@ ChordedTextLine? resolveChordedLineForVerseLine(
   return null;
 }
 
-// ---------------------------------------------------------------------------
-// Proportional fallback (kept for songs without extractable PDF layout)
-// ---------------------------------------------------------------------------
-
-/// Returns the slice of [allChords] that belongs to verse [verseIndex] of
-/// [totalVerses], distributing the song's total chords proportionally.
 List<ChordData> chordsForVerse(
   List<ChordData> allChords,
   int verseIndex,
@@ -229,8 +199,6 @@ List<ChordData> chordsForVerse(
   return allChords.sublist(from, to);
 }
 
-/// Distributes [chords] (already sliced for the current verse) across
-/// [lineCount] lyric lines in noteIdx order, returning one list per line.
 List<List<ChordData>> distributeChordsToLines(
   List<ChordData> chords,
   int lineCount,
@@ -240,16 +208,55 @@ List<List<ChordData>> distributeChordsToLines(
     (_) => <ChordData>[],
   );
   if (chords.isEmpty || lineCount <= 0) return result;
-  for (var i = 0; i < chords.length; i++) {
-    final line = (i * lineCount ~/ chords.length).clamp(0, lineCount - 1);
-    result[line].add(chords[i]);
+
+  final sorted = List<ChordData>.from(chords)
+    ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
+  for (var index = 0; index < sorted.length; index++) {
+    final line = (index * lineCount ~/ sorted.length).clamp(0, lineCount - 1);
+    result[line].add(sorted[index]);
   }
   return result;
 }
 
-/// Horizontal position (0.0–1.0) of the chord at [indexInLine] among
-/// [lineCount] chords in the same lyric line (centered per slot).
+/// Create fallback anchors for a single lyric line using noteIdx distance.
+/// This is closer to the web renderer than equal-width chord slots: a cluster
+/// of chords attached to nearby notes remains clustered in text mode.
+List<TextChordPlacement> fallbackPlacementsForLine(List<ChordData> chords) {
+  if (chords.isEmpty) return const [];
+  final sorted = List<ChordData>.from(chords)
+    ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
+  if (sorted.length == 1) {
+    return [TextChordPlacement(chord: sorted.first.chord, position: 0)];
+  }
+
+  final normal = sorted.where((chord) => chord.noteIdx >= 0).toList();
+  if (normal.length < 2) {
+    return [
+      for (var index = 0; index < sorted.length; index++)
+        TextChordPlacement(
+          chord: sorted[index].chord,
+          position: index / math.max(1, sorted.length - 1),
+        ),
+    ];
+  }
+
+  final minIndex = normal.first.noteIdx;
+  final maxIndex = normal.last.noteIdx;
+  final span = math.max(1, maxIndex - minIndex);
+  return [
+    for (final chord in sorted)
+      TextChordPlacement(
+        chord: chord.chord,
+        position: chord.noteIdx < 0
+            ? 0
+            : ((chord.noteIdx - minIndex) / span).clamp(0.0, 1.0),
+      ),
+  ];
+}
+
+/// Backwards-compatible helper retained for older callers/tests.
 double chordFractionInLine(int indexInLine, int lineCount) {
   if (lineCount <= 0) return 0.0;
-  return (indexInLine + 0.5) / lineCount;
+  if (lineCount == 1) return 0.0;
+  return indexInLine / (lineCount - 1);
 }
