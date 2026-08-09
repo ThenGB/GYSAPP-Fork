@@ -94,10 +94,10 @@ class AccountRepositoryImpl implements AccountRepository {
       if (response.statusCode != 200) return account;
 
       final plainText = _htmlToPlainText(response.data.toString());
-      final memberType = account.resolvedMemberType ??
-          _extractMemberType(plainText);
-      final branchName = account.resolvedBranchName ??
-          _extractBranchName(plainText);
+      final memberType =
+          account.resolvedMemberType ?? _extractMemberType(plainText);
+      final branchName =
+          account.resolvedBranchName ?? _extractBranchName(plainText);
       return account.copyWith(
         memberType: memberType ?? account.memberType,
         branchName: branchName ?? account.branchName,
@@ -110,8 +110,14 @@ class AccountRepositoryImpl implements AccountRepository {
 
   String _htmlToPlainText(String html) {
     return html
-        .replaceAll(RegExp(r'<script\b[^>]*>[\s\S]*?</script>', caseSensitive: false), ' ')
-        .replaceAll(RegExp(r'<style\b[^>]*>[\s\S]*?</style>', caseSensitive: false), ' ')
+        .replaceAll(
+          RegExp(r'<script\b[^>]*>[\s\S]*?</script>', caseSensitive: false),
+          ' ',
+        )
+        .replaceAll(
+          RegExp(r'<style\b[^>]*>[\s\S]*?</style>', caseSensitive: false),
+          ' ',
+        )
         .replaceAll(RegExp(r'<[^>]+>'), ' ')
         .replaceAll('&nbsp;', ' ')
         .replaceAll('&amp;', '&')
@@ -153,10 +159,12 @@ class AccountRepositoryImpl implements AccountRepository {
     // Stop before another common profile label when the flattened HTML has
     // placed multiple fields on the same line.
     return value
-        .split(RegExp(
-          r'\s+(?:email|telepon|phone|status|jenis\s+anggota|baptis)\s*[:\-]',
-          caseSensitive: false,
-        ))
+        .split(
+          RegExp(
+            r'\s+(?:email|telepon|phone|status|jenis\s+anggota|baptis)\s*[:\-]',
+            caseSensitive: false,
+          ),
+        )
         .first
         .trim();
   }
