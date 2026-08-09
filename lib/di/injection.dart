@@ -30,7 +30,7 @@ Future<void> setupInjection(AppConfig config) async {
 void _blocs() {
   di.registerFactory(() => HomeCubit(di(), di()));
   di.registerFactory(() => InitialCubit());
-  di.registerFactory(() => DashboardCubit(di()));
+  di.registerFactory(() => DashboardCubit(di(), di()));
 
   // Bible and Song are expensive, long-lived feature controllers. Register
   // them lazily so app bootstrap only builds their engines when a widget first
@@ -95,21 +95,29 @@ Future<void> _utils(AppConfig appConfig) async {
 }
 
 void _services() {
+  di.registerLazySingleton<AuthTokenStore>(() => SecureAuthTokenStore());
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => PdfChunkService());
-  di.registerLazySingleton(() => AppResetService(appDirectory: di()));
+  di.registerLazySingleton(
+    () => AppResetService(
+      appDirectory: di(),
+      authTokenStore: di(),
+      installedAssetStore: di<InstalledAssetStore>(),
+    ),
+  );
   di.registerLazySingleton(
     () => ChordSyncService(di<AppDirectory>(), http.Client()),
   );
   di.registerLazySingleton(
-    () => InstalledAssetStoreHolder.store ??
+    () =>
+        InstalledAssetStoreHolder.store ??
         createInstalledAssetStore(
           '${di<AppDirectory>().support}/installed_assets',
         ),
   );
   di.registerLazySingleton(
     () => InstalledAssetRegistry(
-      supportDirectory: Directory(di<AppDirectory>().support),
+      supportPath: di<AppDirectory>().support,
       store: di<InstalledAssetStore>(),
     ),
   );
@@ -179,33 +187,27 @@ class AppDirectory {
 final InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
   onError: (error, handler) {
     if (kDebugMode) {
-      log(error.message ?? '', name: 'HTTP ERROR');
-      log(error.response?.data.toString() ?? '', name: 'HTTP ERROR');
+      final request = error.requestOptions;
+      log(
+        '${request.method} ${request.path} -> ${error.response?.statusCode ?? 'network error'}',
+        name: 'HTTP ERROR',
+      );
     }
-    return handler.reject(error);
+    return handler.next(error);
   },
   onRequest: (options, handler) {
     if (kDebugMode) {
-      log(options.toJson().toString(), name: 'HTTP REQUEST');
+      log('${options.method} ${options.path}', name: 'HTTP REQUEST');
     }
     return handler.next(options);
   },
   onResponse: (response, handler) {
     if (kDebugMode) {
-      log(response.data.toString(), name: 'HTTP RESPONSE');
+      log(
+        '${response.requestOptions.method} ${response.requestOptions.path} -> ${response.statusCode}',
+        name: 'HTTP RESPONSE',
+      );
     }
     return handler.next(response);
   },
 );
-
-extension RequestOptionsExtension on RequestOptions {
-  Map<String, dynamic> toJson() {
-    return {
-      'method': method,
-      'baseUrl': baseUrl,
-      'path': path,
-      'headers': headers,
-      'data': data,
-    };
-  }
-}

@@ -17,34 +17,36 @@ import 'models.dart';
 /// ([resolveInstalledBiblePath] and friends) has no meaning and returns null.
 class InstalledAssetRegistry {
   InstalledAssetRegistry({
-    required Directory supportDirectory,
+    Directory? supportDirectory,
+    String? supportPath,
     InstalledAssetStore? store,
-  }) : _supportDirectory = supportDirectory,
-       _store = store ??
+  }) : assert(supportDirectory != null || supportPath != null),
+       _supportPath = supportPath ?? supportDirectory!.path,
+       _store =
+           store ??
            FileSystemInstalledAssetStore(
              installedAssetsRoot:
-                 '${supportDirectory.path}/installed_assets',
+                 '${supportPath ?? supportDirectory!.path}/installed_assets',
            );
 
-  final Directory _supportDirectory;
+  final String _supportPath;
   final InstalledAssetStore _store;
   Map<String, InstalledAssetRecord>? _cache;
 
   static const _registryPath = 'registry.json';
 
   /// Relative path (inside the installed-assets root) of a kind directory.
-  static String _kindDirectory(DistributedAssetKind kind) =>
-      switch (kind) {
-        DistributedAssetKind.bible => 'bible',
-        DistributedAssetKind.hymnal => 'hymnal',
-        DistributedAssetKind.soundfont => 'soundfont',
-      };
+  static String _kindDirectory(DistributedAssetKind kind) => switch (kind) {
+    DistributedAssetKind.bible => 'bible',
+    DistributedAssetKind.hymnal => 'hymnal',
+    DistributedAssetKind.soundfont => 'soundfont',
+  };
 
   static String _assetRelativePath(InstalledAssetRecord record) =>
       '${_kindDirectory(record.kind)}/${record.installedPath}';
 
   Directory get installedAssetsDirectory =>
-      Directory('${_supportDirectory.path}/installed_assets');
+      Directory('$_supportPath/installed_assets');
 
   Directory get bibleInstallDirectory =>
       Directory('${installedAssetsDirectory.path}/bible');
@@ -65,8 +67,7 @@ class InstalledAssetRegistry {
       return _cache!;
     }
 
-    final json =
-        jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
+    final json = jsonDecode(utf8.decode(bytes)) as Map<String, dynamic>;
     _cache = json.map(
       (key, value) => MapEntry(
         key,
@@ -195,10 +196,7 @@ class InstalledAssetRegistry {
     };
     final file = File('${baseDir.path}/${record.installedPath}');
     // Defense-in-depth: resolved paths must stay inside the install dir.
-    if (!p.isWithin(
-      baseDir.path,
-      p.normalize(file.path),
-    )) {
+    if (!p.isWithin(baseDir.path, p.normalize(file.path))) {
       return null;
     }
     return await file.exists() ? file.path : null;

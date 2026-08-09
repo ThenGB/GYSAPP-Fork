@@ -1,5 +1,6 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
 
+import '../../../data/services/auth_session_credential.dart';
 import '../../../domain/entity/account/account_entity.dart';
 import '../../../domain/entity/config_literature/config_literature_entity.dart';
 
@@ -31,8 +32,7 @@ abstract class DashboardState with _$DashboardState {
     return true;
   }
 
-  static bool isSessionCookie(String token) =>
-      token.contains('=') && token.contains(';');
+  static bool isSessionCookie(String token) => isHostedSessionCredential(token);
 
   factory DashboardState.fromJson(Map<String, dynamic> json) =>
       _$DashboardStateFromJson(json);

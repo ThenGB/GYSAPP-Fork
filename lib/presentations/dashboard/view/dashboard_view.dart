@@ -376,12 +376,10 @@ class _DashboardViewState extends State<DashboardView>
                 final tabsRouter = AutoTabsRouter.of(context);
                 tabRouter = tabsRouter;
                 final isLandscape =
-                    MediaQuery.orientationOf(context) ==
-                    Orientation.landscape;
+                    MediaQuery.orientationOf(context) == Orientation.landscape;
                 // viewPadding (hardware safe area) is stable; padding
                 // changes on keyboard open/close which is needless work.
-                final bottomInset =
-                    MediaQuery.viewPaddingOf(context).bottom;
+                final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
                 final navHeight = isLandscape
                     ? kDashboardLandscapeBottomNavHeight
                     : kDashboardPortraitBottomNavHeight;
@@ -390,7 +388,8 @@ class _DashboardViewState extends State<DashboardView>
                 final bodyBottomPadding = navHeight + 8 + bottomInset;
 
                 final bottomNavItemCount = bottomNavPages.length;
-                final isBeyondBottomNav = tabsRouter.activeIndex >= bottomNavItemCount;
+                final isBeyondBottomNav =
+                    tabsRouter.activeIndex >= bottomNavItemCount;
                 final safeSelectedIndex = isBeyondBottomNav
                     ? -1
                     : tabsRouter.activeIndex;
@@ -416,9 +415,7 @@ class _DashboardViewState extends State<DashboardView>
                           child: AnimatedPadding(
                             duration: const Duration(milliseconds: 220),
                             curve: Curves.easeOutCubic,
-                            padding: EdgeInsets.only(
-                              bottom: bodyBottomPadding,
-                            ),
+                            padding: EdgeInsets.only(bottom: bodyBottomPadding),
                             child: child,
                           ),
                         ),
@@ -479,10 +476,8 @@ class _DashboardViewState extends State<DashboardView>
                             showChord: midiState.showChord,
                             chordToggleEnabled: midiState.bookCode != 'HYMNE',
                             onToggleChord: songCubit.toggleChord,
-                            chordAccidentalMode:
-                                midiState.chordAccidentalMode,
-                            onToggleAccidental:
-                                songCubit.toggleAccidentalMode,
+                            chordAccidentalMode: midiState.chordAccidentalMode,
+                            onToggleAccidental: songCubit.toggleAccidentalMode,
                           );
                         },
                       ),
@@ -533,9 +528,9 @@ class _DashboardDrawer extends StatelessWidget {
             builder: (context, initialState) {
               return Theme(
                 data: Theme.of(context).copyWith(
-                  textTheme: Theme.of(context).textTheme.apply(
-                    fontFamily: initialState.defaultFont,
-                  ),
+                  textTheme: Theme.of(
+                    context,
+                  ).textTheme.apply(fontFamily: initialState.defaultFont),
                 ),
                 child: BlocBuilder<DashboardCubit, DashboardState>(
                   builder: (context, state) {
@@ -550,7 +545,9 @@ class _DashboardDrawer extends StatelessWidget {
                               children: [
                                 _DrawerHeader(state: state),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                  ),
                                   child: Divider(
                                     color: colors.outlineVariant.withValues(
                                       alpha: 0.42,
@@ -558,10 +555,17 @@ class _DashboardDrawer extends StatelessWidget {
                                   ),
                                 ),
                                 Padding(
-                                  padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
+                                  padding: const EdgeInsets.fromLTRB(
+                                    24,
+                                    18,
+                                    24,
+                                    8,
+                                  ),
                                   child: Text(
                                     'quick_actions_label'.tr().toUpperCase(),
-                                    style: Theme.of(context).textTheme.labelSmall
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
                                         ?.copyWith(
                                           color: colors.onSurfaceVariant,
                                           fontWeight: FontWeight.w800,
@@ -572,7 +576,8 @@ class _DashboardDrawer extends StatelessWidget {
                                 Builder(
                                   builder: (context) {
                                     final songCubit = context.read<SongCubit>();
-                                    final lastSong = songCubit.state.lastOpenedSong;
+                                    final lastSong =
+                                        songCubit.state.lastOpenedSong;
                                     return _DrawerActivityTile(
                                       icon: Icons.music_note_rounded,
                                       label: 'last_opened'.tr(),
@@ -581,7 +586,8 @@ class _DashboardDrawer extends StatelessWidget {
                                           : 'no_history'.tr(),
                                       onTap: lastSong != null
                                           ? () {
-                                              dashboardScaffoldKey.currentState?.closeDrawer();
+                                              dashboardScaffoldKey.currentState
+                                                  ?.closeDrawer();
                                               AutoTabsRouter.of(
                                                 context,
                                               ).setActiveIndex(2);
@@ -604,7 +610,9 @@ class _DashboardDrawer extends StatelessWidget {
                                   ),
                                   title: Text(
                                     'Pengaturan'.tr(),
-                                    style: Theme.of(context).textTheme.titleMedium
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .titleMedium
                                         ?.copyWith(
                                           color: colors.onSurface,
                                           fontWeight: FontWeight.w700,
@@ -617,8 +625,11 @@ class _DashboardDrawer extends StatelessWidget {
                                     ),
                                   ),
                                   onTap: () {
-                                    dashboardScaffoldKey.currentState?.closeDrawer();
-                                    AutoTabsRouter.of(context).setActiveIndex(4);
+                                    dashboardScaffoldKey.currentState
+                                        ?.closeDrawer();
+                                    AutoTabsRouter.of(
+                                      context,
+                                    ).setActiveIndex(4);
                                   },
                                 ),
                               ],
@@ -641,8 +652,10 @@ class _DashboardDrawer extends StatelessWidget {
                                     ),
                                   ),
                                   onPressed: () {
-                                    final cubit = context.read<DashboardCubit>();
-                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    final cubit = context
+                                        .read<DashboardCubit>();
+                                    dashboardScaffoldKey.currentState
+                                        ?.closeDrawer();
                                     router.push(
                                       LoginRoute(
                                         onLoggedIn: (token) {
@@ -650,7 +663,9 @@ class _DashboardDrawer extends StatelessWidget {
                                             router.maybePop();
                                             cubit.loginSuccessCallback(token);
                                           } catch (e, st) {
-                                            debugPrint('[DashboardView] onLoggedIn ERROR: $e\n$st');
+                                            debugPrint(
+                                              '[DashboardView] onLoggedIn ERROR: $e\n$st',
+                                            );
                                           }
                                         },
                                       ),
@@ -662,14 +677,17 @@ class _DashboardDrawer extends StatelessWidget {
                                 const SizedBox(height: 8),
                                 OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
-                                    side: BorderSide(color: colors.outlineVariant),
+                                    side: BorderSide(
+                                      color: colors.outlineVariant,
+                                    ),
                                     minimumSize: const Size.fromHeight(44),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: context.appRadius(12),
                                     ),
                                   ),
                                   onPressed: () {
-                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    dashboardScaffoldKey.currentState
+                                        ?.closeDrawer();
                                     SystemNavigator.pop();
                                   },
                                   icon: Icon(
@@ -678,14 +696,18 @@ class _DashboardDrawer extends StatelessWidget {
                                   ),
                                   label: Text(
                                     'close_app'.tr(),
-                                    style: TextStyle(color: colors.onSurfaceVariant),
+                                    style: TextStyle(
+                                      color: colors.onSurfaceVariant,
+                                    ),
                                   ),
                                 ),
                               ] else ...[
                                 OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
                                     side: BorderSide(
-                                      color: colors.primary.withValues(alpha: 0.4),
+                                      color: colors.primary.withValues(
+                                        alpha: 0.4,
+                                      ),
                                     ),
                                     minimumSize: const Size.fromHeight(44),
                                     shape: RoundedRectangleBorder(
@@ -693,7 +715,8 @@ class _DashboardDrawer extends StatelessWidget {
                                     ),
                                   ),
                                   onPressed: () {
-                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    dashboardScaffoldKey.currentState
+                                        ?.closeDrawer();
                                     context.router.push(
                                       WebpageRoute(url: 'https://e.gys.or.id'),
                                     );
@@ -707,8 +730,10 @@ class _DashboardDrawer extends StatelessWidget {
                                 const SizedBox(height: 6),
                                 TextButton(
                                   onPressed: () {
-                                    final cubit = context.read<DashboardCubit>();
-                                    dashboardScaffoldKey.currentState?.closeDrawer();
+                                    final cubit = context
+                                        .read<DashboardCubit>();
+                                    dashboardScaffoldKey.currentState
+                                        ?.closeDrawer();
                                     cubit.loginSuccessCallback(null);
                                   },
                                   child: Text(
@@ -728,10 +753,14 @@ class _DashboardDrawer extends StatelessWidget {
                                   final version = snapshot.data?.version ?? '';
                                   return Text(
                                     'v$version',
-                                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                      color: colors.onSurfaceVariant.withValues(alpha: 0.4),
-                                      fontSize: context.appFontSize(10),
-                                    ),
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .labelSmall
+                                        ?.copyWith(
+                                          color: colors.onSurfaceVariant
+                                              .withValues(alpha: 0.4),
+                                          fontSize: context.appFontSize(10),
+                                        ),
                                   );
                                 },
                               ),
@@ -759,6 +788,8 @@ class _DrawerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final memberType = state.account?.resolvedMemberType;
+    final branchName = state.account?.resolvedBranchName;
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 16),
       child: Row(
@@ -809,8 +840,8 @@ class _DrawerHeader extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 if (state.isLoggedIn &&
-                    ((state.account?.memberType ?? '').isNotEmpty ||
-                        (state.account?.branchName ?? '').isNotEmpty)) ...[
+                    ((memberType ?? '').isNotEmpty ||
+                        (branchName ?? '').isNotEmpty)) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 8,
@@ -821,10 +852,10 @@ class _DrawerHeader extends StatelessWidget {
                       borderRadius: context.appRadius(6),
                     ),
                     child: Text(
-                      [
-                        state.account?.memberType,
-                        _formatBranchName(state.account?.branchName ?? ''),
-                      ].whereType<String>().where((s) => s.isNotEmpty).join(' · '),
+                      [memberType, _formatBranchName(branchName ?? '')]
+                          .whereType<String>()
+                          .where((s) => s.isNotEmpty)
+                          .join(' · '),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.labelSmall?.copyWith(
@@ -835,7 +866,11 @@ class _DrawerHeader extends StatelessWidget {
                   ),
                 ] else
                   Text(
-                    'not_logged_in'.tr(),
+                    state.isLoggedIn
+                        ? (state.account?.email?.trim().isNotEmpty == true
+                              ? state.account!.email!
+                              : 'Akun GYS')
+                        : 'not_logged_in'.tr(),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -920,7 +955,9 @@ class _DrawerActivityTile extends StatelessWidget {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                        fontWeight: hasAction ? FontWeight.w700 : FontWeight.w400,
+                        fontWeight: hasAction
+                            ? FontWeight.w700
+                            : FontWeight.w400,
                         color: hasAction
                             ? colors.onSurface
                             : colors.onSurfaceVariant,
@@ -979,7 +1016,9 @@ class _DrawerProgressTileState extends State<_DrawerProgressTile> {
         final target = bibleState.todayReading;
         final lastOpen = bibleState.lastOpenBible;
         final readToday =
-            target != null && lastOpen != null && _isSameDay(lastOpen, DateTime.now());
+            target != null &&
+            lastOpen != null &&
+            _isSameDay(lastOpen, DateTime.now());
 
         void openReading() {
           dashboardScaffoldKey.currentState?.closeDrawer();
@@ -1033,9 +1072,7 @@ class _DrawerProgressTileState extends State<_DrawerProgressTile> {
                                 'daily_reading_label'.tr().toUpperCase(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colors.onSurfaceVariant.withValues(
                                         alpha: 0.70,
@@ -1057,9 +1094,7 @@ class _DrawerProgressTileState extends State<_DrawerProgressTile> {
                               ),
                               child: Text(
                                 'HARI INI',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .labelSmall
+                                style: Theme.of(context).textTheme.labelSmall
                                     ?.copyWith(
                                       color: colors.onPrimaryContainer,
                                       fontWeight: FontWeight.w800,
@@ -1079,9 +1114,7 @@ class _DrawerProgressTileState extends State<_DrawerProgressTile> {
                                 'no_daily_reading'.tr(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleSmall
+                                style: Theme.of(context).textTheme.titleSmall
                                     ?.copyWith(
                                       fontWeight: FontWeight.w400,
                                       color: colors.onSurfaceVariant,
@@ -1092,9 +1125,7 @@ class _DrawerProgressTileState extends State<_DrawerProgressTile> {
                                 'set_daily_reading_hint'.tr(),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(
                                       color: colors.onSurfaceVariant,
                                       height: 1.3,
@@ -1222,29 +1253,25 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
       duration: const Duration(milliseconds: 400),
     );
     final idx = _previousIndex.toDouble();
-    _notchAnimation = Tween<double>(
-      begin: idx,
-      end: idx,
-    ).animate(CurvedAnimation(
-      parent: _controller,
-      curve: Curves.easeInOutCubic,
-    ));
+    _notchAnimation = Tween<double>(begin: idx, end: idx).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+    );
   }
 
   @override
   void didUpdateWidget(_AnimatedRoundedNavBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.selectedIndex != widget.selectedIndex) {
-      _previousIndex = oldWidget.selectedIndex >= 0 ? oldWidget.selectedIndex : _previousIndex;
+      _previousIndex = oldWidget.selectedIndex >= 0
+          ? oldWidget.selectedIndex
+          : _previousIndex;
       final beginIdx = _previousIndex.toDouble();
-      final endIdx = widget.selectedIndex >= 0 ? widget.selectedIndex.toDouble() : beginIdx;
-      _notchAnimation = Tween<double>(
-        begin: beginIdx,
-        end: endIdx,
-      ).animate(CurvedAnimation(
-        parent: _controller,
-        curve: Curves.easeInOutCubic,
-      ));
+      final endIdx = widget.selectedIndex >= 0
+          ? widget.selectedIndex.toDouble()
+          : beginIdx;
+      _notchAnimation = Tween<double>(begin: beginIdx, end: endIdx).animate(
+        CurvedAnimation(parent: _controller, curve: Curves.easeInOutCubic),
+      );
       _controller.forward(from: 0);
     }
   }
@@ -1297,7 +1324,8 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
                       child: Row(
                         children: List.generate(count, (index) {
                           final dest = widget.destinations[index];
-                          final isSelected = _hasSelection && index == widget.selectedIndex;
+                          final isSelected =
+                              _hasSelection && index == widget.selectedIndex;
 
                           return Expanded(
                             child: GestureDetector(
@@ -1330,8 +1358,9 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
                                       child: Text(
                                         dest.label.tr(),
                                         style: TextStyle(
-                                          color: unselectedIconColor
-                                              .withValues(alpha: 0.7),
+                                          color: unselectedIconColor.withValues(
+                                            alpha: 0.7,
+                                          ),
                                           fontSize: context.appFontSize(10),
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -1349,32 +1378,34 @@ class _AnimatedRoundedNavBarState extends State<_AnimatedRoundedNavBar>
                     ),
                   ),
                   if (_hasSelection)
-                  Positioned(
-                    top: _notchDepth - _circleSize / 2 - _circleGap,
-                    left: notchCenterX - _circleSize / 2,
-                    child: Container(
-                      width: _circleSize,
-                      height: _circleSize,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: circleColor,
-                        boxShadow: [
-                          BoxShadow(
-                            color: circleColor.withValues(alpha: 0.35),
-                            blurRadius: 14,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: Icon(
-                        widget.destinations[widget.selectedIndex].selectedIcon ??
-                            widget.destinations[widget.selectedIndex].icon,
-                        color: iconColor,
-                        size: 26,
+                    Positioned(
+                      top: _notchDepth - _circleSize / 2 - _circleGap,
+                      left: notchCenterX - _circleSize / 2,
+                      child: Container(
+                        width: _circleSize,
+                        height: _circleSize,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: circleColor,
+                          boxShadow: [
+                            BoxShadow(
+                              color: circleColor.withValues(alpha: 0.35),
+                              blurRadius: 14,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        alignment: Alignment.center,
+                        child: Icon(
+                          widget
+                                  .destinations[widget.selectedIndex]
+                                  .selectedIcon ??
+                              widget.destinations[widget.selectedIndex].icon,
+                          color: iconColor,
+                          size: 26,
+                        ),
                       ),
                     ),
-                  ),
                 ],
               );
             },
@@ -1431,14 +1462,20 @@ class _NavBarPainter extends CustomPainter {
       }
 
       path.cubicTo(
-        cx - halfNotch * 0.65, 0,
-        cx - halfNotch * 0.3, notchDepth * 0.85,
-        cx, notchDepth,
+        cx - halfNotch * 0.65,
+        0,
+        cx - halfNotch * 0.3,
+        notchDepth * 0.85,
+        cx,
+        notchDepth,
       );
       path.cubicTo(
-        cx + halfNotch * 0.3, notchDepth * 0.85,
-        cx + halfNotch * 0.65, 0,
-        notchEnd, 0,
+        cx + halfNotch * 0.3,
+        notchDepth * 0.85,
+        cx + halfNotch * 0.65,
+        0,
+        notchEnd,
+        0,
       );
 
       if (notchEnd < w - cornerRadius) {

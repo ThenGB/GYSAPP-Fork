@@ -1,6 +1,7 @@
 export 'repository/repository.dart';
 export 'repositories/theme_preferences_repository.dart';
 export 'services/app_reset_service.dart';
+export 'services/auth_token_store.dart';
 export 'services/chord_service.dart';
 export 'services/chord_sync_service.dart';
 export 'services/asset_distribution/asset_cache_maintenance_service.dart';

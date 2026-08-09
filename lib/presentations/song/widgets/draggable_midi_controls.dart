@@ -1089,15 +1089,24 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
                         _animationState ==
                             MidiPlayerAnimationState.expanded_player;
 
+                    final canInteractWithDock =
+                        _animationState ==
+                            MidiPlayerAnimationState.sidebar_circle ||
+                        _animationState ==
+                            MidiPlayerAnimationState.flying_to_sidebar;
                     return Positioned(
                       key: const ValueKey('midi-positioned'),
                       left: position.dx,
                       bottom: position.dy,
                       child: GestureDetector(
-                        onTap: _handleTap,
-                        onPanStart: _handlePanStart,
-                        onPanUpdate: _handlePanUpdate,
-                        onPanEnd: _handlePanEnd,
+                        onTap: canInteractWithDock ? _handleTap : null,
+                        onPanStart: canInteractWithDock
+                            ? _handlePanStart
+                            : null,
+                        onPanUpdate: canInteractWithDock
+                            ? _handlePanUpdate
+                            : null,
+                        onPanEnd: canInteractWithDock ? _handlePanEnd : null,
                         behavior: HitTestBehavior.opaque,
                         child: RepaintBoundary(
                           child: Transform.scale(

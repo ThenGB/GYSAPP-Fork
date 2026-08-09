@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:hydrated_bloc/hydrated_bloc.dart';
 
+import '../../../data/services/auth_token_store.dart';
 import '../../../data/utilities/app_config_store.dart';
 import '../../../domain/entity/config_literature/config_literature_entity.dart';
 import '../../../domain/repository/account_repository.dart';
@@ -10,10 +13,12 @@ export 'dashboard_state.dart';
 
 class DashboardCubit extends HydratedCubit<DashboardState> {
   final AccountRepository accountRepository;
+  final AuthTokenStore authTokenStore;
 
-  DashboardCubit(this.accountRepository) : super(const DashboardState()) {
-    initConfig();
-    _validatePersistedAuth();
+  DashboardCubit(this.accountRepository, this.authTokenStore)
+    : super(const DashboardState()) {
+    unawaited(initConfig());
+    unawaited(_restoreSecureAuth());
   }
 
   void _debug(String message) {
@@ -21,24 +26,30 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
   }
 
   Future<void> loginSuccessCallback(String? token) async {
-    emit(state.copyWith(idToken: token));
-    _debug('Authentication state updated: signedIn=${token != null}');
-    if (token != null) {
-      await getProfile(token);
-    } else {
-      emit(state.copyWith(account: null));
+    final normalized = token?.trim() ?? '';
+    if (normalized.isEmpty) {
+      await authTokenStore.clear();
+      emit(state.copyWith(idToken: null, account: null));
+      _debug('Authentication state cleared');
+      return;
     }
+
+    await authTokenStore.write(normalized);
+    emit(state.copyWith(idToken: normalized));
+    _debug('Authentication state updated: signedIn=true');
+    await getProfile(normalized);
   }
 
   Future<void> getProfile(String token) async {
     _debug('Refreshing account profile');
     final response = await accountRepository.getProfile(token);
-    response.fold(
-      (failure) {
-        _debug('Profile refresh failed');
+    await response.fold(
+      (failure) async {
+        _debug('Profile refresh failed; clearing invalid session');
+        await authTokenStore.clear();
         emit(state.copyWith(idToken: null, account: null));
       },
-      (res) {
+      (res) async {
         _debug('Profile refresh succeeded');
         emit(state.copyWith(account: res));
       },
@@ -50,7 +61,7 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
       final json = await AppConfigStore.jsonConfig('config_literature');
       emit(state.copyWith(configLiterature: ConfigLiterature.fromJson(json)));
     } catch (e) {
-      _debug('setConfigLiterature failed: $e');
+      _debug('setConfigLiterature failed: ${e.runtimeType}');
     }
   }
 
@@ -58,22 +69,42 @@ class DashboardCubit extends HydratedCubit<DashboardState> {
     try {
       await setConfigLiterature();
     } catch (e) {
-      _debug('initConfig failed: $e');
+      _debug('initConfig failed: ${e.runtimeType}');
     }
   }
 
-  Future<void> _validatePersistedAuth() async {
-    if (state.idToken == null || state.idToken!.isEmpty) return;
-    await getProfile(state.idToken!);
+  Future<void> _restoreSecureAuth() async {
+    try {
+      final token = await authTokenStore.read();
+      if (token == null || token.isEmpty || isClosed) return;
+      emit(state.copyWith(idToken: token));
+      await getProfile(token);
+    } catch (error) {
+      _debug('Secure authentication restore failed (${error.runtimeType})');
+      if (!isClosed) emit(state.copyWith(idToken: null, account: null));
+    }
   }
 
   @override
   DashboardState? fromJson(Map<String, dynamic> json) {
-    return DashboardState.fromJson(json);
+    // Migrate old HydratedBloc snapshots without ever restoring credentials or
+    // account PII from general-purpose application storage. Authentication is
+    // restored exclusively through [AuthTokenStore].
+    final sanitized = Map<String, dynamic>.from(json)
+      ..remove('idToken')
+      ..remove('account')
+      ..remove('ftpPassword')
+      ..remove('ftpUsername');
+    return DashboardState.fromJson(sanitized);
   }
 
   @override
   Map<String, dynamic>? toJson(DashboardState state) {
-    return state.toJson();
+    final json = Map<String, dynamic>.from(state.toJson())
+      ..remove('idToken')
+      ..remove('account')
+      ..remove('ftpPassword')
+      ..remove('ftpUsername');
+    return json;
   }
 }
