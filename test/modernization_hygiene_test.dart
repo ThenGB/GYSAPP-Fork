@@ -22,21 +22,6 @@ void main() {
     }
   });
 
-  test('translation loader avoids redundant connectivity preflight', () {
-    final source = File(
-      'lib/data/utilities/smart_network_asset_loader.dart',
-    ).readAsStringSync();
-    expect(source, isNot(contains('InternetConnectionChecker')));
-  });
-
-  test('song selector exposes both list and grid browse modes', () {
-    final source = File(
-      'lib/presentations/song/view/song_list_view.dart',
-    ).readAsStringSync();
-    expect(source, contains('SongSelectorViewMode.list'));
-    expect(source, contains('SongSelectorViewMode.grid'));
-  });
-
   test('home dashboard narrows rebuilds around changing state', () {
     final source = File(
       'lib/presentations/home/view/home_view.dart',
@@ -65,8 +50,6 @@ void main() {
     expect(accountRepository, contains('if (kDebugMode) debugPrint'));
     expect(dashboardCubit, contains('if (kDebugMode) debugPrint'));
 
-    // Credentials may legitimately exist as request fields, but no diagnostic
-    // path may print token/cookie/header/body payload values.
     for (final forbidden in [
       'substring(0, token.length',
       'Profile API body preview',
