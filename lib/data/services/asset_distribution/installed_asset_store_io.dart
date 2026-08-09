@@ -39,10 +39,7 @@ class FileSystemInstalledAssetStore implements InstalledAssetStore {
       if (entity is File) {
         // Normalize to '/' separators to match the web (IndexedDB) store.
         names.add(
-          p.joinAll([
-            directory,
-            p.basename(entity.path),
-          ]).replaceAll('\\', '/'),
+          p.joinAll([directory, p.basename(entity.path)]).replaceAll('\\', '/'),
         );
       }
     }
@@ -74,5 +71,12 @@ class FileSystemInstalledAssetStore implements InstalledAssetStore {
   @override
   Future<bool> exists(String relativePath) async {
     return File(_resolve(relativePath)).exists();
+  }
+
+  @override
+  Future<void> clear() async {
+    final root = Directory(_root);
+    if (await root.exists()) await root.delete(recursive: true);
+    await root.create(recursive: true);
   }
 }
