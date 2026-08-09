@@ -2,13 +2,7 @@ import 'package:flutter/foundation.dart';
 
 enum AuthProvider { google, apple }
 
-enum AuthFlow {
-  hostedWeb,
-  googleWeb,
-  appleWeb,
-  googleNative,
-  appleNative,
-}
+enum AuthFlow { hostedWeb, googleWeb, appleWeb, googleNative, appleNative }
 
 /// Single source of truth for authentication routing.
 ///
