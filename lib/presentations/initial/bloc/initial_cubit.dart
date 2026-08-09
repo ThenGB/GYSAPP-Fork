@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
@@ -6,11 +7,11 @@ import 'package:hydrated_bloc/hydrated_bloc.dart';
 
 import '../../../app.dart';
 import '../../../components/themes/app_accent.dart';
-import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/app_config_store.dart';
-import '../../../data/services/local_asset_service.dart';
-import '../../../data/repositories/theme_preferences_repository.dart';
 import '../../../data/models/theme_preferences.dart';
+import '../../../data/repositories/theme_preferences_repository.dart';
+import '../../../data/services/local_asset_service.dart';
+import '../../../data/utilities/app_config_store.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
 import 'initial_state.dart';
 
@@ -23,22 +24,36 @@ class InitialCubit extends HydratedCubit<InitialState> {
   InitialCubit() : super(const InitialState());
 
   Future<void> initState() async {
-    emit(state.copyWith(message: 'Initiating...'));
+    // Startup flags are deliberately reset on every process start. A previous
+    // build persisted isLoaded=true, which meant the splash listener never saw
+    // a false -> true transition on the second launch and could stay forever.
+    emit(
+      state.copyWith(
+        isLoading: true,
+        isLoaded: false,
+        isFailed: false,
+        message: '',
+      ),
+    );
 
-    // Emit loaded immediately so the app navigates to Dashboard without blocking.
-    // All heavy work (internet check, PDF prep, config) happens in the background.
+    // Appearance is local and tiny; restore it before showing Dashboard so the
+    // first real frame uses the user's saved theme and is never overwritten by
+    // a late background reload.
+    await _loadThemePreferences();
+    if (isClosed) return;
+
     emit(
       state.copyWith(
         isFailed: false,
         isFreshInstall: false,
         isLoading: false,
         isLoaded: true,
-        message: 'Ready',
+        message: '',
       ),
     );
 
-    // Background initialization — does not block the UI
-    _backgroundInit();
+    // Heavy/optional work remains non-blocking after navigation.
+    unawaited(_backgroundInit());
   }
 
   Future<void> _backgroundInit() async {
@@ -46,7 +61,6 @@ class InitialCubit extends HydratedCubit<InitialState> {
       await di.allReady();
       log('Initiating application state (background)');
 
-      // Internet check with timeout
       try {
         final result = await internetChecker
             .isHostReachable(defaultAddress)
@@ -58,16 +72,9 @@ class InitialCubit extends HydratedCubit<InitialState> {
         log('Internet check timed out or failed: $e');
       }
 
-      // PDF preparation
       try {
         final assetService = di<LocalAssetService>();
         if (await assetService.needsPdfPreparation('KR', '001')) {
-          emit(
-            state.copyWith(
-              isLoading: false,
-              message: startupKrPreparationMessage,
-            ),
-          );
           await assetService.getPdfPath('KR', '001');
         }
       } catch (e, st) {
@@ -79,27 +86,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
         );
       }
 
-      // Config fetch policy
       try {
         final configFetchPolicy = await AppConfigStore.jsonConfig(
           'config_fetch_policy',
         );
-        emit(
-          state.copyWith(
-            configFetchTimeoutSeconds:
-                configFetchPolicy['fetch_timeout'] ??
-                state.configFetchTimeoutSeconds,
-            configFetchIntervalSeconds:
-                configFetchPolicy['fetch_interval'] ??
-                state.configFetchIntervalSeconds,
-          ),
-        );
+        if (!isClosed) {
+          emit(
+            state.copyWith(
+              configFetchTimeoutSeconds:
+                  configFetchPolicy['fetch_timeout'] ??
+                  state.configFetchTimeoutSeconds,
+              configFetchIntervalSeconds:
+                  configFetchPolicy['fetch_interval'] ??
+                  state.configFetchIntervalSeconds,
+            ),
+          );
+        }
       } catch (e) {
         log('Failed to load config fetch policy: $e');
       }
-
-      // Theme preferences
-      await _loadThemePreferences();
     } catch (e, st) {
       log(
         'Background init failed',
@@ -116,9 +121,7 @@ class InitialCubit extends HydratedCubit<InitialState> {
       await themeRepo.init();
       final prefs = themeRepo.preferences;
       final savedThemeMode = themeRepo.themeMode;
-      log(
-        '[InitialCubit] _loadThemePreferences: accentKey=${prefs.accentKey}, themeMode=$savedThemeMode',
-      );
+      if (isClosed) return;
       emit(
         state.copyWith(
           themePreferences: prefs,
@@ -128,15 +131,16 @@ class InitialCubit extends HydratedCubit<InitialState> {
       );
     } catch (e) {
       log('Failed to load theme preferences', name: 'InitialCubit', error: e);
-      // Fallback to defaults if loading fails
-      emit(state.copyWith(themePreferences: const ThemePreferences()));
+      // Keep the hydrated values instead of overwriting them with defaults.
+      // This provides a second recovery path if platform preferences are
+      // temporarily unavailable.
     }
   }
 
   void toggleTheme(ThemeMode themeMode, BuildContext Function() context) {
     final themeModeStr = themeMode.toThemeString;
     emit(state.copyWith(themeMode: themeModeStr));
-    _persistThemeMode(themeModeStr);
+    unawaited(_persistThemeMode(themeModeStr));
     Future.delayed(kThemeChangeDuration, () {
       WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
         SystemChrome.setSystemUIOverlayStyle(
@@ -159,8 +163,9 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   void changeAccentColor(String accentKey) {
-    emit(state.copyWith(accentKey: accentKey));
-    _persistAccentKey(accentKey);
+    final updatedPrefs = state.themePreferences.copyWith(accentKey: accentKey);
+    emit(state.copyWith(accentKey: accentKey, themePreferences: updatedPrefs));
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
   void changeCustomAccentColor(Color color) {
@@ -174,25 +179,25 @@ class InitialCubit extends HydratedCubit<InitialState> {
         themePreferences: updatedPrefs,
       ),
     );
-    _saveThemePreferences();
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
   void changeDensity(DisplayDensity density) {
     final updatedPrefs = state.themePreferences.copyWith(density: density);
     emit(state.copyWith(themePreferences: updatedPrefs));
-    _saveThemePreferences();
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
   void changeSurfaceTone(SurfaceTone tone) {
     final updatedPrefs = state.themePreferences.copyWith(surfaceTone: tone);
     emit(state.copyWith(themePreferences: updatedPrefs));
-    _saveThemePreferences();
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
   void changeCornerRadius(CornerRadiusStyle style) {
     final updatedPrefs = state.themePreferences.copyWith(cornerRadius: style);
     emit(state.copyWith(themePreferences: updatedPrefs));
-    _saveThemePreferences();
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
   void changeTypographyScale(TypographyScale scale) {
@@ -200,24 +205,15 @@ class InitialCubit extends HydratedCubit<InitialState> {
       typographyScale: scale,
     );
     emit(state.copyWith(themePreferences: updatedPrefs));
-    _saveThemePreferences();
+    unawaited(_saveThemePreferences(updatedPrefs));
   }
 
-  Future<void> _saveThemePreferences() async {
+  Future<void> _saveThemePreferences(ThemePreferences preferences) async {
     try {
       final themeRepo = di<ThemePreferencesRepository>();
-      await themeRepo.savePreferences(state.themePreferences);
+      await themeRepo.savePreferences(preferences);
     } catch (e) {
       log('Failed to save theme preferences', name: 'InitialCubit', error: e);
-    }
-  }
-
-  Future<void> _persistAccentKey(String accentKey) async {
-    try {
-      final themeRepo = di<ThemePreferencesRepository>();
-      await themeRepo.updateAccentKey(accentKey);
-    } catch (e) {
-      log('Failed to persist accent key', name: 'InitialCubit', error: e);
     }
   }
 
@@ -230,14 +226,23 @@ class InitialCubit extends HydratedCubit<InitialState> {
     }
   }
 
-  void resetToDefaults() {
-    emit(const InitialState());
+  Future<void> resetToDefaults() async {
+    final themeRepo = di<ThemePreferencesRepository>();
+    await themeRepo.reset();
+    emit(const InitialState(isLoaded: true, isFreshInstall: false));
   }
 
   @override
   InitialState? fromJson(Map<String, dynamic> json) {
     try {
-      return InitialState.fromJson(json);
+      final restored = InitialState.fromJson(json);
+      // Runtime startup status must never survive a process restart.
+      return restored.copyWith(
+        isLoading: false,
+        isLoaded: false,
+        isFailed: false,
+        message: '',
+      );
     } catch (e) {
       return null;
     }
@@ -246,7 +251,16 @@ class InitialCubit extends HydratedCubit<InitialState> {
   @override
   Map<String, dynamic>? toJson(InitialState state) {
     try {
-      return state.toJson();
+      // Keep appearance/readability preferences as a recovery copy while
+      // deliberately serializing startup flags in their neutral state.
+      return state
+          .copyWith(
+            isLoading: false,
+            isLoaded: false,
+            isFailed: false,
+            message: '',
+          )
+          .toJson();
     } catch (e) {
       return null;
     }
