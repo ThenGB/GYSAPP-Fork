@@ -4,13 +4,11 @@ import 'package:app_links/app_links.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:simple_animations/simple_animations.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
@@ -291,54 +289,60 @@ class _DashboardViewState extends State<DashboardView>
       child: BlocBuilder<DashboardCubit, DashboardState>(
         builder: (context, state) {
           if (state.isLoading) {
-            return SafeArea(
-              child: Scaffold(
-                body: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 4),
-                        child: MirrorAnimationBuilder(
-                          duration: Duration(milliseconds: 1500),
-                          tween: Tween<double>(
-                            begin: 0.0,
-                            end: 1.0,
-                          ), // Keep the original tween
-                          builder: (context, value, child) {
-                            double scale =
-                                1 +
-                                (0.1 *
-                                    value); // Interpolate to get scale between 1 and 1.3
-                            double opacity =
-                                1 -
-                                (0.5 *
-                                    value); // Interpolate to get scale between 1 and 1.3
-                            return Transform.scale(
-                              scale: scale, // Apply the interpolated scale
-                              child: Opacity(opacity: opacity, child: child),
-                            );
-                          },
-                          child: Image.asset(Assets.assetsImagesAppicon),
-                        ),
-                      ),
-                      SizedBox(height: 16),
-                      Row(
+            final colors = context.colorScheme;
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Scaffold(
+              backgroundColor: colors.surface,
+              body: SafeArea(
+                child: Center(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 380),
+                      child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          CupertinoActivityIndicator(),
-                          SizedBox(width: 8),
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.97, end: 1),
+                            duration: const Duration(milliseconds: 360),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) =>
+                                Transform.scale(scale: value, child: child),
+                            child: Image.asset(
+                              isDark
+                                  ? Assets.assetsImagesLogoIndonesiaWhite
+                                  : Assets.assetsImagesLogoIndonesiaColor,
+                              width: 220,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(height: 28),
                           Text(
                             'Preparing dashboard',
-                            style: TextStyle(
-                              fontSize: context.appFontSize(12),
-                              fontStyle: FontStyle.italic,
-                              color: context.textColor?.withValues(alpha: .5),
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Alkitab • Kidung • Iman • Pelayanan',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 4,
+                              backgroundColor: colors.surfaceContainerHighest,
                             ),
                           ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ),
               ),
