@@ -569,7 +569,11 @@ class SelectedFaithMenu extends StatelessWidget {
                         text += '\n$number. $verse';
                       }
                       text += '\n\n$footer';
-                      SharePlus.instance.share(ShareParams(text: text));
+                      try {
+                        await SharePlus.instance.share(ShareParams(text: text));
+                      } catch (_) {
+                        // Share is unavailable on some platforms — ignore.
+                      }
                     },
                     child: Text('Share'.tr()),
                   ),

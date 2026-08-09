@@ -130,6 +130,12 @@ _BibleState _$BibleStateFromJson(Map<String, dynamic> json) => _BibleState(
   edgePitch: json['edgePitch'] as String? ?? '+0Hz',
   edgeVolume: json['edgeVolume'] as String? ?? '+0%',
   autoNextChapter: json['autoNextChapter'] as bool? ?? true,
+  ttsPlayRangeStart: json['ttsPlayRangeStart'] == null
+      ? null
+      : Verse.fromJson(json['ttsPlayRangeStart'] as Map<String, dynamic>),
+  ttsPlayRangeEnd: json['ttsPlayRangeEnd'] == null
+      ? null
+      : Verse.fromJson(json['ttsPlayRangeEnd'] as Map<String, dynamic>),
   ttsCurrentVerseIndex: (json['ttsCurrentVerseIndex'] as num?)?.toInt() ?? 0,
   isSpeakingSelectedOnly: json['isSpeakingSelectedOnly'] as bool? ?? false,
   isSplitContentLoading: json['isSplitContentLoading'] as bool? ?? false,
@@ -194,6 +200,8 @@ Map<String, dynamic> _$BibleStateToJson(BibleState instance) =>
       'edgePitch': instance.edgePitch,
       'edgeVolume': instance.edgeVolume,
       'autoNextChapter': instance.autoNextChapter,
+      'ttsPlayRangeStart': instance.ttsPlayRangeStart,
+      'ttsPlayRangeEnd': instance.ttsPlayRangeEnd,
       'ttsCurrentVerseIndex': instance.ttsCurrentVerseIndex,
       'isSpeakingSelectedOnly': instance.isSpeakingSelectedOnly,
       'isSplitContentLoading': instance.isSplitContentLoading,

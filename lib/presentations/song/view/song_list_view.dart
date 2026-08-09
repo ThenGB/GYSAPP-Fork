@@ -247,128 +247,155 @@ class _SongListViewState extends State<SongListView>
                   children: [
                     const Divider(height: 1),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 12,
-                      ),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
                       child: LayoutBuilder(
                         builder: (context, constraints) {
-                          final compactSearch = constraints.maxWidth < 420;
-                          final codeWidth = compactSearch ? 82.0 : 100.0;
-                          final trailingReserved = codeWidth + 12.0;
-                          return Stack(
+                          final compact = constraints.maxWidth < 460;
+                          return Row(
                             children: [
-                              TextFormField(
-                                controller: searchController,
-                                decoration: InputDecoration(
-                                  filled: true,
-                                  fillColor: colors.surfaceContainerLow,
-                                  isDense: true,
-                                  prefixIcon: Icon(
-                                    Icons.search_rounded,
-                                    color: colors.primary,
-                                  ),
-                                  contentPadding:
-                                      EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                        vertical: compactSearch ? 10 : 8,
-                                      ).add(
-                                        EdgeInsets.only(
-                                          right: trailingReserved,
-                                        ),
-                                      ),
-                                  border: OutlineInputBorder(
-                                    borderRadius: context.appRadius(12),
-                                    borderSide: BorderSide(
-                                      color: colors.outlineVariant,
-                                    ),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: context.appRadius(12),
-                                    borderSide: BorderSide(
-                                      color: colors.outlineVariant,
-                                    ),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: context.appRadius(12),
-                                    borderSide: BorderSide(
+                              // Search field — modern rounded field with an
+                              // in-field clear button; the book selector is a
+                              // separate pill next to it (no more tag crammed
+                              // inside the field).
+                              Expanded(
+                                child: TextField(
+                                  controller: searchController,
+                                  decoration: InputDecoration(
+                                    filled: true,
+                                    fillColor: colors.surfaceContainerLow,
+                                    isDense: true,
+                                    prefixIcon: Icon(
+                                      Icons.search_rounded,
                                       color: colors.primary,
-                                      width: 1.2,
+                                    ),
+                                    suffixIcon: AnimatedBuilder(
+                                      animation: searchController,
+                                      builder: (context, child) =>
+                                          searchController.text.isEmpty
+                                          ? const SizedBox.shrink()
+                                          : IconButton(
+                                              tooltip: 'Clear',
+                                              visualDensity:
+                                                  VisualDensity.compact,
+                                              icon: const Icon(
+                                                Icons.cancel_rounded,
+                                                size: 18,
+                                              ),
+                                              onPressed: () =>
+                                                  searchController.clear(),
+                                            ),
+                                    ),
+                                    contentPadding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                      vertical: 12,
+                                    ),
+                                    hintText: 'Search number or keyword'.tr(),
+                                    hintStyle: TextStyle(
+                                      color: colors.onSurfaceVariant
+                                          .withValues(alpha: 0.65),
+                                    ),
+                                    border: OutlineInputBorder(
+                                      borderRadius: context.appRadius(16),
+                                      borderSide: BorderSide.none,
+                                    ),
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: context.appRadius(16),
+                                      borderSide: BorderSide(
+                                        color: colors.outlineVariant
+                                            .withValues(alpha: 0.5),
+                                      ),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: context.appRadius(16),
+                                      borderSide: BorderSide(
+                                        color: colors.primary,
+                                        width: 1.4,
+                                      ),
                                     ),
                                   ),
-                                  hintText: 'Search number or keyword'.tr(),
                                 ),
                               ),
-                              Positioned.fill(
-                                child: Align(
-                                  alignment: Alignment.centerRight,
-                                  child: PopupMenuButton(
-                                    offset: const Offset(0, 48),
-                                    onSelected: (value) async {
-                                      await widget.onChangeBookCode(value);
-                                      _filteredCache = null;
-                                      await Future.delayed(
-                                        const Duration(milliseconds: 100),
-                                      );
-                                      setState(() {
-                                        forceRefresh++;
-                                      });
-                                    },
-                                    initialValue: widget.currentBook().code,
-                                    itemBuilder: (context) {
-                                      return widget
-                                          .books()
-                                          .map(
-                                            (e) => PopupMenuItem(
-                                              value: e.code,
-                                              child: Text(e.code ?? ''),
-                                            ),
-                                          )
-                                          .toList();
-                                    },
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        AnimatedBuilder(
-                                          animation: searchController,
-                                          builder: (context, child) =>
-                                              searchController.text.isEmpty
-                                              ? const SizedBox.shrink()
-                                              : CloseButton(
-                                                  onPressed: () {
-                                                    searchController.clear();
-                                                  },
+                              const SizedBox(width: 8),
+                              PopupMenuButton<String>(
+                                offset: const Offset(0, 48),
+                                onSelected: (value) async {
+                                  await widget.onChangeBookCode(value);
+                                  _filteredCache = null;
+                                  await Future.delayed(
+                                    const Duration(milliseconds: 100),
+                                  );
+                                  setState(() {
+                                    forceRefresh++;
+                                  });
+                                },
+                                initialValue: widget.currentBook().code,
+                                itemBuilder: (context) {
+                                  return widget
+                                      .books()
+                                      .map(
+                                        (e) => PopupMenuItem(
+                                          value: e.code,
+                                          child: Row(
+                                            children: [
+                                              Expanded(
+                                                child: Text(e.code ?? ''),
+                                              ),
+                                              if (e.code ==
+                                                  widget.currentBook().code)
+                                                Icon(
+                                                  Icons.check_rounded,
+                                                  size: 16,
+                                                  color: colors.primary,
                                                 ),
-                                        ),
-                                        Container(
-                                          width: codeWidth,
-                                          alignment: Alignment.center,
-                                          margin: const EdgeInsets.all(2),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                const BorderRadius.horizontal(
-                                                  right: Radius.circular(8),
-                                                ),
-                                            color: colors.primaryContainer
-                                                .withValues(alpha: 0.65),
-                                            border: Border.all(
-                                              color: colors.primary,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            widget.currentBook().code ?? '',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: compactSearch ? 13 : 14,
-                                              color: colors.onPrimaryContainer,
-                                            ),
+                                            ],
                                           ),
                                         ),
-                                      ],
+                                      )
+                                      .toList();
+                                },
+                                child: Container(
+                                  height: 48,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    borderRadius: context.appRadius(16),
+                                    color: colors.primaryContainer.withValues(
+                                      alpha: 0.35,
                                     ),
+                                    border: Border.all(
+                                      color: colors.primary.withValues(
+                                        alpha: 0.4,
+                                      ),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Container(
+                                        width: 6,
+                                        height: 6,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: colors.primary,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        widget.currentBook().code ?? '',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: compact ? 12 : 13,
+                                          color: colors.onPrimaryContainer,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 2),
+                                      Icon(
+                                        Icons.keyboard_arrow_down_rounded,
+                                        size: 18,
+                                        color: colors.onPrimaryContainer,
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -387,77 +414,136 @@ class _SongListViewState extends State<SongListView>
                         if (last == null || searchController.text.isNotEmpty) {
                           return const SizedBox.shrink();
                         }
-                        return Material(
-                          color: context.colorScheme.secondaryContainer
-                              .withValues(alpha: 0.45),
-                          child: InkWell(
-                            onTap: () => widget.onOpenSong(last),
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    Icons.history_rounded,
-                                    size: 18,
-                                    color: context.colorScheme.secondary,
+                        final textColor = colors.onSecondaryContainer;
+                        return Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                          child: Material(
+                            color: Colors.transparent,
+                            child: InkWell(
+                              borderRadius: context.appRadius(16),
+                              onTap: () => widget.onOpenSong(last),
+                              child: Ink(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  borderRadius: context.appRadius(16),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                    colors: [
+                                      colors.secondaryContainer.withValues(
+                                        alpha: 0.75,
+                                      ),
+                                      colors.secondaryContainer.withValues(
+                                        alpha: 0.22,
+                                      ),
+                                    ],
                                   ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          'Terakhir dibuka',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelSmall
-                                              ?.copyWith(
-                                                color: context
-                                                    .colorScheme
-                                                    .onSecondaryContainer
-                                                    .withValues(alpha: 0.7),
-                                                fontWeight: FontWeight.w600,
-                                                letterSpacing: 0.5,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 1),
-                                        Text(
-                                          '${last.number ?? ''} \u2014 ${last.title ?? ''}',
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .titleSmall
-                                              ?.copyWith(
-                                                color: context
-                                                    .colorScheme
-                                                    .onSecondaryContainer,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                        ),
-                                      ],
+                                  border: Border.all(
+                                    color: colors.outlineVariant.withValues(
+                                      alpha: 0.35,
                                     ),
                                   ),
-                                  const SizedBox(width: 8),
-                                  FilledButton.tonal(
-                                    style: FilledButton.styleFrom(
-                                      visualDensity: VisualDensity.compact,
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 14,
-                                        vertical: 0,
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: colors.shadow.withValues(
+                                        alpha: 0.06,
                                       ),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: context.appRadius(12),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 3),
+                                    ),
+                                  ],
+                                ),
+                                child: Row(
+                                  children: [
+                                    // Play avatar — instantly signals the
+                                    // "resume listening" action.
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            colors.primary,
+                                            colors.primary.withValues(
+                                              alpha: 0.75,
+                                            ),
+                                          ],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: colors.primary.withValues(
+                                              alpha: 0.35,
+                                            ),
+                                            blurRadius: 8,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.play_arrow_rounded,
+                                        color: Colors.white,
+                                        size: 26,
                                       ),
                                     ),
-                                    onPressed: () => widget.onOpenSong(last),
-                                    child: Text('Buka'.tr()),
-                                  ),
-                                ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.history_rounded,
+                                                size: 13,
+                                                color: textColor.withValues(
+                                                  alpha: 0.7,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Terakhir dibuka',
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.copyWith(
+                                                      color: textColor
+                                                          .withValues(
+                                                            alpha: 0.8,
+                                                          ),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      letterSpacing: 0.6,
+                                                    ),
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 3),
+                                          Text(
+                                            '${last.number ?? ''} \u2014 ${last.title ?? ''}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: Theme.of(context)
+                                                .textTheme
+                                                .titleSmall
+                                                ?.copyWith(
+                                                  color: textColor,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Icon(
+                                      Icons.chevron_right_rounded,
+                                      color: textColor.withValues(alpha: 0.6),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           ),

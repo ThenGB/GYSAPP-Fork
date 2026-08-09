@@ -1,5 +1,7 @@
 import 'dart:io' show Platform;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
 const refreshTokenKey = 'refresh_token';
 const backendTokenKey = 'backend_token';
 const googleIssuer = 'https://accounts.google.com';
@@ -13,6 +15,9 @@ String get googleRedirectUriAndroid =>
     '${googleClientIdAndroid.split('.').reversed.join('.')}:/oauthredirect';
 
 String clientID() {
+  // Platform is unavailable on web (dart:io stub throws UnsupportedError);
+  // web builds don't use the native Google/Apple sign-in flows.
+  if (kIsWeb) return '';
   late String result;
   if (Platform.isAndroid) {
     result = googleClientIdAndroid;
@@ -25,6 +30,7 @@ String clientID() {
 }
 
 String redirectUrl() {
+  if (kIsWeb) return '';
   if (Platform.isAndroid) {
     return googleRedirectUriAndroid;
   } else if (Platform.isIOS) {

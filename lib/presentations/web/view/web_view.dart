@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 
+import '../../../components/widgets/web_fallback_view.dart';
 import '../../../data/data.dart';
 import '../../../router/router.dart';
 
@@ -53,6 +55,10 @@ class _WebpageViewState extends State<WebpageView> {
 
   @override
   Widget build(BuildContext context) {
+    // flutter_inappwebview has no web implementation — don't build it.
+    if (kIsWeb) {
+      return WebFallbackView(title: widget.url, url: widget.url);
+    }
     // ignore: deprecated_member_use
     return WillPopScope(
       onWillPop: () async {

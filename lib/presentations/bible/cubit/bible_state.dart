@@ -61,7 +61,16 @@ abstract class BibleState with _$BibleState {
     @Default('+0%') String edgeRate,
     @Default('+0Hz') String edgePitch,
     @Default('+0%') String edgeVolume,
-    @Default(true) bool autoNextChapter,
+    @Default(false) bool autoNextChapter,
+    /// Start target of TTS playback (book + chapter + verse).  Null = the
+    /// current reading position.  Set either by the range controls in the
+    /// audio sidebar or by tapping a verse while audio is open.
+    @Default(null) Verse? ttsPlayRangeStart,
+    /// End target of TTS playback.  Null = play until the END OF THE CURRENT
+    /// CHAPTER and stop.  When set, reading stops after this verse.
+    /// "Lanjut terus" (continuing through the following chapters/books) is
+    /// expressed by [autoNextChapter] = true.
+    @Default(null) Verse? ttsPlayRangeEnd,
     @Default(0) int ttsCurrentVerseIndex,
     @Default(false) bool isSpeakingSelectedOnly,
     @Default(false) bool isSplitContentLoading,

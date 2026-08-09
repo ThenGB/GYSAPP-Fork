@@ -5,6 +5,24 @@ import 'package:pdfrx/pdfrx.dart';
 /// Position of a note on a PDF page, as percentage of page dimensions.
 typedef NotePosition = ({double xPct, double yPct});
 
+/// A lyric text line detected on a PDF page: the visible text of one visual
+/// row (baseline grouped), its start position and width as percentages of the
+/// page width.  Mirrors gyschordweb's `extractLyricLines` output and is used
+/// by the text-mode chord layout to position chords over lyric syllables.
+class PdfLyricLine {
+  final double y;
+  final String text;
+  final double startPct;
+  final double widthPct;
+
+  const PdfLyricLine({
+    required this.y,
+    required this.text,
+    required this.startPct,
+    required this.widthPct,
+  });
+}
+
 enum ExtractionProfile { standard, mdr, krLegacy }
 
 /// Detailed note information including position and label.
@@ -129,6 +147,112 @@ Map<int, NotePosition> extractNotePositions(
     for (final info in result.notes)
       info.idx: (xPct: info.xPct, yPct: info.yPct),
   };
+}
+
+/// Extracts lyric text lines from a PDF page's raw text.
+///
+/// Mirrors gyschordweb's `extractLyricLines` (lyrics-viewer.js): groups text
+/// characters into visual rows by baseline Y (±2pt), drops rows that look like
+/// digit-notation rows (`0-7 . -`), and keeps rows that contain letters.
+/// Each line reports its text plus start/width percentages of the page width
+/// so chords can be placed at `(note.xPct - startPct) / widthPct`.
+List<PdfLyricLine> extractLyricLines(PdfPageRawText rawText, double pageWidth) {
+  final text = rawText.fullText;
+  final rects = rawText.charRects;
+  if (text.isEmpty || rects.length != text.length || pageWidth <= 0) {
+    return const [];
+  }
+
+  // Group characters into visual rows (baseline Y with ±2pt tolerance).
+  final rows = <_LyricRow>[];
+  final rowsByBucket = <int, _LyricRow>{};
+  for (var i = 0; i < text.length; i++) {
+    final ch = text[i];
+    if (ch == '\n' || ch == '\r') continue;
+    final rect = rects[i];
+    final row = _findLyricRow(rowsByBucket: rowsByBucket, y: rect.bottom);
+    if (row != null) {
+      row.chars.add(_LyricChar(str: ch, left: rect.left, right: rect.right));
+    } else {
+      final newRow = _LyricRow(y: rect.bottom, chars: [
+        _LyricChar(str: ch, left: rect.left, right: rect.right),
+      ]);
+      rows.add(newRow);
+      _addLyricRow(rowsByBucket: rowsByBucket, row: newRow);
+    }
+  }
+
+  final result = <PdfLyricLine>[];
+  for (final row in rows) {
+    row.chars.sort((a, b) => a.left.compareTo(b.left));
+    final rowText = row.chars.map((c) => c.str).join().trim();
+    if (rowText.isEmpty || !row.chars.any((c) => _isLetterChar(c.str))) {
+      continue;
+    }
+    // Drop rows that are (mostly) digit-notation — mirror gyschordweb's
+    // `digitRe = /^[0-7.\s]+$/` test on each PDF text item.
+    if (row.chars.every((c) => _digitZeroToSevenPattern.hasMatch(c.str) || c.str == ' ' || c.str == '.')) {
+      continue;
+    }
+    final startX = row.chars.first.left;
+    final endX = row.chars.fold<double>(startX, (m, c) => c.right > m ? c.right : m);
+    result.add(
+      PdfLyricLine(
+        y: row.y,
+        text: rowText,
+        startPct: startX / pageWidth * 100,
+        widthPct: (endX - startX) / pageWidth * 100,
+      ),
+    );
+  }
+  return result;
+}
+
+bool _isLetterChar(String ch) {
+  if (ch.isEmpty) return false;
+  final code = ch.codeUnitAt(0);
+  return (code >= 0x41 && code <= 0x5A) || // A-Z
+      (code >= 0x61 && code <= 0x7A) || // a-z
+      code > 0x7F; // any non-ASCII letter/diacritic (Indonesian lyrics)
+}
+
+class _LyricChar {
+  final String str;
+  final double left;
+  final double right;
+  _LyricChar({required this.str, required this.left, required this.right});
+}
+
+class _LyricRow {
+  final double y;
+  final List<_LyricChar> chars;
+  _LyricRow({required this.y, required this.chars});
+}
+
+const double _lyricRowTolerance = 2.0;
+const double _lyricRowBucketSize = 2.0;
+
+int _lyricRowBucket(double y) => (y / _lyricRowBucketSize).round();
+
+_LyricRow? _findLyricRow({
+  required Map<int, _LyricRow> rowsByBucket,
+  required double y,
+}) {
+  final bucket = _lyricRowBucket(y);
+  for (final b in [bucket - 1, bucket, bucket + 1]) {
+    final row = rowsByBucket[b];
+    if (row != null && (row.y - y).abs() < _lyricRowTolerance) {
+      return row;
+    }
+  }
+  return null;
+}
+
+void _addLyricRow({
+  required Map<int, _LyricRow> rowsByBucket,
+  required _LyricRow row,
+}) {
+  rowsByBucket[_lyricRowBucket(row.y)] = row;
 }
 
 /// Extracts detailed content from a PDF page's raw text.

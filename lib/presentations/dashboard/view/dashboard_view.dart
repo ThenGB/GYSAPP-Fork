@@ -5,6 +5,7 @@ import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,7 +98,34 @@ const dashboardBottomNavigationDestinations = [
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
 
 /// Loaded once per process — the app version does not change at runtime.
-final Future<PackageInfo> _packageInfoFuture = PackageInfo.fromPlatform();
+/// Web-safe: package_info_plus' web plugin isn't bundled, so the channel
+/// call would throw MissingPluginException — fall back to an empty version.
+final Future<PackageInfo> _packageInfoFuture = _loadPackageInfo();
+
+Future<PackageInfo> _loadPackageInfo() async {
+  if (kIsWeb) {
+    return PackageInfo(
+      appName: '',
+      packageName: '',
+      version: '',
+      buildNumber: '',
+      buildSignature: '',
+      installerStore: null,
+    );
+  }
+  try {
+    return await PackageInfo.fromPlatform();
+  } catch (_) {
+    return PackageInfo(
+      appName: '',
+      packageName: '',
+      version: '',
+      buildNumber: '',
+      buildSignature: '',
+      installerStore: null,
+    );
+  }
+}
 
 const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
 const double kDashboardMiniPlayerNavGap = 8;
@@ -191,7 +219,7 @@ class _DashboardViewState extends State<DashboardView>
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    if (Platform.isAndroid) {
+    if (!kIsWeb && Platform.isAndroid) {
       WakelockPlus.disable();
     }
     super.dispose();
@@ -226,6 +254,12 @@ class _DashboardViewState extends State<DashboardView>
   final _appLinks = AppLinks();
 
   Future<void> initUniLinks() async {
+    // On web, AppLinksPluginWeb emits the CURRENT page URL as the initial
+    // "link" (Stream.value(window.location.href)). Pushing a WebpageView of
+    // the app's own URL on every load would yank the user out of the
+    // dashboard into the webview fallback screen right at startup. Web deep
+    // links are handled by the browser + router itself.
+    if (kIsWeb) return;
     // Platform messages may fail, so we use a try/catch PlatformException.
     try {
       _appLinks.uriLinkStream.listen((uri) {

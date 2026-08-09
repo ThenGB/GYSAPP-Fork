@@ -1,7 +1,7 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 
 import 'package:church/data/services/chord_service.dart';
-import 'package:church/presentations/song/widgets/chord_text_layout.dart';
+import 'package:church/data/services/chord_text_layout.dart';
 
 void main() {
   group('chordsForVerse', () {

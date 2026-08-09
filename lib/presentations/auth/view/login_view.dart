@@ -11,7 +11,9 @@ import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../components/components.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../di/injection.dart';
 import '../cubit/auth_cubit.dart';
@@ -55,6 +57,11 @@ class _LoginViewState extends State<LoginView> {
   }
 
   void _dispatchLogin() {
+    if (kIsWeb) {
+      // dart:io Platform throws on web — no native Google/Apple flows there.
+      _handleGoogleViaWebView();
+      return;
+    }
     if (kDebugMode) {
       _handleGoogleViaWebView();
       return;
@@ -288,7 +295,14 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<AuthCubit, AuthState>(
-      builder: (context, state) => Scaffold(
+      builder: (context, state) {
+        // flutter_inappwebview has no web implementation — building the
+        // webview on web throws UnsupportedError. Show a crash-free card
+        // that opens the login page in a new browser tab instead.
+        if (kIsWeb) {
+          return _buildWebFallback(context);
+        }
+        return Scaffold(
         body: Stack(
           fit: StackFit.passthrough,
           children: [
@@ -431,6 +445,68 @@ class _LoginViewState extends State<LoginView> {
               ),
             ),
           ],
+        ),
+      );
+    },
+    );
+  }
+
+  /// Web fallback: opens the login page in a new browser tab. The
+  /// in-app webview flow is Android/iOS/desktop only.
+  Widget _buildWebFallback(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Scaffold(
+      appBar: AppBar(leading: const BackButton()),
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Card(
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: context.appRadius(20),
+                side: BorderSide(color: colors.outlineVariant),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.login_rounded, size: 40, color: colors.primary),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Login'.tr(),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Login melalui browser',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurfaceVariant,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton.icon(
+                      onPressed: () async {
+                        final url =
+                            'https://e.gys.or.id/login?theme=${context.isDark ? 'dark' : 'light'}';
+                        await launchUrl(
+                          Uri.parse(url),
+                          mode: LaunchMode.externalApplication,
+                        );
+                      },
+                      icon: const Icon(Icons.open_in_new_rounded),
+                      label: Text('Buka halaman login'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
