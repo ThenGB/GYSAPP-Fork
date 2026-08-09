@@ -10,6 +10,8 @@ import 'package:fluttertoast/fluttertoast.dart';
 
 import '../../../components/components.dart';
 import '../../../data/services/bible_tts_service.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/platform_utils.dart';
 import '../cubit/bible_state.dart';
 
 @RoutePage()
@@ -558,9 +560,7 @@ class _UnitSlider extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(
-              child: Text(label, style: context.textTheme.labelLarge),
-            ),
+            Expanded(child: Text(label, style: context.textTheme.labelLarge)),
             Text(
               display,
               style: context.textTheme.labelMedium?.copyWith(
@@ -623,6 +623,7 @@ class _LoadingCard extends StatelessWidget {
 
 class _SectionLabel extends StatelessWidget {
   const _SectionLabel(this.text);
+
   final String text;
 
   @override
