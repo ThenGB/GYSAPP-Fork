@@ -18,6 +18,14 @@ if(MSVC)
     /wd4996 /wd4244 /wd4245 /wd4267 /wd4018
     /wd4456 /wd4458 /wd4459 /wd4189 /wd4127 /wd4702
   )
+
+  # flutter_inappwebview_windows 0.7.0-beta.3 still consumes the legacy
+  # <experimental/coroutine> compatibility header. VS 2026 turns Microsoft's
+  # deprecation diagnostic for that header into a hard static_assert. Keep the
+  # vendored plugin buildable until it migrates to std::coroutine; this define
+  # is intentionally global so it also reaches plugin subdirectories that do
+  # not use our APPLY_STANDARD_SETTINGS helper.
+  add_compile_definitions(_SILENCE_EXPERIMENTAL_COROUTINE_DEPRECATION_WARNINGS)
 endif()
 
 # The name of the executable created for the application. Change this to change
@@ -80,9 +88,8 @@ set(CMAKE_COMMAND "${_ORIGINAL_CMAKE_COMMAND}")
 
 
 # === Installation ===
-# Support files are copied into place next to the executable, so that it can
-# run in place. This is done instead of making a separate bundle (as on Linux)
-# so that building and running from within Visual Studio will work.
+# Support files are copied into place next to the executable, so that building
+# and running from within Visual Studio will work.
 set(BUILD_BUNDLE_DIR "$<TARGET_FILE_DIR:${BINARY_NAME}>")
 # Make the "install" step default, as it's required to run.
 set(CMAKE_VS_INCLUDE_INSTALL_TO_DEFAULT_BUILD 1)
