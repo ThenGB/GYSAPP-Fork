@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui';
 
 import 'package:church/main.dart';
@@ -24,7 +23,10 @@ class AssetFirstLoader extends SmartNetworkAssetLoader {
   @override
   Future<String> loadFromNetwork(String localeName) {
     networkRefreshes++;
-    return Completer<String>().future;
+    return Future<String>.delayed(
+      const Duration(milliseconds: 150),
+      () => '',
+    );
   }
 }
 
