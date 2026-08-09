@@ -8,6 +8,10 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: one-shot-security-reader-ui
+  cancel-in-progress: true
+
 jobs:
   patch:
     if: github.actor != 'github-actions[bot]'
@@ -26,7 +30,9 @@ jobs:
           cache: true
 
       - name: Apply security and UI patch
-        run: python .github/scripts/phase3_security_ui.py
+        run: |
+          python .github/scripts/phase3_security_ui.py
+          python .github/scripts/phase3_translation_fix.py
 
       - name: Format source
         run: dart format lib/data/services/auth_token_store.dart lib/presentations/dashboard/cubit/dashboard_cubit.dart lib/di/injection.dart lib/presentations/bible/view/bible_view.dart test/security_hygiene_test.dart
@@ -47,6 +53,7 @@ jobs:
         run: |
           rm .github/workflows/one_shot_security_ui_patch.yml
           rm .github/scripts/phase3_security_ui.py
+          rm .github/scripts/phase3_translation_fix.py
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
