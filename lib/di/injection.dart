@@ -30,7 +30,7 @@ Future<void> setupInjection(AppConfig config) async {
 void _blocs() {
   di.registerFactory(() => HomeCubit(di(), di()));
   di.registerFactory(() => InitialCubit());
-  di.registerFactory(() => DashboardCubit(di()));
+  di.registerFactory(() => DashboardCubit(di(), di()));
 
   // Bible and Song are expensive, long-lived feature controllers. Register
   // them lazily so app bootstrap only builds their engines when a widget first
@@ -95,6 +95,7 @@ Future<void> _utils(AppConfig appConfig) async {
 }
 
 void _services() {
+  di.registerLazySingleton<AuthTokenStore>(() => SecureAuthTokenStore());
   di.registerLazySingleton(() => LocalBibleAssetService());
   di.registerLazySingleton(() => PdfChunkService());
   di.registerLazySingleton(() => AppResetService(appDirectory: di()));
