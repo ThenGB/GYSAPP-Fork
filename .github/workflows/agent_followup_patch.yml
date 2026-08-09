@@ -1,0 +1,45 @@
+name: Agent Follow-up Patch
+
+on:
+  push:
+    branches:
+      - agent/startup-media-reader-stability
+
+permissions:
+  contents: write
+
+jobs:
+  apply:
+    if: "!contains(github.event.head_commit.message, '[agent-followup-applied]')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout follow-up branch
+        uses: actions/checkout@v6
+        with:
+          ref: agent/startup-media-reader-stability
+          fetch-depth: 0
+
+      - name: Apply deterministic patches
+        run: python3 tool/agent_followup_patch.py
+
+      - name: Validate patch whitespace
+        run: git diff --check
+
+      - name: Commit patch
+        run: |
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            lib/presentations/song/view/song_view.dart \
+            lib/presentations/song/widgets/draggable_midi_controls.dart \
+            lib/presentations/song/widgets/song_pdf_viewer.dart \
+            lib/presentations/bible/widgets/bible_audio_sidebar.dart \
+            lib/presentations/home/view/home_view.dart \
+            lib/presentations/faith/view/faith_view.dart \
+            assets/translations/id.json
+          git commit -m "[agent-followup-applied] Apply media UX follow-up patches"
+          git push origin HEAD:agent/startup-media-reader-stability
