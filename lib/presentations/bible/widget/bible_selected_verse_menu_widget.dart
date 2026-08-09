@@ -29,7 +29,7 @@ class SelectedVerseMenu extends StatelessWidget {
     final colors = context.colorScheme;
     return SafeArea(
       top: false,
-      minimum: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+      minimum: const EdgeInsets.fromLTRB(10, 0, 10, 86),
       child: Align(
         alignment: Alignment.bottomCenter,
         child: ConstrainedBox(
