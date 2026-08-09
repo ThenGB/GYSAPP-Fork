@@ -21,6 +21,17 @@ void main() {
         ],
       };
 
+  Map<String, dynamic> legacyManifest() {
+    final data = manifest();
+    final items = data['items'] as List<dynamic>;
+    final first = Map<String, dynamic>.from(items.first as Map)
+      ..['name'] = '01-Yesus Kristus.pdf'
+      ..['downloadUrl'] =
+          'https://github.com/ThenGB/GYSApp-Data/releases/download/faith-pdfs-test/01-Yesus%20Kristus.pdf';
+    items[0] = first;
+    return data;
+  }
+
   test('resolves all belief PDFs from the GYSApp-Data manifest', () async {
     final client = MockClient((request) async {
       expect(request.url.host, 'raw.githubusercontent.com');
@@ -41,6 +52,59 @@ void main() {
         startsWith('/ThenGB/GYSApp-Data/releases/download/'),
       );
     }
+  });
+
+  test('resolves legacy spaced names against real release assets', () async {
+    var calls = 0;
+    final client = MockClient((request) async {
+      calls++;
+      if (request.url.host == 'raw.githubusercontent.com') {
+        return http.Response(jsonEncode(legacyManifest()), 200);
+      }
+
+      expect(request.url.host, 'api.github.com');
+      expect(request.url.path, contains('/releases/tags/faith-pdfs-test'));
+      return http.Response(
+        jsonEncode({
+          'assets': [
+            for (var number = 1; number <= 10; number++)
+              {
+                'name': number == 1
+                    ? '01-Yesus.Kristus.pdf'
+                    : '${number.toString().padLeft(2, '0')}-belief.pdf',
+                'browser_download_url': number == 1
+                    ? 'https://github.com/ThenGB/GYSApp-Data/releases/download/faith-pdfs-test/01-Yesus.Kristus.pdf'
+                    : 'https://github.com/ThenGB/GYSApp-Data/releases/download/faith-pdfs-test/${number.toString().padLeft(2, '0')}-belief.pdf',
+              },
+          ],
+        }),
+        200,
+      );
+    });
+    final service = FaithPdfService(client: client);
+    addTearDown(service.dispose);
+
+    final document = await service.documentFor(1);
+    expect(document, isNotNull);
+    expect(document!.name, '01-Yesus.Kristus.pdf');
+    expect(document.uri.path, endsWith('/01-Yesus.Kristus.pdf'));
+    expect(calls, 2);
+  });
+
+  test('legacy first PDF remains usable when release API is unavailable', () async {
+    final client = MockClient((request) async {
+      if (request.url.host == 'raw.githubusercontent.com') {
+        return http.Response(jsonEncode(legacyManifest()), 200);
+      }
+      return http.Response('unavailable', 503);
+    });
+    final service = FaithPdfService(client: client);
+    addTearDown(service.dispose);
+
+    final document = await service.documentFor(1);
+    expect(document, isNotNull);
+    expect(document!.name, '01-Yesus.Kristus.pdf');
+    expect(document.uri.path, endsWith('/01-Yesus.Kristus.pdf'));
   });
 
   test('rejects manifest download URLs outside GYSApp-Data releases', () async {
