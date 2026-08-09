@@ -102,7 +102,8 @@ void _services() {
     () => ChordSyncService(di<AppDirectory>(), http.Client()),
   );
   di.registerLazySingleton(
-    () => InstalledAssetStoreHolder.store ??
+    () =>
+        InstalledAssetStoreHolder.store ??
         createInstalledAssetStore(
           '${di<AppDirectory>().support}/installed_assets',
         ),
@@ -179,33 +180,27 @@ class AppDirectory {
 final InterceptorsWrapper loggingInterceptor = InterceptorsWrapper(
   onError: (error, handler) {
     if (kDebugMode) {
-      log(error.message ?? '', name: 'HTTP ERROR');
-      log(error.response?.data.toString() ?? '', name: 'HTTP ERROR');
+      final request = error.requestOptions;
+      log(
+        '${request.method} ${request.path} -> ${error.response?.statusCode ?? 'network error'}',
+        name: 'HTTP ERROR',
+      );
     }
-    return handler.reject(error);
+    return handler.next(error);
   },
   onRequest: (options, handler) {
     if (kDebugMode) {
-      log(options.toJson().toString(), name: 'HTTP REQUEST');
+      log('${options.method} ${options.path}', name: 'HTTP REQUEST');
     }
     return handler.next(options);
   },
   onResponse: (response, handler) {
     if (kDebugMode) {
-      log(response.data.toString(), name: 'HTTP RESPONSE');
+      log(
+        '${response.requestOptions.method} ${response.requestOptions.path} -> ${response.statusCode}',
+        name: 'HTTP RESPONSE',
+      );
     }
     return handler.next(response);
   },
 );
-
-extension RequestOptionsExtension on RequestOptions {
-  Map<String, dynamic> toJson() {
-    return {
-      'method': method,
-      'baseUrl': baseUrl,
-      'path': path,
-      'headers': headers,
-      'data': data,
-    };
-  }
-}
