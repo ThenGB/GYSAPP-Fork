@@ -66,6 +66,12 @@ stitch_kidung_rohani_gys/
 screenshots/
 *.png
 
+# flutter_native_splash creates Android 12 branding PNGs in previously
+# non-tracked resource paths. Keep these generated runtime resources even
+# though arbitrary screenshots/PNGs remain ignored above.
+!android/app/src/main/res/drawable-*/android12branding.png
+!android/app/src/main/res/drawable-night-*/android12branding.png
+
 # Original PDF and DB sources
 Original Alkitab DB/
 Original PDF/

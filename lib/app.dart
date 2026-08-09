@@ -16,6 +16,7 @@ import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:sqflite_common_ffi_web/sqflite_ffi_web.dart'
     show databaseFactoryFfiWeb;
 
+import 'components/themes/church_theme.dart';
 import 'components/themes/dark_theme.dart';
 import 'components/themes/default_theme.dart';
 import 'data/data.dart';
@@ -225,6 +226,29 @@ class App extends StatelessWidget {
             prev.themeMode != curr.themeMode ||
             prev.themePreferences != curr.themePreferences,
         builder: (context, state) {
+          final lightTheme = applyChurchVisualSystem(
+            defaultTheme(
+              state.defaultFont,
+              accentKey: state.accentKey,
+              customSeed: state.themePreferences.customAccentColor,
+              density: state.themePreferences.density,
+              cornerRadius: state.themePreferences.cornerRadius,
+              typographyScale: state.themePreferences.typographyScale,
+            ),
+            preferences: state.themePreferences,
+          );
+          final appDarkTheme = applyChurchVisualSystem(
+            darkTheme(
+              state.defaultFont,
+              accentKey: state.accentKey,
+              customSeed: state.themePreferences.customAccentColor,
+              density: state.themePreferences.density,
+              cornerRadius: state.themePreferences.cornerRadius,
+              typographyScale: state.themePreferences.typographyScale,
+            ),
+            preferences: state.themePreferences,
+          );
+
           return MaterialApp.router(
             title: 'Gereja Yesus Sejati',
             scrollBehavior: const _SmoothScrollBehavior(),
@@ -232,23 +256,9 @@ class App extends StatelessWidget {
             supportedLocales: context.supportedLocales,
             locale: context.locale,
             routerConfig: router.config(),
-            theme: defaultTheme(
-              state.defaultFont,
-              accentKey: state.accentKey,
-              customSeed: state.themePreferences.customAccentColor,
-              density: state.themePreferences.density,
-              cornerRadius: state.themePreferences.cornerRadius,
-              typographyScale: state.themePreferences.typographyScale,
-            ),
+            theme: lightTheme,
             debugShowCheckedModeBanner: false,
-            darkTheme: darkTheme(
-              state.defaultFont,
-              accentKey: state.accentKey,
-              customSeed: state.themePreferences.customAccentColor,
-              density: state.themePreferences.density,
-              cornerRadius: state.themePreferences.cornerRadius,
-              typographyScale: state.themePreferences.typographyScale,
-            ),
+            darkTheme: appDarkTheme,
             themeMode: state.themeMode.toThemeMode,
             builder: (context, child) {
               return BlocBuilder<InitialCubit, InitialState>(

@@ -158,7 +158,7 @@ const appAccentOptions = [
   ),
   AppAccentOption(
     key: 'skyBlue',
-    label: 'Sky Blue',
+    label: 'GYS Blue',
     seed: Color(0xFF3B82F6),
     container: Color(0xFFDBEAFE),
     fixed: Color(0xFFF8FAFC),

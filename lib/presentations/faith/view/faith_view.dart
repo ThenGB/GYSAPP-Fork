@@ -1,4 +1,3 @@
-import '../../../components/components.dart';
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
@@ -11,14 +10,16 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:simple_animations/simple_animations.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../../components/components.dart';
 import '../../../data/data.dart';
+import '../../../data/services/faith_pdf_service.dart';
 import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
-const double _faithMaxContentWidth = 1040;
+const double _faithMaxContentWidth = 920;
 
 @RoutePage()
 class FaithView extends StatefulWidget {
@@ -29,234 +30,222 @@ class FaithView extends StatefulWidget {
 }
 
 class _FaithViewState extends State<FaithView> {
-  late final PageController pageController = PageController(keepPage: true)
-    ..addListener(pageListener);
-  List data = [];
-  bool isInitialized = false;
+  final FaithPdfService _pdfService = FaithPdfService();
+  List<dynamic> _data = const [];
+  bool _isInitialized = false;
+
   @override
   void initState() {
-    Future.microtask(() async {
-      var jsonString = await rootBundle.loadString(Assets.assetsDataFaith);
-      var json = jsonDecode(jsonString)['faith'];
-      data = json;
-      isInitialized = true;
-      setState(() {});
-    });
     super.initState();
+    Future.microtask(_loadFaithData);
   }
 
-  List get currentData {
-    var language = context.read<FaithCubit>().state.locale.languageCode;
-    var temp = data.firstWhereOrNull(
-      (element) => element['language'] == language.toUpperCase(),
-    );
-    if (temp == null) return [];
-    return temp['content'];
-  }
-
-  String get currentTitle {
-    var language = context.read<FaithCubit>().state.locale.languageCode;
-    var temp = data.firstWhereOrNull(
-      (element) => element['language'] == language.toUpperCase(),
-    );
-    if (temp == null) return '';
-    return temp['title'];
-  }
-
-  void pageListener() {
-    WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-      currentPage = pageController.page?.toInt() ?? 0;
-      if (mounted) {
-        setState(() {});
-      }
+  Future<void> _loadFaithData() async {
+    final jsonString = await rootBundle.loadString(Assets.assetsDataFaith);
+    final decoded = jsonDecode(jsonString);
+    final faith = decoded is Map<String, dynamic> ? decoded['faith'] : null;
+    if (!mounted) return;
+    setState(() {
+      _data = faith is List ? faith : const [];
+      _isInitialized = true;
     });
   }
 
   @override
   void dispose() {
-    pageController.dispose();
+    _pdfService.dispose();
     super.dispose();
   }
 
-  int currentPage = 0;
+  List<dynamic> get currentData {
+    final language = context.read<FaithCubit>().state.locale.languageCode;
+    final selected = _data.firstWhereOrNull(
+      (element) =>
+          element is Map && element['language'] == language.toUpperCase(),
+    );
+    if (selected is! Map) return const [];
+    final content = selected['content'];
+    return content is List ? content : const [];
+  }
 
-  final GlobalKey selectedFaithMenuKey = GlobalKey();
+  String get currentTitle {
+    final language = context.read<FaithCubit>().state.locale.languageCode;
+    final selected = _data.firstWhereOrNull(
+      (element) =>
+          element is Map && element['language'] == language.toUpperCase(),
+    );
+    if (selected is! Map) return 'faith_section_title'.tr();
+    return selected['title']?.toString() ?? 'faith_section_title'.tr();
+  }
 
   @override
   Widget build(BuildContext context) {
-    if (!isInitialized) {
-      return const Center(child: CircularProgressIndicator());
+    if (!_isInitialized) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-    return BlocBuilder<FaithCubit, FaithState>(
-      builder: (context, state) => Scaffold(
-        backgroundColor: context.colorScheme.surface,
 
-        appBar: AppBar(
-          backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
-          title: Text('faith_section_title'.tr()),
-          automaticallyImplyLeading: false,
-          toolbarHeight: 74,
-          leading: IconButton(
-            tooltip: 'Menu',
-            onPressed: openDashboardDrawer,
-            icon: const Icon(Icons.menu_outlined),
-          ),
-          actions: [
-            Material(
-              color: Colors.transparent,
-              shape: StadiumBorder(
-                side: BorderSide(
-                  color: context
-                      .colorScheme
-                      .outlineVariant
-                      .withValues(alpha: 0.4),
+    return BlocBuilder<FaithCubit, FaithState>(
+      builder: (context, state) {
+        final initialState = context.read<InitialCubit>().state;
+        return Scaffold(
+          backgroundColor: context.colorScheme.surface,
+          appBar: AppBar(
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              tooltip: 'Menu',
+              onPressed: openDashboardDrawer,
+              icon: const Icon(Icons.menu_rounded),
+            ),
+            title: Text(currentTitle),
+            actions: [
+              Builder(
+                builder: (pillContext) => Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: OutlinedButton.icon(
+                    onPressed: () => _showLanguageMenu(pillContext, state),
+                    icon: const Icon(Icons.translate_rounded, size: 17),
+                    label: Text(_localeLabel(state.locale)),
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(0, 40),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
                 ),
               ),
-              clipBehavior: Clip.antiAlias,
-              // Builder gives the InkWell its own context so the menu
-              // anchors to THIS pill (using the page context made the
-              // menu pop up at the wrong position — far left).
-              child: Builder(
-                builder: (pillContext) => InkWell(
-                  borderRadius: BorderRadius.circular(999),
-                  onTap: () =>
-                      _showLanguageMenu(pillContext, state),
-                  child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
+              IconButton(
+                tooltip: 'See all notes'.tr(),
+                onPressed: () =>
+                    router.push(FaithNoteListRoute(cubit: context.read())),
+                icon: const Icon(Icons.note_alt_outlined),
+              ),
+              const SizedBox(width: 4),
+            ],
+          ),
+          body: Column(
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  padding: EdgeInsets.fromLTRB(
+                    0,
+                    context.appSpace(12),
+                    0,
+                    context.appSpace(28),
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.translate_rounded,
-                        size: 18,
-                        color: context.colorScheme.onSurfaceVariant,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        _localeLabel(state.locale),
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: context.colorScheme.onSurfaceVariant,
+                  itemCount: currentData.length + 1,
+                  itemBuilder: (context, listIndex) {
+                    if (listIndex == 0) {
+                      return const _FaithIntroduction();
+                    }
+                    final index = listIndex - 1;
+                    final raw = currentData[index];
+                    if (raw is! Map) return const SizedBox.shrink();
+                    final item = Map<String, dynamic>.from(raw);
+                    return Align(
+                      alignment: Alignment.topCenter,
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(
+                          maxWidth: _faithMaxContentWidth,
+                        ),
+                        child: FaithWidget(
+                          fontHeight: initialState.defaultTextHeight,
+                          index: index,
+                          item: item,
+                          scale: initialState.defaultTextScale,
+                          pdfService: _pdfService,
                         ),
                       ),
-                      Icon(
-                        Icons.arrow_drop_down,
-                        color: context.colorScheme.onSurfaceVariant,
+                    );
+                  },
+                ),
+              ),
+              AnimatedSize(
+                curve: Curves.easeOutCubic,
+                alignment: Alignment.bottomCenter,
+                duration: const Duration(milliseconds: 220),
+                child: state.selectedFaith.isEmpty
+                    ? const SizedBox.shrink()
+                    : SelectedFaithMenu(
+                        title: currentTitle,
+                        indexes: state.selectedFaith,
+                        currentData: currentData,
+                        viewPadding: context.mediaQuery.viewPadding.vertical,
+                      ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FaithIntroduction extends StatelessWidget {
+  const _FaithIntroduction();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Align(
+      alignment: Alignment.topCenter,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _faithMaxContentWidth),
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(
+            context.appSpace(16),
+            context.appSpace(4),
+            context.appSpace(16),
+            context.appSpace(12),
+          ),
+          child: Container(
+            padding: EdgeInsets.all(context.appSpace(18)),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: context.appRadius(18),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.55),
+              ),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer,
+                    borderRadius: context.appRadius(13),
+                  ),
+                  child: Icon(
+                    Icons.church_outlined,
+                    color: colors.onPrimaryContainer,
+                    size: 21,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _introTitle(context),
+                        style: context.textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _introBody(context),
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          height: 1.45,
+                        ),
                       ),
                     ],
                   ),
                 ),
-                ),
-              ),
+              ],
             ),
-            const SizedBox(width: 4),
-            PopupMenuButton<String>(
-              offset: Offset(0, 48),
-              onSelected: (value) {
-                if (value == 'See all notes') {
-                  router.push(FaithNoteListRoute(cubit: context.read()));
-                }
-              },
-              itemBuilder: (context) {
-                return ['See all notes']
-                    .map((e) => PopupMenuItem(value: e, child: Text(e.tr())))
-                    .toList();
-              },
-              child: Material(
-                color: Colors.transparent,
-                shape: const CircleBorder(),
-                clipBehavior: Clip.antiAlias,
-                child: InkWell(
-                  customBorder: const CircleBorder(),
-                  child: Padding(
-                    padding: const EdgeInsets.all(10),
-                    child: Icon(
-                      Icons.more_vert_rounded,
-                      size: 22,
-                      color: context.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
+          ),
         ),
-
-        body: !isInitialized
-            ? const Center(child: CircularProgressIndicator())
-            : DecoratedBox(
-                decoration: BoxDecoration(color: context.colorScheme.surface),
-                child: Column(
-                  children: [
-                    Expanded(
-                      child: ListView.builder(
-                        itemCount: currentData.length,
-                        physics: AlwaysScrollableScrollPhysics(),
-                        itemBuilder: (context, index) {
-                          final faithIndex = index;
-                          var item = currentData[faithIndex];
-                          final initialCubit = context.read<InitialCubit>();
-                          return Align(
-                            alignment: Alignment.topCenter,
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(
-                                maxWidth: _faithMaxContentWidth,
-                              ),
-                              child: DefaultTextStyle.merge(
-                                style: TextStyle(
-                                  fontWeight:
-                                      context
-                                          .read<FaithCubit>()
-                                          .state
-                                          .locale
-                                          .languageCode
-                                          .contains('zh')
-                                      ? FontWeight.w700
-                                      : null,
-                                ),
-                                child: FaithWidget(
-                                  fontHeight: initialCubit.state.defaultTextHeight,
-                                  index: faithIndex,
-                                  item: item,
-                                  scale: initialCubit.state.defaultTextScale,
-                                ),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    AnimatedSize(
-                      curve: Curves.easeOut,
-                      alignment: Alignment.bottomCenter,
-                      duration: kThemeAnimationDuration,
-                      child: state.selectedFaith.isEmpty
-                          ? const SizedBox.shrink()
-                          : PlayAnimationBuilder(
-                              curve: Curves.easeOut,
-                              delay: kThemeAnimationDuration,
-                              duration: kThemeAnimationDuration,
-                              tween: Tween<double>(begin: 0, end: 1),
-                              builder: (c, value, child) => Opacity(
-                                opacity: value,
-                                child: SelectedFaithMenu(
-                                  key: selectedFaithMenuKey,
-                                  title: currentTitle,
-                                  indexes: state.selectedFaith,
-                                  currentData: currentData,
-                                  viewPadding:
-                                      context.mediaQuery.viewPadding.vertical,
-                                ),
-                              ),
-                            ),
-                    ),
-                  ],
-                ),
-              ),
       ),
     );
   }
@@ -269,129 +258,196 @@ class FaithWidget extends StatelessWidget {
     required this.scale,
     required this.index,
     required this.fontHeight,
+    required this.pdfService,
   });
 
   final Map<String, dynamic> item;
   final double scale;
   final double fontHeight;
   final int index;
+  final FaithPdfService pdfService;
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FaithCubit, FaithState>(
-      builder: (context, state) => GestureDetector(
-        onTap: () async {
-          context.read<FaithCubit>().selectVerse(index);
-          if (state.selectedFaith.isEmpty) {
-            await Future.delayed(Duration(milliseconds: 600));
-          }
-          if (context.read<FaithCubit>().state.selectedFaith.contains(index)) {
-            Scrollable.ensureVisible(
-              context,
-              alignmentPolicy: ScrollPositionAlignmentPolicy.explicit,
-              alignment: .3,
-              curve: Curves.easeOut,
-              duration: Duration(milliseconds: 500),
-            );
-          }
-        },
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final compact = constraints.maxWidth < 430;
-            final cardPadding = compact ? 18.0 : 24.0;
-            final numberGap = compact ? 12.0 : 16.0;
-            final initialCubit = context.read<InitialCubit>();
-            return AnimatedContainer(
-              duration: const Duration(milliseconds: 250),
-              curve: Curves.easeOut,
-              margin: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(
-                color: state.selectedFaith.contains(index)
-                    ? context.colorScheme.primaryContainer
-                    : context.colorScheme.surfaceContainer,
-                borderRadius: context.appRadius(compact ? 18 : 22),
+      buildWhen: (previous, current) =>
+          previous.selectedFaith != current.selectedFaith ||
+          previous.language != current.language,
+      builder: (context, state) {
+        final selected = state.selectedFaith.contains(index);
+        final colors = context.colorScheme;
+        final isChinese = state.locale.languageCode == 'zh';
+        final initialCubit = context.read<InitialCubit>();
+
+        return Padding(
+          padding: EdgeInsets.fromLTRB(
+            context.appSpace(16),
+            context.appSpace(6),
+            context.appSpace(16),
+            context.appSpace(6),
+          ),
+          child: Material(
+            color: selected
+                ? colors.primaryContainer.withValues(alpha: 0.72)
+                : colors.surfaceContainerLowest,
+            shape: RoundedRectangleBorder(
+              borderRadius: context.appRadius(18),
+              side: BorderSide(
+                color: selected
+                    ? colors.primary.withValues(alpha: 0.38)
+                    : colors.outlineVariant.withValues(alpha: 0.55),
               ),
-              child: Stack(
-                children: [
-                  // Roman ornament — auto-fits the whole card (FittedBox
-                  // scales it down), so it can never be cropped.
-                  Positioned.fill(
-                    child: Padding(
-                      padding: const EdgeInsets.only(right: 8, bottom: 4),
-                      child: AnimatedDefaultTextStyle(
-                        duration: const Duration(milliseconds: 250),
-                        style:
-                            (context.textTheme.headlineLarge ?? const TextStyle())
-                                .copyWith(
-                                  fontSize: 96,
-                                  fontWeight: FontWeight.w900,
-                                  color: context.colorScheme.primary.withValues(
-                                    alpha: state.selectedFaith.contains(index)
-                                        ? 0.20
-                                        : 0.10,
-                                  ),
-                                  height: 1,
-                                ),
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          alignment: Alignment.bottomRight,
-                          child: Text(_romanNumeral(index + 1)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      cardPadding,
-                      cardPadding,
-                      cardPadding,
-                      cardPadding,
-                    ),
-                    child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        '${item['number']}',
-                        style: TextStyle(
-                          fontSize: context.appFontSize(14) * 1.5,
-                          fontWeight: FontWeight.w800,
-                          color: context.colorScheme.primary,
-                          height: 1.1,
-                        ),
-                      ),
-                      SizedBox(width: numberGap),
-                      Expanded(
-                        child: Text.rich(
-                          TextSpan(text: item['text'].toString()),
-                          textScaler: TextScaler.linear(scale),
-                          style: TextStyle(
-                            fontFamily: initialCubit.state.defaultFont,
-                            // CJK glyphs use a fallback font whose metrics
-                            // differ — forcing fontHeight clipped the glyphs
-                            // (cropped rows). Use natural line height there.
-                            height: context
-                                    .read<FaithCubit>()
-                                    .state
-                                    .locale
-                                    .languageCode
-                                    .contains('zh')
-                                ? null
-                                : fontHeight,
-                            // Regular weight: w500 rendered noticeably
-                            // heavy with EB Garamond / Manrope.
-                            fontWeight: FontWeight.w400,
-                            fontSize: context.appFontSize(14),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: InkWell(
+              onTap: () async {
+                context.read<FaithCubit>().selectVerse(index);
+                await Future<void>.delayed(const Duration(milliseconds: 80));
+                if (!context.mounted) return;
+                if (context.read<FaithCubit>().state.selectedFaith.contains(index)) {
+                  Scrollable.ensureVisible(
+                    context,
+                    alignment: 0.26,
+                    curve: Curves.easeOutCubic,
+                    duration: const Duration(milliseconds: 280),
+                  );
+                }
+              },
+              child: Padding(
+                padding: EdgeInsets.all(context.appSpace(18)),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          constraints: const BoxConstraints(minWidth: 36),
+                          height: 36,
+                          padding: const EdgeInsets.symmetric(horizontal: 9),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? colors.primary
+                                : colors.primaryContainer,
+                            borderRadius: context.appRadius(11),
+                          ),
+                          child: Text(
+                            '${item['number']}',
+                            style: context.textTheme.labelLarge?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: selected
+                                  ? colors.onPrimary
+                                  : colors.onPrimaryContainer,
+                            ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Text(
+                            item['text']?.toString() ?? '',
+                            textScaler: TextScaler.linear(scale),
+                            style: TextStyle(
+                              fontFamily: initialCubit.state.defaultFont,
+                              height: isChinese ? null : fontHeight,
+                              fontWeight: FontWeight.w400,
+                              fontSize: context.appFontSize(15),
+                              color: colors.onSurface,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: context.appSpace(14)),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectHint(context, selected),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.labelSmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              letterSpacing: 0.15,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        _FaithPdfButton(
+                          beliefNumber: index + 1,
+                          pdfService: pdfService,
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                ],
               ),
-            );
-          },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _FaithPdfButton extends StatefulWidget {
+  const _FaithPdfButton({
+    required this.beliefNumber,
+    required this.pdfService,
+  });
+
+  final int beliefNumber;
+  final FaithPdfService pdfService;
+
+  @override
+  State<_FaithPdfButton> createState() => _FaithPdfButtonState();
+}
+
+class _FaithPdfButtonState extends State<_FaithPdfButton> {
+  bool _loading = false;
+
+  Future<void> _openPdf() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    try {
+      final document = await widget.pdfService.documentFor(widget.beliefNumber);
+      if (!mounted) return;
+      if (document == null) {
+        _showPdfUnavailable();
+        return;
+      }
+      final opened = await launchUrl(document.uri, mode: LaunchMode.platformDefault);
+      if (!opened && mounted) _showPdfUnavailable();
+    } catch (_) {
+      if (mounted) _showPdfUnavailable();
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  void _showPdfUnavailable() {
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(msg: _pdfUnavailable(context));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: _pdfButtonLabel(context),
+      child: OutlinedButton.icon(
+        onPressed: _loading ? null : _openPdf,
+        icon: _loading
+            ? const SizedBox.square(
+                dimension: 16,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Icon(Icons.picture_as_pdf_outlined, size: 18),
+        label: Text(_pdfButtonLabel(context)),
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 40),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          visualDensity: VisualDensity.compact,
         ),
       ),
     );
@@ -406,10 +462,7 @@ Future<void> _showLanguageMenu(BuildContext context, FaithState state) async {
     position: RelativeRect.fromRect(
       Rect.fromPoints(
         box.localToGlobal(Offset.zero, ancestor: overlay),
-        box.localToGlobal(
-          box.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
+        box.localToGlobal(box.size.bottomRight(Offset.zero), ancestor: overlay),
       ),
       Offset.zero & overlay.size,
     ),
@@ -420,11 +473,7 @@ Future<void> _showLanguageMenu(BuildContext context, FaithState state) async {
           value: locale,
           child: Row(
             children: [
-              Icon(
-                Icons.language_rounded,
-                size: 18,
-                color: context.colorScheme.onSurfaceVariant,
-              ),
+              const Icon(Icons.language_rounded, size: 18),
               const SizedBox(width: 10),
               Text(
                 _localeLabel(locale),
@@ -445,36 +494,57 @@ Future<void> _showLanguageMenu(BuildContext context, FaithState state) async {
   }
 }
 
-String _localeLabel(Locale locale) {
-  return switch (locale.languageCode) {
-    'id' => 'Indonesia',
-    'en' => 'English',
-    'zh' => '中文',
-    _ => locale.languageCode,
+String _localeLabel(Locale locale) => switch (locale.languageCode) {
+      'id' => 'Indonesia',
+      'en' => 'English',
+      'zh' => '中文',
+      _ => locale.languageCode,
+    };
+
+String _introTitle(BuildContext context) => switch (context.locale.languageCode) {
+      'id' => 'Sepuluh Dasar Kepercayaan',
+      'zh' => '十大信条',
+      _ => 'Ten Basic Beliefs',
+    };
+
+String _introBody(BuildContext context) => switch (context.locale.languageCode) {
+      'id' =>
+        'Baca setiap dasar kepercayaan dengan tenang. Ketuk kartu untuk memilih, mencatat, menyalin, atau membagikan; gunakan tombol PDF untuk membuka penjelasan lengkapnya.',
+      'zh' => '阅读每一项信条。点按卡片可选择、记录、复制或分享；使用 PDF 按钮查看完整说明。',
+      _ =>
+        'Read each belief at your own pace. Tap a card to select, note, copy, or share it; use the PDF button for the full explanation.',
+    };
+
+String _selectHint(BuildContext context, bool selected) {
+  if (selected) {
+    return switch (context.locale.languageCode) {
+      'id' => 'Dipilih untuk tindakan',
+      'zh' => '已选择',
+      _ => 'Selected for actions',
+    };
+  }
+  return switch (context.locale.languageCode) {
+    'id' => 'Ketuk kartu untuk memilih',
+    'zh' => '点按卡片以选择',
+    _ => 'Tap card to select',
   };
 }
 
-String _romanNumeral(int value) {
-  const numerals = {
-    10: 'X',
-    9: 'IX',
-    8: 'VIII',
-    7: 'VII',
-    6: 'VI',
-    5: 'V',
-    4: 'IV',
-    3: 'III',
-    2: 'II',
-    1: 'I',
-  };
-  return numerals[value] ?? value.toString();
-}
+String _pdfButtonLabel(BuildContext context) =>
+    switch (context.locale.languageCode) {
+      'id' => 'Penjelasan PDF',
+      'zh' => 'PDF 说明',
+      _ => 'PDF explanation',
+    };
+
+String _pdfUnavailable(BuildContext context) =>
+    switch (context.locale.languageCode) {
+      'id' => 'PDF belum tersedia atau koneksi sedang bermasalah.',
+      'zh' => 'PDF 暂不可用或网络连接有问题。',
+      _ => 'The PDF is unavailable or the connection failed.',
+    };
 
 class SelectedFaithMenu extends StatelessWidget {
-  final List<int> indexes;
-  final String title;
-  final List<dynamic> currentData;
-  final double viewPadding;
   const SelectedFaithMenu({
     super.key,
     required this.indexes,
@@ -483,18 +553,29 @@ class SelectedFaithMenu extends StatelessWidget {
     required this.viewPadding,
   });
 
+  final List<int> indexes;
+  final String title;
+  final List<dynamic> currentData;
+  final double viewPadding;
+
   @override
   Widget build(BuildContext context) {
+    final colors = context.colorScheme;
     return Align(
       alignment: Alignment.topCenter,
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 920),
+        constraints: const BoxConstraints(maxWidth: _faithMaxContentWidth),
         child: Container(
-          clipBehavior: Clip.antiAlias,
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 0),
+          margin: const EdgeInsets.symmetric(horizontal: 12),
+          padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
           decoration: BoxDecoration(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-            color: context.colorScheme.surfaceContainerHighest,
+            color: colors.surfaceContainerHigh,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+            border: Border(
+              top: BorderSide(color: colors.outlineVariant),
+              left: BorderSide(color: colors.outlineVariant),
+              right: BorderSide(color: colors.outlineVariant),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -503,39 +584,32 @@ class SelectedFaithMenu extends StatelessWidget {
               Row(
                 children: [
                   Expanded(
-                    child: Text.rich(
-                      TextSpan(
-                        text:
-                            '${(indexes.map((e) => e + 1)).toList().joinToString()}  ',
-                        children: const [],
+                    child: Text(
+                      '${indexes.length} ${_selectedLabel(context)}',
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w700,
                       ),
-                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                   IconButton(
-                    icon: Icon(Icons.close),
+                    tooltip: 'Close'.tr(),
                     visualDensity: VisualDensity.compact,
                     onPressed: context.read<FaithCubit>().removeSelection,
+                    icon: const Icon(Icons.close_rounded),
                   ),
                 ],
               ),
-              SizedBox(height: 12),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 8,
                 runSpacing: 8,
                 children: [
                   if (indexes.length == 1)
-                    TextButton(
-                      style: TextButton.styleFrom(
-                        backgroundColor: context.colorScheme.primaryContainer,
-                        foregroundColor: context.colorScheme.onPrimaryContainer,
-                      ),
+                    FilledButton.tonalIcon(
                       onPressed: () {
                         router.push(
                           FaithNoteRoute(
-                            initialData: FaithNote.empty(
-                              context.read<FaithCubit>().state.selectedFaith,
-                            ),
+                            initialData: FaithNote.empty(indexes),
                             cubit: context.read<FaithCubit>(),
                             mode: NoteMode.write,
                             onSave: (data) {
@@ -548,70 +622,64 @@ class SelectedFaithMenu extends StatelessWidget {
                           ),
                         );
                       },
-                      child: Text('Note'.tr()),
+                      icon: const Icon(Icons.note_add_outlined, size: 18),
+                      label: Text('Note'.tr()),
                     ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.primaryContainer,
-                      foregroundColor: context.colorScheme.onPrimaryContainer,
-                    ),
-                    onPressed: () async {
-                      String text = '';
-                      var verses = indexes.sorted((a, b) => a.compareTo(b));
-                      var json = await AppConfigStore.jsonConfig(
-                        'footer_copied_text',
-                      );
-                      var footer = json[context.locale.languageCode];
-                      text = title;
-                      for (var index in verses) {
-                        var verse = currentData[index]['text'];
-                        var number = index + 1;
-                        text += '\n$number. $verse';
-                      }
-                      text += '\n\n$footer';
-                      try {
-                        await SharePlus.instance.share(ShareParams(text: text));
-                      } catch (_) {
-                        // Share is unavailable on some platforms — ignore.
-                      }
-                    },
-                    child: Text('Share'.tr()),
+                  FilledButton.tonalIcon(
+                    onPressed: () => _shareFaith(context),
+                    icon: const Icon(Icons.share_outlined, size: 18),
+                    label: Text('Share'.tr()),
                   ),
-                  TextButton(
-                    style: TextButton.styleFrom(
-                      backgroundColor: context.colorScheme.outlineVariant,
-                      foregroundColor: context.colorScheme.onSecondaryContainer,
-                    ),
-                    onPressed: () async {
-                      String text = '';
-                      var verses = indexes.sorted((a, b) => a.compareTo(b));
-                      var json = await AppConfigStore.jsonConfig(
-                        'footer_copied_text',
-                      );
-                      var footer = json[context.locale.languageCode];
-                      text = title;
-                      for (var index in verses) {
-                        var verse = currentData[index]['text'];
-                        var number = index + 1;
-                        text += '\n$number. $verse';
-                      }
-                      text += '\n\n$footer';
-                      await Clipboard.setData(ClipboardData(text: text));
-                      Fluttertoast.cancel();
-                      Fluttertoast.showToast(msg: 'Copied!'.tr());
-                    },
-                    child: Text('Copy'.tr()),
+                  OutlinedButton.icon(
+                    onPressed: () => _copyFaith(context),
+                    icon: const Icon(Icons.copy_outlined, size: 18),
+                    label: Text('Copy'.tr()),
                   ),
                 ],
               ),
-              // The faith page is a full-screen route whose bottom edge
-              // sits under the floating dock, so the selection menu needs
-              // explicit nav-bar clearance (72 = 64px dock + margin).
-              SizedBox(height: 8 + 16 + viewPadding + 72),
+              SizedBox(height: 12 + viewPadding + 72),
             ],
           ),
         ),
       ),
     );
   }
+
+  Future<void> _shareFaith(BuildContext context) async {
+    final text = await _selectedText(context);
+    try {
+      await SharePlus.instance.share(ShareParams(text: text));
+    } catch (_) {}
+  }
+
+  Future<void> _copyFaith(BuildContext context) async {
+    final text = await _selectedText(context);
+    await Clipboard.setData(ClipboardData(text: text));
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(msg: 'Copied!'.tr());
+  }
+
+  Future<String> _selectedText(BuildContext context) async {
+    final ordered = indexes.sorted((a, b) => a.compareTo(b));
+    final buffer = StringBuffer(title);
+    for (final index in ordered) {
+      if (index < 0 || index >= currentData.length) continue;
+      final raw = currentData[index];
+      if (raw is! Map) continue;
+      buffer.write('\n${index + 1}. ${raw['text'] ?? ''}');
+    }
+    final json = await AppConfigStore.jsonConfig('footer_copied_text');
+    final footer = json[context.locale.languageCode];
+    if (footer != null && footer.toString().isNotEmpty) {
+      buffer.write('\n\n$footer');
+    }
+    return buffer.toString();
+  }
 }
+
+String _selectedLabel(BuildContext context) =>
+    switch (context.locale.languageCode) {
+      'id' => 'dasar kepercayaan dipilih',
+      'zh' => '项已选择',
+      _ => 'belief(s) selected',
+    };
