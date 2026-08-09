@@ -988,13 +988,9 @@ class _RangePointPicker extends StatelessWidget {
             children: [
               buildBookPicker(),
               const SizedBox(height: 6),
-              Row(
-                children: [
-                  Expanded(child: buildChapterPicker()),
-                  const SizedBox(width: 6),
-                  Expanded(child: buildVersePicker()),
-                ],
-              ),
+              buildChapterPicker(),
+              const SizedBox(height: 6),
+              buildVersePicker(),
             ],
           );
         }
