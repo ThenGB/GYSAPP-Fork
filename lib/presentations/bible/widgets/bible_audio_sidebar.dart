@@ -888,7 +888,8 @@ class _RangePointPicker extends StatelessWidget {
     final colors = context.colorScheme;
     final cubit = context.read<BibleCubit>();
     final books = state.books;
-    final book = books.firstWhereOrNull((b) => b.id == value.bookId) ?? books.firstOrNull;
+    final book =
+        books.firstWhereOrNull((b) => b.id == value.bookId) ?? books.firstOrNull;
     if (book == null) return Text('bible_range_tap_hint'.tr());
 
     final chapterCount = book.chapterCount ?? value.chapterId;
@@ -912,81 +913,102 @@ class _RangePointPicker extends StatelessWidget {
       border: OutlineInputBorder(borderRadius: context.appRadius(8)),
     );
 
-    return Row(
-      children: [
-        Expanded(
-          flex: 3,
-          child: DropdownButtonFormField<int>(
-            initialValue: book.id,
-            isExpanded: true,
-            decoration: decoration('bible_book'.tr()),
-            items: [
-              for (final b in books)
-                DropdownMenuItem<int>(
-                  value: b.id,
-                  child: Text(
-                    b.shortName ?? 'B${b.id}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: itemStyle,
-                  ),
-                ),
-            ],
-            onChanged: (bookId) {
-              if (bookId != null) onChanged(makeVerse(bookId, 1, 1));
-            },
+    Widget buildBookPicker() => DropdownButtonFormField<int>(
+      initialValue: book.id,
+      isExpanded: true,
+      decoration: decoration('bible_book'.tr()),
+      items: [
+        for (final b in books)
+          DropdownMenuItem<int>(
+            value: b.id,
+            child: Text(
+              b.shortName ?? 'B${b.id}',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: itemStyle,
+            ),
           ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          flex: 2,
-          child: DropdownButtonFormField<int>(
-            initialValue: chapter,
-            isExpanded: true,
-            decoration: decoration('bible_chapter'.tr()),
-            items: [
-              for (var c = 1; c <= chapterCount; c++)
-                DropdownMenuItem<int>(
-                  value: c,
-                  child: Text('$c', style: itemStyle),
-                ),
-            ],
-            onChanged: (chapterId) {
-              if (chapterId != null) {
-                onChanged(makeVerse(book.id, chapterId, 1));
-              }
-            },
-          ),
-        ),
-        const SizedBox(width: 6),
-        Expanded(
-          flex: 2,
-          child: FutureBuilder<int>(
-            future: verseCountFor(cubit, book.id, chapter),
-            builder: (context, snapshot) {
-              final count = (snapshot.data ?? value.verseId).clamp(1, 999);
-              final verse = value.verseId.clamp(1, count);
-              return DropdownButtonFormField<int>(
-                initialValue: verse,
-                isExpanded: true,
-                decoration: decoration('bible_verse'.tr()),
-                items: [
-                  for (var v = 1; v <= count; v++)
-                    DropdownMenuItem<int>(
-                      value: v,
-                      child: Text('$v', style: itemStyle),
-                    ),
-                ],
-                onChanged: (verseId) {
-                  if (verseId != null) {
-                    onChanged(makeVerse(book.id, chapter, verseId));
-                  }
-                },
-              );
-            },
-          ),
-        ),
       ],
+      onChanged: (bookId) {
+        if (bookId != null) onChanged(makeVerse(bookId, 1, 1));
+      },
+    );
+
+    Widget buildChapterPicker() => DropdownButtonFormField<int>(
+      initialValue: chapter,
+      isExpanded: true,
+      decoration: decoration('bible_chapter'.tr()),
+      items: [
+        for (var c = 1; c <= chapterCount; c++)
+          DropdownMenuItem<int>(
+            value: c,
+            child: Text('$c', style: itemStyle),
+          ),
+      ],
+      onChanged: (chapterId) {
+        if (chapterId != null) {
+          onChanged(makeVerse(book.id, chapterId, 1));
+        }
+      },
+    );
+
+    Widget buildVersePicker() => FutureBuilder<int>(
+      future: verseCountFor(cubit, book.id, chapter),
+      builder: (context, snapshot) {
+        final count = (snapshot.data ?? value.verseId).clamp(1, 999);
+        final verse = value.verseId.clamp(1, count);
+        return DropdownButtonFormField<int>(
+          initialValue: verse,
+          isExpanded: true,
+          decoration: decoration('bible_verse'.tr()),
+          items: [
+            for (var v = 1; v <= count; v++)
+              DropdownMenuItem<int>(
+                value: v,
+                child: Text('$v', style: itemStyle),
+              ),
+          ],
+          onChanged: (verseId) {
+            if (verseId != null) {
+              onChanged(makeVerse(book.id, chapter, verseId));
+            }
+          },
+        );
+      },
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The expanded floating panel can be as narrow as 296px on
+        // small phones. After panel/range padding, three labeled
+        // dropdowns no longer fit comfortably on one row.
+        if (constraints.maxWidth < 280) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              buildBookPicker(),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Expanded(child: buildChapterPicker()),
+                  const SizedBox(width: 6),
+                  Expanded(child: buildVersePicker()),
+                ],
+              ),
+            ],
+          );
+        }
+
+        return Row(
+          children: [
+            Expanded(flex: 3, child: buildBookPicker()),
+            const SizedBox(width: 6),
+            Expanded(flex: 2, child: buildChapterPicker()),
+            const SizedBox(width: 6),
+            Expanded(flex: 2, child: buildVersePicker()),
+          ],
+        );
+      },
     );
   }
 }
