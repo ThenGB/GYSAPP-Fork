@@ -1,21 +1,23 @@
 import 'dart:math' as math;
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../components/components.dart';
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/chord_text_layout.dart';
+import '../../../data/services/pdf_note_service.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../cubit/song_cubit.dart';
 
 /// Dedicated text-only reading surface.
 ///
-/// This stays independent from pdfrx so PDF layout/zoom changes cannot disturb
-/// lyric/chord geometry. The default presentation is horizontally and
-/// vertically centered, with long lyric rows shrinking just enough to keep
-/// chord anchors and syllables on the same coordinate system.
+/// Native platforms first use the same PDF note/lyric alignment pipeline as
+/// gyschordweb: noteIdx -> PDF note row -> lyric line -> 0..1 horizontal
+/// position. The proportional fallback is retained only when PDF extraction is
+/// unavailable (and on Web, where PdfNoteService's disk cache is not used).
 class RefinedSongTextReader extends StatefulWidget {
   const RefinedSongTextReader({super.key, required this.onOpenMenu});
 
@@ -28,6 +30,8 @@ class RefinedSongTextReader extends StatefulWidget {
 class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
   int _verseIndex = 0;
   String? _songIdentity;
+  String? _chordLayoutKey;
+  Future<List<ChordedTextLine>>? _chordLayoutFuture;
 
   Song? _currentSong(SongState state) {
     if (state.songs.isEmpty) return null;
@@ -40,6 +44,30 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
     if (identity == _songIdentity) return;
     _songIdentity = identity;
     _verseIndex = 0;
+    _chordLayoutKey = null;
+    _chordLayoutFuture = null;
+  }
+
+  Future<List<ChordedTextLine>> _alignedChordLayout(SongState state) {
+    final pdfPath = state.currentPdfPath;
+    if (kIsWeb || pdfPath == null || state.currentChords.isEmpty) {
+      return Future.value(const <ChordedTextLine>[]);
+    }
+
+    final key = '$pdfPath#${state.currentChords.hashCode}';
+    if (_chordLayoutKey == key && _chordLayoutFuture != null) {
+      return _chordLayoutFuture!;
+    }
+
+    _chordLayoutKey = key;
+    final request = PdfDocumentRequest.parse(pdfPath);
+    _chordLayoutFuture = PdfNoteService().loadChordedLines(
+      pdfPath: request.assetPath,
+      startPage: request.startPage,
+      pageCount: request.pageCount,
+      chords: state.currentChords,
+    );
+    return _chordLayoutFuture!;
   }
 
   @override
@@ -67,7 +95,7 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
         final verseChords = state.showChord
             ? chordsForVerse(flattened, verseIndex, verses.length)
             : const <ChordData>[];
-        final chordsByLine = distributeChordsToLines(
+        final fallbackByLine = distributeChordsToLines(
           verseChords,
           lines.length,
         );
@@ -84,19 +112,27 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
                   onOpenMenu: widget.onOpenMenu,
                 ),
                 Expanded(
-                  child: _ReadingViewport(
-                    state: state,
-                    song: song,
-                    verseIndex: verseIndex,
-                    verseCount: verses.length,
-                    lines: lines,
-                    chordsByLine: chordsByLine,
-                    onPreviousVerse: verseIndex > 0
-                        ? () => setState(() => _verseIndex = verseIndex - 1)
-                        : null,
-                    onNextVerse: verseIndex + 1 < verses.length
-                        ? () => setState(() => _verseIndex = verseIndex + 1)
-                        : null,
+                  child: FutureBuilder<List<ChordedTextLine>>(
+                    future: state.showChord
+                        ? _alignedChordLayout(state)
+                        : Future.value(const <ChordedTextLine>[]),
+                    initialData: const <ChordedTextLine>[],
+                    builder: (context, snapshot) => _ReadingViewport(
+                      state: state,
+                      song: song,
+                      verseIndex: verseIndex,
+                      verseCount: verses.length,
+                      lines: lines,
+                      alignedLines:
+                          snapshot.data ?? const <ChordedTextLine>[],
+                      fallbackChordsByLine: fallbackByLine,
+                      onPreviousVerse: verseIndex > 0
+                          ? () => setState(() => _verseIndex = verseIndex - 1)
+                          : null,
+                      onNextVerse: verseIndex + 1 < verses.length
+                          ? () => setState(() => _verseIndex = verseIndex + 1)
+                          : null,
+                    ),
                   ),
                 ),
               ],
@@ -336,7 +372,8 @@ class _ReadingViewport extends StatelessWidget {
     required this.verseIndex,
     required this.verseCount,
     required this.lines,
-    required this.chordsByLine,
+    required this.alignedLines,
+    required this.fallbackChordsByLine,
     required this.onPreviousVerse,
     required this.onNextVerse,
   });
@@ -346,7 +383,8 @@ class _ReadingViewport extends StatelessWidget {
   final int verseIndex;
   final int verseCount;
   final List<String> lines;
-  final List<List<ChordData>> chordsByLine;
+  final List<ChordedTextLine> alignedLines;
+  final List<List<ChordData>> fallbackChordsByLine;
   final VoidCallback? onPreviousVerse;
   final VoidCallback? onNextVerse;
 
@@ -359,6 +397,10 @@ class _ReadingViewport extends StatelessWidget {
       fontSize: context.appFontSize(18) * state.defaultTextScale,
       height: state.defaultTextHeight,
       fontWeight: FontWeight.w500,
+    );
+    final byIndexFallback = buildVerseChordFallback(
+      song.verses,
+      alignedLines,
     );
 
     return Stack(
@@ -412,12 +454,11 @@ class _ReadingViewport extends StatelessWidget {
                           for (var index = 0; index < lines.length; index++) ...[
                             _AnchoredLyricLine(
                               lyric: lines[index],
-                              placements: index < chordsByLine.length &&
-                                      state.showChord
-                                  ? fallbackPlacementsForLine(
-                                      chordsByLine[index],
-                                    )
-                                  : const [],
+                              placements: _placementsForLine(
+                                index,
+                                lines[index],
+                                byIndexFallback,
+                              ),
                               transposeStep: state.transposeStep,
                               baseTransposeOffset: state.baseTransposeOffset,
                               accidentalMode: state.chordAccidentalMode,
@@ -480,6 +521,25 @@ class _ReadingViewport extends StatelessWidget {
       ],
     );
   }
+
+  List<TextChordPlacement> _placementsForLine(
+    int index,
+    String lyric,
+    List<ChordedTextLine?> byIndexFallback,
+  ) {
+    if (!state.showChord) return const [];
+    final aligned = resolveChordedLineForVerseLine(
+      lyric,
+      index,
+      alignedLines,
+      byIndexFallback,
+    );
+    if (aligned != null && aligned.chords.isNotEmpty) {
+      return aligned.chords;
+    }
+    if (index >= fallbackChordsByLine.length) return const [];
+    return fallbackPlacementsForLine(fallbackChordsByLine[index]);
+  }
 }
 
 class _AnchoredLyricLine extends StatelessWidget {
@@ -515,8 +575,7 @@ class _AnchoredLyricLine extends StatelessWidget {
         )..layout();
         final naturalWidth = math.max(1.0, naturalPainter.width);
         final widthScale = math.min(1.0, maxWidth / naturalWidth);
-        final fittedFontSize =
-            (base.fontSize ?? 18) * math.max(0.70, widthScale);
+        final fittedFontSize = (base.fontSize ?? 18) * widthScale.clamp(0.55, 1);
         final fittedStyle = base.copyWith(fontSize: fittedFontSize);
         final fittedPainter = TextPainter(
           text: TextSpan(text: lyric, style: fittedStyle.copyWith(height: 1)),
