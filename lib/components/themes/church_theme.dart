@@ -31,12 +31,27 @@ ThemeData applyChurchVisualSystem(
   );
   final quietSurface = Color.alphaBlend(
     colors.primary.withValues(
-      alpha: base.brightness == Brightness.dark ? 0.035 : 0.018,
+      alpha: base.brightness == Brightness.dark ? 0.045 : 0.028,
     ),
     sanctuarySurface,
   );
+  final elevatedQuietSurface = Color.alphaBlend(
+    colors.primary.withValues(
+      alpha: base.brightness == Brightness.dark ? 0.065 : 0.045,
+    ),
+    colors.surfaceContainerLow,
+  );
   final borderColor = colors.outlineVariant.withValues(
     alpha: base.brightness == Brightness.dark ? 0.42 : 0.58,
+  );
+  final primaryBorder = colors.primary.withValues(
+    alpha: base.brightness == Brightness.dark ? 0.42 : 0.30,
+  );
+
+  final controlShape = RoundedRectangleBorder(borderRadius: radius(14));
+  final inputShape = OutlineInputBorder(
+    borderRadius: radius(15),
+    borderSide: BorderSide(color: borderColor),
   );
 
   return base.copyWith(
@@ -46,7 +61,7 @@ ThemeData applyChurchVisualSystem(
       centerTitle: false,
       toolbarHeight: 64,
       titleSpacing: 8,
-      backgroundColor: sanctuarySurface.withValues(alpha: 0.97),
+      backgroundColor: sanctuarySurface.withValues(alpha: 0.98),
       foregroundColor: colors.onSurface,
       surfaceTintColor: Colors.transparent,
       shadowColor: Colors.transparent,
@@ -55,6 +70,14 @@ ThemeData applyChurchVisualSystem(
       actionsIconTheme: IconThemeData(color: colors.onSurface),
       systemOverlayStyle: base.appBarTheme.systemOverlayStyle,
       titleTextStyle: base.appBarTheme.titleTextStyle,
+    ),
+    drawerTheme: DrawerThemeData(
+      backgroundColor: sanctuarySurface,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      shape: const RoundedRectangleBorder(),
+      endShape: const RoundedRectangleBorder(),
+      scrimColor: Colors.black.withValues(alpha: 0.28),
     ),
     cardTheme: CardThemeData(
       color: quietSurface,
@@ -81,11 +104,140 @@ ThemeData applyChurchVisualSystem(
       shape: RoundedRectangleBorder(borderRadius: radius(14)),
       minVerticalPadding: 4,
     ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        elevation: 0,
+        backgroundColor: colors.primary,
+        foregroundColor: colors.onPrimary,
+        disabledBackgroundColor: colors.onSurface.withValues(alpha: 0.08),
+        disabledForegroundColor: colors.onSurface.withValues(alpha: 0.36),
+        minimumSize: Size(44, 44 * extras.densityFactor),
+        padding: EdgeInsets.symmetric(
+          horizontal: 18 * extras.densityFactor,
+          vertical: 11 * extras.densityFactor,
+        ),
+        shape: controlShape,
+        textStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+      style: OutlinedButton.styleFrom(
+        elevation: 0,
+        foregroundColor: colors.primary,
+        side: BorderSide(color: primaryBorder),
+        minimumSize: Size(44, 44 * extras.densityFactor),
+        padding: EdgeInsets.symmetric(
+          horizontal: 17 * extras.densityFactor,
+          vertical: 10 * extras.densityFactor,
+        ),
+        shape: controlShape,
+        textStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        foregroundColor: colors.primary,
+        minimumSize: Size(40, 40 * extras.densityFactor),
+        padding: EdgeInsets.symmetric(
+          horizontal: 12 * extras.densityFactor,
+          vertical: 9 * extras.densityFactor,
+        ),
+        shape: RoundedRectangleBorder(borderRadius: radius(12)),
+        textStyle: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    ),
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        foregroundColor: colors.onSurfaceVariant,
+        highlightColor: colors.primary.withValues(alpha: 0.10),
+        hoverColor: colors.primary.withValues(alpha: 0.07),
+        focusColor: colors.primary.withValues(alpha: 0.10),
+        shape: RoundedRectangleBorder(borderRadius: radius(13)),
+      ),
+    ),
+    chipTheme: base.chipTheme.copyWith(
+      backgroundColor: quietSurface,
+      selectedColor: colors.primaryContainer.withValues(alpha: 0.78),
+      disabledColor: colors.onSurface.withValues(alpha: 0.05),
+      side: BorderSide(color: borderColor.withValues(alpha: 0.75)),
+      shape: RoundedRectangleBorder(borderRadius: radius(999)),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+      checkmarkColor: colors.onPrimaryContainer,
+      iconTheme: IconThemeData(color: colors.primary, size: 18),
+    ),
+    inputDecorationTheme: base.inputDecorationTheme.copyWith(
+      filled: true,
+      fillColor: elevatedQuietSurface,
+      contentPadding: EdgeInsets.symmetric(
+        horizontal: 15 * extras.densityFactor,
+        vertical: 13 * extras.densityFactor,
+      ),
+      border: inputShape,
+      enabledBorder: inputShape,
+      disabledBorder: inputShape.copyWith(
+        borderSide: BorderSide(color: borderColor.withValues(alpha: 0.45)),
+      ),
+      focusedBorder: inputShape.copyWith(
+        borderSide: BorderSide(color: colors.primary, width: 1.5),
+      ),
+      errorBorder: inputShape.copyWith(
+        borderSide: BorderSide(color: colors.error),
+      ),
+      focusedErrorBorder: inputShape.copyWith(
+        borderSide: BorderSide(color: colors.error, width: 1.5),
+      ),
+      prefixIconColor: colors.primary,
+      suffixIconColor: colors.onSurfaceVariant,
+      hintStyle: base.textTheme.bodyMedium?.copyWith(
+        color: colors.onSurfaceVariant.withValues(alpha: 0.68),
+      ),
+    ),
+    switchTheme: SwitchThemeData(
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return colors.onSurface.withValues(alpha: 0.24);
+        }
+        if (states.contains(WidgetState.selected)) return colors.onPrimary;
+        return colors.outline;
+      }),
+      trackColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return colors.onSurface.withValues(alpha: 0.08);
+        }
+        if (states.contains(WidgetState.selected)) return colors.primary;
+        return colors.surfaceContainerHighest;
+      }),
+      trackOutlineColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return colors.primary;
+        return borderColor;
+      }),
+    ),
+    checkboxTheme: CheckboxThemeData(
+      shape: RoundedRectangleBorder(borderRadius: radius(5)),
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return colors.primary;
+        return Colors.transparent;
+      }),
+      checkColor: WidgetStatePropertyAll(colors.onPrimary),
+      side: BorderSide(color: borderColor, width: 1.2),
+    ),
+    radioTheme: RadioThemeData(
+      fillColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.selected)) return colors.primary;
+        return colors.onSurfaceVariant;
+      }),
+    ),
     navigationBarTheme: NavigationBarThemeData(
       height: 66 * extras.densityFactor,
       backgroundColor: sanctuarySurface.withValues(alpha: 0.98),
       surfaceTintColor: Colors.transparent,
-      indicatorColor: colors.primaryContainer.withValues(alpha: 0.62),
+      indicatorColor: colors.primaryContainer.withValues(alpha: 0.72),
       indicatorShape: RoundedRectangleBorder(borderRadius: radius(16)),
       labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -175,7 +327,7 @@ Color _surfaceForTone(
   return switch (tone) {
     SurfaceTone.light => base,
     SurfaceTone.medium => Color.alphaBlend(
-      accent.withValues(alpha: 0.022),
+      accent.withValues(alpha: 0.026),
       base,
     ),
     SurfaceTone.dark => Color.alphaBlend(
