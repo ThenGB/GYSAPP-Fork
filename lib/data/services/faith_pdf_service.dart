@@ -14,41 +14,27 @@ class FaithPdfDocument {
   final Uri uri;
 }
 
-/// Resolves the explanatory PDFs that historically lived under the
-/// `10dasar/` folder. The old implementation depended on the Firebase SDK,
-/// a cache manager and native file opening. This version uses the public
-/// Storage REST surface only, keeps one small in-memory catalog, and returns
-/// an HTTPS URI that works on Android, iOS, Windows and Web.
+/// Resolves the explanatory PDFs for the Ten Basic Beliefs from the same
+/// public GitHub data repository that distributes Bibles, hymnals and
+/// SoundFonts. No Firebase SDK/API is used by the application.
 class FaithPdfService {
   FaithPdfService({http.Client? client}) : _client = client ?? http.Client();
 
-  static const _bucket = 'hatiku-4c1de.appspot.com';
-  static const _folder = '10dasar/';
-  static const _host = 'firebasestorage.googleapis.com';
+  static const _manifestUri =
+      'https://raw.githubusercontent.com/ThenGB/GYSApp-Data/main/latest/faith-pdfs-manifest.json';
+  static const _allowedDownloadHost = 'github.com';
 
   final http.Client _client;
-  Map<int, String>? _catalog;
+  Map<int, FaithPdfDocument>? _catalog;
   DateTime? _catalogFetchedAt;
 
   Future<FaithPdfDocument?> documentFor(int beliefNumber) async {
+    if (beliefNumber < 1 || beliefNumber > 10) return null;
     final catalog = await _loadCatalog();
-    final objectName = catalog[beliefNumber];
-    if (objectName == null || objectName.isEmpty) return null;
-
-    final encodedObject = Uri.encodeComponent(objectName);
-    final uri = Uri.parse(
-      'https://$_host/v0/b/$_bucket/o/$encodedObject?alt=media',
-    );
-    if (uri.scheme != 'https' || uri.host != _host) return null;
-
-    return FaithPdfDocument(
-      beliefNumber: beliefNumber,
-      name: objectName.split('/').last,
-      uri: uri,
-    );
+    return catalog[beliefNumber];
   }
 
-  Future<Map<int, String>> _loadCatalog() async {
+  Future<Map<int, FaithPdfDocument>> _loadCatalog() async {
     final fetchedAt = _catalogFetchedAt;
     final cached = _catalog;
     if (cached != null &&
@@ -58,33 +44,50 @@ class FaithPdfService {
     }
 
     try {
-      final uri = Uri.https(
-        _host,
-        '/v0/b/$_bucket/o',
-        const {'prefix': _folder},
-      );
-      final response = await _client.get(uri).timeout(const Duration(seconds: 8));
+      final response = await _client
+          .get(Uri.parse(_manifestUri))
+          .timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) return cached ?? const {};
 
       final decoded = jsonDecode(response.body);
-      if (decoded is! Map<String, dynamic>) return cached ?? const {};
-      final items = decoded['items'];
-      if (items is! List) return cached ?? const {};
-
-      final result = <int, String>{};
-      for (final item in items) {
-        if (item is! Map) continue;
-        final objectName = item['name']?.toString() ?? '';
-        if (!objectName.startsWith(_folder)) continue;
-        final filename = objectName.substring(_folder.length);
-        final number = int.tryParse(filename.split('-').first);
-        if (number == null || number < 1 || number > 10) continue;
-        result.putIfAbsent(number, () => objectName);
+      if (decoded is! Map<String, dynamic> ||
+          decoded['kind'] != 'faith-pdfs' ||
+          decoded['schemaVersion'] != 1) {
+        return cached ?? const {};
       }
 
-      _catalog = result;
-      _catalogFetchedAt = DateTime.now();
-      return result;
+      final rawItems = decoded['items'];
+      if (rawItems is! List) return cached ?? const {};
+
+      final result = <int, FaithPdfDocument>{};
+      for (final raw in rawItems) {
+        if (raw is! Map) continue;
+        final number = int.tryParse(raw['number']?.toString() ?? '');
+        final name = raw['name']?.toString().trim() ?? '';
+        final downloadUrl = raw['downloadUrl']?.toString().trim() ?? '';
+        final uri = Uri.tryParse(downloadUrl);
+        if (number == null || number < 1 || number > 10) continue;
+        if (name.isEmpty || uri == null) continue;
+        if (uri.scheme != 'https' || uri.host != _allowedDownloadHost) continue;
+        if (!uri.path.startsWith('/ThenGB/GYSApp-Data/releases/download/')) {
+          continue;
+        }
+        result.putIfAbsent(
+          number,
+          () => FaithPdfDocument(
+            beliefNumber: number,
+            name: name,
+            uri: uri,
+          ),
+        );
+      }
+
+      if (result.length == 10) {
+        _catalog = result;
+        _catalogFetchedAt = DateTime.now();
+        return result;
+      }
+      return cached ?? result;
     } catch (_) {
       return cached ?? const {};
     }
