@@ -5,19 +5,14 @@ import '../../data/services/asset_distribution/models.dart';
 import '../../presentations/settings/cubit/asset_management_cubit.dart';
 
 /// A single managed asset row (bible version, hymn book or soundfont) that
-/// shows its install state and offers Download / Update / Delete actions.
-///
-/// Bundled assets (definition.bundledByDefault without an install record)
-/// can never be deleted.
+/// shows its install state and offers Download / Update / Stop / Delete actions.
 class DistributedAssetTile extends StatelessWidget {
   final ManagedAssetStatus status;
   final AssetManagementCubit cubit;
   final bool isActive;
   final VoidCallback? onSelect;
-
-  /// Optional override for the download/update action (lets callers pass
-  /// consumer cubits like [BibleCubit] so lists refresh after install).
   final VoidCallback? onDownload;
+  final VoidCallback? onDelete;
   final String? subtitleOverride;
 
   const DistributedAssetTile({
@@ -27,34 +22,37 @@ class DistributedAssetTile extends StatelessWidget {
     this.isActive = false,
     this.onSelect,
     this.onDownload,
+    this.onDelete,
     this.subtitleOverride,
   });
 
   String _statusText(BuildContext context) {
-    if (subtitleOverride != null) {
-      return subtitleOverride!;
-    }
-    if (status.isBundled) {
-      return 'bundled_asset'.tr();
-    }
+    if (subtitleOverride != null) return subtitleOverride!;
+    if (status.isBundled) return 'bundled_asset'.tr();
     if (status.isDownloaded) {
       return 'installed_v'.tr(namedArgs: {
         'v': status.installedVersion ?? '',
       });
     }
-    if (status.hasRemotePackage) {
-      return 'available_to_download'.tr();
-    }
+    if (status.hasRemotePackage) return 'available_to_download'.tr();
     return 'not_downloaded'.tr();
   }
+
+  String _label(BuildContext context, String id, String en) =>
+      Localizations.localeOf(context).languageCode.toLowerCase() == 'id'
+          ? id
+          : en;
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
-    final progress = cubit.state.progressByCode[status.definition.code];
-    final downloading = progress != null;
+    final code = status.definition.code;
+    final progress = cubit.state.progressByCode[code];
+    final busy = progress != null;
+    final installing = cubit.state.installingCodes.contains(code);
+    final cancelling = cubit.state.cancellingCodes.contains(code);
     final canDelete = status.canDelete;
-    final updateAvailable = status.hasUpdateAvailable && !downloading;
+    final updateAvailable = status.hasUpdateAvailable && !busy;
     final canDownload = status.hasRemotePackage && !status.isInstalled;
 
     return ListTile(
@@ -78,10 +76,56 @@ class DistributedAssetTile extends StatelessWidget {
         status.definition.title,
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      subtitle: downloading
-          ? LinearProgressIndicator(value: progress.clamp(0.0, 1.0))
+      subtitle: busy
+          ? Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  LinearProgressIndicator(
+                    value: installing
+                        ? null
+                        : progress.clamp(0.0, 1.0).toDouble(),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    installing
+                        ? _label(context, 'Memasang…', 'Installing…')
+                        : cancelling
+                        ? _label(context, 'Menghentikan unduhan…', 'Stopping download…')
+                        : progress > 0
+                        ? '${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
+                        : _label(context, 'Mengunduh…', 'Downloading…'),
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ),
+            )
           : Text(_statusText(context)),
-      trailing: isActive
+      trailing: busy
+          ? installing
+              ? const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.4),
+                )
+              : TextButton.icon(
+                  onPressed: cancelling ? null : () => cubit.cancelDownload(code),
+                  style: TextButton.styleFrom(foregroundColor: colors.error),
+                  icon: cancelling
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.stop_circle_outlined, size: 19),
+                  label: Text(
+                    cancelling
+                        ? _label(context, 'Menghentikan', 'Stopping')
+                        : _label(context, 'Hentikan', 'Stop'),
+                  ),
+                )
+          : isActive
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
@@ -115,14 +159,17 @@ class DistributedAssetTile extends StatelessWidget {
               tooltip: 'delete'.tr(),
               onPressed: () async {
                 final confirmed = await _confirmDelete(context);
-                if (confirmed) {
+                if (!confirmed) return;
+                if (onDelete != null) {
+                  onDelete!();
+                } else {
                   await cubit.deleteAsset(status.definition);
                 }
               },
               icon: Icon(Icons.delete_outline_rounded, color: colors.error),
             )
           : null,
-      onTap: status.isInstalled ? onSelect : null,
+      onTap: !busy && status.isInstalled ? onSelect : null,
     );
   }
 

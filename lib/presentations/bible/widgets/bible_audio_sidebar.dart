@@ -23,11 +23,6 @@ const double kBibleAudioBottomReserve = 88;
 const double kBibleAudioEdgePeek = 8;
 const double kBibleAudioMargin = 12;
 
-/// Floating Bible TTS controller.
-///
-/// The important layout rule is that the control is moved with [Positioned]
-/// instead of painting it elsewhere with [Transform.translate]. This keeps the
-/// visual bounds and Flutter hit-test bounds identical after a drag.
 class BibleAudioSidebar extends StatefulWidget {
   const BibleAudioSidebar({super.key});
 
@@ -729,6 +724,8 @@ class _SidebarPanel extends StatelessWidget {
     final hasEnd = state.ttsPlayRangeEnd != null;
     final isContinueOn = !hasEnd && state.autoNextChapter;
     final isChapterEnd = !hasEnd && !state.autoNextChapter;
+    final isIndonesian =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'id';
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -781,30 +778,33 @@ class _SidebarPanel extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 6),
-          Wrap(
-            spacing: 7,
-            runSpacing: 7,
+          Row(
             children: [
-              ChoiceChip(
-                label: Text('bible_range_chapter_end'.tr()),
-                selected: isChapterEnd,
-                showCheckmark: false,
-                onSelected: (_) => onChapterEnd(),
+              Expanded(
+                child: _RangeModeButton(
+                  label: isIndonesian ? 'Akhir Pasal' : 'Chapter End',
+                  selected: isChapterEnd,
+                  onTap: onChapterEnd,
+                ),
               ),
-              ChoiceChip(
-                label: Text('bible_range_continue'.tr()),
-                selected: isContinueOn,
-                showCheckmark: false,
-                onSelected: (_) => onContinueOn(),
+              const SizedBox(width: 5),
+              Expanded(
+                child: _RangeModeButton(
+                  label: isIndonesian ? 'Lanjut' : 'Continue',
+                  selected: isContinueOn,
+                  onTap: onContinueOn,
+                ),
               ),
-              ChoiceChip(
-                label: Text('bible_range_to_verse'.tr()),
-                selected: hasEnd,
-                showCheckmark: false,
-                onSelected: (_) {
-                  final base = state.ttsPlayRangeStart ?? state.currentBible;
-                  if (base != null) onEndChanged(base);
-                },
+              const SizedBox(width: 5),
+              Expanded(
+                child: _RangeModeButton(
+                  label: isIndonesian ? 'Ayat' : 'Verse',
+                  selected: hasEnd,
+                  onTap: () {
+                    final base = state.ttsPlayRangeStart ?? state.currentBible;
+                    if (base != null) onEndChanged(base);
+                  },
+                ),
               ),
             ],
           ),
@@ -881,6 +881,59 @@ class _SidebarPanel extends StatelessWidget {
       onChanged: (value) {
         if (value != null) onVoiceChanged(value);
       },
+    );
+  }
+}
+
+class _RangeModeButton extends StatelessWidget {
+  const _RangeModeButton({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Material(
+      color: selected
+          ? colors.primaryContainer
+          : colors.surfaceContainerLowest.withValues(alpha: 0.72),
+      borderRadius: context.appRadius(9),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: context.appRadius(9),
+        child: Container(
+          height: 34,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            borderRadius: context.appRadius(9),
+            border: Border.all(
+              color: selected
+                  ? colors.primary.withValues(alpha: 0.55)
+                  : colors.outlineVariant.withValues(alpha: 0.45),
+            ),
+          ),
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              label,
+              maxLines: 1,
+              style: context.textTheme.labelSmall?.copyWith(
+                color: selected
+                    ? colors.onPrimaryContainer
+                    : colors.onSurfaceVariant,
+                fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ),
     );
   }
 }
@@ -995,9 +1048,6 @@ class _RangePointPicker extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        // The expanded floating panel can be as narrow as 296px on
-        // small phones. After panel/range padding, three labeled
-        // dropdowns no longer fit comfortably on one row.
         if (constraints.maxWidth < 280) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
