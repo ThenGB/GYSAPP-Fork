@@ -73,8 +73,8 @@ void main() {
       'Session cookies:',
       'idToken:',
       'response.body}',
-      'headers: ${',
-      'data: ${',
+      r'headers: ${',
+      r'data: ${',
     ]) {
       expect(login, isNot(contains(forbidden)), reason: forbidden);
       expect(injection, isNot(contains(forbidden)), reason: forbidden);
