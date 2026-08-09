@@ -20,7 +20,7 @@ void main() {
 
   test('invalid encoded session credentials are rejected', () {
     expect(
-      decodeHostedSessionCredential('${hostedSessionCredentialPrefix}%%%'),
+      decodeHostedSessionCredential('$hostedSessionCredentialPrefix%%%'),
       isNull,
     );
   });
