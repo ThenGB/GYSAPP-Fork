@@ -27,6 +27,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Keep CI on the toolchain used for this audit so stable-channel updates
+      # cannot silently change analyzer or widget-test behavior between runs.
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
