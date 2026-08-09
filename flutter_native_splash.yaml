@@ -1,24 +1,22 @@
 # dart run flutter_native_splash:create --path=flutter_native_splash.yaml
 flutter_native_splash:
-  color: "#FFFFFF"
-  # color_dark: "#002E47"  
-  image: assets/images/splashicon-light.png
-  # image_dark: assets/images/splashicon-dark.png
+  color: "#FAF9F7"
+  color_dark: "#171513"
+  image: assets/images/logo/tjc_logo_indonesia_color.png
+  image_dark: assets/images/logo/tjc_logo_indonesia_white.png
   android: true
   ios: true
-  web: true  
-  # image_dark: assets/images/splash_icon_dark.png
+  web: true
   android_12:
-    color: "#FFFFFF"
-    # color_dark: "#002E47"  
-    image: assets/images/splashicon-light.png
-    # image_dark: assets/images/splashicon-dark.png
-  # branding: assets/images/branding.png
-  branding_mode: bottom
-  # image_android: assets/images/splash_icon_android.png
-  # image_ios: assets/images/splash_icon_ios.png
-  # image_web: assets/images/splash_icon_web.png
+    # Android 12 masks the center image as an app icon. Keep the icon legible
+    # there and carry the full church wordmark as branding below it.
+    color: "#FAF9F7"
+    color_dark: "#171513"
+    image: assets/images/appicon.png
+    image_dark: assets/images/appicon.png
+    branding: assets/images/logo/tjc_logo_indonesia_color.png
+    branding_dark: assets/images/logo/tjc_logo_indonesia_white.png
   android_gravity: center
-  ios_content_mode: center
-  web_image_mode: center
+  ios_content_mode: contain
+  web_image_mode: contain
   fullscreen: true

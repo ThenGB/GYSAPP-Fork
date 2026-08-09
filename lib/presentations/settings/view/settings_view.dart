@@ -26,7 +26,7 @@ class SettingsView extends StatelessWidget {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
-        toolbarHeight: 74,
+        toolbarHeight: 64,
         leading: IconButton(
           tooltip: 'Menu',
           onPressed: openDashboardDrawer,
@@ -36,20 +36,8 @@ class SettingsView extends StatelessWidget {
         centerTitle: true,
         actions: const [SizedBox(width: 48)],
       ),
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              context.colorScheme.surfaceContainerHighest.withValues(
-                alpha: 0.2,
-              ),
-              context.colorScheme.surfaceContainerLow.withValues(alpha: 0.34),
-              context.colorScheme.surface,
-            ],
-          ),
-        ),
+      body: ColoredBox(
+        color: context.colorScheme.surface,
         // Each section is scoped to the bloc it actually reads. The old
         // layout wrapped every section in a single BlocBuilder<SettingsCubit>
         // so toggling one switch rebuilt the whole page (theme preview,
@@ -529,7 +517,8 @@ class _SongSettingsSectionState extends State<_SongSettingsSection> {
                     icon: Icons.music_off_outlined,
                     title: 'accidental_mode'.tr(),
                     description: 'accidental_mode_desc'.tr(),
-                    value: state.chordAccidentalMode ==
+                    value:
+                        state.chordAccidentalMode ==
                         ChordService.accidentalFlat,
                     onChanged: (_) => songCubit.toggleAccidentalMode(),
                   ),
@@ -671,6 +660,11 @@ class _ThemeSettingsSection extends StatelessWidget {
                           context.read<InitialCubit>().changeAccentColor(key);
                         }
                       },
+                    ),
+                    const SizedBox(height: 16),
+                    _SurfaceToneSelector(
+                      selected: state.themePreferences.surfaceTone,
+                      onChanged: context.read<InitialCubit>().changeSurfaceTone,
                     ),
                     const SizedBox(height: 16),
                     _DensitySelector(
@@ -1225,6 +1219,36 @@ class _PreferenceSelector<T> extends StatelessWidget {
           expandedInsets: EdgeInsets.zero,
           showSelectedIcon: false,
           onSelectionChanged: (set) => onChanged(set.first),
+        ),
+      ],
+    );
+  }
+}
+
+class _SurfaceToneSelector extends StatelessWidget {
+  const _SurfaceToneSelector({required this.selected, required this.onChanged});
+
+  final SurfaceTone selected;
+  final ValueChanged<SurfaceTone> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return _PreferenceSelector<SurfaceTone>(
+      label: 'surface_tone'.tr(),
+      selected: {selected},
+      onChanged: onChanged,
+      segments: [
+        ButtonSegment(
+          value: SurfaceTone.light,
+          label: Text('surface_light'.tr()),
+        ),
+        ButtonSegment(
+          value: SurfaceTone.medium,
+          label: Text('surface_medium'.tr()),
+        ),
+        ButtonSegment(
+          value: SurfaceTone.dark,
+          label: Text('surface_dark'.tr()),
         ),
       ],
     );

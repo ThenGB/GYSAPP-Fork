@@ -1,12 +1,10 @@
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:simple_animations/simple_animations.dart';
 import 'package:timeago/timeago.dart' as timeago;
-import '../../../components/components.dart';
 
+import '../../../components/components.dart';
 import '../../../data/data.dart';
 import '../../../router/router.dart';
 import '../bloc/initial_cubit.dart';
@@ -46,92 +44,152 @@ class _InitialViewState extends State<InitialView> {
       default:
     }
     timeago.setLocaleMessages(context.locale.languageCode, message);
-    return BlocBuilder<InitialCubit, InitialState>(
-      builder: (context, state) => BlocListener<InitialCubit, InitialState>(
-        listener: (context, state) {
-          if (state.isLoaded) {
-            router.popUntilRoot();
-            router.replace(const DashboardRoute());
-          }
-        },
-        child: Scaffold(
+
+    return BlocConsumer<InitialCubit, InitialState>(
+      listenWhen: (previous, current) =>
+          previous.isLoaded != current.isLoaded && current.isLoaded,
+      listener: (context, state) {
+        router.popUntilRoot();
+        router.replace(const DashboardRoute());
+      },
+      builder: (context, state) {
+        final colors = context.colorScheme;
+        final isDark = Theme.of(context).brightness == Brightness.dark;
+        return Scaffold(
+          backgroundColor: colors.surface,
           body: Stack(
             fit: StackFit.expand,
             children: [
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4),
-                      child: MirrorAnimationBuilder(
-                        duration: const Duration(milliseconds: 1500),
-                        tween: Tween<double>(
-                          begin: 0.0,
-                          end: 1.0,
-                        ),
-                        builder: (context, value, child) {
-                          double scale = 1 + (0.1 * value);
-                          double opacity = 1 - (0.5 * value);
-                          return state.isFailed
-                              ? child!
-                              : Transform.scale(
-                                  scale: scale,
-                                  child: Opacity(opacity: opacity, child: child),
-                                );
-                        },
-                        child: Image.asset(Assets.assetsImagesAppicon),
+              SafeArea(
+                child: Center(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(horizontal: 28),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 420),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TweenAnimationBuilder<double>(
+                            tween: Tween(begin: 0.94, end: 1),
+                            duration: const Duration(milliseconds: 520),
+                            curve: Curves.easeOutCubic,
+                            builder: (context, value, child) => Opacity(
+                              opacity: ((value - 0.94) / 0.06).clamp(0, 1),
+                              child: Transform.scale(scale: value, child: child),
+                            ),
+                            child: Semantics(
+                              label: 'Gereja Yesus Sejati',
+                              image: true,
+                              child: Image.asset(
+                                isDark
+                                    ? Assets.assetsImagesLogoIndonesiaWhite
+                                    : Assets.assetsImagesLogoIndonesiaColor,
+                                width: 250,
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 34),
+                          Text(
+                            'GYS APP',
+                            style: context.textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              letterSpacing: 0.4,
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Alkitab • Kidung • Iman • Pelayanan',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                              letterSpacing: 0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 30),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 5,
+                              backgroundColor: colors.surfaceContainerHighest,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 220),
+                            switchInCurve: Curves.easeOut,
+                            switchOutCurve: Curves.easeIn,
+                            child: Text(
+                              state.message.isEmpty
+                                  ? 'Menyiapkan aplikasi…'
+                                  : state.message,
+                              key: ValueKey(state.message),
+                              textAlign: TextAlign.center,
+                              style: context.textTheme.bodySmall?.copyWith(
+                                color: state.isFailed
+                                    ? colors.error
+                                    : colors.onSurfaceVariant,
+                              ),
+                            ),
+                          ),
+                          if (state.isFailed) ...[
+                            const SizedBox(height: 18),
+                            OutlinedButton.icon(
+                              onPressed: context.read<InitialCubit>().initState,
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              label: const Text('Coba lagi'),
+                            ),
+                          ],
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
-                    CupertinoActivityIndicator(),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.message,
-                      style: TextStyle(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
               if (shouldShowStartupPreparationDialog(state))
                 ColoredBox(
-                  color: Colors.black.withValues(alpha: 0.34),
+                  color: colors.scrim.withValues(alpha: 0.34),
                   child: Center(
                     child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 360),
+                      constraints: const BoxConstraints(maxWidth: 380),
                       child: Card(
-                        elevation: 18,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: context.appRadius(20),
-                        ),
+                        margin: const EdgeInsets.all(24),
                         child: Padding(
-                          padding: const EdgeInsets.all(20),
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
                           child: Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(
-                                Icons.offline_bolt_rounded,
-                                size: 42,
-                                color: Theme.of(context).colorScheme.primary,
+                              Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer,
+                                  borderRadius: context.appRadius(16),
+                                ),
+                                child: Icon(
+                                  Icons.library_music_outlined,
+                                  color: colors.onPrimaryContainer,
+                                ),
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 18),
                               Text(
                                 'Preparing Kidung Rohani',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w700),
+                                style: context.textTheme.titleMedium,
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'This first-time setup prepares KR for faster offline access later.',
                                 textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodySmall,
+                                style: context.textTheme.bodySmall?.copyWith(
+                                  color: colors.onSurfaceVariant,
+                                ),
                               ),
-                              const SizedBox(height: 18),
-                              const CupertinoActivityIndicator(radius: 12),
+                              const SizedBox(height: 20),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(999),
+                                child: const LinearProgressIndicator(minHeight: 4),
+                              ),
                             ],
                           ),
                         ),
@@ -141,8 +199,8 @@ class _InitialViewState extends State<InitialView> {
                 ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

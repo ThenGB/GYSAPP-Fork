@@ -1,17 +1,18 @@
 import 'package:flutter/material.dart';
 
-/// Unified design system constants for the GYS Church App.
-/// Provides consistent spacing, radius, and typography values.
+/// Shared design tokens for the GYS Church App.
+///
+/// Colour comes from ThemeData so the user can customise the accent and
+/// surface tone. These constants intentionally focus on geometry, motion and
+/// typography rhythm rather than hard-coded decorative palettes.
 class DesignSystem {
   DesignSystem._();
 
-  // ═══════════════════════════════════════════════════════════════
-  // SPACING - Consistent spacing scale based on 4px base unit
-  // ═══════════════════════════════════════════════════════════════
-
+  // 4px spacing rhythm.
   static const double spacing4 = 4;
   static const double spacing8 = 8;
   static const double spacing12 = 12;
+  static const double spacing14 = 14;
   static const double spacing16 = 16;
   static const double spacing20 = 20;
   static const double spacing24 = 24;
@@ -20,10 +21,8 @@ class DesignSystem {
   static const double spacing48 = 48;
   static const double spacing64 = 64;
 
-  // ═══════════════════════════════════════════════════════════════
-  // RADIUS - Consistent, softer border radius
-  // ═══════════════════════════════════════════════════════════════
-
+  // Radius scale. User-selected radius preferences are applied by ThemeData
+  // and context.appRadius; use these values only as semantic base sizes.
   static const double radiusNone = 0;
   static const double radiusSm = 4;
   static const double radiusMd = 8;
@@ -33,43 +32,27 @@ class DesignSystem {
   static const double radiusXLarge = 24;
   static const double radiusFull = 9999;
 
-  // ═══════════════════════════════════════════════════════════════
-  // ICON SIZES - Consistent icon sizing
-  // ═══════════════════════════════════════════════════════════════
-
   static const double iconSmall = 16;
   static const double iconMedium = 20;
   static const double iconLarge = 24;
   static const double iconXLarge = 32;
 
-  // ═══════════════════════════════════════════════════════════════
-  // ELEVATION - Minimal elevation (no heavy shadows)
-  // ═══════════════════════════════════════════════════════════════
-
+  // Elevation stays intentionally restrained; borders and tonal surfaces carry
+  // most hierarchy in a reading/worship application.
   static const double elevationNone = 0;
   static const double elevationLow = 1;
   static const double elevationMedium = 2;
   static const double elevationHigh = 4;
 
-  // ═══════════════════════════════════════════════════════════════
-  // ANIMATION DURATIONS
-  // ═══════════════════════════════════════════════════════════════
-
   static const Duration animFast = Duration(milliseconds: 150);
-  static const Duration animNormal = Duration(milliseconds: 250);
-  static const Duration animSlow = Duration(milliseconds: 400);
-
-  // ═══════════════════════════════════════════════════════════════
-  // TYPOGRAPHY - Font families (defined in themes)
-  // ═══════════════════════════════════════════════════════════════
+  static const Duration animNormal = Duration(milliseconds: 240);
+  static const Duration animSlow = Duration(milliseconds: 360);
 
   static const String fontHeading = 'EB Garamond';
   static const String fontUI = 'Manrope';
 
-  /// Single source of truth for the user-selectable reading fonts.
-  /// Previously every screen shipped its own list (Bible had 6 entries,
-  /// Faith/Song had 5, the font settings page had 9) — the pickers showed
-  /// different options depending on where you opened them.
+  /// Single source of truth for user-selectable reading fonts. Heading/UI
+  /// chrome continues to use the church editorial pairing from ThemeData.
   static const List<String> appFontOptions = [
     'Roboto',
     'Roboto Serif',
@@ -82,16 +65,12 @@ class DesignSystem {
     'Inter',
   ];
 
-  // ═══════════════════════════════════════════════════════════════
-  // NAVIGATION - Compact navigation sizes
-  // ═══════════════════════════════════════════════════════════════
-
-  static const double navBarHeightPortrait = 64;  // Reduced from 84
-  static const double navBarHeightLandscape = 56;   // Reduced from 66
-  static const double navBarHeightCompact = 48;
+  // Matches DashboardView's floating navigation dock contract.
+  static const double navBarHeightPortrait = 72;
+  static const double navBarHeightLandscape = 72;
+  static const double navBarHeightCompact = 56;
 }
 
-/// Extension to create consistent padding
 extension SpacingExtension on double {
   EdgeInsets get pAll => EdgeInsets.all(this);
   EdgeInsets get pHorizontal => EdgeInsets.symmetric(horizontal: this);
@@ -109,7 +88,6 @@ extension SpacingExtension on double {
   }
 }
 
-/// Extension to create consistent border radius
 extension RadiusExtension on double {
   BorderRadius get radiusAll => BorderRadius.circular(this);
   BorderRadius get radiusTop =>
@@ -122,7 +100,6 @@ extension RadiusExtension on double {
       BorderRadius.horizontal(right: Radius.circular(this));
 }
 
-/// Creates a card decoration with consistent styling
 BoxDecoration cardDecoration(
   BuildContext context, {
   double? radius,
@@ -135,55 +112,31 @@ BoxDecoration cardDecoration(
   return BoxDecoration(
     color: color ?? theme.colorScheme.surfaceContainerLowest,
     borderRadius: BorderRadius.circular(radius ?? DesignSystem.radiusXl),
-    border: borderColor != null
-        ? Border.all(color: borderColor, width: borderWidth ?? 1)
-        : null,
+    border: Border.all(
+      color:
+          borderColor ?? theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+      width: borderWidth ?? 0.8,
+    ),
     boxShadow: shadows,
   );
 }
 
-/// Creates a subtle shadow for elevated elements
 List<BoxShadow> get elevationShadows => [
-  BoxShadow(
-    color: Colors.black.withValues(alpha: 0.05),
-    blurRadius: 4,
-    offset: const Offset(0, 1),
-  ),
-];
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.045),
+        blurRadius: 5,
+        offset: const Offset(0, 1),
+      ),
+    ];
 
-/// Creates a medium shadow for floating elements
 List<BoxShadow> get floatingShadows => [
-  BoxShadow(
-    color: Colors.black.withValues(alpha: 0.08),
-    blurRadius: 8,
-    offset: const Offset(0, 2),
-  ),
-];
+      BoxShadow(
+        color: Colors.black.withValues(alpha: 0.07),
+        blurRadius: 10,
+        offset: const Offset(0, 3),
+      ),
+    ];
 
-/// Gradient overlays for decorative backgrounds
-class Gradients {
-  Gradients._();
-
-  static const LinearGradient surfaceGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
-  );
-
-  static const LinearGradient pastelOverlay = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [Color(0x33DBEAFE), Color(0x00F8FAFC)],
-  );
-
-  static const LinearGradient subtleOverlay = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
-    colors: [Colors.transparent, Color(0x0A000000)],
-  );
-}
-
-/// Responsive breakpoints for adaptive layouts
 class Breakpoints {
   Breakpoints._();
 

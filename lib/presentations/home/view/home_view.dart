@@ -49,9 +49,12 @@ Widget _safeNetworkImage(
     fit: fit,
     height: height,
     width: width,
-    memCacheWidth: width != null && width.isFinite ? (width * 2.5).round() : 800,
-    memCacheHeight:
-        height != null && height.isFinite ? (height * 2.5).round() : 360,
+    memCacheWidth: width != null && width.isFinite
+        ? (width * 2.5).round()
+        : 800,
+    memCacheHeight: height != null && height.isFinite
+        ? (height * 2.5).round()
+        : 360,
     placeholder: (context, url) => fallbackWidget,
     errorWidget: (context, url, error) => fallbackWidget,
   );
@@ -102,19 +105,8 @@ class HomeView extends StatelessWidget {
           previous.isSuaraSejatiEnabled != current.isSuaraSejatiEnabled,
       builder: (context, state) {
         final colors = context.colorScheme;
-        return DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                colors.surface,
-                colors.surfaceContainerLowest,
-                colors.surface,
-              ],
-              stops: const [0, 0.38, 1],
-            ),
-          ),
+        return ColoredBox(
+          color: colors.surface,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -136,7 +128,9 @@ class HomeView extends StatelessWidget {
                             const _HomeWelcomeSection(),
                             const _DailyVerseCard(),
                             _HomeBannerCarousel(
-                              stream: context.read<HomeCubit>().bannerObservable,
+                              stream: context
+                                  .read<HomeCubit>()
+                                  .bannerObservable,
                             ),
                             if (state.sauhs.isNotEmpty && state.isSauhEnabled)
                               SauhBagiJiwa(item: state.sauhs.first),
@@ -201,7 +195,10 @@ class HomeHeader extends StatelessWidget {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: colors.primaryContainer.withValues(alpha: 0.55),
                   borderRadius: context.appRadius(999),
@@ -276,15 +273,7 @@ class _HomeWelcomeSection extends StatelessWidget {
             width: double.infinity,
             padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryContainer.withValues(alpha: 0.58),
-                  colors.secondaryContainer.withValues(alpha: 0.28),
-                  colors.surfaceContainerLow,
-                ],
-              ),
+              color: colors.surfaceContainerLow,
               borderRadius: context.appRadius(24),
               border: Border.all(
                 color: colors.outlineVariant.withValues(alpha: 0.28),
@@ -398,9 +387,7 @@ class _DailyVerseCard extends StatelessWidget {
             decoration: BoxDecoration(
               color: colors.surfaceContainerLow,
               borderRadius: context.appRadius(22),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.18),
-              ),
+              border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
               boxShadow: [
                 BoxShadow(
                   color: colors.shadow.withValues(alpha: 0.06),
@@ -468,7 +455,8 @@ class _DailyVerseCard extends StatelessWidget {
                     if (verse.bibleCodeName != null)
                       InkWell(
                         borderRadius: context.appRadius(999),
-                        onTap: () => _showBibleVersionPicker(context, homeCubit),
+                        onTap: () =>
+                            _showBibleVersionPicker(context, homeCubit),
                         child: _VerseChip(
                           label: verse.bibleCodeName!,
                           color: colors.tertiaryContainer,
@@ -696,7 +684,10 @@ class _LinkGroup extends StatelessWidget {
       return;
     }
     if (link.url.startsWith('http')) {
-      await launchUrl(Uri.parse(link.url), mode: LaunchMode.externalApplication);
+      await launchUrl(
+        Uri.parse(link.url),
+        mode: LaunchMode.externalApplication,
+      );
       return;
     }
     if (link.url == 'khotbah') {
@@ -724,9 +715,9 @@ class _LinkGroup extends StatelessWidget {
           builder: (context, constraints) {
             const spacing = 10.0;
             final columns = constraints.maxWidth >= 760 ? 4 : 2;
-            final width = ((constraints.maxWidth - spacing * (columns - 1)) /
-                    columns)
-                .clamp(0.0, double.infinity);
+            final width =
+                ((constraints.maxWidth - spacing * (columns - 1)) / columns)
+                    .clamp(0.0, double.infinity);
             return Wrap(
               spacing: spacing,
               runSpacing: spacing,
@@ -892,10 +883,8 @@ class _LinkThumbnailState extends State<_LinkThumbnail> {
       child: Image(
         image: widget.link.iconImageProvider,
         fit: BoxFit.contain,
-        errorBuilder: (context, error, stack) => Icon(
-          widget.fallbackIcon,
-          color: context.colorScheme.primary,
-        ),
+        errorBuilder: (context, error, stack) =>
+            Icon(widget.fallbackIcon, color: context.colorScheme.primary),
       ),
     );
   }
@@ -968,10 +957,9 @@ class _IbadahPopupState extends State<IbadahPopup> {
           clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: context.colorScheme.surface,
-            borderRadius: context.appRadius(20).copyWith(
-              bottomLeft: Radius.zero,
-              bottomRight: Radius.zero,
-            ),
+            borderRadius: context
+                .appRadius(20)
+                .copyWith(bottomLeft: Radius.zero, bottomRight: Radius.zero),
           ),
           child: Column(
             children: [
@@ -1153,9 +1141,8 @@ class SuaraSejati extends StatelessWidget {
                                     maxLines: 1,
                                     minFontSize: 8,
                                     overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.titleSmall?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                    ),
+                                    style: context.textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w800),
                                   ),
                                   if (item.creator.trim().isNotEmpty) ...[
                                     const SizedBox(height: 3),
@@ -1163,10 +1150,11 @@ class SuaraSejati extends StatelessWidget {
                                       item.creator.trim(),
                                       maxLines: 2,
                                       overflow: TextOverflow.ellipsis,
-                                      style: context.textTheme.bodySmall?.copyWith(
-                                        color: colors.onSurfaceVariant,
-                                        height: 1.2,
-                                      ),
+                                      style: context.textTheme.bodySmall
+                                          ?.copyWith(
+                                            color: colors.onSurfaceVariant,
+                                            height: 1.2,
+                                          ),
                                     ),
                                   ],
                                 ],
