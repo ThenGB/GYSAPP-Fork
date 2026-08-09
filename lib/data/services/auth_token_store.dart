@@ -8,10 +8,11 @@ abstract interface class AuthTokenStore {
 
 class SecureAuthTokenStore implements AuthTokenStore {
   SecureAuthTokenStore({FlutterSecureStorage? storage})
-      : _storage = storage ??
-            const FlutterSecureStorage(
-              webOptions: WebOptions(useSessionStorage: true),
-            );
+    : _storage =
+          storage ??
+          const FlutterSecureStorage(
+            webOptions: WebOptions(useSessionStorage: true),
+          );
 
   static const _tokenKey = 'gys_auth_token_v1';
   final FlutterSecureStorage _storage;

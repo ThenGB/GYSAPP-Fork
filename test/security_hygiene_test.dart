@@ -33,13 +33,17 @@ void main() {
 
   test('translation bundles do not contain common UTF-8 mojibake markers', () {
     const markers = ['â€¦', 'â€”', 'â†', 'ðŸ', 'Ã', 'Â'];
-    for (final file in Directory('assets/translations')
-        .listSync()
-        .whereType<File>()
-        .where((file) => file.path.endsWith('.json'))) {
+    for (final file
+        in Directory('assets/translations').listSync().whereType<File>().where(
+          (file) => file.path.endsWith('.json'),
+        )) {
       final source = file.readAsStringSync();
       for (final marker in markers) {
-        expect(source, isNot(contains(marker)), reason: '${file.path}: $marker');
+        expect(
+          source,
+          isNot(contains(marker)),
+          reason: '${file.path}: $marker',
+        );
       }
     }
   });
