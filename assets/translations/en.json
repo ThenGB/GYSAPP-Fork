@@ -360,5 +360,9 @@
   "chord_settings_padding": "Badge padding",
   "chord_settings_close": "Close",
   "chord_settings_far": "Far",
-  "accent_custom": "Custom Color"
+  "accent_custom": "Custom Color",
+  "surface_tone": "Surface tone",
+  "surface_light": "Light",
+  "surface_medium": "Soft",
+  "surface_dark": "Deep"
 }

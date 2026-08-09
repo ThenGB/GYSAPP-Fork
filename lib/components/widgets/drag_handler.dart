@@ -18,4 +18,3 @@ class DragHandler extends StatelessWidget {
     );
   }
 }
-

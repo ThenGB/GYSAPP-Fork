@@ -50,8 +50,7 @@ class UnifiedCard extends StatelessWidget {
         color: effectiveColor,
         borderRadius: BorderRadius.circular(effectiveRadius),
         border: Border.all(
-          color: borderColor ??
-              colors.outlineVariant.withValues(alpha: 0.52),
+          color: borderColor ?? colors.outlineVariant.withValues(alpha: 0.52),
           width: borderWidth ?? 0.8,
         ),
         boxShadow: elevation != null && elevation! > 0
@@ -113,7 +112,8 @@ class UnifiedSectionHeader extends StatelessWidget {
     final colors = theme.colorScheme;
 
     return Padding(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.fromLTRB(
             context.appSpace(18),
             context.appSpace(22),
@@ -198,11 +198,7 @@ class UnifiedEmptyState extends StatelessWidget {
                   color: colors.primaryContainer.withValues(alpha: 0.62),
                   borderRadius: context.appRadius(18),
                 ),
-                child: Icon(
-                  icon,
-                  size: 28,
-                  color: colors.onPrimaryContainer,
-                ),
+                child: Icon(icon, size: 28, color: colors.onPrimaryContainer),
               ),
               const SizedBox(height: DesignSystem.spacing16),
               Text(
@@ -290,7 +286,8 @@ class UnifiedListTile extends StatelessWidget {
     final theme = Theme.of(context);
 
     return UnifiedCard(
-      padding: padding ??
+      padding:
+          padding ??
           EdgeInsets.symmetric(
             horizontal: context.appSpace(16),
             vertical: context.appSpace(13),
@@ -312,7 +309,7 @@ class UnifiedListTile extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w650,
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
                 if (subtitle case final s?) ...[
@@ -330,10 +327,7 @@ class UnifiedListTile extends StatelessWidget {
               ],
             ),
           ),
-          if (trailing != null) ...[
-            const SizedBox(width: 10),
-            trailing!,
-          ],
+          if (trailing != null) ...[const SizedBox(width: 10), trailing!],
         ],
       ),
     );

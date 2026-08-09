@@ -513,17 +513,8 @@ class _DashboardDrawer extends StatelessWidget {
           .toDouble(),
       backgroundColor: colors.surface,
       child: SafeArea(
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                colors.surfaceContainerHighest.withValues(alpha: 0.75),
-                colors.surface,
-              ],
-            ),
-          ),
+        child: ColoredBox(
+          color: colors.surface,
           child: BlocBuilder<InitialCubit, InitialState>(
             builder: (context, initialState) {
               return Theme(

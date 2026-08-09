@@ -38,9 +38,7 @@ class DistributedAssetTile extends StatelessWidget {
       return 'bundled_asset'.tr();
     }
     if (status.isDownloaded) {
-      return 'installed_v'.tr(namedArgs: {
-        'v': status.installedVersion ?? '',
-      });
+      return 'installed_v'.tr(namedArgs: {'v': status.installedVersion ?? ''});
     }
     if (status.hasRemotePackage) {
       return 'available_to_download'.tr();
@@ -60,11 +58,10 @@ class DistributedAssetTile extends StatelessWidget {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: CircleAvatar(
-        backgroundColor: isActive
-            ? colors.primary
-            : colors.primaryContainer,
-        foregroundColor:
-            isActive ? colors.onPrimary : colors.onPrimaryContainer,
+        backgroundColor: isActive ? colors.primary : colors.primaryContainer,
+        foregroundColor: isActive
+            ? colors.onPrimary
+            : colors.onPrimaryContainer,
         child: Icon(
           status.definition.kind == DistributedAssetKind.bible
               ? Icons.menu_book_outlined
@@ -98,15 +95,15 @@ class DistributedAssetTile extends StatelessWidget {
             )
           : updateAvailable
           ? TextButton.icon(
-              onPressed: onDownload ??
-                  () => cubit.downloadAsset(status.definition),
+              onPressed:
+                  onDownload ?? () => cubit.downloadAsset(status.definition),
               icon: const Icon(Icons.system_update_alt_rounded, size: 18),
               label: Text('update'.tr()),
             )
           : canDownload
           ? TextButton.icon(
-              onPressed: onDownload ??
-                  () => cubit.downloadAsset(status.definition),
+              onPressed:
+                  onDownload ?? () => cubit.downloadAsset(status.definition),
               icon: const Icon(Icons.download_rounded, size: 18),
               label: Text('download'.tr()),
             )

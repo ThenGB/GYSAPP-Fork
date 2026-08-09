@@ -183,6 +183,12 @@ class InitialCubit extends HydratedCubit<InitialState> {
     _saveThemePreferences();
   }
 
+  void changeSurfaceTone(SurfaceTone tone) {
+    final updatedPrefs = state.themePreferences.copyWith(surfaceTone: tone);
+    emit(state.copyWith(themePreferences: updatedPrefs));
+    _saveThemePreferences();
+  }
+
   void changeCornerRadius(CornerRadiusStyle style) {
     final updatedPrefs = state.themePreferences.copyWith(cornerRadius: style);
     emit(state.copyWith(themePreferences: updatedPrefs));
