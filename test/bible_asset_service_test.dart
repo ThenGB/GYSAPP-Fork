@@ -20,40 +20,60 @@ import 'package:church/domain/repository/bible_repository.dart';
 class _FakeBibleRepository implements BibleRepository {
   @override
   Future<List<BibleBook>> getBooks(Database db, {int? bookId}) async => [];
+
   @override
-  Future<List<Verse>> getVerses(Database db,
-          {required int bookId, required int chapterId}) async =>
-      [];
+  Future<List<Verse>> getVerses(
+    Database db, {
+    required int bookId,
+    required int chapterId,
+  }) async => [];
+
   @override
-  Future<List<Pericope>> getPericope(Database db,
-          {required int bookId, required int chapterId}) async =>
-      [];
+  Future<List<Pericope>> getPericope(
+    Database db, {
+    required int bookId,
+    required int chapterId,
+  }) async => [];
+
   @override
-  Future<List<PericopeParalel>> getPericopeParalel(Database db,
-          {required int bc}) async =>
-      [];
+  Future<List<PericopeParalel>> getPericopeParalel(
+    Database db, {
+    required int bc,
+  }) async => [];
+
   @override
   Future<List<BibleRef>> getRef(Database db, {required int bc}) async => [];
+
   @override
-  Future<List<Verse>> getVersesByIdRange(Database db,
-          {required int fromId, required int? toId}) async =>
-      [];
+  Future<List<Verse>> getVersesByIdRange(
+    Database db, {
+    required int fromId,
+    required int? toId,
+  }) async => [];
+
   @override
   Future<List<Verse>> search(
-          Database db, String searchText, List<BibleBook> selectedBooks) async =>
-      [];
+    Database db,
+    String searchText,
+    List<BibleBook> selectedBooks,
+  ) async => [];
 }
 
 class _MemStorage implements Storage {
   final Map<String, dynamic> _data = {};
+
   @override
   Future<void> clear() async => _data.clear();
+
   @override
   Future<void> close() async {}
+
   @override
   Future<void> delete(String key) async => _data.remove(key);
+
   @override
   dynamic read(String key) => _data[key];
+
   @override
   Future<void> write(String key, dynamic value) async => _data[key] = value;
 }
@@ -61,14 +81,21 @@ class _MemStorage implements Storage {
 class _EmptyStore implements InstalledAssetStore {
   @override
   Future<List<String>> listFiles(String directory) async => [];
+
   @override
   Future<Uint8List?> readFile(String relativePath) async => null;
+
   @override
   Future<void> writeFile(String relativePath, Uint8List bytes) async {}
+
   @override
   Future<void> deleteFile(String relativePath) async {}
+
   @override
   Future<bool> exists(String relativePath) async => false;
+
+  @override
+  Future<void> clear() async {}
 }
 
 void main() {
@@ -86,9 +113,7 @@ void main() {
       ),
     );
   });
-  tearDown(() async {
-    await di.reset();
-  });
+
   tearDown(() async {
     await di.reset();
   });
@@ -99,11 +124,11 @@ void main() {
     Future<T> timed<T>(String name, Future<T> Function() fn) async {
       final sw = Stopwatch()..start();
       try {
-        final r = await fn();
+        final result = await fn();
         debugPrint('OK   $name (${sw.elapsedMilliseconds}ms)');
-        return r;
-      } catch (e) {
-        debugPrint('FAIL $name (${sw.elapsedMilliseconds}ms): $e');
+        return result;
+      } catch (error) {
+        debugPrint('FAIL $name (${sw.elapsedMilliseconds}ms): $error');
         rethrow;
       }
     }
