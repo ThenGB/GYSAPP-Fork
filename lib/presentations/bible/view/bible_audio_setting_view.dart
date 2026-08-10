@@ -118,6 +118,12 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
       BibleTtsService.nativeVoicesForLocale(_nativeVoices, locale);
 
   Future<void> _testSpeak(String sample) async {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    final sampleLocale = switch (language) {
+      'id' => 'id-ID',
+      'zh' => 'zh-CN',
+      _ => 'en-US',
+    };
     await _tts.stop();
     _tts.engine = _engine == 'native'
         ? BibleTtsEngine.native
@@ -126,12 +132,6 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     _tts.edgeRate = _edgeRate;
     _tts.edgePitch = _edgePitch;
     _tts.edgeVolume = _edgeVolume;
-    final language = Localizations.localeOf(context).languageCode.toLowerCase();
-    final sampleLocale = switch (language) {
-      'id' => 'id-ID',
-      'zh' => 'zh-CN',
-      _ => 'en-US',
-    };
     await _tts.configureNative(
       voice: BibleTtsService.resolveNativeVoice(
         voices: _nativeVoices,
