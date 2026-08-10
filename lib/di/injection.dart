@@ -156,7 +156,11 @@ void _repositories() {
   di.registerFactory<AccountRepository>(
     () => AccountRepositoryImpl(di()..options.baseUrl = config.baseUrlApi),
   );
-  di.registerFactory<ThemePreferencesRepository>(
+  // Appearance preferences are stateful: startup loads them, UI writes them,
+  // and a full reset clears the same cache. Sharing one repository instance
+  // prevents a freshly-routed splash from observing stale cached values while
+  // another factory instance is still removing them from disk.
+  di.registerLazySingleton<ThemePreferencesRepository>(
     () => ThemePreferencesRepository(),
   );
 }
