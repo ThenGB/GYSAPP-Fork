@@ -50,7 +50,7 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> _warmUpPlaybackQueue() async {
     try {
       if (!state.midiPreloadEnabled || state.songs.isEmpty) return;
-      final count = state.midiPreloadNeighborCount.clamp(0, 5);
+      final count = state.midiPreloadNeighborCount.clamp(0, 5).toInt();
       final queue = _navigationQueue();
       final preloadSongs = queue.preloadSongs(count: count);
       if (preloadSongs.isEmpty) return;
@@ -138,7 +138,7 @@ class SongCubit extends HydratedCubit<SongState> {
     unawaited(_assetService.initialize());
 
     if (state.songs.isNotEmpty) {
-      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
       final currentSong = state.songs[currentIdx];
       log('Startup immediate load: ${currentSong.number}', name: 'SongCubit');
       _resolvedChordsCache = null;
@@ -202,7 +202,7 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setCacheMax(state.midiCacheMaxCount);
 
     if (state.showAudio && state.songs.isNotEmpty) {
-      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
       final currentSong = state.songs[currentIdx];
       final midiPath = await _midiPathForSong(currentSong);
       if (midiPath != null) {
@@ -235,7 +235,7 @@ class SongCubit extends HydratedCubit<SongState> {
       final result = await service.sync();
       log('Chord sync finished: $result', name: 'SongCubit');
       if (result.changed && !isClosed && state.songs.isNotEmpty) {
-        final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+        final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
         final currentSong = state.songs[currentIdx];
         final hasChord = await _assetService.hasChord(
           currentSong.code ?? '',
@@ -298,7 +298,7 @@ class SongCubit extends HydratedCubit<SongState> {
             !hadSongs &&
             state.songs.isNotEmpty &&
             state.currentPdfPath == null) {
-          final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+          final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
           final currentSong = state.songs[currentIdx];
           unawaited(_loadResourcesForSong(currentSong));
           unawaited(_loadChordDataInternal(currentSong));
@@ -643,13 +643,13 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void setMidiPreloadNeighborCount(int count) {
-    final clamped = count.clamp(0, 5);
+    final clamped = count.clamp(0, 5).toInt();
     emit(state.copyWith(midiPreloadNeighborCount: clamped));
     unawaited(_warmUpPlaybackQueue());
   }
 
   void setMidiCacheMaxCount(int count) {
-    final clamped = count.clamp(4, 32);
+    final clamped = count.clamp(4, 32).toInt();
     emit(state.copyWith(midiCacheMaxCount: clamped));
     _midiEngine.setCacheMax(clamped);
   }
@@ -713,7 +713,7 @@ class SongCubit extends HydratedCubit<SongState> {
 
   bool _isCurrentSong(Song song) {
     if (isClosed || state.songs.isEmpty) return false;
-    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final currentSong = state.songs[currentIdx];
     return currentSong.code == song.code && currentSong.number == song.number;
   }
@@ -757,7 +757,7 @@ class SongCubit extends HydratedCubit<SongState> {
       song.number ?? '',
     );
     if (isClosed) return;
-    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final currentSong = state.songs[currentIdx];
     if (currentSong.code != song.code || currentSong.number != song.number) return;
 
@@ -775,7 +775,9 @@ class SongCubit extends HydratedCubit<SongState> {
     try {
       final chords = ChordService.parseChordJson(jsonString);
       if (isClosed) return;
-      if (state.songs[state.pageIndex.clamp(0, state.songs.length - 1)].number !=
+      if (state.songs[
+            state.pageIndex.clamp(0, state.songs.length - 1).toInt()
+          ].number !=
           song.number) {
         return;
       }
@@ -980,7 +982,9 @@ class SongCubit extends HydratedCubit<SongState> {
 
     final currentSong = state.songs.isEmpty
         ? null
-        : state.songs[state.pageIndex.clamp(0, state.songs.length - 1)];
+        : state.songs[
+            state.pageIndex.clamp(0, state.songs.length - 1).toInt()
+          ];
     final currentInPlaylist = currentSong != null &&
         playlist.songs.any((item) => item.matches(currentSong));
     if (!currentInPlaylist) {
@@ -1066,7 +1070,7 @@ class SongCubit extends HydratedCubit<SongState> {
 
   void reloadChordsForCurrentSong() {
     if (state.songs.isEmpty) return;
-    final idx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final idx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final song = state.songs[idx];
     unawaited(_loadChordDataInternal(song));
     unawaited(_resolveChordBaselineForCurrentSong(song));
@@ -1336,19 +1340,19 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void changeChordFontSizePercent(int value) {
-    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200)));
+    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200).toInt()));
   }
 
   void changeChordFillOpacityPercent(int value) {
-    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100)));
+    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100).toInt()));
   }
 
   void changeChordPaddingPercent(int value) {
-    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400)));
+    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400).toInt()));
   }
 
   void changeChordOffsetPercent(int value) {
-    emit(state.copyWith(chordOffsetPercent: value.clamp(0, 300)));
+    emit(state.copyWith(chordOffsetPercent: value.clamp(0, 300).toInt()));
   }
 
   void changeMode() {
