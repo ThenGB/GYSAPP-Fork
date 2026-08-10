@@ -7,7 +7,11 @@ import '../../../components/components.dart';
 import 'package:auto_route/auto_route.dart';
 import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/gestures.dart'
+    show GestureBinding, PointerScrollEvent;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'
+    show HardwareKeyboard, KeyEvent, KeyEventCallback;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -44,6 +48,21 @@ class _SongViewState extends State<SongView> {
   int _currentVerseIndex = 0;
   bool _isChordEditMode = false;
 
+  /// Text-mode pinch/ctrl+scroll zoom multiplier (0.5x–2.5x) applied on top of
+  /// the reader's text scale. Zoom is deliberately local to this view: it
+  /// never emits cubit state, so pinching cannot cause a hydration write
+  /// storm, and it resets with the widget's lifecycle.
+  double _textZoom = 1.0;
+
+  /// True while a two-pointer pinch is active in the text layer. While true,
+  /// the song PageView physics are disabled so a pinch can never be mistaken
+  /// for a song swipe (zoom has priority over navigation).
+  bool _isTextPinching = false;
+
+  /// Tracks the Control modifier for mouse Ctrl+scroll zooming.
+  bool _ctrlPressed = false;
+  KeyEventCallback? _keyboardHandler;
+
   int _resolveInitialPageIndex() {
     try {
       final index = cubit.state.histories.last.index;
@@ -74,6 +93,10 @@ class _SongViewState extends State<SongView> {
 
   @override
   void dispose() {
+    final handler = _keyboardHandler;
+    if (handler != null) {
+      HardwareKeyboard.instance.removeHandler(handler);
+    }
     pageController.dispose();
     super.dispose();
   }
@@ -88,6 +111,26 @@ class _SongViewState extends State<SongView> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) _openSongSelector();
     });
+    _keyboardHandler = _trackControlModifier;
+    HardwareKeyboard.instance.addHandler(_trackControlModifier);
+  }
+
+  /// Keeps [_ctrlPressed] in sync with the physical Control key so
+  /// Ctrl+scroll can zoom the text. Never consumes the event.
+  bool _trackControlModifier(KeyEvent event) {
+    final pressed = HardwareKeyboard.instance.isControlPressed;
+    if (pressed != _ctrlPressed && mounted) {
+      setState(() => _ctrlPressed = pressed);
+    }
+    return false;
+  }
+
+  /// Applies a relative zoom step (negative = smaller) to the text-mode
+  /// scale, clamped to 0.5x–2.5x.
+  void _applyTextZoom(double delta) {
+    final next = (_textZoom + delta).clamp(0.5, 2.5);
+    if ((next - _textZoom).abs() < 0.001) return;
+    setState(() => _textZoom = next);
   }
 
   // _loadChordData removed, managed by SongCubit
@@ -323,45 +366,85 @@ class _SongViewState extends State<SongView> {
                         prev.currentPdfPath != curr.currentPdfPath ||
                         prev.songs != curr.songs,
                     builder: (context, state) => RepaintBoundary(
-                      child: PageView.builder(
-                        controller: pageController,
-                        physics: const BouncingScrollPhysics(),
-                        itemCount: state.songs.length,
-                        itemBuilder: (context, index) {
-                          final song = state.songs[index];
-                          // Chord data is keyed by song-relative page
-                          // (1-based).  The text view flattens every page's
-                          // chords so lines from any verse (which may sit on
-                          // any PDF page) get their notes' chords.
-                          final isActiveSong = index == currentPageIndex;
-                          final songChords = isActiveSong
-                              ? state.currentChords
-                              : const <int, List<ChordData>>{};
-                          return RepaintBoundary(
-                            child: _SongTextPage(
-                              song: song,
-                              fontFamily: state.defaultFont,
-                              textScale: state.defaultTextScale,
-                              textHeight: state.defaultTextHeight,
-                              fontBold: state.fontBold,
-                              textAlign: state.lyricsTextAlign,
-                              verticalAlign: state.lyricsVerticalAlign,
-                              verseIndex: _currentVerseIndex,
-                              onPreviousVerse: _previousVerse,
-                              onNextVerse: () => _nextVerse(song),
-                              chords: songChords,
-                              pdfPath: isActiveSong
-                                  ? state.currentPdfPath
-                                  : null,
-                              showChords:
-                                  isActiveSong &&
-                                  shouldRenderChordForSongState(state),
-                              transposeStep: state.transposeStep,
-                              baseTransposeOffset: state.baseTransposeOffset,
-                              chordAccidentalMode: state.chordAccidentalMode,
-                            ),
-                          );
+                      child: Listener(
+                        // Mouse: Ctrl+scroll zooms the text. The signal is
+                        // claimed through the pointer-signal resolver so the
+                        // underlying scrollables do not scroll at the same
+                        // time.
+                        onPointerSignal: (event) {
+                          if (event is PointerScrollEvent && _ctrlPressed) {
+                            GestureBinding.instance.pointerSignalResolver
+                                .register(event, (_) {
+                              _applyTextZoom(
+                                -event.scrollDelta.dy / 120 * 0.1,
+                              );
+                            });
+                          }
                         },
+                        child: PageView.builder(
+                          controller: pageController,
+                          physics: _isTextPinching
+                              ? const NeverScrollableScrollPhysics()
+                              : const BouncingScrollPhysics(),
+                          itemCount: state.songs.length,
+                          itemBuilder: (context, index) {
+                            final song = state.songs[index];
+                            // Chord data is keyed by song-relative page
+                            // (1-based).  The text view flattens every page's
+                            // chords so lines from any verse (which may sit on
+                            // any PDF page) get their notes' chords.
+                            final isActiveSong = index == currentPageIndex;
+                            final songChords = isActiveSong
+                                ? state.currentChords
+                                : const <int, List<ChordData>>{};
+                            return RepaintBoundary(
+                              child: _SongTextPage(
+                                song: song,
+                                fontFamily: state.defaultFont,
+                                textScale:
+                                    state.defaultTextScale * _textZoom,
+                                textHeight: state.defaultTextHeight,
+                                fontBold: state.fontBold,
+                                textAlign: state.lyricsTextAlign,
+                                verticalAlign: state.lyricsVerticalAlign,
+                                verseIndex: _currentVerseIndex,
+                                onPreviousVerse: _previousVerse,
+                                onNextVerse: () => _nextVerse(song),
+                                onPinchStart: () {
+                                  if (!_isTextPinching) {
+                                    setState(() => _isTextPinching = true);
+                                  }
+                                },
+                                onPinchScale: (scale) {
+                                  if (!mounted) return;
+                                  final next =
+                                      scale.clamp(0.5, 2.5);
+                                  if ((next - _textZoom).abs() < 0.001) {
+                                    return;
+                                  }
+                                  setState(() => _textZoom = next);
+                                },
+                                onPinchEnd: () {
+                                  if (_isTextPinching && mounted) {
+                                    setState(() => _isTextPinching = false);
+                                  }
+                                },
+                                chords: songChords,
+                                pdfPath: isActiveSong
+                                    ? state.currentPdfPath
+                                    : null,
+                                showChords:
+                                    isActiveSong &&
+                                    shouldRenderChordForSongState(state),
+                                transposeStep: state.transposeStep,
+                                baseTransposeOffset:
+                                    state.baseTransposeOffset,
+                                chordAccidentalMode:
+                                    state.chordAccidentalMode,
+                              ),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   ),
@@ -1052,6 +1135,14 @@ class _SongTextPage extends StatefulWidget {
   final VoidCallback? onPreviousVerse;
   final VoidCallback? onNextVerse;
 
+  /// Pinch-to-zoom callbacks. [onPinchStart] fires when a second pointer
+  /// joins, [onPinchScale] reports the live scale factor, and [onPinchEnd]
+  /// fires when every pointer lifts. The parent disables song-swipe physics
+  /// while a pinch is active so zoom always wins over navigation.
+  final VoidCallback? onPinchStart;
+  final ValueChanged<double>? onPinchScale;
+  final VoidCallback? onPinchEnd;
+
   /// All pages' chord data for the current song (song-relative page â†’ chords).
   final Map<int, List<ChordData>> chords;
 
@@ -1074,6 +1165,9 @@ class _SongTextPage extends StatefulWidget {
     required this.verseIndex,
     this.onPreviousVerse,
     this.onNextVerse,
+    this.onPinchStart,
+    this.onPinchScale,
+    this.onPinchEnd,
     this.chords = const {},
     this.pdfPath,
     this.showChords = false,
@@ -1102,6 +1196,54 @@ class _SongTextPageState extends State<_SongTextPage>
   String? _layoutSourceId;
   List<ChordedTextLine>? _layoutLines;
   bool _layoutLoading = false;
+
+  // ---- Pinch-to-zoom tracking ---------------------------------------------
+  // Raw pointer bookkeeping: a second finger switches the gesture from
+  // verse-swipe to text zoom. Zoom always wins: while two pointers are down,
+  // verse navigation is refused and the parent disables song-swiping.
+  final Map<int, Offset> _pinchPointers = {};
+  bool _pinchActive = false;
+  bool _pinchSeenSinceDragStart = false;
+  double _pinchStartSpan = 0;
+
+  void _onPinchPointerDown(PointerDownEvent event) {
+    _pinchPointers[event.pointer] = event.position;
+    _updatePinchState();
+  }
+
+  void _onPinchPointerMove(PointerMoveEvent event) {
+    _pinchPointers[event.pointer] = event.position;
+    if (_pinchActive) _updatePinchState();
+  }
+
+  void _onPinchPointerUp(PointerEvent event) {
+    _pinchPointers.remove(event.pointer);
+    if (_pinchPointers.length < 2) {
+      if (_pinchActive) {
+        _pinchActive = false;
+        widget.onPinchEnd?.call();
+      }
+    }
+  }
+
+  void _updatePinchState() {
+    if (_pinchPointers.length < 2) return;
+    final points = _pinchPointers.values.toList();
+    final span = (points[0] - points[1]).distance;
+    if (span <= 0) return;
+    if (!_pinchActive) {
+      _pinchActive = true;
+      _pinchSeenSinceDragStart = true;
+      _pinchStartSpan = span;
+      widget.onPinchStart?.call();
+      return;
+    }
+    // Incremental zoom: each move rebases the reference span so the scale
+    // tracks the fingers 1:1 without drift.
+    final factor = span / _pinchStartSpan;
+    _pinchStartSpan = span;
+    widget.onPinchScale?.call(factor);
+  }
 
   @override
   void initState() {
@@ -1340,7 +1482,9 @@ class _SongTextPageState extends State<_SongTextPage>
 
   // Verse navigation by swipe must be unmistakable: it takes a fast flick
   // (>=450px/s) covering >=80px within 400ms. Plain scrolling of the verse
-  // text — even a fling — never advances a verse on its own.
+  // text — even a fling — never advances a verse on its own. Horizontal
+  // swipes are intentionally NOT handled here: the song PageView owns
+  // left/right for previous/next hymn.
   static const double _verseSwipeMinVelocity = 450;
   static const double _verseSwipeMinDistance = 80;
   static const Duration _verseSwipeMaxElapsed = Duration(milliseconds: 400);
@@ -1351,16 +1495,19 @@ class _SongTextPageState extends State<_SongTextPage>
   void _onVerseDragStart(DragStartDetails details) {
     _verseDragStartTime = DateTime.now();
     _verseDragAccumulated = Offset.zero;
+    _pinchSeenSinceDragStart = false;
   }
 
   void _onVerseDragUpdate(DragUpdateDetails details) {
     _verseDragAccumulated += details.delta;
   }
 
-  void _onVerseDragEnd(DragEndDetails details, {required bool horizontal}) {
+  void _onVerseDragEnd(DragEndDetails details) {
+    // Zoom has priority over navigation: a drag that coincided with a pinch
+    // (two pointers at any point) must never advance a verse.
+    if (_pinchActive || _pinchSeenSinceDragStart) return;
     final velocity = details.primaryVelocity ?? 0;
-    final distance =
-        horizontal ? _verseDragAccumulated.dx : _verseDragAccumulated.dy;
+    final distance = _verseDragAccumulated.dy;
     final elapsed = DateTime.now().difference(_verseDragStartTime);
     if (distance.abs() < _verseSwipeMinDistance ||
         velocity.abs() < _verseSwipeMinVelocity ||
@@ -1384,17 +1531,19 @@ class _SongTextPageState extends State<_SongTextPage>
         : 0;
     final currentVerse = hasVerses ? verses[safeIndex] : null;
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onHorizontalDragStart: _onVerseDragStart,
-      onHorizontalDragUpdate: _onVerseDragUpdate,
-      onHorizontalDragEnd: (details) =>
-          _onVerseDragEnd(details, horizontal: true),
-      onVerticalDragStart: _onVerseDragStart,
-      onVerticalDragUpdate: _onVerseDragUpdate,
-      onVerticalDragEnd: (details) =>
-          _onVerseDragEnd(details, horizontal: false),
-      child: SelectionArea(
+    return Listener(
+      // Raw pointer tracking powers pinch-to-zoom: when a second finger
+      // lands, the gesture becomes zoom and every navigation is suppressed.
+      onPointerDown: _onPinchPointerDown,
+      onPointerMove: _onPinchPointerMove,
+      onPointerUp: _onPinchPointerUp,
+      onPointerCancel: _onPinchPointerUp,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onVerticalDragStart: _onVerseDragStart,
+        onVerticalDragUpdate: _onVerseDragUpdate,
+        onVerticalDragEnd: _onVerseDragEnd,
+        child: SelectionArea(
         child: Column(
           children: [
             Expanded(
@@ -1510,6 +1659,7 @@ class _SongTextPageState extends State<_SongTextPage>
               ),
           ],
         ),
+      ),
       ),
     );
   }
