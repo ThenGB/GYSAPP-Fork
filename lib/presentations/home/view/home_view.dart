@@ -141,12 +141,6 @@ class HomeHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _HeaderAction(
-                tooltip: 'Menu',
-                icon: Icons.menu_rounded,
-                onPressed: openDashboardDrawer,
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
@@ -159,61 +153,9 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer.withValues(alpha: 0.55),
-                  borderRadius: context.appRadius(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.church_rounded, size: 15, color: colors.primary),
-                    const SizedBox(width: 5),
-                    Text(
-                      'GYS',
-                      style: context.textTheme.labelMedium?.copyWith(
-                        color: colors.onPrimaryContainer,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.7,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _HeaderAction extends StatelessWidget {
-  const _HeaderAction({
-    required this.tooltip,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final String tooltip;
-  final IconData icon;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Material(
-      color: colors.surfaceContainerLow,
-      borderRadius: context.appRadius(14),
-      clipBehavior: Clip.antiAlias,
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: onPressed,
-        icon: Icon(icon, size: 21),
       ),
     );
   }
