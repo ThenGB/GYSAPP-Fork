@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../data/services/chord_service.dart';
+import '../cubit/song_cubit.dart';
 import 'song_pdf_viewer_base.dart' as base;
 
 export 'song_pdf_viewer_base.dart' hide SongPdfViewer;
@@ -56,29 +58,109 @@ class SongPdfViewer extends StatelessWidget {
     final layoutMode = verticalScrolling
         ? 'vertical'
         : (twoPageMode ? 'two-page' : 'single-page');
+    final songState = context.watch<SongCubit>().state;
+    final chordEnabled = songState.bookCode != 'HYMNE';
+    final isFlat = chordAccidentalMode == ChordService.accidentalFlat;
 
-    return base.SongPdfViewer(
-      // The source plus layout mode are an explicit state boundary. Page/chord
-      // updates can still reuse the same viewer; only changes that invalidate
-      // pdfrx's fitting assumptions recreate it.
-      key: ValueKey('song-pdf:$pdfPath:$layoutMode'),
-      pdfPath: pdfPath,
-      showChord: showChord,
-      chords: chords,
-      transposeStep: transposeStep,
-      baseTransposeOffset: baseTransposeOffset,
-      chordAccidentalMode: chordAccidentalMode,
-      twoPageMode: twoPageMode,
-      verticalScrolling: verticalScrolling,
-      chordFontSizePercent: chordFontSizePercent,
-      chordFillOpacityPercent: chordFillOpacityPercent,
-      chordPaddingPercent: chordPaddingPercent,
-      chordOffsetPercent: chordOffsetPercent,
-      isEditMode: isEditMode,
-      onChordsChanged: onChordsChanged,
-      viewerController: viewerController,
-      onNextSong: onNextSong,
-      onPreviousSong: onPreviousSong,
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        base.SongPdfViewer(
+          // The source plus layout mode are an explicit state boundary. Page /
+          // chord updates can still reuse the same viewer; only changes that
+          // invalidate pdfrx's fitting assumptions recreate it.
+          key: ValueKey('song-pdf:$pdfPath:$layoutMode'),
+          pdfPath: pdfPath,
+          showChord: showChord,
+          chords: chords,
+          transposeStep: transposeStep,
+          baseTransposeOffset: baseTransposeOffset,
+          chordAccidentalMode: chordAccidentalMode,
+          twoPageMode: twoPageMode,
+          verticalScrolling: verticalScrolling,
+          chordFontSizePercent: chordFontSizePercent,
+          chordFillOpacityPercent: chordFillOpacityPercent,
+          chordPaddingPercent: chordPaddingPercent,
+          chordOffsetPercent: chordOffsetPercent,
+          isEditMode: isEditMode,
+          onChordsChanged: onChordsChanged,
+          viewerController: viewerController,
+          onNextSong: onNextSong,
+          onPreviousSong: onPreviousSong,
+        ),
+        if (chordEnabled)
+          Positioned(
+            top: 12,
+            right: 70,
+            child: Material(
+              elevation: 3,
+              color: Theme.of(context)
+                  .colorScheme
+                  .surfaceContainerHigh
+                  .withValues(alpha: 0.94),
+              shape: const CircleBorder(),
+              clipBehavior: Clip.antiAlias,
+              child: PopupMenuButton<String>(
+                tooltip: isFlat ? 'Notasi Flat (♭)' : 'Notasi Sharp (♯)',
+                initialValue: chordAccidentalMode,
+                onSelected: context
+                    .read<SongCubit>()
+                    .setChordAccidentalMode,
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: ChordService.accidentalSharp,
+                    child: _AccidentalChoice(symbol: '♯', label: 'Sharp'),
+                  ),
+                  PopupMenuItem<String>(
+                    value: ChordService.accidentalFlat,
+                    child: _AccidentalChoice(symbol: '♭', label: 'Flat'),
+                  ),
+                ],
+                child: SizedBox.square(
+                  dimension: 38,
+                  child: Center(
+                    child: Text(
+                      isFlat ? '♭' : '♯',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w900,
+                            height: 1,
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _AccidentalChoice extends StatelessWidget {
+  const _AccidentalChoice({required this.symbol, required this.label});
+
+  final String symbol;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        SizedBox(
+          width: 30,
+          child: Text(
+            symbol,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text('$label ($symbol)'),
+      ],
     );
   }
 }
