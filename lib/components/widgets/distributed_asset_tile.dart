@@ -6,17 +6,11 @@ import '../../presentations/settings/cubit/asset_management_cubit.dart';
 
 /// A single managed asset row (bible version, hymn book or soundfont) that
 /// shows its install state and offers Download / Update / Stop / Delete actions.
-///
-/// Bundled assets (definition.bundledByDefault without an install record)
-/// can never be deleted.
 class DistributedAssetTile extends StatelessWidget {
   final ManagedAssetStatus status;
   final AssetManagementCubit cubit;
   final bool isActive;
   final VoidCallback? onSelect;
-
-  /// Optional overrides let callers refresh their feature-specific library as
-  /// soon as an install/delete completes.
   final VoidCallback? onDownload;
   final VoidCallback? onDelete;
   final String? subtitleOverride;
@@ -54,10 +48,11 @@ class DistributedAssetTile extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final code = status.definition.code;
     final progress = cubit.state.progressByCode[code];
-    final downloading = progress != null;
+    final busy = progress != null;
+    final installing = cubit.state.installingCodes.contains(code);
     final cancelling = cubit.state.cancellingCodes.contains(code);
     final canDelete = status.canDelete;
-    final updateAvailable = status.hasUpdateAvailable && !downloading;
+    final updateAvailable = status.hasUpdateAvailable && !busy;
     final canDownload = status.hasRemotePackage && !status.isInstalled;
 
     return ListTile(
@@ -81,18 +76,20 @@ class DistributedAssetTile extends StatelessWidget {
         status.definition.title,
         style: const TextStyle(fontWeight: FontWeight.w700),
       ),
-      subtitle: downloading
+      subtitle: busy
           ? Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   LinearProgressIndicator(
-                    value: progress.clamp(0.0, 1.0),
+                    value: installing ? null : progress.clamp(0.0, 1.0),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    cancelling
+                    installing
+                        ? _label(context, 'Memasang…', 'Installing…')
+                        : cancelling
                         ? _label(context, 'Menghentikan unduhan…', 'Stopping download…')
                         : progress > 0
                         ? '${(progress * 100).clamp(0, 100).toStringAsFixed(0)}%'
@@ -105,22 +102,27 @@ class DistributedAssetTile extends StatelessWidget {
               ),
             )
           : Text(_statusText(context)),
-      trailing: downloading
-          ? TextButton.icon(
-              onPressed: cancelling ? null : () => cubit.cancelDownload(code),
-              style: TextButton.styleFrom(foregroundColor: colors.error),
-              icon: cancelling
-                  ? const SizedBox.square(
-                      dimension: 16,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.stop_circle_outlined, size: 19),
-              label: Text(
-                cancelling
-                    ? _label(context, 'Menghentikan', 'Stopping')
-                    : _label(context, 'Hentikan', 'Stop'),
-              ),
-            )
+      trailing: busy
+          ? installing
+              ? const SizedBox.square(
+                  dimension: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2.4),
+                )
+              : TextButton.icon(
+                  onPressed: cancelling ? null : () => cubit.cancelDownload(code),
+                  style: TextButton.styleFrom(foregroundColor: colors.error),
+                  icon: cancelling
+                      ? const SizedBox.square(
+                          dimension: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.stop_circle_outlined, size: 19),
+                  label: Text(
+                    cancelling
+                        ? _label(context, 'Menghentikan', 'Stopping')
+                        : _label(context, 'Hentikan', 'Stop'),
+                  ),
+                )
           : isActive
           ? Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -165,7 +167,7 @@ class DistributedAssetTile extends StatelessWidget {
               icon: Icon(Icons.delete_outline_rounded, color: colors.error),
             )
           : null,
-      onTap: !downloading && status.isInstalled ? onSelect : null,
+      onTap: !busy && status.isInstalled ? onSelect : null,
     );
   }
 
