@@ -78,11 +78,7 @@ jobs:
 
       - name: Build unsigned Android release
         if: steps.signing.outputs.mode == 'unsigned'
-        shell: bash
-        run: |
-          set -euo pipefail
-          cd android
-          ./gradlew app:assembleRelease --no-daemon
+        run: flutter build apk --release --no-pub --target-platform android-arm64
 
       - name: Locate Android release APK
         id: apk
