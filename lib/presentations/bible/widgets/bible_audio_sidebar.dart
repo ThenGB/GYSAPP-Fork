@@ -19,7 +19,9 @@ const double kBibleAudioCollapsedWidth = 64;
 const double kBibleAudioCollapsedHeight = 48;
 const double kBibleAudioExpandedMaxWidth = 380;
 const double kBibleAudioExpandedMaxHeight = 560;
-const double kBibleAudioBottomReserve = 88;
+// The dashboard navigation now owns a real Scaffold region; this overlay is
+// already laid out above it and only needs a small breathing-space inset.
+const double kBibleAudioBottomReserve = 12;
 const double kBibleAudioEdgePeek = 8;
 const double kBibleAudioMargin = 12;
 
@@ -782,6 +784,7 @@ class _SidebarPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-chapter-end'),
                   label: isIndonesian ? 'Akhir Pasal' : 'Chapter End',
                   selected: isChapterEnd,
                   onTap: onChapterEnd,
@@ -790,6 +793,7 @@ class _SidebarPanel extends StatelessWidget {
               const SizedBox(width: 5),
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-continue'),
                   label: isIndonesian ? 'Lanjut' : 'Continue',
                   selected: isContinueOn,
                   onTap: onContinueOn,
@@ -798,6 +802,7 @@ class _SidebarPanel extends StatelessWidget {
               const SizedBox(width: 5),
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-verse'),
                   label: isIndonesian ? 'Ayat' : 'Verse',
                   selected: hasEnd,
                   onTap: () {
@@ -842,6 +847,67 @@ class _SidebarPanel extends StatelessWidget {
 
   Widget _buildVoiceDropdown(BuildContext context) {
     final colors = context.colorScheme;
+    if (state.ttsEngine == 'native') {
+      final locale = state.currentBibleLanguage;
+      Map? selectedVoice = state.voices[locale];
+      selectedVoice ??= state.voices.entries
+          .firstWhereOrNull(
+            (entry) =>
+                BibleTtsService.normalizeNativeLocale(entry.key) ==
+                BibleTtsService.normalizeNativeLocale(locale),
+          )
+          ?.value;
+      final isIndonesian =
+          Localizations.localeOf(context).languageCode.toLowerCase() == 'id';
+      final voiceLabel = selectedVoice == null
+          ? (isIndonesian ? 'Atur suara perangkat' : 'Configure device voice')
+          : BibleTtsService.nativeVoiceLabel(selectedVoice);
+      return Material(
+        color: colors.surfaceContainerHighest.withValues(alpha: 0.55),
+        borderRadius: context.appRadius(12),
+        child: InkWell(
+          key: const ValueKey('native-tts-settings-shortcut'),
+          onTap: onOpenSettings,
+          borderRadius: context.appRadius(12),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isIndonesian ? 'Mesin bawaan' : 'Device engine',
+                        maxLines: 1,
+                        style: context.textTheme.labelSmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        voiceLabel,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Icon(
+                  Icons.tune_rounded,
+                  size: 19,
+                  color: colors.primary,
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
     if (voicesLoading) {
       return const Align(
         alignment: Alignment.centerLeft,
@@ -887,6 +953,7 @@ class _SidebarPanel extends StatelessWidget {
 
 class _RangeModeButton extends StatelessWidget {
   const _RangeModeButton({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,

@@ -116,9 +116,12 @@ void main() {
     expect(find.text('bible_range_title'), findsOneWidget);
     expect(find.text('bible_range_start'), findsOneWidget);
     expect(find.text('bible_range_end'), findsOneWidget);
-    expect(find.text('bible_range_chapter_end'), findsOneWidget);
-    expect(find.text('bible_range_continue'), findsOneWidget);
-    expect(find.text('bible_range_to_verse'), findsOneWidget);
+    expect(
+      find.byKey(const ValueKey('bible-range-chapter-end')),
+      findsOneWidget,
+    );
+    expect(find.byKey(const ValueKey('bible-range-continue')), findsOneWidget);
+    expect(find.byKey(const ValueKey('bible-range-verse')), findsOneWidget);
   });
 
   testWidgets('dragged sidebar remains tappable at its new visible position', (tester) async {
@@ -211,11 +214,11 @@ void main() {
     await tester.tap(find.byKey(const ValueKey('bible-audio-collapsed-gesture')));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('bible_range_continue'));
+    await tester.tap(find.byKey(const ValueKey('bible-range-continue')));
     await tester.pump();
     verify(() => cubit.setPlayRangeContinueOn()).called(1);
 
-    await tester.tap(find.text('bible_range_chapter_end'));
+    await tester.tap(find.byKey(const ValueKey('bible-range-chapter-end')));
     await tester.pump();
     verify(() => cubit.setPlayRangeToChapterEnd()).called(1);
   });
@@ -230,7 +233,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('bible_book'), findsOneWidget);
-    await tester.tap(find.text('bible_range_to_verse'));
+    await tester.tap(find.byKey(const ValueKey('bible-range-verse')));
     await tester.pump();
     await tester.pump();
 

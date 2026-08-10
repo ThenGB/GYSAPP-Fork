@@ -3,8 +3,10 @@ import '../../../components/components.dart';
 
 import 'package:auto_route/auto_route.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:multi_split_view/multi_split_view.dart';
 import 'package:simple_animations/simple_animations.dart';
@@ -24,6 +26,34 @@ import '../bible.dart';
 
 enum _BibleSplitPane { top, bottom }
 
+const double kBibleSplitMinRatio = 0.26;
+const double kBibleSplitMaxRatio = 0.74;
+
+double normalizeBibleSplitRatio(double? value) {
+  if (value == null || !value.isFinite) return 0.5;
+  return value.clamp(kBibleSplitMinRatio, kBibleSplitMaxRatio).toDouble();
+}
+
+int bibleQuickBookIndexForPosition({
+  required Offset globalPosition,
+  required Rect panelRect,
+  required int bookCount,
+  required int columnCount,
+}) {
+  if (bookCount <= 0 || columnCount <= 0 || panelRect.isEmpty) return -1;
+  final columns = columnCount.clamp(1, bookCount).toInt();
+  final rows = (bookCount + columns - 1) ~/ columns;
+  final x = globalPosition.dx
+      .clamp(panelRect.left, panelRect.right - 0.001)
+      .toDouble();
+  final y = globalPosition.dy
+      .clamp(panelRect.top, panelRect.bottom - 0.001)
+      .toDouble();
+  final column = ((x - panelRect.left) / (panelRect.width / columns)).floor();
+  final row = ((y - panelRect.top) / (panelRect.height / rows)).floor();
+  return (row * columns + column).clamp(0, bookCount - 1).toInt();
+}
+
 @RoutePage()
 class BibleView extends StatefulWidget {
   const BibleView({super.key});
@@ -38,13 +68,17 @@ class _BibleViewState extends State<BibleView> {
   _BibleSplitPane _activeSplitPane = _BibleSplitPane.top;
   bool _isSyncingSplitScroll = false;
   late bool _splitModeEnable = false;
+  double _splitRatio = 0.5;
+  OverlayEntry? _quickBookOverlay;
+  ValueNotifier<int>? _quickBookIndex;
+  bool _quickBookUsesSecondPane = false;
 
   bool get splitModeEnable => _splitModeEnable;
 
   late MultiSplitViewController splitController = MultiSplitViewController(
     areas: [
-      Area(min: .3, data: 'atas'),
-      if (splitModeEnable) Area(min: .3, data: 'bawah'),
+      Area(min: kBibleSplitMinRatio, data: 'atas'),
+      if (splitModeEnable) Area(min: kBibleSplitMinRatio, data: 'bawah'),
     ],
   );
 
@@ -53,7 +87,13 @@ class _BibleViewState extends State<BibleView> {
 
     splitController.areas = List.generate(
       splitModeEnable ? 2 : 1,
-      (index) => Area(min: .3, flex: .5, data: index == 0 ? 'atas' : 'bawah'),
+      (index) => Area(
+        min: kBibleSplitMinRatio,
+        flex: splitModeEnable
+            ? (index == 0 ? _splitRatio : 1 - _splitRatio)
+            : 1,
+        data: index == 0 ? 'atas' : 'bawah',
+      ),
     );
 
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
@@ -87,6 +127,7 @@ class _BibleViewState extends State<BibleView> {
 
   @override
   void dispose() {
+    _dismissQuickBookScrubber();
     splitController.dispose();
     scrollController.dispose();
     scrollController2.dispose();
@@ -423,6 +464,17 @@ class _BibleViewState extends State<BibleView> {
         .toInt();
     if (targetIndex == currentIndex) return;
 
+    await _openBookAtIndex(state, targetIndex, secondPane: secondPane);
+  }
+
+  Future<void> _openBookAtIndex(
+    BibleState state,
+    int targetIndex, {
+    required bool secondPane,
+  }) async {
+    final books = secondPane ? state.booksSplit : state.books;
+    if (targetIndex < 0 || targetIndex >= books.length) return;
+
     final targetBook = books[targetIndex];
     final target = Verse(
       id: targetBook.id * 1000000 + 1001,
@@ -451,6 +503,106 @@ class _BibleViewState extends State<BibleView> {
     }
     if (mode != VerseMode.topOnly && scrollController2.hasClients) {
       scrollController2.jumpTo(0);
+    }
+  }
+
+  Rect _quickBookPanelRect() {
+    final size = MediaQuery.sizeOf(context);
+    final padding = MediaQuery.paddingOf(context);
+    final navHeight = MediaQuery.orientationOf(context) == Orientation.landscape
+        ? kDashboardLandscapeBottomNavHeight
+        : kDashboardPortraitBottomNavHeight;
+    return Rect.fromLTRB(
+      12,
+      padding.top + 64,
+      size.width - 12,
+      size.height - padding.bottom - navHeight - 12,
+    );
+  }
+
+  Rect _quickBookGridRect(Rect panelRect) => Rect.fromLTRB(
+    panelRect.left,
+    panelRect.top + 52,
+    panelRect.right,
+    panelRect.bottom,
+  );
+
+  int _quickBookColumnCount(Rect panelRect) => panelRect.width >= 600 ? 4 : 3;
+
+  void _showQuickBookScrubber(
+    BibleState state,
+    LongPressStartDetails _,
+  ) {
+    if (context.read<DashboardCubit>().state.isSyncing) return;
+    final secondPane = _headerUsesSecondPane;
+    final books = secondPane ? state.booksSplit : state.books;
+    final current = secondPane ? state.currentBibleSplit : state.currentBible;
+    if (books.isEmpty || current == null) return;
+
+    _dismissQuickBookScrubber();
+    final currentIndex = books.indexWhere((book) => book.id == current.bookId);
+    final selected = ValueNotifier<int>(currentIndex < 0 ? 0 : currentIndex);
+    final panelRect = _quickBookPanelRect();
+    final columns = _quickBookColumnCount(panelRect);
+    _quickBookUsesSecondPane = secondPane;
+    _quickBookIndex = selected;
+    _quickBookOverlay = OverlayEntry(
+      builder: (overlayContext) => _BibleQuickBookScrubber(
+        books: books,
+        selectedIndex: selected,
+        panelRect: panelRect,
+        columnCount: columns,
+      ),
+    );
+    Overlay.of(context, rootOverlay: true).insert(_quickBookOverlay!);
+    HapticFeedback.mediumImpact();
+  }
+
+  void _updateQuickBookScrubber(LongPressMoveUpdateDetails details) {
+    final selected = _quickBookIndex;
+    final overlay = _quickBookOverlay;
+    if (selected == null || overlay == null) return;
+    final state = context.read<BibleCubit>().state;
+    final books = _quickBookUsesSecondPane ? state.booksSplit : state.books;
+    final panelRect = _quickBookPanelRect();
+    final nextIndex = bibleQuickBookIndexForPosition(
+      globalPosition: details.globalPosition,
+      panelRect: _quickBookGridRect(panelRect),
+      bookCount: books.length,
+      columnCount: _quickBookColumnCount(panelRect),
+    );
+    if (nextIndex >= 0 && nextIndex != selected.value) {
+      selected.value = nextIndex;
+      HapticFeedback.selectionClick();
+    }
+  }
+
+  Future<void> _finishQuickBookScrubber(LongPressEndDetails _) async {
+    final targetIndex = _quickBookIndex?.value;
+    final secondPane = _quickBookUsesSecondPane;
+    _dismissQuickBookScrubber();
+    if (targetIndex == null) return;
+    await _openBookAtIndex(
+      context.read<BibleCubit>().state,
+      targetIndex,
+      secondPane: secondPane,
+    );
+  }
+
+  void _dismissQuickBookScrubber() {
+    _quickBookOverlay?.remove();
+    _quickBookOverlay = null;
+    _quickBookIndex?.dispose();
+    _quickBookIndex = null;
+  }
+
+  Future<void> _toggleSplitLock(BibleState state) async {
+    setState(() => lockScroll = !lockScroll);
+    if (lockScroll) {
+      await context.read<BibleCubit>().getContent(
+        state.currentBible,
+        mode: VerseMode.bottomOnly,
+      );
     }
   }
 
@@ -733,40 +885,6 @@ class _BibleViewState extends State<BibleView> {
     );
   }
 
-  Widget _buildAxisToggle() {
-    final colors = context.colorScheme;
-    return IconButton(
-      tooltip: splitAxis == Axis.horizontal
-          ? 'Tata letak split: horizontal'
-          : 'Tata letak split: vertikal',
-      onPressed: () => setState(() {
-        _splitAxis = splitAxis == Axis.vertical
-            ? Axis.horizontal
-            : Axis.vertical;
-      }),
-      icon: Icon(
-        splitAxis == Axis.horizontal
-            ? Icons.horizontal_split_rounded
-            : Icons.vertical_split_rounded,
-        color: colors.onSurfaceVariant,
-      ),
-    );
-  }
-
-  Widget _buildLockToggle() {
-    final colors = context.colorScheme;
-    return IconButton(
-      tooltip: lockScroll ? 'Locked'.tr() : 'Unlocked'.tr(),
-      onPressed: () => setState(() {
-        lockScroll = !lockScroll;
-      }),
-      icon: Icon(
-        lockScroll ? Icons.lock_rounded : Icons.lock_open_rounded,
-        color: lockScroll ? colors.primary : colors.onSurfaceVariant,
-      ),
-    );
-  }
-
   Widget _buildSplitPaneHeader(BibleState state, bool secondPane) {
     final colors = context.colorScheme;
     final codeLabel =
@@ -777,13 +895,26 @@ class _BibleViewState extends State<BibleView> {
     final active = secondPane
         ? _activeSplitPane == _BibleSplitPane.bottom
         : _activeSplitPane == _BibleSplitPane.top;
+    final current = secondPane ? state.currentBibleSplit : state.currentBible;
+    final books = secondPane ? state.booksSplit : state.books;
+    final bookIndex = current == null
+        ? -1
+        : books.indexWhere((book) => book.id == current.bookId);
+    final bookLabel = bookIndex < 0
+        ? 'Alkitab'
+        : books[bookIndex].longName ?? books[bookIndex].shortName ?? 'Alkitab';
+    final chapterLabel = current?.chapterId == null
+        ? bookLabel
+        : '$bookLabel ${current!.chapterId}';
     return InkWell(
       onTap: () => _setActiveSplitPane(
         secondPane ? _BibleSplitPane.bottom : _BibleSplitPane.top,
       ),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOutCubic,
         width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        padding: const EdgeInsets.only(left: 12, right: 4, top: 3, bottom: 3),
         color: active
             ? colors.primaryContainer.withValues(alpha: 0.22)
             : colors.surfaceContainerLow.withValues(alpha: 0.6),
@@ -802,18 +933,88 @@ class _BibleViewState extends State<BibleView> {
               ),
             ),
             const SizedBox(width: 8),
-            Flexible(
+            Expanded(
               child: Text(
-                codeLabel,
+                chapterLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: context.textTheme.labelLarge?.copyWith(
+                style: context.textTheme.labelMedium?.copyWith(
                   fontWeight: FontWeight.w700,
-                  letterSpacing: 0.4,
-                  color: colors.onSurfaceVariant,
+                  color: active ? colors.onSurface : colors.onSurfaceVariant,
                 ),
               ),
             ),
+            TextButton(
+              onPressed: () {
+                _setActiveSplitPane(
+                  secondPane
+                      ? _BibleSplitPane.bottom
+                      : _BibleSplitPane.top,
+                );
+                _openBibleCodePicker(split: secondPane);
+              },
+              style: TextButton.styleFrom(
+                minimumSize: const Size(38, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(horizontal: 7),
+                visualDensity: VisualDensity.compact,
+              ),
+              child: Text(
+                codeLabel,
+                style: context.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: colors.primary,
+                ),
+              ),
+            ),
+            if (active)
+              PopupMenuButton<String>(
+                tooltip: 'Opsi panel Alkitab',
+                padding: EdgeInsets.zero,
+                iconSize: 18,
+                icon: const Icon(Icons.more_horiz_rounded),
+                onSelected: (value) {
+                  if (value == 'axis') {
+                    setState(() {
+                      _splitAxis = splitAxis == Axis.vertical
+                          ? Axis.horizontal
+                          : Axis.vertical;
+                    });
+                  } else if (value == 'lock') {
+                    _toggleSplitLock(state);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'axis',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        splitAxis == Axis.horizontal
+                            ? Icons.horizontal_split_rounded
+                            : Icons.vertical_split_rounded,
+                      ),
+                      title: const Text('Ubah arah panel'),
+                    ),
+                  ),
+                  PopupMenuItem(
+                    value: 'lock',
+                    child: ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: Icon(
+                        lockScroll
+                            ? Icons.lock_rounded
+                            : Icons.lock_open_rounded,
+                      ),
+                      title: Text(
+                        lockScroll ? 'Lepaskan sinkronisasi' : 'Sinkronkan panel',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -871,7 +1072,7 @@ class _BibleViewState extends State<BibleView> {
             surfaceTintColor: Colors.transparent,
             scrolledUnderElevation: 0,
             shadowColor: Colors.transparent,
-            toolbarHeight: 76,
+            toolbarHeight: 60,
             flexibleSpace: Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -902,13 +1103,19 @@ class _BibleViewState extends State<BibleView> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Tooltip(
-                    message: 'Ketuk untuk memilih • Geser untuk pindah kitab cepat',
+                    message:
+                        'Ketuk untuk memilih • geser untuk pindah • tahan untuk semua kitab',
                     child: GestureDetector(
                       behavior: HitTestBehavior.opaque,
                       onHorizontalDragStart: _onBookHeaderDragStart,
                       onHorizontalDragUpdate: _onBookHeaderDragUpdate,
                       onHorizontalDragEnd: (details) =>
                           _onBookHeaderDragEnd(state, details),
+                      onLongPressStart: (details) =>
+                          _showQuickBookScrubber(state, details),
+                      onLongPressMoveUpdate: _updateQuickBookScrubber,
+                      onLongPressEnd: _finishQuickBookScrubber,
+                      onLongPressCancel: _dismissQuickBookScrubber,
                       child: InkWell(
                         borderRadius: context.appRadius(16),
                         onTap: () => onTapTitle(state, _headerUsesSecondPane),
@@ -993,7 +1200,8 @@ class _BibleViewState extends State<BibleView> {
                     ),
                   ),
                   const SizedBox(width: 8),
-                  BlocBuilder<BibleCubit, BibleState>(
+                  if (!splitModeEnable)
+                    BlocBuilder<BibleCubit, BibleState>(
                     buildWhen: (prev, curr) =>
                         prev.currentBibleCode != curr.currentBibleCode ||
                         prev.splitBibleCode != curr.splitBibleCode ||
@@ -1002,16 +1210,7 @@ class _BibleViewState extends State<BibleView> {
                       if (bibleState.bibleCodes.isEmpty) {
                         return const SizedBox.shrink();
                       }
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildBibleCodePicker(bibleState, false),
-                          if (splitModeEnable) ...[
-                            const SizedBox(width: 8),
-                            _buildBibleCodePicker(bibleState, true),
-                          ],
-                        ],
-                      );
+                      return _buildBibleCodePicker(bibleState, false);
                     },
                   ),
                 ],
@@ -1035,25 +1234,6 @@ class _BibleViewState extends State<BibleView> {
                       : Icons.splitscreen_outlined,
                   color: splitModeEnable ? context.colorScheme.primary : null,
                 ),
-              ),
-              if (splitModeEnable) ...[_buildAxisToggle(), _buildLockToggle()],
-              IconButton(
-                tooltip: 'Search'.tr(),
-                onPressed: () {
-                  router.push(
-                    BibleSearchRoute(
-                      onTap: (item) {
-                        context.read<BibleCubit>().saveToHistory(item);
-                        router.maybePop();
-                        context.read<BibleCubit>().getContent(item).then((_) {
-                          scrollToVerse(item.verseId - 1, true);
-                        });
-                      },
-                      cubit: context.read(),
-                    ),
-                  );
-                },
-                icon: const Icon(Icons.search_rounded),
               ),
               AnimatedCrossFade(
                 alignment: Alignment.center,
@@ -1139,15 +1319,7 @@ class _BibleViewState extends State<BibleView> {
                               final cubit = context.read<BibleCubit>();
                               cubit.setAudioPanelOpen(!cubit.state.enableAudio);
                             } else if (value == 'lock') {
-                              setState(() {
-                                lockScroll = !lockScroll;
-                              });
-                              if (lockScroll) {
-                                context.read<BibleCubit>().getContent(
-                                  state.currentBible,
-                                  mode: VerseMode.bottomOnly,
-                                );
-                              }
+                              _toggleSplitLock(state);
                             } else if (value == 'bookmarkNow') {
                               context.read<BibleCubit>().modifyBookmark();
                             } else if (value == 'bookmarks') {
@@ -1249,9 +1421,7 @@ class _BibleViewState extends State<BibleView> {
                               ).copyWith(textTheme: state.defaultTextTheme),
                               child: MultiSplitViewTheme(
                                 data: MultiSplitViewThemeData(
-                                  dividerThickness: splitAxis == Axis.horizontal
-                                      ? 14
-                                      : 20,
+                                  dividerThickness: 10,
                                 ),
                                 child: MultiSplitView(
                                   controller: splitController,
@@ -1260,17 +1430,10 @@ class _BibleViewState extends State<BibleView> {
                                   axis: splitAxis,
                                   onDividerDragUpdate: (index) {
                                     if (splitModeEnable) {
-                                      var areaAtas = splitController.getArea(0);
-                                      if ((areaAtas.size ?? 0) > 0.7) {
-                                        splitController.areas = [
-                                          Area(min: .3, flex: .7, data: 'atas'),
-                                          Area(
-                                            min: .3,
-                                            flex: .3,
-                                            data: 'bawah',
-                                          ),
-                                        ];
-                                      }
+                                      final areaAtas = splitController.getArea(0);
+                                      _splitRatio = normalizeBibleSplitRatio(
+                                        areaAtas.size,
+                                      );
                                     }
                                   },
                                   dividerBuilder:
@@ -1291,8 +1454,8 @@ class _BibleViewState extends State<BibleView> {
                                         alignment: Alignment.center,
                                         child: axis == Axis.horizontal
                                             ? Container(
-                                                width: 24,
-                                                height: 80,
+                                                width: 8,
+                                                height: 56,
                                                 decoration: BoxDecoration(
                                                   color: context
                                                       .colorScheme
@@ -1314,12 +1477,12 @@ class _BibleViewState extends State<BibleView> {
                                                   color: context
                                                       .colorScheme
                                                       .onSurfaceVariant,
-                                                  size: 16,
+                                                  size: 14,
                                                 ),
                                               )
                                             : Container(
-                                                width: 84,
-                                                height: 10,
+                                                width: 64,
+                                                height: 7,
                                                 decoration: BoxDecoration(
                                                   color: context
                                                       .colorScheme
@@ -1334,9 +1497,9 @@ class _BibleViewState extends State<BibleView> {
                                                   ),
                                                 ),
                                                 alignment: Alignment.center,
-                                                child: Container(
-                                                  width: 56,
-                                                  height: 3,
+                                                  child: Container(
+                                                  width: 42,
+                                                  height: 2,
                                                   decoration: BoxDecoration(
                                                     color: context
                                                         .colorScheme
@@ -1638,6 +1801,164 @@ class _BibleViewState extends State<BibleView> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BibleQuickBookScrubber extends StatelessWidget {
+  const _BibleQuickBookScrubber({
+    required this.books,
+    required this.selectedIndex,
+    required this.panelRect,
+    required this.columnCount,
+  });
+
+  final List<BibleBook> books;
+  final ValueListenable<int> selectedIndex;
+  final Rect panelRect;
+  final int columnCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final columns = columnCount.clamp(1, books.length).toInt();
+    final rows = (books.length + columns - 1) ~/ columns;
+    return IgnorePointer(
+      child: Stack(
+        children: [
+          Positioned.fromRect(
+            rect: panelRect,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: const Duration(milliseconds: 180),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, child) => Opacity(
+                opacity: value,
+                child: Transform.scale(
+                  scale: 0.96 + value * 0.04,
+                  alignment: Alignment.topCenter,
+                  child: child,
+                ),
+              ),
+              child: Material(
+                elevation: 14,
+                shadowColor: colors.shadow.withValues(alpha: 0.28),
+                color: colors.surfaceContainerLowest,
+                shape: RoundedRectangleBorder(
+                  borderRadius: context.appRadius(18),
+                  side: BorderSide(
+                    color: colors.primary.withValues(alpha: 0.20),
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: ValueListenableBuilder<int>(
+                valueListenable: selectedIndex,
+                builder: (context, selected, _) => Column(
+                  children: [
+                    SizedBox(
+                      height: 51,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.swipe_rounded,
+                              size: 19,
+                              color: colors.primary,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    books[selected].longName ??
+                                        books[selected].shortName ??
+                                        '',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w800),
+                                  ),
+                                  Text(
+                                    'Geser sambil menahan • lepaskan untuk membuka',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: context.textTheme.labelSmall?.copyWith(
+                                      color: colors.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    Divider(
+                      height: 1,
+                      color: colors.outlineVariant.withValues(alpha: 0.46),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: List.generate(rows, (row) {
+                          return Expanded(
+                            child: Row(
+                              children: List.generate(columns, (column) {
+                                final index = row * columns + column;
+                                if (index >= books.length) {
+                                  return const Expanded(child: SizedBox());
+                                }
+                                final book = books[index];
+                                final active = index == selected;
+                                return Expanded(
+                                  child: AnimatedContainer(
+                                    duration: const Duration(milliseconds: 90),
+                                    margin: const EdgeInsets.all(1.5),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 4,
+                                    ),
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      color: active
+                                          ? colors.primaryContainer
+                                          : Colors.transparent,
+                                      borderRadius: context.appRadius(7),
+                                    ),
+                                    child: Text(
+                                      book.longName ?? book.shortName ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                      style: context.textTheme.labelSmall?.copyWith(
+                                        color: active
+                                            ? colors.onPrimaryContainer
+                                            : colors.onSurfaceVariant,
+                                        fontSize: context.appFontSize(
+                                          active ? 11 : 10,
+                                        ),
+                                        fontWeight: active
+                                            ? FontWeight.w800
+                                            : FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          );
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

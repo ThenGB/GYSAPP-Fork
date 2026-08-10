@@ -20,9 +20,9 @@ const Duration kMidiDragPopDuration = Duration(milliseconds: 180);
 
 const double kMidiOverlayHorizontalMargin = 16;
 const double kMidiOverlayBottomOffset = 0;
-// Bottom space reserved for the dashboard dock (_navBarHeight 72 + margin)
-// so the player never sits underneath the navigation bar.
-const double kMidiNavBarReserve = 80;
+// The dashboard dock now owns real scaffold space, so the player only needs
+// a small breathing gap from the bottom edge of the content viewport.
+const double kMidiNavBarReserve = 12;
 const double kMidiCollapsedBarHeight = 48;
 const double kMidiCollapsedMaxWidth = 220;
 const double kMidiExpandedMaxWidth = 460;
@@ -1430,7 +1430,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       child: Row(
         children: [
           Flexible(
-            flex: 3,
+            flex: 4,
             child: _buildTransposeControl(context, colors, boxHeight),
           ),
           const SizedBox(width: 4),
@@ -1483,22 +1483,50 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           onPressed: () => _adjustTranspose(widget.transposeStep + 1),
           icon: Icons.add_rounded,
         ),
-        // ♯ / ♭ accidental toggle (mirrors gyschordweb's
-        // transpose-accidental switch).
-        GestureDetector(
-          key: const ValueKey('midi-accidental-toggle'),
-          onTap: widget.onToggleAccidental,
-          child: Container(
-            width: 20,
-            alignment: Alignment.center,
-            child: Text(
-              isFlat ? '♭' : '♯',
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-                color: isFlat
-                    ? colors.onPrimaryContainer
-                    : colors.onSurfaceVariant,
+        // The single ♯ / ♭ control for the song page. It shares SongCubit
+        // state with both PDF and text renderers, matching gyschordweb.
+        Tooltip(
+          message: isFlat
+              ? 'Gunakan notasi sharp (♯)'
+              : 'Gunakan notasi mol (♭)',
+          child: Semantics(
+            button: true,
+            selected: isFlat,
+            label: isFlat ? 'Notasi mol' : 'Notasi sharp',
+            child: GestureDetector(
+              key: const ValueKey('midi-accidental-toggle'),
+              behavior: HitTestBehavior.opaque,
+              onTap: widget.onToggleAccidental,
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                curve: Curves.easeOutCubic,
+                width: 24,
+                margin: const EdgeInsets.symmetric(vertical: 3),
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: isFlat
+                      ? colors.primaryContainer.withValues(alpha: 0.84)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 160),
+                  transitionBuilder: (child, animation) => FadeTransition(
+                    opacity: animation,
+                    child: ScaleTransition(scale: animation, child: child),
+                  ),
+                  child: Text(
+                    isFlat ? '♭' : '♯',
+                    key: ValueKey(isFlat),
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w900,
+                      color: isFlat
+                          ? colors.onPrimaryContainer
+                          : colors.onSurfaceVariant,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
