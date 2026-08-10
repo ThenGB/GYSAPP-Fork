@@ -74,11 +74,13 @@ class FaithPdfService {
         final wasLegacyName =
             rawName.contains(' ') || rawDownloadUrl.contains('%20');
         final sourceUri = Uri.tryParse(rawDownloadUrl);
-        final uri = sourceUri == null
-            ? null
-            : _normalizeLegacyReleaseUri(sourceUri, wasLegacyName);
+        // Validate the publisher-controlled URL before normalizing its legacy
+        // filename. Rebuilding a URI from decoded path segments can change its
+        // canonical representation, but it cannot broaden an already-checked
+        // host/release prefix.
+        if (sourceUri == null || !_isAllowedReleaseUri(sourceUri)) continue;
+        final uri = _normalizeLegacyReleaseUri(sourceUri, wasLegacyName);
         final name = wasLegacyName ? rawName.replaceAll(' ', '.') : rawName;
-        if (uri == null || !_isAllowedReleaseUri(uri)) continue;
 
         manifestNeedsReleaseResolution |= wasLegacyName;
         result.putIfAbsent(
