@@ -583,7 +583,7 @@ class _BibleViewState extends State<BibleView> {
               ),
             ),
           ),
-        ),
+        );
       },
     );
   }
