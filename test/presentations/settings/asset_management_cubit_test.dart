@@ -63,7 +63,7 @@ void main() {
 
   test('Bible install refreshes the live Bible version library', () async {
     final bibleCubit = _MockBibleCubit();
-    when(bibleCubit.refreshAvailableBibles).thenAnswer((_) async {});
+    when(() => bibleCubit.refreshAvailableBibles()).thenAnswer((_) async {});
     stubSuccessfulDownload(bibleDefinition);
 
     final cubit = AssetManagementCubit(service, resetService);
@@ -71,14 +71,14 @@ void main() {
 
     await cubit.downloadAsset(bibleDefinition, bibleCubit: bibleCubit);
 
-    verify(bibleCubit.refreshAvailableBibles).called(1);
+    verify(() => bibleCubit.refreshAvailableBibles()).called(1);
     expect(cubit.state.progressByCode, isEmpty);
     expect(cubit.state.installingCodes, isEmpty);
   });
 
   test('Hymnal install refreshes the live song library', () async {
     final songCubit = _MockSongCubit();
-    when(songCubit.refreshLibraryAvailability).thenAnswer((_) async {});
+    when(() => songCubit.refreshLibraryAvailability()).thenAnswer((_) async {});
     stubSuccessfulDownload(hymnalDefinition);
 
     final cubit = AssetManagementCubit(service, resetService);
@@ -86,7 +86,7 @@ void main() {
 
     await cubit.downloadAsset(hymnalDefinition, songCubit: songCubit);
 
-    verify(songCubit.refreshLibraryAvailability).called(1);
+    verify(() => songCubit.refreshLibraryAvailability()).called(1);
     expect(cubit.state.progressByCode, isEmpty);
   });
 
