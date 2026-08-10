@@ -46,19 +46,21 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Require official signing for published main builds
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      - name: Determine Android signing mode
+        id: signing
         shell: bash
         run: |
           set -euo pipefail
-          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$ANDROID_KEY_ALIAS" || -z "$ANDROID_KEY_PASSWORD" || -z "$ANDROID_STORE_PASSWORD" ]]; then
-            echo 'Android release signing secrets are required before a main build can be published.' >&2
-            echo 'Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, and ANDROID_STORE_PASSWORD.' >&2
-            exit 1
+          if [[ -n "$ANDROID_KEYSTORE_BASE64" && -n "$ANDROID_KEY_ALIAS" && -n "$ANDROID_KEY_PASSWORD" && -n "$ANDROID_STORE_PASSWORD" ]]; then
+            echo 'mode=signed' >> "$GITHUB_OUTPUT"
+            echo 'Official Android signing material is available; building a signed release APK.'
+          else
+            echo 'mode=unsigned' >> "$GITHUB_OUTPUT"
+            echo 'Official Android signing material is unavailable; building an unsigned release APK fallback.'
           fi
 
       - name: Configure Android release signing
-        if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' && env.ANDROID_STORE_PASSWORD != ''
+        if: steps.signing.outputs.mode == 'signed'
         shell: bash
         run: |
           set -euo pipefail
@@ -70,28 +72,72 @@ jobs:
           keyPassword=$ANDROID_KEY_PASSWORD
           EOF
 
-      - name: Build Android release
+      - name: Build signed Android release
+        if: steps.signing.outputs.mode == 'signed'
         run: flutter build apk --release --no-pub --target-platform android-arm64
 
+      - name: Build unsigned Android release
+        if: steps.signing.outputs.mode == 'unsigned'
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd android
+          ./gradlew app:assembleRelease --no-daemon
+
+      - name: Locate Android release APK
+        id: apk
+        shell: bash
+        run: |
+          set -euo pipefail
+          apk_path="$(find build/app/outputs -type f \( -name 'app-release.apk' -o -name 'app-release-unsigned.apk' \) | head -1)"
+          if [[ -z "$apk_path" ]]; then
+            echo 'Unable to locate release APK output.' >&2
+            find build/app/outputs -type f -name '*.apk' -print || true
+            exit 1
+          fi
+          echo "path=$apk_path" >> "$GITHUB_OUTPUT"
+          echo "Located Android release APK: $apk_path"
+
       - name: Print APK signing certificate
+        if: steps.signing.outputs.mode == 'signed'
         shell: bash
         run: |
           set -euo pipefail
           build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
-          "$build_tools/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk
+          "$build_tools/apksigner" verify --print-certs "${{ steps.apk.outputs.path }}"
+
+      - name: Confirm unsigned APK fallback
+        if: steps.signing.outputs.mode == 'unsigned'
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          if "$build_tools/apksigner" verify "${{ steps.apk.outputs.path }}" >/dev/null 2>&1; then
+            echo 'Expected an unsigned fallback, but APK signature verification succeeded.' >&2
+            exit 1
+          fi
+          echo 'Verified: fallback APK is unsigned.'
 
       - name: Collect Android release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
         run: |
+          set -euo pipefail
           mkdir -p dist/android
-          cp build/app/outputs/flutter-apk/app-release.apk dist/android/GYS-App-android-arm64-release.apk
+          if [[ "${{ steps.signing.outputs.mode }}" == 'signed' ]]; then
+            output_name='GYS-App-android-arm64-release.apk'
+          else
+            output_name='GYS-App-android-arm64-release-unsigned.apk'
+          fi
+          cp "${{ steps.apk.outputs.path }}" "dist/android/$output_name"
+          echo "Published Android filename: $output_name"
 
       - name: Upload Android release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v7
         with:
-          name: gys-android-release-${{ github.sha }}
-          path: dist/android/GYS-App-android-arm64-release.apk
+          name: gys-android-release-${{ steps.signing.outputs.mode }}-${{ github.sha }}
+          path: dist/android/*.apk
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
@@ -187,7 +233,7 @@ jobs:
           short_sha="${GITHUB_SHA::7}"
           tag="main-build-${GITHUB_RUN_NUMBER}"
           title="GYS App Main Build #${GITHUB_RUN_NUMBER} (${short_sha})"
-          notes="Automated release packages from main at ${GITHUB_SHA}. Windows ZIP files are the complete runnable bundles. SHA256SUMS.txt can be used to verify downloaded artifacts. Debug packages are generated only from the dedicated manual Debug Builds workflow."
+          notes="Automated release packages from main at ${GITHUB_SHA}. Android APKs built without the official release keystore are explicitly named *-unsigned.apk and cannot update a signed Play Store installation. Windows ZIP files are the complete runnable bundles. SHA256SUMS.txt can be used to verify downloaded artifacts. Debug packages are generated only from the dedicated manual Debug Builds workflow."
 
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$tag" \
