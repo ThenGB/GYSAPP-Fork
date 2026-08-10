@@ -1,8 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:crypto/crypto.dart';
 import 'package:collection/collection.dart';
+import 'package:crypto/crypto.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:path/path.dart' as p;
 
@@ -14,6 +15,11 @@ import 'github_release_asset_client.dart';
 import 'installed_asset_registry.dart';
 import 'installed_asset_store.dart';
 import 'models.dart';
+
+class AssetDownloadCancelled implements Exception {
+  const AssetDownloadCancelled(this.code);
+  final String code;
+}
 
 /// Collects the final [Digest] from a chunked hash conversion so large
 /// packages can be verified without loading the whole payload into memory.
@@ -92,96 +98,122 @@ class AssetDistributionService {
   Future<void> downloadAndInstall(
     AssetDefinition definition, {
     ProgressCallback? onProgress,
+    CancelToken? cancelToken,
   }) async {
-    final manifest = await _safeManifest(definition.releaseTrack);
-    final package = manifest?.packages
-        .where((entry) => entry.code == definition.code)
-        .firstOrNull;
-    if (package == null) {
-      throw StateError('No release package available for ${definition.code}.');
-    }
+    String? installedRelativePath;
+    File? nativeDestinationFile;
+    try {
+      final manifest = await _safeManifest(definition.releaseTrack);
+      _throwIfCancelled(cancelToken, definition.code);
+      final package = manifest?.packages
+          .where((entry) => entry.code == definition.code)
+          .firstOrNull;
+      if (package == null) {
+        throw StateError('No release package available for ${definition.code}.');
+      }
 
-    if (kIsWeb) {
-      // Dio's file-based download() throws UnimplementedError on web, so
-      // fetch bytes and install through the (IndexedDB-backed) store.
       final installName = _safeInstallName(package.installFileName);
-      final packageBytes = await _client.downloadPackageBytes(
-        package,
-        onProgress: onProgress,
-      );
-      await _verifyChecksumBytes(packageBytes, package.checksumSha256);
-      final installedBytes = await _packageService.installPackageBytes(
-        packageBytes,
-      );
-      await _store.writeFile(
-        '${_kindDirectory(definition.kind)}/$installName',
-        installedBytes,
-      );
-    } else {
-      // Native: stream the download to a temp file, verify, then decrypt
-      // straight into the install dir — no large package ever sits fully
-      // in memory (hymnal PDFs / SoundFonts can be hundreds of MB).
-      final tempDir = await Directory.systemTemp.createTemp('gys_asset_');
-      try {
-        final fileName = _safeInstallName(package.fileName);
-        final packageFile = File(p.join(tempDir.path, fileName));
-        // Defense-in-depth: the temp file must stay inside the temp dir even
-        // if a tampered manifest supplies a relative/absolute path.
-        if (!p.isWithin(tempDir.path, p.normalize(packageFile.path))) {
-          throw StateError('Package file escapes temp dir: $fileName');
-        }
-        await _client.downloadPackage(
+      installedRelativePath = '${_kindDirectory(definition.kind)}/$installName';
+
+      if (kIsWeb) {
+        final packageBytes = await _client.downloadPackageBytes(
           package,
-          packageFile.path,
           onProgress: onProgress,
+          cancelToken: cancelToken,
         );
-        await _verifyChecksumFile(packageFile, package.checksumSha256);
+        _throwIfCancelled(cancelToken, definition.code);
+        await _verifyChecksumBytes(packageBytes, package.checksumSha256);
+        _throwIfCancelled(cancelToken, definition.code);
+        final installedBytes = await _packageService.installPackageBytes(
+          packageBytes,
+        );
+        _throwIfCancelled(cancelToken, definition.code);
+        await _store.writeFile(installedRelativePath, installedBytes);
+        _throwIfCancelled(cancelToken, definition.code);
+      } else {
+        final tempDir = await Directory.systemTemp.createTemp('gys_asset_');
+        try {
+          final fileName = _safeInstallName(package.fileName);
+          final packageFile = File(p.join(tempDir.path, fileName));
+          if (!p.isWithin(tempDir.path, p.normalize(packageFile.path))) {
+            throw StateError('Package file escapes temp dir: $fileName');
+          }
+          await _client.downloadPackage(
+            package,
+            packageFile.path,
+            onProgress: onProgress,
+            cancelToken: cancelToken,
+          );
+          _throwIfCancelled(cancelToken, definition.code);
+          await _verifyChecksumFile(packageFile, package.checksumSha256);
+          _throwIfCancelled(cancelToken, definition.code);
 
-        final installName = _safeInstallName(package.installFileName);
-        final destinationFile = switch (definition.kind) {
-          DistributedAssetKind.bible => File(
-            p.join(_registry.bibleInstallDirectory.path, installName),
-          ),
-          DistributedAssetKind.hymnal => File(
-            p.join(_registry.hymnalInstallDirectory.path, installName),
-          ),
-          DistributedAssetKind.soundfont => File(
-            p.join(_registry.soundfontInstallDirectory.path, installName),
-          ),
-        };
-        await _packageService.installPackage(
-          packageFile: packageFile,
-          destinationFile: destinationFile,
-        );
-      } finally {
-        if (await tempDir.exists()) {
-          await tempDir.delete(recursive: true);
+          nativeDestinationFile = switch (definition.kind) {
+            DistributedAssetKind.bible => File(
+              p.join(_registry.bibleInstallDirectory.path, installName),
+            ),
+            DistributedAssetKind.hymnal => File(
+              p.join(_registry.hymnalInstallDirectory.path, installName),
+            ),
+            DistributedAssetKind.soundfont => File(
+              p.join(_registry.soundfontInstallDirectory.path, installName),
+            ),
+          };
+          await _packageService.installPackage(
+            packageFile: packageFile,
+            destinationFile: nativeDestinationFile,
+          );
+          _throwIfCancelled(cancelToken, definition.code);
+        } finally {
+          if (await tempDir.exists()) {
+            await tempDir.delete(recursive: true);
+          }
         }
       }
-    }
 
-    await _registry.saveInstalled(
-      InstalledAssetRecord(
-        kind: definition.kind,
-        code: definition.code,
-        version: package.version,
-        installedPath: _safeInstallName(package.installFileName),
-        installedAtEpochMs: DateTime.now().millisecondsSinceEpoch,
-        releaseTag: manifest?.releaseTag,
-        checksumSha256: package.checksumSha256,
-      ),
-    );
+      await _registry.saveInstalled(
+        InstalledAssetRecord(
+          kind: definition.kind,
+          code: definition.code,
+          version: package.version,
+          installedPath: installName,
+          installedAtEpochMs: DateTime.now().millisecondsSinceEpoch,
+          releaseTag: manifest?.releaseTag,
+          checksumSha256: package.checksumSha256,
+        ),
+      );
 
-    if (definition.kind == DistributedAssetKind.hymnal && !kIsWeb) {
-      final requestPath = await _localAssetService.getPdfPath(definition.code, '001');
-      if (requestPath != null) {
-        final request = PdfDocumentRequest.parse(requestPath);
-        await PdfNoteService().warmup(
-          request.assetPath,
-          startPage: request.startPage,
-          pageCount: 1,
-        );
+      if (definition.kind == DistributedAssetKind.hymnal && !kIsWeb) {
+        final requestPath = await _localAssetService.getPdfPath(definition.code, '001');
+        if (requestPath != null) {
+          final request = PdfDocumentRequest.parse(requestPath);
+          await PdfNoteService().warmup(
+            request.assetPath,
+            startPage: request.startPage,
+            pageCount: 1,
+          );
+        }
       }
+    } catch (error) {
+      if (cancelToken?.isCancelled == true) {
+        if (kIsWeb && installedRelativePath != null) {
+          await _store.deleteFile(installedRelativePath);
+        } else if (!kIsWeb && nativeDestinationFile != null) {
+          try {
+            if (await nativeDestinationFile.exists()) {
+              await nativeDestinationFile.delete();
+            }
+          } catch (_) {}
+        }
+        throw AssetDownloadCancelled(definition.code);
+      }
+      rethrow;
+    }
+  }
+
+  void _throwIfCancelled(CancelToken? token, String code) {
+    if (token?.isCancelled == true) {
+      throw AssetDownloadCancelled(code);
     }
   }
 
@@ -197,7 +229,7 @@ class AssetDistributionService {
   }
 
   Future<void> clearFastAccessCache() async {
-    if (kIsWeb) return; // No on-disk caches on web.
+    if (kIsWeb) return;
     PdfNoteService().clearCache();
     await _cacheMaintenanceService.clearFastAccessCache();
   }
@@ -216,20 +248,13 @@ class AssetDistributionService {
     }
   }
 
-  /// Sanitizes a manifest-supplied file name to a plain basename. A tampered
-  /// manifest must not be able to write outside the intended directory
-  /// (defense-in-depth on top of the store/registry `isWithin` guards).
   static String _safeInstallName(String name) {
-    // Check the raw value first: p.basename strips ../, so a name like
-    // '../../x' would otherwise pass the basename checks.
     if (name.contains('/') ||
         name.contains('\\') ||
         name.contains('\u0000')) {
       throw StateError('Invalid install file name: $name');
     }
     final basename = p.basename(name);
-    // Reject dot paths and characters invalid on Windows so a tampered
-    // manifest fails fast instead of producing a weird path.
     final invalidWindows = RegExp(r'[:*?<>|]');
     if (basename.isEmpty ||
         basename == '.' ||
@@ -244,15 +269,10 @@ class AssetDistributionService {
     Uint8List bytes,
     String? expectedChecksum,
   ) async {
-    // Integrity is mandatory: a manifest that omits the checksum must not
-    // silently disable verification (the GYSPKG1 "encryption" is
-    // obfuscation-only, so the SHA-256 is the real tamper protection).
     if (expectedChecksum == null || expectedChecksum.isEmpty) {
       throw StateError('Missing checksum for downloaded package.');
     }
     final digest = sha256.convert(bytes).toString();
-    // Manifest checksums are stored uppercase; compare case-insensitively
-    // (an exact != always threw and silently broke downloads).
     if (digest.toLowerCase() != expectedChecksum.toLowerCase()) {
       throw StateError('Checksum mismatch for $expectedChecksum.');
     }
@@ -262,12 +282,9 @@ class AssetDistributionService {
     File file,
     String? expectedChecksum,
   ) async {
-    // Integrity is mandatory — see _verifyChecksumBytes.
     if (expectedChecksum == null || expectedChecksum.isEmpty) {
       throw StateError('Missing checksum for downloaded package.');
     }
-    // Chunked hashing — large hymnal PDFs / SoundFonts must not be read
-    // fully into memory just to verify.
     final accumulator = _DigestAccumulator();
     final sink = sha256.startChunkedConversion(accumulator);
     await for (final chunk in file.openRead()) {
