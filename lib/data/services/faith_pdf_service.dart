@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
@@ -74,14 +73,14 @@ class FaithPdfService {
 
         final wasLegacyName =
             rawName.contains(' ') || rawDownloadUrl.contains('%20');
-        final sourceUri = Uri.tryParse(rawDownloadUrl);
-        // Validate the publisher-controlled URL before normalizing its legacy
-        // filename. Rebuilding a URI from decoded path segments can change its
-        // canonical representation, but it cannot broaden an already-checked
-        // host/release prefix.
-        if (sourceUri == null || !_isAllowedReleaseUri(sourceUri)) continue;
-        final uri = _normalizeLegacyReleaseUri(sourceUri, wasLegacyName);
         final name = wasLegacyName ? rawName.replaceAll(' ', '.') : rawName;
+        final downloadUrl = wasLegacyName
+            ? rawDownloadUrl
+                .replaceAll('%20', '.')
+                .replaceAll(' ', '.')
+            : rawDownloadUrl;
+        final uri = Uri.tryParse(downloadUrl);
+        if (uri == null || !_isAllowedReleaseUri(uri)) continue;
 
         manifestNeedsReleaseResolution |= wasLegacyName;
         result.putIfAbsent(
@@ -104,13 +103,7 @@ class FaithPdfService {
         _catalogFetchedAt = DateTime.now();
       }
       return resolved.isNotEmpty ? resolved : (cached ?? const {});
-    } catch (error, stackTrace) {
-      developer.log(
-        'Unable to load the faith PDF catalog',
-        name: 'FaithPdfService',
-        error: error,
-        stackTrace: stackTrace,
-      );
+    } catch (_) {
       return cached ?? const {};
     }
   }
@@ -158,34 +151,17 @@ class FaithPdfService {
         );
       }
       return resolved;
-    } catch (error, stackTrace) {
-      developer.log(
-        'Unable to resolve faith PDF release assets',
-        name: 'FaithPdfService',
-        error: error,
-        stackTrace: stackTrace,
-      );
+    } catch (_) {
       return fallback;
     }
   }
 
   bool _isAllowedReleaseUri(Uri uri) {
-    final canonical = uri.toString().toLowerCase();
-    return uri.scheme.toLowerCase() == 'https' &&
-        uri.host.toLowerCase() == _allowedDownloadHost &&
-        canonical.startsWith(
-          'https://github.com/thengb/gysapp-data/releases/download/',
-        );
-  }
-
-  Uri _normalizeLegacyReleaseUri(Uri uri, bool isLegacy) {
-    if (!isLegacy) return uri;
-    final normalized = uri
-        .toString()
-        .replaceAll(RegExp('%20', caseSensitive: false), '.')
-        .replaceAll(' ', '.');
-    return Uri.parse(normalized);
+    return uri.scheme == 'https' &&
+        uri.host == _allowedDownloadHost &&
+        uri.path.startsWith('/ThenGB/GYSApp-Data/releases/download/');
   }
 
   void dispose() => _client.close();
 }
+

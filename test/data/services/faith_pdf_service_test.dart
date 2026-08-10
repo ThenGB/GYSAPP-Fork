@@ -23,12 +23,15 @@ void main() {
 
   Map<String, dynamic> legacyManifest() {
     final data = manifest();
-    final items = data['items'] as List<dynamic>;
-    final first = Map<String, dynamic>.from(items.first as Map)
+    final items = (data['items'] as List<dynamic>)
+        .map((item) => Map<String, dynamic>.from(item as Map))
+        .toList();
+    final first = Map<String, dynamic>.from(items.first)
       ..['name'] = '01-Yesus Kristus.pdf'
       ..['downloadUrl'] =
           'https://github.com/ThenGB/GYSApp-Data/releases/download/faith-pdfs-test/01-Yesus%20Kristus.pdf';
     items[0] = first;
+    data['items'] = items;
     return data;
   }
 
