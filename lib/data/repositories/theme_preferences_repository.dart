@@ -82,9 +82,20 @@ class ThemePreferencesRepository {
   }
 
   Future<void> reset() async {
-    await init();
+    // Update the shared in-memory view first so a freshly-routed splash cannot
+    // observe stale appearance values while the platform store is still
+    // removing the previous keys.
     _cachedPreferences = const ThemePreferences();
     _cachedThemeMode = 'light';
+
+    if (_preferences == null) {
+      await init();
+      // init() may have loaded old persisted values; reset the cache again
+      // before removing those values from disk.
+      _cachedPreferences = const ThemePreferences();
+      _cachedThemeMode = 'light';
+    }
+
     await Future.wait([
       _preferences!.remove(_key),
       _preferences!.remove(_themeModeKey),
