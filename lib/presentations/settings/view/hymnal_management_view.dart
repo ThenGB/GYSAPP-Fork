@@ -18,6 +18,7 @@ class HymnalManagementView extends StatefulWidget {
 
 class _HymnalManagementViewState extends State<HymnalManagementView> {
   late final AssetManagementCubit _assetCubit = di<AssetManagementCubit>();
+  SongCubit get _songCubit => di<SongCubit>();
 
   @override
   void initState() {
@@ -65,6 +66,14 @@ class _HymnalManagementViewState extends State<HymnalManagementView> {
                 status: status,
                 cubit: _assetCubit,
                 onSelect: null,
+                onDownload: () => _assetCubit.downloadAsset(
+                  status.definition,
+                  songCubit: _songCubit,
+                ),
+                onDelete: () => _assetCubit.deleteAsset(
+                  status.definition,
+                  songCubit: _songCubit,
+                ),
               );
             },
           );
