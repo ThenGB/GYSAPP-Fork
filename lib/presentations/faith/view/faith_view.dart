@@ -30,6 +30,7 @@ class _FaithViewState extends State<FaithView> {
   final FaithPdfService _pdfService = FaithPdfService();
   List<dynamic> _data = const [];
   bool _loading = true;
+  final TextEditingController _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -56,6 +57,7 @@ class _FaithViewState extends State<FaithView> {
   @override
   void dispose() {
     _pdfService.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -122,30 +124,64 @@ class _FaithViewState extends State<FaithView> {
                                       children: [
                                         _FaithIntro(title: title),
                                         const SizedBox(height: 14),
-                                        if (content.isEmpty)
-                                          _FaithEmptyState(
-                                            onRetry: _loadFaithData,
-                                          )
-                                        else
-                                          ...List.generate(content.length, (
-                                            index,
-                                          ) {
-                                            final raw = content[index];
-                                            if (raw is! Map) {
-                                              return const SizedBox.shrink();
+                                        if (content.isNotEmpty) ...[
+                                          const SizedBox(height: 14),
+                                          _FaithSearchField(
+                                            controller: _searchController,
+                                          ),
+                                        ],
+                                        const SizedBox(height: 14),
+                                        AnimatedBuilder(
+                                          animation: _searchController,
+                                          builder: (context, _) {
+                                            final filtered =
+                                                _filteredContent(content);
+                                            if (content.isEmpty) {
+                                              return _FaithEmptyState(
+                                                onRetry: _loadFaithData,
+                                              );
                                             }
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                bottom: 10,
-                                              ),
-                                              child: _FaithBeliefCard(
-                                                item: raw,
-                                                index: index,
-                                                state: state,
-                                                pdfService: _pdfService,
+                                            if (filtered.isEmpty) {
+                                              return NoDataFound(
+                                                title: 'not found'.tr(
+                                                  args: [
+                                                    '"${_searchController.text}"',
+                                                  ],
+                                                ),
+                                                description:
+                                                    'Correct your spellings or search another terms'
+                                                        .tr(),
+                                              );
+                                            }
+                                            return Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.stretch,
+                                              children: List.generate(
+                                                filtered.length,
+                                                (index) {
+                                                  final raw = filtered[index];
+                                                  if (raw is! Map) {
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  }
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          bottom: 10,
+                                                        ),
+                                                    child: _FaithBeliefCard(
+                                                      item: raw,
+                                                      index:
+                                                          content.indexOf(raw),
+                                                      state: state,
+                                                      pdfService: _pdfService,
+                                                    ),
+                                                  );
+                                                },
                                               ),
                                             );
-                                          }),
+                                          },
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -171,6 +207,51 @@ class _FaithViewState extends State<FaithView> {
           ),
         );
       },
+    );
+  }
+
+  /// Case-insensitive search over topic number and text.
+  List<dynamic> _filteredContent(List<dynamic> content) {
+    final query = _searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return content;
+    return content.where((raw) {
+      if (raw is! Map) return false;
+      final number = raw['number']?.toString().toLowerCase() ?? '';
+      final text = raw['text']?.toString().toLowerCase() ?? '';
+      return number.contains(query) || text.contains(query);
+    }).toList(growable: false);
+  }
+}
+
+class _FaithSearchField extends StatelessWidget {
+  const _FaithSearchField({required this.controller});
+
+  final TextEditingController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        filled: true,
+        fillColor: colors.surfaceContainerLow,
+        prefixIcon: const Icon(Icons.search_rounded),
+        hintText: 'Cari topik iman'.tr(),
+        isDense: true,
+        border: OutlineInputBorder(
+          borderRadius: context.appRadius(16),
+          borderSide: BorderSide(color: colors.outlineVariant),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: context.appRadius(16),
+          borderSide: BorderSide(color: colors.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: context.appRadius(16),
+          borderSide: BorderSide(color: colors.primary, width: 1.3),
+        ),
+      ),
     );
   }
 }
