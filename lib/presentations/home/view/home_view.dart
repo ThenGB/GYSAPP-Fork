@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -83,28 +82,29 @@ class HomeView extends StatelessWidget {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: context.read<HomeCubit>().refresh,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: _homeMaxContentWidth,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const _HomeWelcomeSection(),
-                            const _HomeQuickActions(),
-                            const _ContinueReadingSection(),
-                            const _DailyVerseCard(),
-                            _HomeBannerCarousel(
-                              stream: context
-                                  .read<HomeCubit>()
-                                  .bannerObservable,
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                  child: _AutoHideNavScroll(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _homeMaxContentWidth,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const _WelcomeVersePanel(),
+                              const _HomeQuickNav(),
+                              const _ContinueReadingSection(),
+                              _HomeBannerCarousel(
+                                stream: context
+                                    .read<HomeCubit>()
+                                    .bannerObservable,
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -142,12 +142,6 @@ class HomeHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              _HeaderAction(
-                tooltip: 'Menu',
-                icon: Icons.menu_rounded,
-                onPressed: openDashboardDrawer,
-              ),
-              const SizedBox(width: 12),
               Expanded(
                 child: Align(
                   alignment: Alignment.centerLeft,
@@ -160,31 +154,6 @@ class HomeHeader extends StatelessWidget {
                   ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer.withValues(alpha: 0.55),
-                  borderRadius: context.appRadius(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.church_rounded, size: 15, color: colors.primary),
-                    const SizedBox(width: 5),
-                    Text(
-                      'GYS',
-                      style: context.textTheme.labelMedium?.copyWith(
-                        color: colors.onPrimaryContainer,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.7,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -193,35 +162,61 @@ class HomeHeader extends StatelessWidget {
   }
 }
 
-class _HeaderAction extends StatelessWidget {
-  const _HeaderAction({
-    required this.tooltip,
-    required this.icon,
-    required this.onPressed,
-  });
-
-  final String tooltip;
-  final IconData icon;
-  final VoidCallback onPressed;
+/// Selamat datang + Sauh Bagi Jiwa joined in ONE box, always side by side
+/// horizontally — on every layout, including portrait phones.
+class _WelcomeVersePanel extends StatelessWidget {
+  const _WelcomeVersePanel();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    return Material(
-      color: colors.surfaceContainerLow,
-      borderRadius: context.appRadius(14),
-      clipBehavior: Clip.antiAlias,
-      child: IconButton(
-        tooltip: tooltip,
-        onPressed: onPressed,
-        icon: Icon(icon, size: 21),
-      ),
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.sauhs != current.sauhs ||
+          previous.isSauhEnabled != current.isSauhEnabled,
+      builder: (context, state) {
+        final hasSauh = state.isSauhEnabled && state.sauhs.isNotEmpty;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: context.appRadius(24),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.28),
+              ),
+            ),
+            child: !hasSauh
+                ? const _WelcomeContent()
+                : IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Expanded(child: _WelcomeContent()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Container(
+                            width: 1,
+                            height: double.infinity,
+                            color: colors.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const Expanded(child: _SauhContent()),
+                      ],
+                    ),
+                  ),
+          ),
+        );
+      },
     );
   }
 }
 
-class _HomeWelcomeSection extends StatelessWidget {
-  const _HomeWelcomeSection();
+class _WelcomeContent extends StatelessWidget {
+  const _WelcomeContent();
 
   @override
   Widget build(BuildContext context) {
@@ -233,97 +228,183 @@ class _HomeWelcomeSection extends StatelessWidget {
         final colors = context.colorScheme;
         final isLoggedIn = state.isLoggedIn;
         final displayName = state.account?.name?.trim();
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow,
-              borderRadius: context.appRadius(24),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.28),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              'Shalom',
+              style: context.textTheme.labelLarge?.copyWith(
+                color: colors.primary,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.4,
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: context.appRadius(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.18),
-                        blurRadius: 16,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.wb_sunny_outlined,
-                    color: colors.onPrimary,
-                    size: 24,
-                  ),
+            const SizedBox(height: 2),
+            // Auto-fits so long names are scaled down instead of clipped.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: Alignment.centerLeft,
+              child: Text(
+                isLoggedIn
+                    ? (displayName?.isNotEmpty == true
+                          ? displayName!
+                          : 'Jemaat Terkasih')
+                    : 'Selamat datang',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  height: 1.15,
                 ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Shalom',
-                        style: context.textTheme.labelLarge?.copyWith(
-                          color: colors.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isLoggedIn
-                            ? (displayName?.isNotEmpty == true
-                                  ? displayName!
-                                  : 'Jemaat Terkasih')
-                            : 'Selamat datang',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 13,
-                            color: colors.onSurfaceVariant,
-                          ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              DateFormat(
-                                'EEEE, d MMMM yyyy',
-                                context.locale.languageCode,
-                              ).format(DateTime.now()),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: colors.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+              ),
+            ),
+            const SizedBox(height: 5),
+            Row(
+              children: [
+                Icon(
+                  Icons.calendar_today_outlined,
+                  size: 13,
+                  color: colors.onSurfaceVariant,
+                ),
+                const SizedBox(width: 6),
+                Flexible(
+                  child: Text(
+                    DateFormat(
+                      'EEEE, d MMMM yyyy',
+                      context.locale.languageCode,
+                    ).format(DateTime.now()),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.bodySmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
               ],
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Four large, elderly-friendly navigation icons into the app's main areas:
+/// Kidung, Alkitab, Dasar Kepercayaan, and Lainnya.
+class _HomeQuickNav extends StatelessWidget {
+  const _HomeQuickNav();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final items = [
+      _QuickNavItem(
+        icon: Icons.music_note_rounded,
+        label: 'Kidung',
+        color: colors.tertiary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(2),
+      ),
+      _QuickNavItem(
+        icon: Icons.menu_book_rounded,
+        label: 'Alkitab',
+        color: colors.primary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(1),
+      ),
+      _QuickNavItem(
+        icon: Icons.auto_stories_rounded,
+        label: 'Dasar Kepercayaan',
+        color: colors.secondary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(3),
+      ),
+      _QuickNavItem(
+        icon: Icons.more_horiz_rounded,
+        label: 'Lainnya',
+        color: colors.tertiaryContainer,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(4),
+      ),
+    ];
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
+      // Always ONE row of four, even on portrait phones. Note: NOT
+      // stretch — this Row lives inside the dashboard's unbounded-height
+      // scroll view, and stretch would force infinite child heights.
+      child: Row(
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            Expanded(child: items[i]),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _QuickNavItem extends StatelessWidget {
+  const _QuickNavItem({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The icon scales with the tile so all four fit on a narrow phone.
+        final iconSide = (constraints.maxWidth - 14).clamp(42.0, 64.0);
+        return Material(
+          color: colors.surfaceContainerLow,
+          borderRadius: context.appRadius(22),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Ink(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: color.withValues(alpha: 0.28),
+                ),
+                borderRadius: context.appRadius(22),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: iconSide,
+                      height: iconSide,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.16),
+                        borderRadius: context.appRadius(18),
+                      ),
+                      child: Icon(icon, size: iconSide * 0.55, color: color),
+                    ),
+                    const SizedBox(height: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           ),
         );
@@ -332,163 +413,41 @@ class _HomeWelcomeSection extends StatelessWidget {
   }
 }
 
-/// The two primary actions, sized for a senior thumb and always labelled.
-class _HomeQuickActions extends StatelessWidget {
-  const _HomeQuickActions();
+/// Reports the Beranda scroll direction so the shell can auto-hide the
+/// bottom dock: scrolling down hides it, scrolling up (or reaching the top)
+/// reveals it again.
+class _AutoHideNavScroll extends StatefulWidget {
+  const _AutoHideNavScroll({required this.child});
+
+  final Widget child;
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final twoColumns = constraints.maxWidth >= 560;
-          final actions = [
-            _QuickAction(
-              icon: Icons.menu_book_rounded,
-              title: 'Buka Alkitab',
-              subtitle: 'Bacaan dan renungan harian',
-              color: colors.primary,
-              onTap: () => dashboardTabsRouter?.setActiveIndex(1),
-            ),
-            _QuickAction(
-              icon: Icons.music_note_rounded,
-              title: 'Cari Pujian',
-              subtitle: 'Cari lagu berdasarkan nomor',
-              color: colors.tertiary,
-              onTap: () => _openSongSearch(context),
-            ),
-          ];
-          if (twoColumns) {
-            return Row(
-              children: [
-                Expanded(child: actions[0]),
-                const SizedBox(width: 12),
-                Expanded(child: actions[1]),
-              ],
-            );
-          }
-          return Column(
-            children: [
-              for (final action in actions) ...[
-                action,
-                const SizedBox(height: 12),
-              ],
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  void _openSongSearch(BuildContext context) {
-    final cubit = context.read<SongCubit>();
-    router.push(
-      SongListRoute(
-        books: () => cubit.state.songBook,
-        currentBook: () =>
-            cubit.state.currentSong ??
-            SongBook(code: cubit.state.bookCode, songs: const []),
-        initialSearchText: cubit.state.searchTerms,
-        onSearchTermsChanged: cubit.onSearchTermsChanged,
-        onChangeBookCode: cubit.changeBookcode,
-        onTapPageNumber: (pageNumber) {
-          final song = cubit.state.songs.firstWhereOrNull(
-            (s) => s.number == pageNumber,
-          );
-          router.maybePop();
-          if (song != null) {
-            dashboardTabsRouter?.setActiveIndex(2);
-            unawaited(cubit.openSong(song));
-          }
-        },
-        onOpenSong: (song) {
-          router.maybePop();
-          dashboardTabsRouter?.setActiveIndex(2);
-          unawaited(cubit.openSong(song));
-        },
-        onBack: () => router.maybePop(),
-      ),
-    );
-  }
+  State<_AutoHideNavScroll> createState() => _AutoHideNavScrollState();
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.color,
-    required this.onTap,
-  });
+class _AutoHideNavScrollState extends State<_AutoHideNavScroll> {
+  double _lastOffset = 0;
 
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final Color color;
-  final VoidCallback onTap;
+  bool _onScroll(ScrollNotification notification) {
+    if (notification is! ScrollUpdateNotification) return false;
+    final pixels = notification.metrics.pixels;
+    final delta = pixels - _lastOffset;
+    _lastOffset = pixels;
+    if (pixels <= 8) {
+      dashboardNavBarVisible.value = true;
+    } else if (delta < -1) {
+      dashboardNavBarVisible.value = true;
+    } else if (delta > 1 && pixels > 48) {
+      dashboardNavBarVisible.value = false;
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Material(
-      color: colors.surfaceContainerLow,
-      borderRadius: context.appRadius(22),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: color.withValues(alpha: 0.28),
-            ),
-            borderRadius: context.appRadius(22),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.14),
-                    borderRadius: context.appRadius(17),
-                  ),
-                  child: Icon(icon, size: 30, color: color),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: context.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 26,
-                  color: colors.onSurfaceVariant,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: widget.child,
     );
   }
 }
@@ -742,167 +701,121 @@ class _ContinueBibleTileState extends State<_ContinueBibleTile> {
   }
 }
 
-class _DailyVerseCard extends StatelessWidget {
-  const _DailyVerseCard();
+class _SauhContent extends StatelessWidget {
+  const _SauhContent();
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<HomeCubit, HomeState>(
       buildWhen: (previous, current) =>
-          previous.todayVerse != current.todayVerse,
+          previous.sauhs != current.sauhs ||
+          previous.isSauhEnabled != current.isSauhEnabled,
       builder: (context, state) {
-        if (!state.hasTodayVerse) return const SizedBox.shrink();
-
-        final verse = state.todayVerse!;
+        if (!state.isSauhEnabled || state.sauhs.isEmpty) {
+          return const SizedBox.shrink();
+        }
+        final sauh = state.sauhs.first;
         final colors = context.colorScheme;
-        final homeCubit = context.read<HomeCubit>();
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-          child: Container(
-            padding: EdgeInsets.all(context.appSpace(18)),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow,
-              borderRadius: context.appRadius(22),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.shadow.withValues(alpha: 0.06),
-                  blurRadius: 18,
-                  offset: const Offset(0, 7),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        borderRadius: context.appRadius(11),
-                      ),
-                      child: Icon(
-                        Icons.auto_stories_rounded,
-                        color: colors.onPrimaryContainer,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
+        // Tapping anywhere on the card (except nothing special anymore —
+        // the reference/version chips are gone) opens today's sauh article.
+        return InkWell(
+          borderRadius: context.appRadius(18),
+          onTap: () {
+            router.push(WebpageRoute(url: sauh.url));
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(top: 2),
                       child: Text(
-                        'AYAT HARI INI',
-                        style: context.textTheme.labelMedium?.copyWith(
+                        'SAUH BAGI JIWA',
+                        style: context.textTheme.labelSmall?.copyWith(
                           color: colors.primary,
-                          letterSpacing: 1.2,
+                          letterSpacing: 1.0,
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                     ),
-                    Icon(
-                      Icons.format_quote_rounded,
-                      color: colors.primary.withValues(alpha: 0.45),
-                      size: 26,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  '“${verse.text}”',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 1.55,
-                    color: colors.onSurface,
                   ),
+                  const SizedBox(width: 8),
+                  _SauhThumbnail(imageUrl: sauh.imageUrl),
+                ],
+              ),
+              const SizedBox(height: 8),
+              Text(
+                sauh.title,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.35,
+                  color: colors.onSurface,
                 ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 7,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    _VerseChip(
-                      label: verse.reference,
-                      color: colors.primaryContainer,
-                      foreground: colors.onPrimaryContainer,
-                    ),
-                    if (verse.bibleCodeName != null)
-                      InkWell(
-                        borderRadius: context.appRadius(999),
-                        onTap: () =>
-                            _showBibleVersionPicker(context, homeCubit),
-                        child: _VerseChip(
-                          label: verse.bibleCodeName!,
-                          color: colors.tertiaryContainer,
-                          foreground: colors.onTertiaryContainer,
-                          trailing: Icons.keyboard_arrow_down_rounded,
-                        ),
-                      ),
-                  ],
+              ),
+              const SizedBox(height: 4),
+              Text(
+                sauh.description,
+                maxLines: 5,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.bodySmall?.copyWith(
+                  // Deliberately not bold so the panel stays compact.
+                  fontWeight: FontWeight.w400,
+                  height: 1.45,
+                  color: colors.onSurfaceVariant,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
     );
   }
-
-  void _showBibleVersionPicker(BuildContext context, HomeCubit homeCubit) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: false,
-      builder: (_) => BibleSelectWidget(
-        bibleCodes: homeCubit.bibleCodes,
-        onTap: (index) {
-          final code = homeCubit.bibleCodes[index].split('.').first;
-          homeCubit.switchTodayVerseBible(code);
-          Navigator.of(context).pop();
-        },
-      ),
-    );
-  }
 }
 
-class _VerseChip extends StatelessWidget {
-  const _VerseChip({
-    required this.label,
-    required this.color,
-    required this.foreground,
-    this.trailing,
-  });
+/// Small cover image of today's sauh with a hint overlay in the top-right
+/// corner.
+class _SauhThumbnail extends StatelessWidget {
+  const _SauhThumbnail({required this.imageUrl});
 
-  final String label;
-  final Color color;
-  final Color foreground;
-  final IconData? trailing;
+  final String imageUrl;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.72),
-        borderRadius: context.appRadius(999),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: context.textTheme.labelMedium?.copyWith(
-              color: foreground,
-              fontWeight: FontWeight.w800,
+    return ClipRRect(
+      borderRadius: context.appRadius(10),
+      child: SizedBox(
+        width: 76,
+        height: 56,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            _safeNetworkImage(imageUrl, fit: BoxFit.cover),
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Text(
+                  'Tekan untuk baca lebih lanjut',
+                  style: TextStyle(
+                    fontSize: context.appFontSize(7),
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
-          ),
-          if (trailing != null) ...[
-            const SizedBox(width: 2),
-            Icon(trailing, size: 16, color: foreground),
           ],
-        ],
+        ),
       ),
     );
   }

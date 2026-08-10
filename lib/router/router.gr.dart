@@ -745,6 +745,61 @@ class FontSettingRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
+/// [GlobalSearchView]
+class GlobalSearchRoute extends PageRouteInfo<GlobalSearchRouteArgs> {
+  GlobalSearchRoute({
+    Key? key,
+    GlobalSearchSection initialSection = GlobalSearchSection.bible,
+    List<PageRouteInfo>? children,
+  }) : super(
+         GlobalSearchRoute.name,
+         args: GlobalSearchRouteArgs(key: key, initialSection: initialSection),
+         initialChildren: children,
+       );
+
+  static const String name = 'GlobalSearchRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      final args = data.argsAs<GlobalSearchRouteArgs>(
+        orElse: () => const GlobalSearchRouteArgs(),
+      );
+      return GlobalSearchView(
+        key: args.key,
+        initialSection: args.initialSection,
+      );
+    },
+  );
+}
+
+class GlobalSearchRouteArgs {
+  const GlobalSearchRouteArgs({
+    this.key,
+    this.initialSection = GlobalSearchSection.bible,
+  });
+
+  final Key? key;
+
+  final GlobalSearchSection initialSection;
+
+  @override
+  String toString() {
+    return 'GlobalSearchRouteArgs{key: $key, initialSection: $initialSection}';
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! GlobalSearchRouteArgs) return false;
+    return key == other.key && initialSection == other.initialSection;
+  }
+
+  @override
+  int get hashCode => key.hashCode ^ initialSection.hashCode;
+}
+
+/// generated route for
 /// [HomeView]
 class HomeRoute extends PageRouteInfo<void> {
   const HomeRoute({List<PageRouteInfo>? children})

@@ -29,7 +29,7 @@ void main() {
 
     expect(source, contains('class HomeHeader extends StatelessWidget'));
     expect(source, contains('previous.sauhs != current.sauhs'));
-    expect(source, contains('previous.todayVerse != current.todayVerse'));
+    expect(source, contains('previous.isSauhEnabled != current.isSauhEnabled'));
     expect(source, contains('previous.account != current.account'));
   });
 

@@ -108,7 +108,7 @@ class _FaithViewState extends State<FaithView> {
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: EdgeInsets.fromLTRB(
                                 16,
-                                18,
+                                6,
                                 16,
                                 104 + MediaQuery.viewPaddingOf(context).bottom,
                               ),
@@ -122,10 +122,8 @@ class _FaithViewState extends State<FaithView> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        _FaithIntro(title: title),
-                                        const SizedBox(height: 14),
                                         if (content.isNotEmpty) ...[
-                                          const SizedBox(height: 14),
+                                          const SizedBox(height: 10),
                                           _FaithSearchField(
                                             controller: _searchController,
                                           ),
@@ -270,8 +268,8 @@ class _FaithHeader extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Container(
-          height: 68,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          height: 74,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -281,34 +279,29 @@ class _FaithHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              IconButton.filledTonal(
-                tooltip: 'Menu',
-                onPressed: openDashboardDrawer,
-                icon: const Icon(Icons.menu_rounded),
-              ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      _sectionLabel(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
-                    Text(
                       _introTitle(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleMedium?.copyWith(
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontSize: context.appFontSize(15),
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    SizedBox(
+                      height: 19,
+                      child: Image.asset(
+                        isDark
+                            ? Assets.assetsImagesLogoIndonesiaWhite
+                            : Assets.assetsImagesLogoIndonesiaColor,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ],
@@ -317,7 +310,14 @@ class _FaithHeader extends StatelessWidget {
               IconButton(
                 tooltip: _readingSettingsLabel(context),
                 onPressed: () => _showReadingSettings(context, state),
-                icon: const Icon(Icons.tune_rounded),
+                icon: Text(
+                  'Aa',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontStyle: FontStyle.italic,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
               ),
               IconButton(
                 tooltip: 'Notes'.tr(),
@@ -354,82 +354,9 @@ class _FaithHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 4),
-              Tooltip(
-                message: 'Gereja Yesus Sejati',
-                child: Image.asset(
-                  isDark
-                      ? Assets.assetsImagesLogoIndonesiaWhite
-                      : Assets.assetsImagesLogoIndonesiaColor,
-                  width: 78,
-                  fit: BoxFit.contain,
-                ),
-              ),
             ],
           ),
         ),
-      ),
-    );
-  }
-}
-
-class _FaithIntro extends StatelessWidget {
-  const _FaithIntro({required this.title});
-
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 19, 20, 18),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          colors.primary.withValues(alpha: 0.055),
-          colors.surfaceContainerLow,
-        ),
-        borderRadius: context.appRadius(24),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.15)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: context.appRadius(16),
-            ),
-            child: Icon(
-              Icons.menu_book_rounded,
-              color: colors.onPrimary,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: context.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    height: 1.15,
-                  ),
-                ),
-                const SizedBox(height: 7),
-                Text(
-                  _introBody(context),
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    height: 1.48,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -523,27 +450,16 @@ class _FaithBeliefCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(
-                    selected
-                        ? Icons.check_circle_rounded
-                        : Icons.touch_app_outlined,
-                    size: 15,
-                    color: selected ? colors.primary : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _selectHint(context, selected),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? colors.primary
-                            : colors.onSurfaceVariant,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  if (selected)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        size: 15,
+                        color: colors.primary,
                       ),
                     ),
-                  ),
+                  const Spacer(),
                   _FaithPdfButton(
                     beliefNumber: index + 1,
                     pdfService: pdfService,
@@ -604,19 +520,26 @@ class _FaithPdfButtonState extends State<_FaithPdfButton> {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.tonalIcon(
+    return TextButton(
       onPressed: _loading ? null : _openPdf,
-      style: FilledButton.styleFrom(
+      style: TextButton.styleFrom(
         visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        foregroundColor: context.colorScheme.primary,
       ),
-      icon: _loading
+      child: _loading
           ? const SizedBox.square(
               dimension: 15,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.picture_as_pdf_rounded, size: 17),
-      label: Text(_pdfButtonLabel(context)),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_pdfButtonLabel(context)),
+                const SizedBox(width: 2),
+                const Icon(Icons.chevron_right_rounded, size: 18),
+              ],
+            ),
     );
   }
 }
@@ -973,49 +896,18 @@ String _localeLabel(Locale locale) => switch (locale.languageCode) {
   _ => locale.languageCode,
 };
 
-String _sectionLabel(BuildContext context) =>
-    switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'IMAN & DOKTRIN',
-      'zh' => '信仰与教义',
-      _ => 'FAITH & DOCTRINE',
-    };
-
 String _introTitle(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Sepuluh Dasar Kepercayaan',
-      'zh' => '十大信条',
-      _ => 'Ten Basic Beliefs',
+      'id' => 'Dasar Kepercayaan',
+      'zh' => '基本信条',
+      _ => 'Basic Beliefs',
     };
-
-String _introBody(BuildContext context) =>
-    switch (Localizations.localeOf(context).languageCode) {
-      'id' =>
-        'Baca dasar kepercayaan dengan fokus. Ketuk kartu untuk memilihnya, dan buka penjelasan PDF langsung di dalam aplikasi tanpa berpindah ke browser.',
-      'zh' => '专注阅读每一项信条。点按卡片即可选择，并可直接在应用内阅读 PDF 说明。',
-      _ =>
-        'Read each belief with focus. Tap a card to select it and open its PDF explanation directly inside the app.',
-    };
-
-String _selectHint(BuildContext context, bool selected) {
-  if (selected) {
-    return switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Dipilih untuk tindakan',
-      'zh' => '已选择',
-      _ => 'Selected for actions',
-    };
-  }
-  return switch (Localizations.localeOf(context).languageCode) {
-    'id' => 'Ketuk untuk memilih',
-    'zh' => '点按以选择',
-    _ => 'Tap to select',
-  };
-}
 
 String _pdfButtonLabel(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Baca PDF',
-      'zh' => '阅读 PDF',
-      _ => 'Read PDF',
+      'id' => 'Baca Lebih Lanjut',
+      'zh' => '了解更多',
+      _ => 'Read More',
     };
 
 String _pdfUnavailable(BuildContext context) =>

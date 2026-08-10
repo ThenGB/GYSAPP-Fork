@@ -83,7 +83,16 @@ abstract class BibleState with _$BibleState {
     @Default(.90) double pitchRate,
   }) = _BibleState;
 
-  Map<String, dynamic> toJson() => _$BibleStateToJson(this);
+  Map<String, dynamic> toJson() {
+    final json = _$BibleStateToJson(this);
+    // Transient TTS word progress is emitted many times per second while
+    // reading; persisting it would force a storage write per spoken word.
+    // It must never be part of hydration or backup snapshots.
+    json.remove('currentWord');
+    json.remove('currentStartWord');
+    json.remove('currentEndWord');
+    return json;
+  }
 
   factory BibleState.fromJson(Map<String, dynamic> json) {
     final state = _$BibleStateFromJson(json);

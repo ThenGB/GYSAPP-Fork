@@ -12,6 +12,7 @@ import '../../../components/components.dart';
 import '../../../data/services/bible_tts_service.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../data/utilities/platform_utils.dart';
+import '../../../router/router.dart';
 import '../cubit/bible_state.dart';
 
 @RoutePage()
@@ -164,6 +165,9 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
         },
       ),
     );
+    Fluttertoast.cancel();
+    Fluttertoast.showToast(msg: 'Settings saved'.tr());
+    router.maybePop();
   }
 
   @override

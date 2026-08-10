@@ -80,12 +80,18 @@ const double kDashboardNavHorizontalInset = 12;
 /// tab headers now route to the "Lainnya" hub (index 4) instead of a drawer.
 TabsRouter? dashboardTabsRouter;
 
+/// Visibility of the floating bottom dock. The Beranda tab reports scroll
+/// direction so the dock auto-hides while reading and reappears on scroll-up
+/// or tab changes. Other tabs keep it visible.
+final ValueNotifier<bool> dashboardNavBarVisible = ValueNotifier<bool>(true);
+
 /// Opens the "Lainnya" hub from anywhere inside the shell.
 ///
 /// Kept as a plain function (not a widget callback) so the pre-rework header
 /// buttons keep working without per-view edits; the per-tab headers get
 /// redesigned in later phases.
 void openDashboardDrawer() {
+  dashboardNavBarVisible.value = true;
   dashboardTabsRouter?.setActiveIndex(4);
 }
 
@@ -108,6 +114,7 @@ class AdaptiveAppShellView extends StatefulWidget {
 class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
     with WidgetsBindingObserver {
   final _appLinks = AppLinks();
+  bool _tabsListenerAttached = false;
 
   @override
   void initState() {
@@ -184,6 +191,14 @@ class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
             builder: (context, child) {
               final tabsRouter = AutoTabsRouter.of(context);
               dashboardTabsRouter = tabsRouter;
+              // Switching tabs always reveals the bottom dock, even if the
+              // dashboard auto-hid it while scrolling.
+              if (!_tabsListenerAttached) {
+                _tabsListenerAttached = true;
+                tabsRouter.addListener(() {
+                  dashboardNavBarVisible.value = true;
+                });
+              }
               final selectedIndex = tabsRouter.activeIndex;
 
               return LayoutBuilder(
@@ -197,7 +212,9 @@ class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
                     body: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (useRail)
+                        // On Beranda the rail is hidden too: the four big
+                        // navigation icons replace it.
+                        if (useRail && selectedIndex != 0)
                           _DashboardRail(
                             selectedIndex: selectedIndex,
                             extended: width >= Breakpoints.expanded,
@@ -281,30 +298,49 @@ class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
                     ),
                     bottomNavigationBar: useRail
                         ? null
-                        : SafeArea(
-                            top: false,
-                            minimum: const EdgeInsets.fromLTRB(
-                              kDashboardNavHorizontalInset,
-                              6,
-                              kDashboardNavHorizontalInset,
-                              8,
-                            ),
-                            child: Center(
-                              heightFactor: 1,
-                              child: DashboardNavigationDock(
-                                height: MediaQuery.orientationOf(context) ==
-                                        Orientation.landscape
-                                    ? kDashboardLandscapeBottomNavHeight
-                                    : kDashboardPortraitBottomNavHeight,
-                                selectedIndex: selectedIndex,
-                                destinations:
-                                    dashboardBottomNavigationDestinations,
-                                onDestinationSelected: (index) {
-                                  context.read<BibleCubit>().stopSpeaking();
-                                  tabsRouter.setActiveIndex(index);
-                                },
-                              ),
-                            ),
+                        : ValueListenableBuilder<bool>(
+                            valueListenable: dashboardNavBarVisible,
+                            builder: (context, visible, _) {
+                              // On Beranda the dock is never shown: the four
+                              // big navigation icons replace it entirely.
+                              final show = visible && selectedIndex != 0;
+                              return AnimatedSize(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.bottomCenter,
+                                child: show
+                                    ? SafeArea(
+                                        top: false,
+                                        minimum: const EdgeInsets.fromLTRB(
+                                          kDashboardNavHorizontalInset,
+                                          6,
+                                          kDashboardNavHorizontalInset,
+                                          8,
+                                        ),
+                                        child: Center(
+                                          heightFactor: 1,
+                                          child: DashboardNavigationDock(
+                                            height: MediaQuery.orientationOf(
+                                                      context,
+                                                    ) ==
+                                                    Orientation.landscape
+                                                ? kDashboardLandscapeBottomNavHeight
+                                                : kDashboardPortraitBottomNavHeight,
+                                            selectedIndex: selectedIndex,
+                                            destinations:
+                                                dashboardBottomNavigationDestinations,
+                                            onDestinationSelected: (index) {
+                                              context
+                                                  .read<BibleCubit>()
+                                                  .stopSpeaking();
+                                              tabsRouter.setActiveIndex(index);
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              );
+                            },
                           ),
                   );
                 },
