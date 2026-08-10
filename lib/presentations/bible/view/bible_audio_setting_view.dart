@@ -42,8 +42,9 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   late double _speed = widget.initialState.speedRate;
 
   List<edge.Voice> _edgeVoices = const [];
-  List<Map> _nativeVoices = const [];
+  List<Map<String, String>> _nativeVoices = const [];
   bool _voicesLoading = true;
+  int _voiceLoadGeneration = 0;
   String? _testText;
 
   @override
@@ -58,11 +59,13 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
   }
 
   Future<void> _loadVoicesForEngine() async {
+    final generation = ++_voiceLoadGeneration;
+    final requestedEngine = _engine;
     if (mounted) setState(() => _voicesLoading = true);
     try {
-      if (_engine == 'edge') {
+      if (requestedEngine == 'edge') {
         final edgeVoices = await BibleTtsService.fetchEdgeVoices();
-        if (!mounted) return;
+        if (!mounted || generation != _voiceLoadGeneration) return;
         setState(() {
           _edgeVoices = edgeVoices;
           _voicesLoading = false;
@@ -70,33 +73,34 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
         return;
       }
 
-      var native = <Map>[];
+      var native = <Map<String, String>>[];
       if (isTextToSpeechConfiguredForCurrentPlatform) {
         try {
-          final tts = FlutterTts();
-          native = (await tts.getVoices as List<Object?>)
-              .cast<Map>()
-              .map(
-                (voice) => voice.map(
-                  (key, value) => MapEntry(
-                    key.toString(),
-                    value?.toString() ?? '',
-                  ),
-                ),
-              )
-              .toList();
+          native = await BibleTtsService.fetchNativeVoices(
+            tts: FlutterTts(),
+          ).timeout(const Duration(seconds: 5));
         } catch (error) {
           log('Native voices fetch failed: $error', name: 'AudioSettings');
         }
       }
-      if (!mounted) return;
+      if (!mounted || generation != _voiceLoadGeneration) return;
       setState(() {
         _nativeVoices = native;
+        for (final locale in const ['id-ID', 'en-US', 'zh-CN']) {
+          final resolved = BibleTtsService.resolveNativeVoice(
+            voices: native,
+            locale: locale,
+            savedVoice: _nativeVoiceByLocale[locale],
+          );
+          if (resolved != null) _nativeVoiceByLocale[locale] = resolved;
+        }
         _voicesLoading = false;
       });
     } catch (error) {
       log('Voice loading failed: $error', name: 'AudioSettings');
-      if (mounted) setState(() => _voicesLoading = false);
+      if (mounted && generation == _voiceLoadGeneration) {
+        setState(() => _voicesLoading = false);
+      }
     }
   }
 
@@ -110,10 +114,16 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     await _loadVoicesForEngine();
   }
 
-  List<Map> _nativeVoicesFor(String locale) =>
-      _nativeVoices.where((voice) => voice['locale'] == locale).toList();
+  List<Map<String, String>> _nativeVoicesFor(String locale) =>
+      BibleTtsService.nativeVoicesForLocale(_nativeVoices, locale);
 
   Future<void> _testSpeak(String sample) async {
+    final language = Localizations.localeOf(context).languageCode.toLowerCase();
+    final sampleLocale = switch (language) {
+      'id' => 'id-ID',
+      'zh' => 'zh-CN',
+      _ => 'en-US',
+    };
     await _tts.stop();
     _tts.engine = _engine == 'native'
         ? BibleTtsEngine.native
@@ -122,7 +132,15 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
     _tts.edgeRate = _edgeRate;
     _tts.edgePitch = _edgePitch;
     _tts.edgeVolume = _edgeVolume;
-    await _tts.configureNative(pitch: _pitch, speed: _speed);
+    await _tts.configureNative(
+      voice: BibleTtsService.resolveNativeVoice(
+        voices: _nativeVoices,
+        locale: sampleLocale,
+        savedVoice: _nativeVoiceByLocale[sampleLocale],
+      ),
+      pitch: _pitch,
+      speed: _speed,
+    );
     final ok = await _tts.speak(sample);
     if (!ok) {
       Fluttertoast.cancel();
@@ -150,6 +168,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
 
   @override
   void dispose() {
+    _voiceLoadGeneration++;
     _tts.stop();
     super.dispose();
   }
@@ -231,6 +250,7 @@ class _BibleAudioSettingViewState extends State<BibleAudioSettingView> {
                     selectedByLocale: _nativeVoiceByLocale,
                     pitch: _pitch,
                     speed: _speed,
+                    onRetry: _loadVoicesForEngine,
                     onVoice: (locale, voice) => setState(
                       () => _nativeVoiceByLocale[locale] = voice,
                     ),
@@ -385,42 +405,66 @@ class _NativeEngineSettings extends StatelessWidget {
     required this.selectedByLocale,
     required this.pitch,
     required this.speed,
+    required this.onRetry,
     required this.onVoice,
     required this.onPitch,
     required this.onSpeed,
   });
 
   final bool loading;
-  final List<Map> Function(String locale) nativeVoicesFor;
+  final List<Map<String, String>> Function(String locale) nativeVoicesFor;
   final Map<String, Map<String, String>> selectedByLocale;
   final double pitch;
   final double speed;
+  final VoidCallback onRetry;
   final void Function(String locale, Map<String, String> voice) onVoice;
   final ValueChanged<double> onPitch;
   final ValueChanged<double> onSpeed;
 
   @override
   Widget build(BuildContext context) {
-    if (loading) return const _LoadingCard();
+    final allVoicesAvailable = const ['id-ID', 'en-US', 'zh-CN']
+        .any((locale) => nativeVoicesFor(locale).isNotEmpty);
     return _SettingsCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _SectionLabel(_nativeSettingsTitle(context)),
           const SizedBox(height: 10),
-          for (final entry in const [
-            ('id-ID', 'Indonesia'),
-            ('en-US', 'English'),
-            ('zh-CN', '中文'),
-          ]) ...[
-            _NativeVoicePicker(
-              label: entry.$2,
-              voices: nativeVoicesFor(entry.$1),
-              initialValue: selectedByLocale[entry.$1],
-              onChanged: (voice) => onVoice(entry.$1, voice),
-            ),
-            const SizedBox(height: 10),
-          ],
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 180),
+            child: loading
+                ? _NativeVoiceStatus(
+                    key: const ValueKey('native-voices-loading'),
+                    loading: true,
+                    onRetry: onRetry,
+                  )
+                : !allVoicesAvailable
+                ? _NativeVoiceStatus(
+                    key: const ValueKey('native-voices-empty'),
+                    loading: false,
+                    onRetry: onRetry,
+                  )
+                : Column(
+                    key: const ValueKey('native-voice-pickers'),
+                    children: [
+                      for (final entry in const [
+                        ('id-ID', 'Indonesia'),
+                        ('en-US', 'English'),
+                        ('zh-CN', '中文'),
+                      ]) ...[
+                        _NativeVoicePicker(
+                          label: entry.$2,
+                          voices: nativeVoicesFor(entry.$1),
+                          initialValue: selectedByLocale[entry.$1],
+                          onChanged: (voice) => onVoice(entry.$1, voice),
+                        ),
+                        const SizedBox(height: 10),
+                      ],
+                    ],
+                  ),
+          ),
+          if (loading || !allVoicesAvailable) const SizedBox(height: 14),
           _UnitSlider(
             label: 'tts_pitch_label'.tr(),
             value: pitch,
@@ -443,6 +487,66 @@ class _NativeEngineSettings extends StatelessWidget {
   }
 }
 
+class _NativeVoiceStatus extends StatelessWidget {
+  const _NativeVoiceStatus({
+    super.key,
+    required this.loading,
+    required this.onRetry,
+  });
+
+  final bool loading;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final isIndonesian =
+        Localizations.localeOf(context).languageCode.toLowerCase() == 'id';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: context.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: context.appRadius(12),
+      ),
+      child: Row(
+        children: [
+          if (loading)
+            const SizedBox.square(
+              dimension: 18,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          else
+            Icon(
+              Icons.record_voice_over_outlined,
+              size: 19,
+              color: context.colorScheme.onSurfaceVariant,
+            ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              loading
+                  ? (isIndonesian
+                        ? 'Memuat suara dari perangkat…'
+                        : 'Loading device voices…')
+                  : (isIndonesian
+                        ? 'Suara perangkat belum tersedia. Pitch dan kecepatan tetap dapat diatur.'
+                        : 'Device voices are not available yet. Pitch and speed remain configurable.'),
+              style: context.textTheme.bodySmall?.copyWith(
+                color: context.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ),
+          if (!loading)
+            IconButton(
+              tooltip: isIndonesian ? 'Muat ulang suara' : 'Reload voices',
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded, size: 20),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class _NativeVoicePicker extends StatelessWidget {
   const _NativeVoicePicker({
     required this.label,
@@ -452,7 +556,7 @@ class _NativeVoicePicker extends StatelessWidget {
   });
 
   final String label;
-  final List<Map> voices;
+  final List<Map<String, String>> voices;
   final Map<String, String>? initialValue;
   final ValueChanged<Map<String, String>> onChanged;
 
@@ -470,15 +574,19 @@ class _NativeVoicePicker extends StatelessWidget {
       );
     }
 
-    Map selected = voices.first;
+    Map<String, String> selected = voices.first;
     final requestedName = initialValue?['name'];
-    if (requestedName != null) {
+    final requestedIdentifier = initialValue?['identifier'];
+    if (requestedName != null || requestedIdentifier != null) {
       selected = voices.firstWhere(
-        (voice) => voice['name'] == requestedName,
+        (voice) =>
+            (requestedName != null && voice['name'] == requestedName) ||
+            (requestedIdentifier != null &&
+                voice['identifier'] == requestedIdentifier),
         orElse: () => voices.first,
       );
     }
-    return DropdownButtonFormField<Map>(
+    return DropdownButtonFormField<Map<String, String>>(
       isExpanded: true,
       initialValue: selected,
       decoration: InputDecoration(labelText: label),
@@ -495,11 +603,7 @@ class _NativeVoicePicker extends StatelessWidget {
       ],
       onChanged: (voice) {
         if (voice == null) return;
-        onChanged(
-          voice.map(
-            (key, value) => MapEntry(key.toString(), value?.toString() ?? ''),
-          ),
-        );
+        onChanged(Map<String, String>.from(voice));
       },
     );
   }

@@ -581,48 +581,38 @@ class BibleCubit extends HydratedCubit<BibleState> {
       if (!Platform.isWindows) {
         await nativeTts.awaitSynthCompletion(true);
       }
-      await nativeTts.setSpeechRate(state.speedRate);
-      await nativeTts.setPitch(state.pitchRate);
-      List<String> langs = ((await nativeTts.getLanguages) as List<Object?>)
-          .cast<String>()
-          .toList();
-      final lang = langs
-          .map((e) => e.split('-').first)
-          .toList()
-          .indexWhere(
-            (element) => element == state.currentBibleLanguage.split('-').first,
-          );
-      if (!lang.isNegative) {
-        await nativeTts.setLanguage(langs[lang]);
+      final currentLocale = state.currentBibleLanguage;
+      var voices = <Map<String, String>>[];
+      try {
+        voices = await BibleTtsService.fetchNativeVoices(tts: nativeTts)
+            .timeout(const Duration(seconds: 5));
+      } catch (error) {
+        // Voice enumeration is optional: engines that do not expose a list can
+        // still speak with their system default and use pitch/rate controls.
+        log(
+          'Native TTS voice enumeration failed: $error',
+          name: 'BibleCubit',
+        );
       }
-      List<Map> voices = (await nativeTts.getVoices as List<Object?>)
-          .cast<Map>()
-          .toList()
-          .map(
-            (e) => e.map(
-              (key, value) => MapEntry(key.toString(), value.toString()),
-            ),
-          )
-          .toList();
-      var currentLang = state.currentBibleLanguage;
-      var langPrefix = currentLang.split('-').first;
-      Map<String, String>? voice = (voices.firstWhereOrNull(
-        (element) => element['locale'] == currentLang,
-      ))?.map((key, value) => MapEntry(key.toString(), value.toString()));
-      voice ??= (voices.firstWhereOrNull(
-        (element) => element['locale'] == langPrefix,
-      ))?.map((key, value) => MapEntry(key.toString(), value.toString()));
-      voice ??= (voices.firstWhereOrNull(
-        (element) => element['locale'].toString().startsWith('$langPrefix-'),
-      ))?.map((key, value) => MapEntry(key.toString(), value.toString()));
+      final voice = BibleTtsService.resolveNativeVoice(
+        voices: voices,
+        locale: currentLocale,
+        savedVoice: state.voices[currentLocale],
+      );
       if (voice != null) {
-        var savedVoice = state.voices[currentLang];
-        if (savedVoice == null) {
-          var savedVoices = Map.from(state.voices);
-          savedVoices[currentLang] = voice;
-          emit(state.copyWith(voices: savedVoices.cast()));
+        final savedVoice = state.voices[currentLocale];
+        if (savedVoice == null ||
+            !const MapEquality<Object?, Object?>().equals(savedVoice, voice)) {
+          final savedVoices = Map<String, Map>.from(state.voices);
+          savedVoices[currentLocale] = voice;
+          emit(state.copyWith(voices: savedVoices));
         }
-        await nativeTts.setVoice(savedVoice?.cast() ?? voice);
+        // Use the locale string exposed by the platform engine. Some Android
+        // providers only accept legacy/underscored forms such as `in_ID`.
+        final platformLocale = voice['locale'] ?? voice['language'];
+        if (platformLocale != null && platformLocale.isNotEmpty) {
+          await nativeTts.setLanguage(platformLocale);
+        }
       }
       await nativeTts.setVolume(1);
       await tts.configureNative(

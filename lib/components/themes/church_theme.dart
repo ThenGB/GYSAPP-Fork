@@ -78,9 +78,7 @@ ThemeData applyChurchVisualSystem(
   // existing scale to the stronger global scale here, then explicitly scale
   // the Material styles that the base theme leaves at their stock size.
   final typeRatio = typographyScale / baseExtras.typographyScale;
-  final scaledTextTheme = base.textTheme
-      .apply(fontSizeFactor: typeRatio)
-      .copyWith(
+  final scaledTextTheme = _scaleTextTheme(base.textTheme, typeRatio).copyWith(
         displayLarge: base.textTheme.displayLarge?.copyWith(
           fontSize: (base.textTheme.displayLarge?.fontSize ?? 57) * typographyScale,
         ),
@@ -103,8 +101,9 @@ ThemeData applyChurchVisualSystem(
           fontSize: (base.textTheme.labelMedium?.fontSize ?? 12) * typographyScale,
         ),
       );
-  final primaryTextTheme = base.primaryTextTheme.apply(
-    fontSizeFactor: typographyScale,
+  final primaryTextTheme = _scaleTextTheme(
+    base.primaryTextTheme,
+    typographyScale,
   );
   final appBarTitleStyle = base.appBarTheme.titleTextStyle?.copyWith(
     fontSize:
@@ -425,6 +424,38 @@ ThemeData applyChurchVisualSystem(
       ),
       shape: RoundedRectangleBorder(borderRadius: radius(14)),
     ),
+  );
+}
+
+/// Scales only styles that declare a concrete size.
+///
+/// Flutter 3.44 correctly rejects applying a non-default size factor to a
+/// [TextStyle] whose size is inherited. Some platform typography presets mix
+/// concrete and inherited sizes, so scaling each concrete style avoids an
+/// assertion while preserving inheritance for the rest.
+TextTheme _scaleTextTheme(TextTheme theme, double factor) {
+  TextStyle? scale(TextStyle? style) {
+    final size = style?.fontSize;
+    if (style == null || size == null) return style;
+    return style.copyWith(fontSize: size * factor);
+  }
+
+  return theme.copyWith(
+    displayLarge: scale(theme.displayLarge),
+    displayMedium: scale(theme.displayMedium),
+    displaySmall: scale(theme.displaySmall),
+    headlineLarge: scale(theme.headlineLarge),
+    headlineMedium: scale(theme.headlineMedium),
+    headlineSmall: scale(theme.headlineSmall),
+    titleLarge: scale(theme.titleLarge),
+    titleMedium: scale(theme.titleMedium),
+    titleSmall: scale(theme.titleSmall),
+    bodyLarge: scale(theme.bodyLarge),
+    bodyMedium: scale(theme.bodyMedium),
+    bodySmall: scale(theme.bodySmall),
+    labelLarge: scale(theme.labelLarge),
+    labelMedium: scale(theme.labelMedium),
+    labelSmall: scale(theme.labelSmall),
   );
 }
 
