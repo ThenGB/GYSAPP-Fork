@@ -18,7 +18,7 @@ class TextChordPlacement {
   final String chord;
   final double position;
 
-  double get safePosition => position.clamp(0.0, 1.0);
+  double get safePosition => position.clamp(0.0, 1.0).toDouble();
 }
 
 class ChordedTextLine {
@@ -74,8 +74,9 @@ List<ChordedTextLine> buildChordedLines({
       if (entry.noteIdx < row.firstIdx || entry.noteIdx > row.lastIdx) continue;
       final note = sortedNotes.firstWhereOrNull((note) => note.idx == entry.noteIdx);
       if (note == null) continue;
-      final position =
-          ((note.xPct - lyric.startPct) / lyric.widthPct).clamp(0.0, 1.0);
+      final position = ((note.xPct - lyric.startPct) / lyric.widthPct)
+          .clamp(0.0, 1.0)
+          .toDouble();
       placements.add(
         TextChordPlacement(chord: entry.chord, position: position),
       );
@@ -191,11 +192,11 @@ List<ChordData> chordsForVerse(
   int totalVerses,
 ) {
   if (allChords.isEmpty || totalVerses <= 0) return allChords;
-  final safeVerse = verseIndex.clamp(0, totalVerses - 1);
+  final safeVerse = verseIndex.clamp(0, totalVerses - 1).toInt();
   final start = (safeVerse * allChords.length) ~/ totalVerses;
   final end = ((safeVerse + 1) * allChords.length) ~/ totalVerses;
-  final from = start.clamp(0, allChords.length);
-  final to = end.clamp(from, allChords.length);
+  final from = start.clamp(0, allChords.length).toInt();
+  final to = end.clamp(from, allChords.length).toInt();
   return allChords.sublist(from, to);
 }
 
@@ -212,7 +213,9 @@ List<List<ChordData>> distributeChordsToLines(
   final sorted = List<ChordData>.from(chords)
     ..sort((a, b) => a.noteIdx.compareTo(b.noteIdx));
   for (var index = 0; index < sorted.length; index++) {
-    final line = (index * lineCount ~/ sorted.length).clamp(0, lineCount - 1);
+    final line = (index * lineCount ~/ sorted.length)
+        .clamp(0, lineCount - 1)
+        .toInt();
     result[line].add(sorted[index]);
   }
   return result;
@@ -248,8 +251,10 @@ List<TextChordPlacement> fallbackPlacementsForLine(List<ChordData> chords) {
       TextChordPlacement(
         chord: chord.chord,
         position: chord.noteIdx < 0
-            ? 0
-            : ((chord.noteIdx - minIndex) / span).clamp(0.0, 1.0),
+            ? 0.0
+            : ((chord.noteIdx - minIndex) / span)
+                .clamp(0.0, 1.0)
+                .toDouble(),
       ),
   ];
 }
