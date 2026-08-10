@@ -170,14 +170,12 @@ class FaithPdfService {
   }
 
   bool _isAllowedReleaseUri(Uri uri) {
-    final path = uri.pathSegments;
+    final canonical = uri.toString().toLowerCase();
     return uri.scheme.toLowerCase() == 'https' &&
         uri.host.toLowerCase() == _allowedDownloadHost &&
-        path.length >= 5 &&
-        path[0].toLowerCase() == 'thengb' &&
-        path[1].toLowerCase() == 'gysapp-data' &&
-        path[2].toLowerCase() == 'releases' &&
-        path[3].toLowerCase() == 'download';
+        canonical.startsWith(
+          'https://github.com/thengb/gysapp-data/releases/download/',
+        );
   }
 
   Uri _normalizeLegacyReleaseUri(Uri uri, bool isLegacy) {
