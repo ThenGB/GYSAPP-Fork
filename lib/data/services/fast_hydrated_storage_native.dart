@@ -122,11 +122,12 @@ class FastFileStorage implements Storage {
     final encoded = value is String ? value : jsonEncode(value);
     _memoryCache[key] = encoded;
 
-    // Hydrated state contains user preferences (reader layout, chord/MIDI
-    // options, etc.). `flush: false` can leave a recent write only in the OS
-    // page cache, so killing the app immediately after changing a setting may
-    // restore the previous value on the next launch. Flush each small state
-    // file before reporting the write as completed.
-    await _file(key).writeAsString(encoded, flush: true);
+    // These files are deliberately tiny preference/state snapshots. A
+    // synchronous flushed write is preferable here: HydratedBloc may invoke
+    // Storage.write without awaiting the returned Future, and an immediate
+    // Android force-kill could otherwise interrupt the pending async write.
+    // Completing the disk write before this method yields makes settings much
+    // more resilient to that exact lifecycle edge case.
+    _file(key).writeAsStringSync(encoded, flush: true);
   }
 }
