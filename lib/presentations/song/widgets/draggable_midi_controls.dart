@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 
 import '../../../data/services/chord_service.dart';
@@ -11,9 +9,10 @@ export 'draggable_midi_controls_base.dart' hide DraggableMidiControls;
 
 /// Compatibility wrapper around the mature drag/morph MIDI player.
 ///
-/// The base implementation retains the mature animation/drag behaviour. This
-/// wrapper only adds the accidental notation control (♯/♭) directly inside the
-/// expanded player while preserving the base widget's public API.
+/// The base implementation already renders the accidental notation control
+/// (♯/♭) inside the expanded transpose pill. This wrapper preserves the public
+/// API while suppressing the Dashboard's legacy external attached chip for
+/// uncontrolled callers, so users see exactly one accidental control.
 class DraggableMidiControls extends StatefulWidget {
   final bool isPlaying;
   final bool isLoading;
@@ -109,7 +108,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
 
     // The only current uncontrolled caller used this callback to draw a
     // second floating accidental chip outside the MIDI surface. Keep that
-    // legacy overlay suppressed now that the control lives inside the player.
+    // legacy overlay suppressed now that the base player exposes ♯/♭ itself.
     // Controlled callers still receive the callback as part of the public API.
     if (widget.isExpanded != null) {
       widget.onExpandedChanged?.call(expanded);
@@ -118,7 +117,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
 
   @override
   Widget build(BuildContext context) {
-    final basePlayer = base.DraggableMidiControls(
+    return base.DraggableMidiControls(
       key: const ValueKey('midi-base-player'),
       isPlaying: widget.isPlaying,
       isLoading: widget.isLoading,
@@ -153,73 +152,6 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
       leftMargin: widget.leftMargin,
       rightMargin: widget.rightMargin,
       bottomOffset: widget.bottomOffset,
-    );
-
-    if (!_expanded ||
-        !widget.chordToggleEnabled ||
-        widget.onToggleAccidental == null) {
-      return basePlayer;
-    }
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final availableWidth = constraints.maxWidth.isFinite
-            ? constraints.maxWidth
-            : MediaQuery.sizeOf(context).width;
-        final playerWidth = math.min(
-          base.kMidiExpandedMaxWidth,
-          availableWidth * base.kMidiExpandedWidthRatio,
-        );
-        final playerRight = math.max(
-          0.0,
-          (availableWidth - playerWidth) / 2,
-        );
-        final isFlat =
-            widget.chordAccidentalMode == ChordService.accidentalFlat;
-        final colors = Theme.of(context).colorScheme;
-
-        return Stack(
-          fit: StackFit.passthrough,
-          clipBehavior: Clip.none,
-          children: [
-            basePlayer,
-            Positioned(
-              right: playerRight + 38,
-              bottom:
-                  base.kMidiNavBarReserve +
-                  base.kMidiExpandedControlsHeight +
-                  2,
-              child: Tooltip(
-                message: isFlat ? 'Notasi Flat (♭)' : 'Notasi Sharp (♯)',
-                triggerMode: TooltipTriggerMode.tap,
-                child: Material(
-                  color: colors.onPrimary.withValues(alpha: 0.14),
-                  shape: const CircleBorder(),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    customBorder: const CircleBorder(),
-                    onTap: widget.onToggleAccidental,
-                    child: SizedBox.square(
-                      dimension: 28,
-                      child: Center(
-                        child: Text(
-                          isFlat ? '♭' : '♯',
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(
-                                color: colors.onPrimary,
-                                fontWeight: FontWeight.w900,
-                                height: 1,
-                              ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        );
-      },
     );
   }
 }
