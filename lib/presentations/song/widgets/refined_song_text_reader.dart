@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../components/themes/app_theme_extras.dart';
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/chord_text_layout.dart';
 import '../../../data/services/pdf_note_service.dart';
