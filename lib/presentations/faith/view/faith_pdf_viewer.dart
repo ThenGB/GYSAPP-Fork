@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:ui' show FontFeature;
 
 import 'package:flutter/material.dart';
 import 'package:pdfrx/pdfrx.dart' as pdfrx;
@@ -7,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../../components/components.dart';
 import '../../../data/services/faith_pdf_service.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
 
 class FaithPdfViewerPage extends StatefulWidget {
   const FaithPdfViewerPage({super.key, required this.document});
@@ -365,13 +365,13 @@ String _backLabel(BuildContext context) =>
 
 String _previousPageLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id'
-        ? 'Halaman sebelumnya'
-        : 'Previous page';
+        ? 'Halaman Sebelumnya'
+        : 'Previous Page';
 
 String _nextPageLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id'
-        ? 'Halaman berikutnya'
-        : 'Next page';
+        ? 'Halaman Berikutnya'
+        : 'Next Page';
 
 String _dismissLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id' ? 'Tutup' : 'Dismiss';

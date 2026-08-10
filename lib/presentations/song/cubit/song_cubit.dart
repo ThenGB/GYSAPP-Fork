@@ -17,7 +17,6 @@ import '../../../domain/entity/song_history/song_history.dart';
 import '../../../domain/entity/song_note/song_note.dart';
 import '../../../domain/repository/song_repository.dart';
 import 'song_playback_defaults.dart';
-
 import 'song_playlist.dart';
 import 'song_state.dart';
 
@@ -32,6 +31,14 @@ class SongCubit extends HydratedCubit<SongState> {
 
   bool get isSelectingSong => state.selectedSong != null;
 
+  /// Browsing context is intentionally transient. It answers a different
+  /// question from autoplay mode: "where did the user open this hymn from?"
+  /// null means the normal hymn book/library; otherwise it is the playlist
+  /// whose ordered neighbours should be used for preload and manual next/prev.
+  String? _navigationPlaylistId;
+
+  bool get isNavigatingPlaylist => _navigationPlaylistId != null;
+
   void toggleWarmUp([bool? value]) {
     final newValue = value ?? !state.midiPreloadEnabled;
     emit(state.copyWith(midiPreloadEnabled: newValue));
@@ -42,19 +49,21 @@ class SongCubit extends HydratedCubit<SongState> {
 
   Future<void> _warmUpPlaybackQueue() async {
     try {
-      if (!state.midiPreloadEnabled || state.songs.isEmpty) {
-        return;
-      }
-      final count = state.midiPreloadNeighborCount.clamp(0, 5);
-      final queue = _playbackQueue();
+      if (!state.midiPreloadEnabled || state.songs.isEmpty) return;
+      final count = state.midiPreloadNeighborCount.clamp(0, 5).toInt();
+      final queue = _navigationQueue();
       final preloadSongs = queue.preloadSongs(count: count);
+      if (preloadSongs.isEmpty) return;
 
       log(
-        'Warm-up starting for ${preloadSongs.length} neighbors',
+        'Adaptive warm-up: ${preloadSongs.length} neighbours '
+        '(${_navigationPlaylistId == null ? 'library' : 'playlist'})',
         name: 'SongCubit',
       );
 
-      // Separate MIDI and PDF warmup chains so they don't block each other
+      // MIDI rendering and PDF preparation are independent. Run the chains in
+      // parallel so a slow PDF extraction never delays an already-cached MIDI,
+      // and vice versa.
       unawaited(_warmUpMidiChain(preloadSongs));
       unawaited(_warmUpPdfChain(preloadSongs));
     } catch (e, st) {
@@ -68,7 +77,6 @@ class SongCubit extends HydratedCubit<SongState> {
       try {
         final midiPath = await _midiPathForSong(song);
         if (midiPath == null) continue;
-
         final defaults = await _resolvePreloadDefaultsForSong(song);
         await _midiEngine.warmUp(
           midiPath,
@@ -78,29 +86,32 @@ class SongCubit extends HydratedCubit<SongState> {
           instrument: state.midiInstrument,
         );
       } catch (e) {
-        log('MIDI Warm-up failed for ${song.number}: $e', name: 'SongCubit');
+        log('MIDI warm-up failed for ${song.number}: $e', name: 'SongCubit');
       }
     }
   }
 
   Future<void> _warmUpPdfChain(List<Song> songs) async {
     final noteService = PdfNoteService();
-    for (final song in songs) {
-      try {
-        final pdfPath = await getPdfPath(song.code ?? '', song.number ?? '');
-        if (pdfPath == null) continue;
-
-        // Perform deep warmup: extraction + note detection
-        final request = PdfDocumentRequest.parse(pdfPath);
-        await noteService.warmup(
-          request.assetPath,
-          startPage: request.startPage,
-          pageCount: _warmupPageCount(request.pageCount),
-        );
-      } catch (e) {
-        log('PDF Warm-up failed for ${song.number}: $e', name: 'SongCubit');
-      }
-    }
+    // File preparation for neighbours can happen concurrently. Keep the set
+    // small (maximum five on either side is already enforced in state) so this
+    // does not become unbounded I/O.
+    await Future.wait(
+      songs.map((song) async {
+        try {
+          final pdfPath = await getPdfPath(song.code ?? '', song.number ?? '');
+          if (pdfPath == null) return;
+          final request = PdfDocumentRequest.parse(pdfPath);
+          await noteService.warmup(
+            request.assetPath,
+            startPage: request.startPage,
+            pageCount: _warmupPageCount(request.pageCount),
+          );
+        } catch (e) {
+          log('PDF warm-up failed for ${song.number}: $e', name: 'SongCubit');
+        }
+      }),
+    );
   }
 
   StreamSubscription<MidiPlaybackState>? _midiStateSub;
@@ -111,41 +122,44 @@ class SongCubit extends HydratedCubit<SongState> {
   int _pdfLoadGeneration = 0;
 
   SongCubit(this.songRepository, this._assetService, this._midiEngine)
-    : super(const SongState()) {
+    : super(
+        const SongState(
+          lyricsTextAlign: 'center',
+          lyricsVerticalAlign: 'center',
+        ),
+      ) {
     _setupMidiStreams();
     _initializeAsync();
   }
 
-  /// Temporary cache for chords parsed during resolution to avoid redundant asset loads.
   Map<int, List<ChordData>>? _resolvedChordsCache;
 
   Future<void> _initializeAsync() async {
-    // PRE-INITIALIZE the local asset service so index and paths are ready
-    // This is much faster than waiting for the repository wrapper.
     unawaited(_assetService.initialize());
 
-    // START IMMEDIATELY: If we have cached state, trigger resource loading
-    // without waiting for any other async initialization. This provides
-    // the "instant" PDF experience.
     if (state.songs.isNotEmpty) {
-      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
       final currentSong = state.songs[currentIdx];
-
       log('Startup immediate load: ${currentSong.number}', name: 'SongCubit');
-
-      // Clear cache before starting
       _resolvedChordsCache = null;
 
-      // Force-resolve paths and trigger pre-warmup immediately
       unawaited(
         _assetService
             .getPdfPath(currentSong.code ?? '', currentSong.number ?? '')
             .then((path) {
-              if (path != null) {
-                // 1. Update state so UI starts rendering the PDF container
-                emit(state.copyWith(currentPdfPath: path, isPdfLoading: false));
+              if (path != null && !isClosed) {
+                final request = PdfDocumentRequest.parse(path);
+                final singlePage = request.pageCount != null && request.pageCount! <= 1;
+                emit(
+                  state.copyWith(
+                    currentPdfPath: path,
+                    isPdfLoading: false,
+                    pdfTwoPageMode: singlePage ? false : state.pdfTwoPageMode,
+                    pdfVerticalScrolling:
+                        singlePage ? false : state.pdfVerticalScrolling,
+                  ),
+                );
 
-                // 2. Trigger note extraction pre-warmup
                 unawaited(
                   () async {
                     final metadataSource = _metadataSourceForSong(currentSong);
@@ -153,19 +167,17 @@ class SongCubit extends HydratedCubit<SongState> {
                       metadataSource.bookCode,
                       metadataSource.number,
                     );
-                    final request = PdfDocumentRequest.parse(
+                    final metadataRequest = PdfDocumentRequest.parse(
                       metadataPdfPath ?? path,
                     );
                     return PdfNoteService().warmup(
-                      request.assetPath,
-                      startPage: request.startPage,
-                      pageCount: _warmupPageCount(request.pageCount),
+                      metadataRequest.assetPath,
+                      startPage: metadataRequest.startPage,
+                      pageCount: _warmupPageCount(metadataRequest.pageCount),
                     );
                   }().then((metadata) {
                     if (metadata == null || isClosed) return;
-                    if (metadata.detectedKey != null) {
-                      updatePdfKey(metadata.detectedKey);
-                    }
+                    if (metadata.detectedKey != null) updatePdfKey(metadata.detectedKey);
                     if (metadata.detectedTempo != null) {
                       updatePdfTempo(metadata.detectedTempo!);
                     }
@@ -175,16 +187,10 @@ class SongCubit extends HydratedCubit<SongState> {
             }),
       );
 
-      // Load Chords and resources in parallel - CRITICAL for first load
       unawaited(_loadChordDataInternal(currentSong));
       unawaited(_loadPdfForSong(currentSong));
     }
 
-    // Run data loading and MIDI engine init in parallel.
-    // The MIDI engine (SoLoud native audio backend) is only spun up when the
-    // user actually had audio enabled — warmUp()/loadMidi() initialize it
-    // lazily on first use. Starting the native audio engine at app boot for
-    // users who never open audio was pure startup overhead.
     final dataFuture = getData();
     if (state.showAudio) {
       await Future.wait([dataFuture, _midiEngine.initialize()]);
@@ -192,22 +198,15 @@ class SongCubit extends HydratedCubit<SongState> {
       await dataFuture;
     }
 
-    // Apply persisted engine settings without forcing engine init.
     _midiEngine.setSoundFont(state.soundFont);
     _midiEngine.setCacheMax(state.midiCacheMaxCount);
 
-    // If audio was enabled in a previous session, pre-warm the current
-    // song's MIDI in the background so playback starts instantly.
     if (state.showAudio && state.songs.isNotEmpty) {
-      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+      final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
       final currentSong = state.songs[currentIdx];
       final midiPath = await _midiPathForSong(currentSong);
       if (midiPath != null) {
         final defaults = await _resolvePreloadDefaultsForSong(currentSong);
-        log(
-          'Startup warm-up current song: ${currentSong.code} ${currentSong.number} → $midiPath',
-          name: 'SongCubit',
-        );
         unawaited(
           _midiEngine.warmUp(
             midiPath,
@@ -218,30 +217,25 @@ class SongCubit extends HydratedCubit<SongState> {
           ),
         );
       }
-
-      // Delay neighbor warmup significantly to prioritize the active song's resources
-      // and ensure the app UI has fully settled after boot.
-      Future.delayed(const Duration(seconds: 3), () {
-        if (!isClosed) unawaited(_warmUpPlaybackQueue());
-      });
     }
 
-    // Auto-sync chords from gyschordweb (GitHub) in the background so the
-    // chord library always matches the repository without bundling chords.
+    // Start neighbour warming shortly after the first real frame rather than
+    // waiting three seconds, which left an obvious loading gap when a user
+    // immediately swiped to the next hymn.
+    Future.delayed(const Duration(milliseconds: 650), () {
+      if (!isClosed) unawaited(_warmUpPlaybackQueue());
+    });
+
     unawaited(_syncChordsFromGithub());
   }
 
-  /// Fetches updated chord files from gyschordweb. Only changed files are
-  /// re-downloaded (compared by Git blob SHA); unchanged ones are skipped.
-  /// When something changed and the current song has a chord, its data is
-  /// reloaded so the on-screen chords reflect the update immediately.
   Future<void> _syncChordsFromGithub() async {
     try {
       final service = di<ChordSyncService>();
       final result = await service.sync();
       log('Chord sync finished: $result', name: 'SongCubit');
       if (result.changed && !isClosed && state.songs.isNotEmpty) {
-        final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+        final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
         final currentSong = state.songs[currentIdx];
         final hasChord = await _assetService.hasChord(
           currentSong.code ?? '',
@@ -261,16 +255,13 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiStateSub = _midiEngine.stateStream.listen((midiState) {
       final ended = _didMidiEnd(_lastMidiState, midiState);
       _lastMidiState = midiState;
-      // Convert MidiPlaybackState to relevant SongState updates
       if (midiState.isPlaying != state.isAudioPlaying) {
         emit(state.copyWith(isAudioPlaying: midiState.isPlaying));
       }
       if (midiState.isLoading != state.isAudioLoading) {
         emit(state.copyWith(isAudioLoading: midiState.isLoading));
       }
-      if (ended) {
-        unawaited(_handleMidiSongEnded());
-      }
+      if (ended) unawaited(_handleMidiSongEnded());
     });
   }
 
@@ -307,7 +298,7 @@ class SongCubit extends HydratedCubit<SongState> {
             !hadSongs &&
             state.songs.isNotEmpty &&
             state.currentPdfPath == null) {
-          final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+          final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
           final currentSong = state.songs[currentIdx];
           unawaited(_loadResourcesForSong(currentSong));
           unawaited(_loadChordDataInternal(currentSong));
@@ -320,18 +311,11 @@ class SongCubit extends HydratedCubit<SongState> {
     await getData();
   }
 
-  // ─── PDF & MIDI Resource Loading ──────────────────────────────
-
   Future<void> _loadResourcesForSong(
     Song song, {
     bool autoplay = false,
     bool forceMidi = false,
   }) async {
-    // Load PDF and MIDI in parallel.  The MIDI engine does not
-    // strictly depend on the PDF metadata — it uses whatever
-    // transpose/tempo is in state at call time.  The PDF metadata
-    // warmup will update those values after it completes and the
-    // engine will be refreshed via setTranspose / setTempoBase.
     await Future.wait([
       _loadPdfForSong(song, forceMetadataWarmup: true),
       _loadMidiForSong(song, autoplay: autoplay, force: forceMidi),
@@ -357,20 +341,28 @@ class SongCubit extends HydratedCubit<SongState> {
     String? pdfPath;
     try {
       pdfPath = await getPdfPath(songCode, songNumber);
-
       if (!_isActivePdfLoad(generation)) return;
 
       final pathUnchanged = pdfPath == previousPath;
+      var singlePage = false;
+      if (pdfPath != null) {
+        try {
+          final request = PdfDocumentRequest.parse(pdfPath);
+          singlePage = request.pageCount != null && request.pageCount! <= 1;
+        } catch (_) {}
+      }
 
-      // Combine isPdfLoading + currentPdfPath into a single emit
-      // instead of two separate emits.
-      emit(state.copyWith(
-        isPdfLoading: needsPreparation,
-        currentPdfPath: pdfPath,
-      ));
+      emit(
+        state.copyWith(
+          isPdfLoading: needsPreparation,
+          currentPdfPath: pdfPath,
+          // A one-page hymn cannot meaningfully inherit the previous hymn's
+          // spread/vertical mode. Return it to the canonical single-page mode.
+          pdfTwoPageMode: singlePage ? false : state.pdfTwoPageMode,
+          pdfVerticalScrolling: singlePage ? false : state.pdfVerticalScrolling,
+        ),
+      );
 
-      // Trigger note extraction warmup in the background so it
-      // doesn't block the PDF path being available in the UI.
       if (pdfPath != null && (forceMetadataWarmup || !pathUnchanged)) {
         unawaited(_warmupPdfMetadata(song, pdfPath));
       }
@@ -381,8 +373,6 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  /// Run PDF note-extraction metadata warmup asynchronously.
-  /// Updates detected key/tempo in the state when complete.
   Future<void> _warmupPdfMetadata(Song song, String pdfPath) async {
     final noteService = PdfNoteService();
     final metadataSource = _metadataSourceForSong(song);
@@ -419,8 +409,6 @@ class SongCubit extends HydratedCubit<SongState> {
     return target;
   }
 
-  // ─── MIDI Playback ────────────────────────────────────────────
-
   Future<String?> _midiPathForSong(Song song) {
     final midiCode = song.midiMappedFrom ?? song.code ?? '';
     final midiNumber = song.midiMappedNumber ?? song.number ?? '';
@@ -451,10 +439,6 @@ class SongCubit extends HydratedCubit<SongState> {
     }
 
     emit(state.copyWith(isAudioLoading: true));
-    // Resolve the same per-song defaults the warm-up chain uses so the
-    // render cache key always matches what cache-ahead pre-rendered.
-    // Using raw state values here races with the async baseline reset and
-    // misses the warm-up cache (re-render on every song open).
     final defaults = await _resolvePreloadDefaultsForSong(song);
     if (!_isActiveMidiLoad(generation)) return;
     await _midiEngine.loadMidi(
@@ -469,18 +453,14 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(isAudioLoading: false));
   }
 
-  bool _isActiveMidiLoad(int loadGeneration) {
-    return !isClosed && loadGeneration == _midiLoadGeneration;
-  }
+  bool _isActiveMidiLoad(int loadGeneration) =>
+      !isClosed && loadGeneration == _midiLoadGeneration;
 
-  bool _isActivePdfLoad(int loadGeneration) {
-    return !isClosed && loadGeneration == _pdfLoadGeneration;
-  }
+  bool _isActivePdfLoad(int loadGeneration) =>
+      !isClosed && loadGeneration == _pdfLoadGeneration;
 
   Future<void> play() async {
-    if (!state.showAudio) {
-      emit(state.copyWith(showAudio: true));
-    }
+    if (!state.showAudio) emit(state.copyWith(showAudio: true));
     if (state.songs.isNotEmpty) {
       final song = state.songs[state.pageIndex];
       final midiPath = await _midiPathForSong(song);
@@ -523,8 +503,6 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  // ─── Audio Toggle ─────────────────────────────────────────────
-
   void toggleAudio([bool? show]) {
     final newValue = show ?? !state.showAudio;
     emit(state.copyWith(showAudio: newValue));
@@ -533,12 +511,8 @@ class SongCubit extends HydratedCubit<SongState> {
       final song = state.songs[state.pageIndex];
       unawaited(
         _loadPdfForSong(song, forceMetadataWarmup: true)
-            .then((_) {
-              return _loadMidiForSong(song);
-            })
-            .then((_) {
-              return _warmUpPlaybackQueue();
-            }),
+            .then((_) => _loadMidiForSong(song))
+            .then((_) => _warmUpPlaybackQueue()),
       );
     } else {
       _midiLoadGeneration++;
@@ -546,19 +520,13 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  // ─── Chord Toggle ─────────────────────────────────────────────
-
   void toggleChord([bool? show]) {
     if (!_isChordEnabledForBook(state.bookCode)) {
-      if (state.showChord) {
-        emit(state.copyWith(showChord: false));
-      }
+      if (state.showChord) emit(state.copyWith(showChord: false));
       return;
     }
     emit(state.copyWith(showChord: show ?? !state.showChord));
   }
-
-  // ─── Transpose ────────────────────────────────────────────────
 
   void setTranspose(int semitones) {
     final normalized = _normalizeTranspose(semitones);
@@ -611,15 +579,8 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setTranspose(baseline.transposeStep);
   }
 
-  void transposeUp() {
-    setTranspose(state.transposeStep + 1);
-  }
-
-  void transposeDown() {
-    setTranspose(state.transposeStep - 1);
-  }
-
-  // ─── Tempo ────────────────────────────────────────────────────
+  void transposeUp() => setTranspose(state.transposeStep + 1);
+  void transposeDown() => setTranspose(state.transposeStep - 1);
 
   void setTempo(double bpm) {
     emit(state.copyWith(tempoBpm: bpm));
@@ -634,16 +595,12 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setTempoBase(bpm);
   }
 
-  // ─── Accidental Mode ─────────────────────────────────────────────
-
   void toggleAccidentalMode() {
     final newMode = state.chordAccidentalMode == ChordService.accidentalSharp
         ? ChordService.accidentalFlat
         : ChordService.accidentalSharp;
     emit(state.copyWith(chordAccidentalMode: newMode));
   }
-
-  // ─── Instrument ───────────────────────────────────────────────
 
   void setMidiInstrument(int? program) {
     emit(state.copyWith(midiInstrument: program));
@@ -674,8 +631,6 @@ class SongCubit extends HydratedCubit<SongState> {
     _midiEngine.setInstrument(-1);
   }
 
-  // ─── SoundFont ────────────────────────────────────────────────
-
   Future<void> setSoundFont(String fileName) async {
     emit(state.copyWith(soundFont: fileName));
     await _midiEngine.changeSoundFont(fileName);
@@ -687,21 +642,17 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  // ─── Preload Settings ───────────────────────────────────────
-
   void setMidiPreloadNeighborCount(int count) {
-    final clamped = count.clamp(0, 5);
+    final clamped = count.clamp(0, 5).toInt();
     emit(state.copyWith(midiPreloadNeighborCount: clamped));
     unawaited(_warmUpPlaybackQueue());
   }
 
   void setMidiCacheMaxCount(int count) {
-    final clamped = count.clamp(4, 32);
+    final clamped = count.clamp(4, 32).toInt();
     emit(state.copyWith(midiCacheMaxCount: clamped));
     _midiEngine.setCacheMax(clamped);
   }
-
-  // ─── Page Navigation ──────────────────────────────────────────
 
   Future<void> changePage(int index, int verseIndex) async {
     if (index < 0 || index >= state.songs.length) return;
@@ -709,10 +660,6 @@ class SongCubit extends HydratedCubit<SongState> {
     _debouncer = null;
     final wasPlaying = state.isAudioPlaying;
     final song = state.songs[index];
-    log(
-      'changePage: ${song.code} ${song.number} (index=$index, wasPlaying=$wasPlaying)',
-      name: 'SongCubit',
-    );
     _resolvedChordsCache = null;
     final reset = _currentPlaybackDefaults().resetForSong();
 
@@ -725,8 +672,6 @@ class SongCubit extends HydratedCubit<SongState> {
         showChord: _isChordEnabledForBook(song.code ?? state.bookCode)
             ? state.showChord
             : false,
-        // Don't clear currentPdfPath yet, let it stay for smooth transition
-        // currentPdfPath: null,
         currentChords: {},
         transposeStep: reset.transposeStep,
         tempoBpm: reset.tempoBpm,
@@ -736,7 +681,6 @@ class SongCubit extends HydratedCubit<SongState> {
         baseTransposeOffset: reset.baseTransposeOffset,
       ),
     );
-    // Trigger resources and chords in parallel
     unawaited(
       _loadResourcesForSong(song, autoplay: wasPlaying, forceMidi: true),
     );
@@ -764,30 +708,24 @@ class SongCubit extends HydratedCubit<SongState> {
       );
       return;
     }
-
     unawaited(_loadChordDataInternal(song));
   }
 
   bool _isCurrentSong(Song song) {
-    if (isClosed) return false;
-    if (state.songs.isEmpty) return false;
-    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+    if (isClosed || state.songs.isEmpty) return false;
+    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final currentSong = state.songs[currentIdx];
     return currentSong.code == song.code && currentSong.number == song.number;
   }
 
   Future<void> goToPreviousSong() async {
-    final song = _playbackQueue().manualPreviousSong;
-    if (song != null) {
-      await _openSong(song, autoplay: state.isAudioPlaying);
-    }
+    final song = _navigationQueue().manualPreviousSong;
+    if (song != null) await _openSong(song, autoplay: state.isAudioPlaying);
   }
 
   Future<void> goToNextSong() async {
-    final song = _playbackQueue().manualNextSong;
-    if (song != null) {
-      await _openSong(song, autoplay: state.isAudioPlaying);
-    }
+    final song = _navigationQueue().manualNextSong;
+    if (song != null) await _openSong(song, autoplay: state.isAudioPlaying);
   }
 
   void setPdfTwoPageMode(bool enabled) {
@@ -808,40 +746,26 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  /// Switch the PDF viewer back to its default single-page-at-a-time
-  /// mode.  The previous two custom modes (two-page spread and
-  /// vertical scroll) are mutually exclusive with this; calling this
-  /// method turns both off.
   void setNormalPdfMode() {
     if (!state.pdfTwoPageMode && !state.pdfVerticalScrolling) return;
-    emit(
-      state.copyWith(pdfTwoPageMode: false, pdfVerticalScrolling: false),
-    );
+    emit(state.copyWith(pdfTwoPageMode: false, pdfVerticalScrolling: false));
   }
-
-  // ─── Chord Data Loading ───────────────────────────────────────
 
   Future<void> _loadChordDataInternal(Song song) async {
     final jsonString = await _assetService.readChordJson(
       song.code ?? '',
       song.number ?? '',
     );
-
     if (isClosed) return;
-
-    // Check if the current song is still the same as the one we loaded chords for
-    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final currentSong = state.songs[currentIdx];
-    if (currentSong.code != song.code || currentSong.number != song.number) {
-      return;
-    }
+    if (currentSong.code != song.code || currentSong.number != song.number) return;
 
     if (jsonString == null) {
       emit(
         state.copyWith(
           currentChords: {},
           originalFamilyChord: null,
-          // DONT clear originalPdfKey here, as it might have been detected from the PDF
           baseTransposeOffset: 0,
         ),
       );
@@ -850,22 +774,19 @@ class SongCubit extends HydratedCubit<SongState> {
 
     try {
       final chords = ChordService.parseChordJson(jsonString);
-
       if (isClosed) return;
-      if (state
-              .songs[state.pageIndex.clamp(0, state.songs.length - 1)]
-              .number !=
+      if (state.songs[
+            state.pageIndex.clamp(0, state.songs.length - 1).toInt()
+          ].number !=
           song.number) {
         return;
       }
-
       final familyChord = ChordService.detectFamilyChord(chords);
       final baseline = _currentPlaybackDefaults().resolveChordBaseline(
         familyChord: familyChord,
         pdfKey: state.originalPdfKey,
         preferNaturalChords: state.preferNaturalChords,
       );
-
       final previousTranspose = state.transposeStep;
       emit(
         state.copyWith(
@@ -875,7 +796,6 @@ class SongCubit extends HydratedCubit<SongState> {
           transposeStep: baseline.transposeStep,
         ),
       );
-
       if (baseline.transposeStep != previousTranspose) {
         _midiEngine.setTranspose(baseline.transposeStep);
       }
@@ -885,7 +805,6 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  /// Internal data fetcher (legacy/manual use)
   Future<Map<int, List<ChordData>>?> loadChordData(Song song) async {
     final jsonString = await _assetService.readChordJson(
       song.code ?? '',
@@ -926,26 +845,17 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void updatePdfTempo(double tempoBpm) {
-    if (tempoBpm <= 0) return;
-    if (tempoBpm == state.defaultTempoBpm) return;
-
-    log('Applying detected PDF Tempo: $tempoBpm', name: 'SongCubit');
-
+    if (tempoBpm <= 0 || tempoBpm == state.defaultTempoBpm) return;
     emit(state.copyWith(tempoBpm: tempoBpm, defaultTempoBpm: tempoBpm));
-
-    // Debounce the engine update slightly
     final expectedPdfLoadGeneration = _pdfLoadGeneration;
     _debouncer?.cancel();
     _debouncer = Timer(const Duration(milliseconds: 100), () {
       if (!isClosed && expectedPdfLoadGeneration == _pdfLoadGeneration) {
-        _midiEngine.setTempoBase(tempoBpm); // Use setTempoBase to sync with PDF
+        _midiEngine.setTempoBase(tempoBpm);
       }
     });
   }
 
-  /// Re-detect family chord from edited chords (e.g. from the PDF viewer's
-  /// note-aligned chord editor) and update transpose baseline accordingly.
-  /// This mirrors gyschordweb's detectNoteAlignedFamilyChord.
   void detectAndUpdateFamilyChord(Map<int, List<ChordData>> chords) {
     final familyChord = ChordService.detectFamilyChord(chords);
     final baseline = _currentPlaybackDefaults().resolveChordBaseline(
@@ -968,16 +878,14 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  SongPlaybackDefaults _currentPlaybackDefaults() {
-    return SongPlaybackDefaults(
-      transposeStep: state.transposeStep,
-      tempoBpm: state.tempoBpm,
-      defaultTempoBpm: state.defaultTempoBpm,
-      originalFamilyChord: state.originalFamilyChord,
-      originalPdfKey: state.originalPdfKey,
-      baseTransposeOffset: state.baseTransposeOffset,
-    );
-  }
+  SongPlaybackDefaults _currentPlaybackDefaults() => SongPlaybackDefaults(
+    transposeStep: state.transposeStep,
+    tempoBpm: state.tempoBpm,
+    defaultTempoBpm: state.defaultTempoBpm,
+    originalFamilyChord: state.originalFamilyChord,
+    originalPdfKey: state.originalPdfKey,
+    baseTransposeOffset: state.baseTransposeOffset,
+  );
 
   SongPlaybackQueue _playbackQueue() {
     final currentSong =
@@ -995,6 +903,25 @@ class SongCubit extends HydratedCubit<SongState> {
           state.playlistAutoNextMode == SongPlaylistAutoNextMode.shufflePlaylist
           ? state.playlistShuffleIndex
           : state.shuffleIndex,
+    );
+  }
+
+  SongPlaybackQueue _navigationQueue() {
+    final currentSong =
+        state.pageIndex >= 0 && state.pageIndex < state.songs.length
+        ? state.songs[state.pageIndex]
+        : null;
+    final playlistId = _navigationPlaylistId;
+    return SongPlaybackQueue.resolve(
+      books: state.songBook,
+      currentSongs: state.songs,
+      currentSong: currentSong,
+      playlists: state.playlists,
+      activePlaylistId: playlistId,
+      autoNextMode: playlistId == null
+          ? SongPlaylistAutoNextMode.off
+          : SongPlaylistAutoNextMode.playlist,
+      shuffleIndex: const [],
     );
   }
 
@@ -1019,10 +946,63 @@ class SongCubit extends HydratedCubit<SongState> {
     }
   }
 
-  /// Open a specific [song] by switching to its book and jumping to its page.
-  /// This is the canonical way to navigate to a song from any context
   Future<void> openSong(Song song, {bool autoplay = false}) =>
       _openSong(song, autoplay: autoplay);
+
+  Future<void> openSongFromLibrary(Song song, {bool autoplay = false}) async {
+    _navigationPlaylistId = null;
+    await _openSong(song, autoplay: autoplay);
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  Future<void> openSongFromPlaylist(
+    Song song,
+    String playlistId, {
+    bool autoplay = false,
+  }) async {
+    _navigationPlaylistId = playlistId;
+    if (state.activePlaylistId != playlistId) {
+      emit(state.copyWith(activePlaylistId: playlistId));
+    }
+    await _openSong(song, autoplay: autoplay);
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  void useLibraryNavigationContext() {
+    _navigationPlaylistId = null;
+    unawaited(_warmUpPlaybackQueue());
+  }
+
+  Future<void> usePlaylistNavigationContext([String? playlistId]) async {
+    final targetId = playlistId ?? state.activePlaylistId;
+    if (targetId == null) return;
+    _navigationPlaylistId = targetId;
+    final playlist = state.playlists.firstWhereOrNull((p) => p.id == targetId);
+    if (playlist == null || playlist.songs.isEmpty) return;
+
+    final currentSong = state.songs.isEmpty
+        ? null
+        : state.songs[
+            state.pageIndex.clamp(0, state.songs.length - 1).toInt()
+          ];
+    final currentInPlaylist = currentSong != null &&
+        playlist.songs.any((item) => item.matches(currentSong));
+    if (!currentInPlaylist) {
+      final first = _resolvePlaylistItem(playlist.songs.first);
+      if (first != null) await openSongFromPlaylist(first, targetId);
+    } else {
+      unawaited(_warmUpPlaybackQueue());
+    }
+  }
+
+  Song? _resolvePlaylistItem(SongPlaylistItem item) {
+    for (final book in state.songBook) {
+      for (final song in book.songs) {
+        if (item.matches(song)) return song;
+      }
+    }
+    return null;
+  }
 
   Future<void> _openSong(Song song, {bool autoplay = false}) async {
     final bookCode = song.code ?? state.bookCode;
@@ -1033,22 +1013,13 @@ class SongCubit extends HydratedCubit<SongState> {
     final index = book.songs.indexWhere(
       (item) => item.code == song.code && item.number == song.number,
     );
-    log(
-      'openSong: ${song.code} ${song.number} → book=$bookCode, index=$index',
-      name: 'SongCubit',
-    );
     if (index < 0) return;
     addToHistory(
       SongHistory(index: index, bookCode: bookCode, createdAt: DateTime.now()),
     );
-    // Update bookCode AND pageIndex in a single emit to avoid triggering
-    // the BlocConsumer listener twice (once for bookCode, once for pageIndex).
     emit(state.copyWith(bookCode: bookCode, pageIndex: index));
-    // Still call changePage to load resources.
     await changePage(index, 0);
-    if (autoplay) {
-      await play();
-    }
+    if (autoplay) await play();
   }
 
   Future<SongPlaybackDefaults> _resolvePreloadDefaultsForSong(Song song) async {
@@ -1056,15 +1027,12 @@ class SongCubit extends HydratedCubit<SongState> {
         state.pageIndex >= 0 && state.pageIndex < state.songs.length
         ? state.songs[state.pageIndex]
         : null;
-    final songMatchesCurrent =
-        currentSong != null &&
+    final songMatchesCurrent = currentSong != null &&
         currentSong.code == song.code &&
         currentSong.number == song.number;
     final familyChord = await _detectFamilyChordForSong(song);
     final base = _currentPlaybackDefaults().resetForSong();
-    if (!state.preferNaturalChords) {
-      return base;
-    }
+    if (!state.preferNaturalChords) return base;
     return base.resolveChordBaseline(
       familyChord: familyChord,
       pdfKey: songMatchesCurrent ? state.originalPdfKey : null,
@@ -1072,9 +1040,8 @@ class SongCubit extends HydratedCubit<SongState> {
     );
   }
 
-  ({String bookCode, String number}) _metadataSourceForSong(Song song) {
-    return (bookCode: song.code ?? state.bookCode, number: song.number ?? '');
-  }
+  ({String bookCode, String number}) _metadataSourceForSong(Song song) =>
+      (bookCode: song.code ?? state.bookCode, number: song.number ?? '');
 
   bool _isChordEnabledForBook(String? bookCode) => bookCode != 'HYMNE';
 
@@ -1093,29 +1060,21 @@ class SongCubit extends HydratedCubit<SongState> {
     }
     try {
       final chords = ChordService.parseChordJson(jsonString);
-      // Cache the parsed chords so _loadChordDataInternal doesn't have to re-parse them
       _resolvedChordsCache = chords;
       return ChordService.detectFamilyChord(chords);
     } catch (e) {
-      log('Error detecting family chord for preload: $e');
       _resolvedChordsCache = null;
       return null;
     }
   }
 
-  /// Public helper: reload chord data + baseline for the currently open
-  /// song. Used after a chord reset/re-sync so the UI reflects the update.
   void reloadChordsForCurrentSong() {
     if (state.songs.isEmpty) return;
-    final idx = state.pageIndex.clamp(0, state.songs.length - 1);
+    final idx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
     final song = state.songs[idx];
     unawaited(_loadChordDataInternal(song));
     unawaited(_resolveChordBaselineForCurrentSong(song));
   }
-
-  // ─── Book Code ────────────────────────────────────────────────
-
-  // Playlists
 
   SongPlaylist? get activePlaylist {
     final id = state.activePlaylistId;
@@ -1160,6 +1119,7 @@ class SongCubit extends HydratedCubit<SongState> {
     final playlists = state.playlists
         .where((playlist) => playlist.id != playlistId)
         .toList();
+    if (_navigationPlaylistId == playlistId) _navigationPlaylistId = null;
     emit(
       state.copyWith(
         playlists: playlists,
@@ -1179,6 +1139,7 @@ class SongCubit extends HydratedCubit<SongState> {
             currentMode == SongPlaylistAutoNextMode.shufflePlaylist
         ? currentMode
         : SongPlaylistAutoNextMode.playlist;
+    _navigationPlaylistId = playlistId;
     emit(
       state.copyWith(
         activePlaylistId: playlistId,
@@ -1186,12 +1147,20 @@ class SongCubit extends HydratedCubit<SongState> {
       ),
     );
     _refreshPlaylistShuffleIfNeeded();
-    unawaited(_warmUpPlaybackQueue());
+    if (playlistId != null) {
+      unawaited(usePlaylistNavigationContext(playlistId));
+    } else {
+      unawaited(_warmUpPlaybackQueue());
+    }
   }
 
   void setPlaylistAutoNextMode(String mode) {
     final normalized = SongPlaylistAutoNextMode.normalize(mode);
     emit(state.copyWith(playlistAutoNextMode: normalized));
+    if (normalized == SongPlaylistAutoNextMode.playlist ||
+        normalized == SongPlaylistAutoNextMode.shufflePlaylist) {
+      _navigationPlaylistId = state.activePlaylistId;
+    }
     _refreshPlaylistShuffleIfNeeded();
     unawaited(_warmUpPlaybackQueue());
   }
@@ -1204,19 +1173,10 @@ class SongCubit extends HydratedCubit<SongState> {
     setPlaylistAutoNextMode(nextMode);
   }
 
-  /// Single-button shuffle toggle for the playlist tab header.  Flips
-  /// between off and one of the shuffle modes (shuffle-playlist when an
-  /// active playlist with songs exists, otherwise shuffle-all).  Other
-  /// auto-next modes (one/number/playlist) are left untouched — they
-  /// remain reachable via the floating MIDI controls' cycle button.
   void toggleShuffle() {
-    final current = SongPlaylistAutoNextMode.normalize(
-      state.playlistAutoNextMode,
-    );
-    final hasUsablePlaylist =
-        activePlaylist?.songs.isNotEmpty ?? false;
-    final isShuffleOn =
-        current == SongPlaylistAutoNextMode.shuffleAll ||
+    final current = SongPlaylistAutoNextMode.normalize(state.playlistAutoNextMode);
+    final hasUsablePlaylist = activePlaylist?.songs.isNotEmpty ?? false;
+    final isShuffleOn = current == SongPlaylistAutoNextMode.shuffleAll ||
         current == SongPlaylistAutoNextMode.shufflePlaylist;
     final nextMode = isShuffleOn
         ? SongPlaylistAutoNextMode.off
@@ -1227,9 +1187,7 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void addSongToActivePlaylist(Song song) {
-    if (state.playlists.isEmpty) {
-      createPlaylist('Playlist');
-    }
+    if (state.playlists.isEmpty) createPlaylist('Playlist');
     final playlistId = state.activePlaylistId ?? state.playlists.first.id;
     addSongToPlaylist(playlistId, song);
   }
@@ -1255,8 +1213,7 @@ class SongCubit extends HydratedCubit<SongState> {
       state.copyWith(
         playlists: state.playlists.map((playlist) {
           if (playlist.id != playlistId ||
-              songIndex < 0 ||
-              songIndex >= playlist.songs.length) {
+              songIndex < 0 || songIndex >= playlist.songs.length) {
             return playlist;
           }
           final songs = List<SongPlaylistItem>.from(playlist.songs)
@@ -1269,9 +1226,8 @@ class SongCubit extends HydratedCubit<SongState> {
     unawaited(_warmUpPlaybackQueue());
   }
 
-  bool isSongInActivePlaylist(Song song) {
-    return activePlaylist?.songs.any((item) => item.matches(song)) ?? false;
-  }
+  bool isSongInActivePlaylist(Song song) =>
+      activePlaylist?.songs.any((item) => item.matches(song)) ?? false;
 
   void _refreshPlaylistShuffleIfNeeded() {
     final mode = SongPlaylistAutoNextMode.normalize(state.playlistAutoNextMode);
@@ -1286,13 +1242,12 @@ class SongCubit extends HydratedCubit<SongState> {
       return;
     }
     if (mode == SongPlaylistAutoNextMode.shuffleAll) {
-      emit(
-        state.copyWith(shuffleIndex: getRandomUniqueIndex(state.songs.length)),
-      );
+      emit(state.copyWith(shuffleIndex: getRandomUniqueIndex(state.songs.length)));
     }
   }
 
   void changeBookcode(String bookCode) {
+    _navigationPlaylistId = null;
     final songCount = state.songBook
         .firstWhere(
           (book) => book.code == bookCode,
@@ -1303,12 +1258,8 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(
       state.copyWith(
         bookCode: bookCode,
-        // Reset page/verse index when switching books to avoid
-        // RangeError on the new book's song list.
         pageIndex: 0,
         verseIndex: 0,
-        // Clear stale PDF/chord state so the new book's resources
-        // are loaded fresh.
         currentPdfPath: null,
         currentChords: {},
         isPdfLoading: false,
@@ -1318,8 +1269,6 @@ class SongCubit extends HydratedCubit<SongState> {
     );
     unawaited(_warmUpPlaybackQueue());
   }
-
-  // ─── History ──────────────────────────────────────────────────
 
   void deleteHistory(SongHistory history) {
     emit(
@@ -1338,15 +1287,13 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(histories: data));
   }
 
-  // ─── Notes ────────────────────────────────────────────────────
-
   void changeSortNote(String sortBy) {
     emit(state.copyWith(sortNotesBy: sortBy));
   }
 
   void saveNote(SongNote data) {
     var notes = List<SongNote>.from(state.notes);
-    int index = notes.indexWhere((note) => note.id == data.id);
+    final index = notes.indexWhere((note) => note.id == data.id);
     if (index != -1) {
       notes[index] = data;
     } else {
@@ -1356,12 +1303,9 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Future<void> deleteNote(SongNote data) async {
-    var notes = List<SongNote>.from(state.notes);
-    notes.remove(data);
+    final notes = List<SongNote>.from(state.notes)..remove(data);
     emit(state.copyWith(notes: notes));
   }
-
-  // ─── Selection ────────────────────────────────────────────────
 
   Future<void> removeSelection() async {
     emit(state.copyWith(selectedSong: null));
@@ -1371,15 +1315,9 @@ class SongCubit extends HydratedCubit<SongState> {
     emit(state.copyWith(selectedSong: song));
   }
 
-  // ─── Search ───────────────────────────────────────────────────
-
   void onSearchTermsChanged(String text) {
     emit(state.copyWith(searchTerms: text));
   }
-
-  // ─── Shuffle ──────────────────────────────────────────────────
-
-  // ─── Font & Text ──────────────────────────────────────────────
 
   void changeFont(String font) {
     emit(state.copyWith(defaultFont: font));
@@ -1402,56 +1340,55 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   void changeChordFontSizePercent(int value) {
-    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200)));
+    emit(state.copyWith(chordFontSizePercent: value.clamp(50, 200).toInt()));
   }
 
   void changeChordFillOpacityPercent(int value) {
-    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100)));
+    emit(state.copyWith(chordFillOpacityPercent: value.clamp(0, 100).toInt()));
   }
 
   void changeChordPaddingPercent(int value) {
-    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400)));
+    emit(state.copyWith(chordPaddingPercent: value.clamp(0, 400).toInt()));
   }
 
-  /// Vertical distance of the chord badge above its note, as a percentage of
-  /// the base offset. 100 = the default offset; lower values pull the chord
-  /// closer to the note number, higher values push it further away.
   void changeChordOffsetPercent(int value) {
-    emit(state.copyWith(chordOffsetPercent: value.clamp(0, 300)));
+    emit(state.copyWith(chordOffsetPercent: value.clamp(0, 300).toInt()));
   }
-
-  // ─── Mode ─────────────────────────────────────────────────────
 
   void changeMode() {
     emit(state.copyWith(isImageMode: !state.isImageMode));
   }
 
-  // ─── HydratedBloc Overrides ───────────────────────────────────
-
   @override
   SongState? fromJson(Map<String, dynamic> json) {
-    return _clearTransientSelection(SongState.fromJson(json));
+    var restored = SongState.fromJson(json);
+    final layoutVersion = (json['lyrics_layout_version'] as num?)?.toInt() ?? 0;
+    if (layoutVersion < 2 &&
+        restored.lyricsTextAlign == 'left' &&
+        restored.lyricsVerticalAlign == 'top') {
+      restored = restored.copyWith(
+        lyricsTextAlign: 'center',
+        lyricsVerticalAlign: 'center',
+      );
+    }
+    return _clearTransientSelection(restored);
   }
 
   @override
   Map<String, dynamic>? toJson(SongState state) {
-    return state
+    final json = state
         .copyWith(
           isAudioLoading: false,
           isPdfLoading: false,
-          currentPdfPath:
-              null, // Still clear this as it depends on absolute disk paths
+          currentPdfPath: null,
           isLoading: false,
           selectedSong: null,
           isAudioPlaying: false,
         )
         .toJson()
-      // songBook holds ~2MB of song-index JSON (all books). Serializing it on
-      // EVERY emit (page change, transpose, tempo, play/pause…) blocked the UI
-      // thread with a 2MB jsonEncode + flush disk write per interaction.
-      // It is fully reloadable from assets via getData(), so it does not need
-      // to be persisted.
       ..remove('songBook');
+    json['lyrics_layout_version'] = 2;
+    return json;
   }
 
   Future<String?> getPdfPath(String bookCode, String number) async {
@@ -1481,7 +1418,13 @@ class SongCubit extends HydratedCubit<SongState> {
   }
 
   Future<void> resetToDefaults() async {
-    emit(const SongState());
+    _navigationPlaylistId = null;
+    emit(
+      const SongState(
+        lyricsTextAlign: 'center',
+        lyricsVerticalAlign: 'center',
+      ),
+    );
     await _midiEngine.changeSoundFont(state.soundFont);
     _midiEngine.setCacheMax(state.midiCacheMaxCount);
     await getData(preloadCurrentSong: false);
@@ -1505,11 +1448,11 @@ class SongCubit extends HydratedCubit<SongState> {
 }
 
 List<int> getRandomUniqueIndex(int length) {
-  math.Random random = math.Random();
-  List<int> indices = List.generate(length, (index) => index);
-  for (int i = length - 1; i > 0; i--) {
-    int randomIndex = random.nextInt(i + 1);
-    int temp = indices[randomIndex];
+  final random = math.Random();
+  final indices = List.generate(length, (index) => index);
+  for (var i = length - 1; i > 0; i--) {
+    final randomIndex = random.nextInt(i + 1);
+    final temp = indices[randomIndex];
     indices[randomIndex] = indices[i];
     indices[i] = temp;
   }

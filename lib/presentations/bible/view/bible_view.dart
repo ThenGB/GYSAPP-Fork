@@ -59,6 +59,7 @@ class _BibleViewState extends State<BibleView> {
     WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
       setState(() {});
       if (!value) {
+        _activeSplitPane = _BibleSplitPane.top;
         return;
       }
 
@@ -78,10 +79,6 @@ class _BibleViewState extends State<BibleView> {
 
   @override
   void initState() {
-    // 1µs made VisibilityDetector fire on EVERY frame for EVERY visible verse,
-    // turning each scroll frame into O(visible verses) map updates + possible
-    // split-pane jumpTo churn. 50ms (~20Hz) keeps the split sync responsive
-    // while cutting per-frame work by an order of magnitude.
     VisibilityDetectorController.instance.updateInterval = const Duration(
       milliseconds: 50,
     );
@@ -109,14 +106,13 @@ class _BibleViewState extends State<BibleView> {
         var verseKeys = forSecondView
             ? context.read<BibleCubit>().verseKeys2
             : context.read<BibleCubit>().verseKeys;
+        if (verseIndex < 0 || verseIndex >= verseKeys.length) return;
 
         RenderBox? verseBox =
             verseKeys[verseIndex].currentContext?.findRenderObject()
                 as RenderBox?;
-        // double verseHeight = verseBox?.size.height ?? 0;
         if (verseBox == null) return;
 
-        // Scroll to the position of the vverse
         await Scrollable.ensureVisible(
           verseKeys[verseIndex].currentState!.context,
           duration: Duration(milliseconds: 800),
@@ -191,7 +187,6 @@ class _BibleViewState extends State<BibleView> {
       });
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
   final PageStorageBucket _bucket = PageStorageBucket();
 
   Map<int, double> topVisibleIndexes = {};
@@ -203,7 +198,10 @@ class _BibleViewState extends State<BibleView> {
   _BibleSplitPane? _pendingSyncPane;
   int? _pendingSyncIndex;
   double? _pendingVisibleFraction;
-  double? _pendingVerseHeight;
+  _BibleSplitPane? _lastSyncedPane;
+  int? _lastSyncedIndex;
+  double? _lastSyncedFraction;
+  double _bookHeaderDragDx = 0;
 
   void _updateVisibility(Map<int, double> visMap, int index, double fraction) {
     if (fraction > 0) {
@@ -224,7 +222,6 @@ class _BibleViewState extends State<BibleView> {
     if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(bottomVisibleIndexes, index, visiblePercentage);
-
     final firstIdx = _firstVisibleIndex(bottomVisibleIndexes);
     if (firstIdx == null) return;
     final firstFrac = bottomVisibleIndexes[firstIdx]!;
@@ -233,7 +230,6 @@ class _BibleViewState extends State<BibleView> {
       _pendingSyncPane = _BibleSplitPane.bottom;
       _pendingSyncIndex = firstIdx;
       _pendingVisibleFraction = firstFrac;
-      _pendingVerseHeight = size.height;
       return;
     }
 
@@ -241,7 +237,6 @@ class _BibleViewState extends State<BibleView> {
       sourcePane: _BibleSplitPane.bottom,
       sourceIndex: firstIdx,
       visibleFraction: firstFrac,
-      verseHeight: size.height,
     );
   }
 
@@ -262,7 +257,6 @@ class _BibleViewState extends State<BibleView> {
     if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(topVisibleIndexes, index, visiblePercentage);
-
     final firstIdx = _firstVisibleIndex(topVisibleIndexes);
     if (firstIdx == null) return;
     final firstFrac = topVisibleIndexes[firstIdx]!;
@@ -271,7 +265,6 @@ class _BibleViewState extends State<BibleView> {
       _pendingSyncPane = _BibleSplitPane.top;
       _pendingSyncIndex = firstIdx;
       _pendingVisibleFraction = firstFrac;
-      _pendingVerseHeight = size.height;
       return;
     }
 
@@ -279,27 +272,27 @@ class _BibleViewState extends State<BibleView> {
       sourcePane: _BibleSplitPane.top,
       sourceIndex: firstIdx,
       visibleFraction: firstFrac,
-      verseHeight: size.height,
     );
   }
 
   void _setActiveSplitPane(_BibleSplitPane pane) {
     if (_isSyncingSplitScroll) return;
-    _activeSplitPane = pane;
+    if (_activeSplitPane != pane && mounted) {
+      setState(() => _activeSplitPane = pane);
+    } else {
+      _activeSplitPane = pane;
+    }
   }
 
   Future<void> _syncSplitPaneScroll({
     required _BibleSplitPane sourcePane,
     required int sourceIndex,
     required double visibleFraction,
-    required double verseHeight,
   }) async {
-    if (!lockScroll || !splitModeEnable || _isSyncingSplitScroll) {
-      return;
-    }
-    if (context.read<BibleCubit>().state.isSplitContentLoading) {
-      return;
-    }
+    if (!lockScroll || !splitModeEnable || _isSyncingSplitScroll) return;
+    final cubit = context.read<BibleCubit>();
+    final bibleState = cubit.state;
+    if (bibleState.isSplitContentLoading) return;
 
     final sourceController = sourcePane == _BibleSplitPane.top
         ? scrollController
@@ -307,16 +300,33 @@ class _BibleViewState extends State<BibleView> {
     final targetController = sourcePane == _BibleSplitPane.top
         ? scrollController2
         : scrollController;
-
     if (!sourceController.hasClients || !targetController.hasClients) return;
 
+    final sourceVerses = sourcePane == _BibleSplitPane.top
+        ? bibleState.verses
+        : bibleState.versesSplit;
+    final targetVerses = sourcePane == _BibleSplitPane.top
+        ? bibleState.versesSplit
+        : bibleState.verses;
+    if (sourceIndex < 0 || sourceIndex >= sourceVerses.length) return;
+    final sourceVerse = sourceVerses[sourceIndex];
+    final targetIndex = targetVerses.indexWhere(
+      (verse) => verse.verseId == sourceVerse.verseId,
+    );
+    if (targetIndex < 0) return;
+
+    if (_lastSyncedPane == sourcePane &&
+        _lastSyncedIndex == sourceIndex &&
+        _lastSyncedFraction != null &&
+        (_lastSyncedFraction! - visibleFraction).abs() < 0.025) {
+      return;
+    }
+
     final targetVerseKeys = sourcePane == _BibleSplitPane.top
-        ? context.read<BibleCubit>().verseKeys2
-        : context.read<BibleCubit>().verseKeys;
-
-    if (sourceIndex >= targetVerseKeys.length) return;
-
-    final targetKey = targetVerseKeys[sourceIndex];
+        ? cubit.verseKeys2
+        : cubit.verseKeys;
+    if (targetIndex >= targetVerseKeys.length) return;
+    final targetKey = targetVerseKeys[targetIndex];
     if (targetKey.currentContext == null) return;
 
     final targetRenderBox =
@@ -330,60 +340,119 @@ class _BibleViewState extends State<BibleView> {
     final viewportGlobal = targetViewport.localToGlobal(Offset.zero);
     final targetVerseOffset =
         targetGlobal.dy - viewportGlobal.dy + targetController.position.pixels;
-    final targetVerseHeight = targetRenderBox.size.height;
-
     final targetScroll =
-        targetVerseOffset + targetVerseHeight * (1.0 - visibleFraction);
-    final clamped = targetScroll.clamp(
-      0.0,
-      targetController.position.maxScrollExtent,
-    );
+        targetVerseOffset + targetRenderBox.size.height * (1.0 - visibleFraction);
+    final clamped = targetScroll
+        .clamp(0.0, targetController.position.maxScrollExtent)
+        .toDouble();
 
-    // Skip the jumpTo when the target is already at the computed position.
-    // Visibility callbacks fire at ~20Hz per verse; without this guard every
-    // callback triggered a jumpTo → relayout → new visibility callbacks.
-    if ((targetController.position.pixels - clamped).abs() < 1.0) {
-      return;
-    }
+    if ((targetController.position.pixels - clamped).abs() < 1.0) return;
 
     _isSyncingSplitScroll = true;
     _pendingSyncIndex = null;
     _pendingSyncPane = null;
     _pendingVisibleFraction = null;
-    _pendingVerseHeight = null;
-
-    // Glide the other pane instead of jumping it (jumpTo made the synced
-    // pane look choppy while the active pane scrolls smoothly). 70ms
-    // keeps the follower responsive at ~20Hz visibility callbacks.
-    targetController.animateTo(
-      clamped,
-      duration: const Duration(milliseconds: 70),
-      curve: Curves.easeOutCubic,
-    );
-
-    _isSyncingSplitScroll = false;
+    try {
+      await targetController.animateTo(
+        clamped,
+        duration: const Duration(milliseconds: 48),
+        curve: Curves.linearToEaseOut,
+      );
+      _lastSyncedPane = sourcePane;
+      _lastSyncedIndex = sourceIndex;
+      _lastSyncedFraction = visibleFraction;
+    } catch (_) {
+      // Pane may disappear while an animation is in flight.
+    } finally {
+      _isSyncingSplitScroll = false;
+    }
 
     if (_pendingSyncIndex != null && _pendingSyncPane != null) {
       final nextIndex = _pendingSyncIndex!;
       final nextPane = _pendingSyncPane!;
-      final nextFrac = _pendingVisibleFraction!;
-      final nextHeight = _pendingVerseHeight!;
+      final nextFrac = _pendingVisibleFraction ?? 1.0;
       _pendingSyncIndex = null;
       _pendingSyncPane = null;
       _pendingVisibleFraction = null;
-      _pendingVerseHeight = null;
-      _syncSplitPaneScroll(
+      await _syncSplitPaneScroll(
         sourcePane: nextPane,
         sourceIndex: nextIndex,
         visibleFraction: nextFrac,
-        verseHeight: nextHeight,
       );
     }
   }
 
   late double _currentScale = context.read<BibleCubit>().state.defaultTextScale;
   late double _baseScale = context.read<BibleCubit>().state.defaultTextScale;
-  double get scale => _currentScale.clamp(.8, 2);
+  double get scale => _currentScale.clamp(.8, 2).toDouble();
+
+  bool get _headerUsesSecondPane =>
+      splitModeEnable && !lockScroll && _activeSplitPane == _BibleSplitPane.bottom;
+
+  void _onBookHeaderDragStart(DragStartDetails details) {
+    _bookHeaderDragDx = 0;
+  }
+
+  void _onBookHeaderDragUpdate(DragUpdateDetails details) {
+    _bookHeaderDragDx += details.delta.dx;
+  }
+
+  Future<void> _onBookHeaderDragEnd(
+    BibleState state,
+    DragEndDetails details,
+  ) async {
+    if (context.read<DashboardCubit>().state.isSyncing) return;
+
+    final secondPane = _headerUsesSecondPane;
+    final books = secondPane ? state.booksSplit : state.books;
+    final current = secondPane ? state.currentBibleSplit : state.currentBible;
+    if (books.isEmpty || current == null) return;
+
+    final currentIndex = books.indexWhere((book) => book.id == current.bookId);
+    if (currentIndex < 0) return;
+
+    final velocity = details.primaryVelocity ?? 0.0;
+    final projected = _bookHeaderDragDx + velocity * 0.10;
+    _bookHeaderDragDx = 0;
+    if (projected.abs() < 28) return;
+
+    final steps = (projected.abs() / 52).round().clamp(1, 12).toInt();
+    final direction = projected < 0 ? 1 : -1;
+    final targetIndex = (currentIndex + direction * steps)
+        .clamp(0, books.length - 1)
+        .toInt();
+    if (targetIndex == currentIndex) return;
+
+    final targetBook = books[targetIndex];
+    final target = Verse(
+      id: targetBook.id * 1000000 + 1001,
+      bookId: targetBook.id,
+      chapterId: 1,
+      verseId: 1,
+    );
+    final mode = splitModeEnable && lockScroll
+        ? VerseMode.both
+        : secondPane
+        ? VerseMode.bottomOnly
+        : VerseMode.topOnly;
+
+    final cubit = context.read<BibleCubit>();
+    await cubit.getContent(target, mode: mode);
+    if (!mounted) return;
+    cubit.saveToHistory(target);
+    topVisibleIndexes.clear();
+    bottomVisibleIndexes.clear();
+    _lastSyncedPane = null;
+    _lastSyncedIndex = null;
+    _lastSyncedFraction = null;
+
+    if (mode != VerseMode.bottomOnly && scrollController.hasClients) {
+      scrollController.jumpTo(0);
+    }
+    if (mode != VerseMode.topOnly && scrollController2.hasClients) {
+      scrollController2.jumpTo(0);
+    }
+  }
 
   void onTapTitle(BibleState state, bool forSecondView) {
     if (context.read<DashboardCubit>().state.isSyncing) {
@@ -401,6 +470,9 @@ class _BibleViewState extends State<BibleView> {
       context: context,
       isScrollControlled: true,
       useSafeArea: true,
+      enableDrag: true,
+      isDismissible: true,
+      showDragHandle: true,
       backgroundColor: context.colorScheme.surfaceContainerLowest,
       builder: (_) => _VersePickerSheet(
         books: books,
@@ -461,12 +533,6 @@ class _BibleViewState extends State<BibleView> {
                           ? ListTile(title: Text('Empty'.tr()))
                           : Builder(
                               builder: (context) {
-                                // Hoisted once per dialog build: the old code
-                                // re-sorted the whole map inside every
-                                // itemBuilder call (O(n²)) and recreated the
-                                // title futures on every rebuild, which made
-                                // FutureBuilder re-run the DB title query on
-                                // each rebuild.
                                 final historyEntries = state.histories.entries
                                     .toList()
                                     .reversed
@@ -499,10 +565,9 @@ class _BibleViewState extends State<BibleView> {
                                           );
                                           router.maybePop();
                                           scrollToVerse(
-                                            (history.value.verseId - 1).clamp(
-                                              0,
-                                              9999,
-                                            ),
+                                            (history.value.verseId - 1)
+                                                .clamp(0, 9999)
+                                                .toInt(),
                                             true,
                                           );
                                         },
@@ -524,12 +589,11 @@ class _BibleViewState extends State<BibleView> {
   }
 
   Future<void> _openBibleCodePicker({bool split = false}) async {
-    // Capture the cubit BEFORE opening the sheet: the sheet is a new
-    // route and its context has no access to the scoped provider.
     final cubit = context.read<BibleCubit>();
     await showModalBottomSheet(
       context: context,
       useSafeArea: true,
+      showDragHandle: true,
       builder: (context) => BlocProvider<BibleCubit>.value(
         value: cubit,
         child: BlocBuilder<BibleCubit, BibleState>(
@@ -540,12 +604,14 @@ class _BibleViewState extends State<BibleView> {
           builder: (context, state) => ListView(
             shrinkWrap: true,
             children: [
-              ListTile(
-                title: Text(
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 10),
+                child: Text(
                   'Bible'.tr(),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
-                trailing: const CloseButton(),
               ),
               const Divider(height: 1),
               ...state.bibleCodes.asMap().entries.map((e) {
@@ -585,15 +651,18 @@ class _BibleViewState extends State<BibleView> {
             .split('_')
             .last
             .toUpperCase();
-    final isActive = secondPane
-        ? state.splitBibleCode == state.currentBibleCode
-        : true;
+    final isActive = !splitModeEnable
+        ? !secondPane
+        : secondPane
+        ? _activeSplitPane == _BibleSplitPane.bottom
+        : _activeSplitPane == _BibleSplitPane.top;
     return PopupMenuButton<int>(
       offset: const Offset(0, 48),
-      // Rounded ink splash that hugs the pill — without this the splash
-      // uses a rectangular default and bleeds outside the pill.
       borderRadius: BorderRadius.all(Radius.circular(16)),
       onSelected: (value) {
+        _setActiveSplitPane(
+          secondPane ? _BibleSplitPane.bottom : _BibleSplitPane.top,
+        );
         context.read<BibleCubit>().selectBibleCode(value, secondPane);
       },
       itemBuilder: (context) => state.bibleCodes.asMap().entries.map((e) {
@@ -612,8 +681,6 @@ class _BibleViewState extends State<BibleView> {
           ),
         );
       }).toList(),
-      // Filled elevated pill matching the book selector next to it, with a
-      // leading dot marking the active (main) pane in split mode.
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
@@ -700,8 +767,6 @@ class _BibleViewState extends State<BibleView> {
     );
   }
 
-  /// Compact per-pane header shown above each split pane so the reader can
-  /// tell which version/book each side shows at a glance.
   Widget _buildSplitPaneHeader(BibleState state, bool secondPane) {
     final colors = context.colorScheme;
     final codeLabel =
@@ -709,34 +774,48 @@ class _BibleViewState extends State<BibleView> {
             .split('_')
             .last
             .toUpperCase();
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-      color: colors.surfaceContainerLow.withValues(alpha: 0.6),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: secondPane ? colors.tertiary : colors.primary,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Flexible(
-            child: Text(
-              codeLabel,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: context.textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w700,
-                letterSpacing: 0.4,
-                color: colors.onSurfaceVariant,
+    final active = secondPane
+        ? _activeSplitPane == _BibleSplitPane.bottom
+        : _activeSplitPane == _BibleSplitPane.top;
+    return InkWell(
+      onTap: () => _setActiveSplitPane(
+        secondPane ? _BibleSplitPane.bottom : _BibleSplitPane.top,
+      ),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        color: active
+            ? colors.primaryContainer.withValues(alpha: 0.22)
+            : colors.surfaceContainerLow.withValues(alpha: 0.6),
+        child: Row(
+          children: [
+            Container(
+              width: 6,
+              height: 6,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: active
+                    ? colors.primary
+                    : secondPane
+                    ? colors.tertiary
+                    : colors.outline,
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                codeLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: context.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.4,
+                  color: colors.onSurfaceVariant,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -822,77 +901,98 @@ class _BibleViewState extends State<BibleView> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  InkWell(
-                    borderRadius: context.appRadius(16),
-                    onTap: () {
-                      final isSplit = splitModeEnable;
-                      onTapTitle(state, isSplit);
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
+                  Tooltip(
+                    message: 'Ketuk untuk memilih • Geser untuk pindah kitab cepat',
+                    child: GestureDetector(
+                      behavior: HitTestBehavior.opaque,
+                      onHorizontalDragStart: _onBookHeaderDragStart,
+                      onHorizontalDragUpdate: _onBookHeaderDragUpdate,
+                      onHorizontalDragEnd: (details) =>
+                          _onBookHeaderDragEnd(state, details),
+                      child: InkWell(
                         borderRadius: context.appRadius(16),
-                        color: context.colorScheme.surfaceContainerHigh
-                            .withValues(alpha: 0.7),
-                        border: Border.all(
-                          color: context.colorScheme.outlineVariant.withValues(
-                            alpha: 0.5,
+                        onTap: () => onTapTitle(state, _headerUsesSecondPane),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            borderRadius: context.appRadius(16),
+                            color: context.colorScheme.surfaceContainerHigh
+                                .withValues(alpha: 0.7),
+                            border: Border.all(
+                              color: context.colorScheme.outlineVariant
+                                  .withValues(alpha: 0.5),
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: context.colorScheme.shadow.withValues(
+                                  alpha: 0.05,
+                                ),
+                                blurRadius: 6,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.auto_stories_rounded,
+                                size: 18,
+                                color: context.colorScheme.primary,
+                              ),
+                              const SizedBox(width: 6),
+                              BlocBuilder<BibleCubit, BibleState>(
+                                buildWhen: (prev, curr) =>
+                                    prev.currentBible != curr.currentBible ||
+                                    prev.currentBibleSplit !=
+                                        curr.currentBibleSplit,
+                                builder: (context, bibleState) {
+                                  final secondPane = _headerUsesSecondPane;
+                                  final verses = [
+                                    secondPane
+                                        ? bibleState.currentBibleSplit
+                                        : bibleState.currentBible,
+                                  ];
+                                  return FutureBuilder(
+                                    future: context
+                                        .read<BibleCubit>()
+                                        .getBibleTitle(
+                                          verses,
+                                          splitMode: secondPane,
+                                        ),
+                                    builder: (context, snapshot) => Text(
+                                      snapshot.data ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: context.textTheme.titleMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(
+                                Icons.swap_horiz_rounded,
+                                color: context.colorScheme.onSurfaceVariant,
+                                size: 19,
+                              ),
+                              Icon(
+                                Icons.keyboard_arrow_down_rounded,
+                                color: context.colorScheme.onSurfaceVariant,
+                                size: 18,
+                              ),
+                            ],
                           ),
                         ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: context.colorScheme.shadow.withValues(
-                              alpha: 0.05,
-                            ),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.auto_stories_rounded,
-                            size: 18,
-                            color: context.colorScheme.primary,
-                          ),
-                          const SizedBox(width: 6),
-                          BlocBuilder<BibleCubit, BibleState>(
-                            buildWhen: (prev, curr) =>
-                                prev.currentBible != curr.currentBible,
-                            builder: (context, bibleState) {
-                              final verses = [bibleState.currentBible];
-                              return FutureBuilder(
-                                future: context
-                                    .read<BibleCubit>()
-                                    .getBibleTitle(verses, splitMode: false),
-                                builder: (context, snapshot) => Text(
-                                  snapshot.data ?? '',
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: context.textTheme.titleMedium
-                                      ?.copyWith(fontWeight: FontWeight.w700),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(width: 4),
-                          Icon(
-                            Icons.keyboard_arrow_down_rounded,
-                            color: context.colorScheme.onSurfaceVariant,
-                            size: 20,
-                          ),
-                        ],
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
-                  // Bible version selector(s) live in the header for both
-                  // single and split mode — one pill per pane.
                   BlocBuilder<BibleCubit, BibleState>(
                     buildWhen: (prev, curr) =>
                         prev.currentBibleCode != curr.currentBibleCode ||
@@ -936,7 +1036,6 @@ class _BibleViewState extends State<BibleView> {
                   color: splitModeEnable ? context.colorScheme.primary : null,
                 ),
               ),
-              // Split-only controls live in the header: axis + scroll lock.
               if (splitModeEnable) ...[_buildAxisToggle(), _buildLockToggle()],
               IconButton(
                 tooltip: 'Search'.tr(),
@@ -956,8 +1055,6 @@ class _BibleViewState extends State<BibleView> {
                 },
                 icon: const Icon(Icons.search_rounded),
               ),
-
-              /// more menu
               AnimatedCrossFade(
                 alignment: Alignment.center,
                 duration: kThemeAnimationDuration,
@@ -983,8 +1080,6 @@ class _BibleViewState extends State<BibleView> {
                       : PopupMenuButton(
                           enabled: !dashboardState.isSyncing,
                           offset: Offset(0, 48),
-                          // Rounded corner glow consistent with the other
-                          // header buttons (circle splash inside the icon).
                           borderRadius: BorderRadius.circular(999),
                           child: CircleAvatar(
                             backgroundColor: Colors.transparent,
@@ -1032,9 +1127,7 @@ class _BibleViewState extends State<BibleView> {
                                   cubit: context.read(),
                                 ),
                               );
-                            }
-                            /// split mode
-                            else if (value == 'split') {
+                            } else if (value == 'split') {
                               splitModeEnable = !splitModeEnable;
                               safeToastCancel();
                               safeShowToast(
@@ -1042,13 +1135,8 @@ class _BibleViewState extends State<BibleView> {
                                     'Split mode ${splitModeEnable ? 'enabled' : 'disabled'}!'
                                         .tr(),
                               );
-                            }
-                            /// Audio
-                            else if (value == 'audio') {
+                            } else if (value == 'audio') {
                               final cubit = context.read<BibleCubit>();
-                              // Opening the sidebar must NOT start playback:
-                              // the user presses the play button in the panel
-                              // when they are ready.
                               cubit.setAudioPanelOpen(!cubit.state.enableAudio);
                             } else if (value == 'lock') {
                               setState(() {
@@ -1076,7 +1164,6 @@ class _BibleViewState extends State<BibleView> {
                                     },
                                     onTap: (item) {
                                       router.maybePop();
-
                                       context
                                           .read<BibleCubit>()
                                           .getContent(item)
@@ -1090,18 +1177,6 @@ class _BibleViewState extends State<BibleView> {
                                                       1) -
                                                   1,
                                               true,
-                                            );
-                                            Future.delayed(
-                                              Duration(seconds: 1),
-                                              () {
-                                                // var ctx = scaffoldKey
-                                                //     .currentContext;
-                                                // ctx
-                                                //     ?.read<
-                                                //         BibleCubit>()
-                                                //     .selectBible(
-                                                //         e.value);
-                                              },
                                             );
                                           });
                                     },
@@ -1350,7 +1425,8 @@ class _BibleViewState extends State<BibleView> {
                                                                         .clamp(
                                                                           .8,
                                                                           2,
-                                                                        );
+                                                                        )
+                                                                        .toDouble();
                                                               });
                                                             },
                                                         onScaleEnd: (details) {
@@ -1479,7 +1555,8 @@ class _BibleViewState extends State<BibleView> {
                                                                         .clamp(
                                                                           .8,
                                                                           2,
-                                                                        );
+                                                                        )
+                                                                        .toDouble();
                                                               });
                                                             },
                                                         onScaleEnd: (details) {
@@ -1534,7 +1611,6 @@ class _BibleViewState extends State<BibleView> {
                                             ],
                                           ),
                                         );
-
                                       default:
                                         return Container();
                                     }
@@ -1552,11 +1628,6 @@ class _BibleViewState extends State<BibleView> {
                   ),
                 ),
               ),
-              // Floating draggable audio-playback sidebar, opened from the
-              // more-menu "Audio" action (merged with the old Play entry).
-              // The SizedBox.expand() anchors the Stack to the full body
-              // size — a Stack whose only children are Positioned collapses
-              // to 0x0, which blanked the whole reader.
               const SizedBox.expand(),
               BlocBuilder<BibleCubit, BibleState>(
                 buildWhen: (prev, curr) => prev.enableAudio != curr.enableAudio,
@@ -1584,17 +1655,13 @@ class LetterWrapText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Split the text into individual letters.
     final letters = text.split('');
-
-    // Create a list of TextSpans for each letter.
     final letterSpans = letters.map((letter) {
       return Text(
         letter,
         style: textStyle.merge(TextStyle(letterSpacing: -.8)),
       );
     }).toList();
-
     return Wrap(alignment: WrapAlignment.center, children: letterSpans);
   }
 }
@@ -1667,35 +1734,42 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     return DraggableScrollableSheet(
-      initialChildSize: 0.75,
-      minChildSize: 0.5,
+      initialChildSize: 0.82,
+      minChildSize: 0.46,
       maxChildSize: 0.95,
       expand: false,
       builder: (context, scrollController) {
         return Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 8, 0),
+              padding: const EdgeInsets.fromLTRB(12, 0, 16, 8),
               child: Row(
                 children: [
                   if (_step > 0)
                     IconButton(
+                      tooltip: 'Kembali',
                       onPressed: _back,
                       icon: const Icon(Icons.arrow_back_rounded),
                     )
                   else
-                    const SizedBox(width: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Icon(
+                        Icons.menu_book_rounded,
+                        size: 20,
+                        color: colors.primary,
+                      ),
+                    ),
+                  const SizedBox(width: 4),
                   Expanded(
                     child: Text(
                       _title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: context.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                  ),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
                   ),
                 ],
               ),
@@ -1718,20 +1792,18 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
   }
 
   Widget _buildBookList(ScrollController scrollController, ColorScheme colors) {
-    final oldTestament = widget.books.sublist(
-      0,
-      39.clamp(0, widget.books.length),
-    );
+    final splitAt = 39.clamp(0, widget.books.length).toInt();
+    final oldTestament = widget.books.sublist(0, splitAt);
     final newTestament = widget.books.length > 39
         ? widget.books.sublist(39)
         : <BibleBook>[];
 
     return ListView(
       controller: scrollController,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       children: [
         Padding(
-          padding: const EdgeInsets.only(bottom: 6, left: 4),
+          padding: const EdgeInsets.only(bottom: 8),
           child: Text(
             'Perjanjian Lama',
             style: context.textTheme.labelLarge?.copyWith(
@@ -1740,17 +1812,11 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
             ),
           ),
         ),
-        Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: oldTestament
-              .map((book) => _bookChip(book, colors))
-              .toList(),
-        ),
+        _buildBookGrid(oldTestament, colors),
         if (newTestament.isNotEmpty) ...[
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.only(bottom: 6, left: 4),
+            padding: const EdgeInsets.only(bottom: 8),
             child: Text(
               'Perjanjian Baru',
               style: context.textTheme.labelLarge?.copyWith(
@@ -1759,38 +1825,50 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
               ),
             ),
           ),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: newTestament
-                .map((book) => _bookChip(book, colors))
-                .toList(),
-          ),
+          _buildBookGrid(newTestament, colors),
         ],
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
       ],
+    );
+  }
+
+  Widget _buildBookGrid(List<BibleBook> books, ColorScheme colors) {
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 116,
+        mainAxisExtent: 44,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
+      ),
+      itemCount: books.length,
+      itemBuilder: (context, index) => _bookChip(books[index], colors),
     );
   }
 
   Widget _bookChip(BibleBook book, ColorScheme colors) {
     return InkWell(
-      borderRadius: context.appRadius(8),
+      borderRadius: context.appRadius(10),
       onTap: () => _pickBook(book),
       child: Container(
-        width: 56,
-        height: 40,
         alignment: Alignment.center,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
         decoration: BoxDecoration(
-          borderRadius: context.appRadius(8),
+          borderRadius: context.appRadius(10),
           color: colors.surfaceContainerLow,
           border: Border.all(
-            color: colors.outlineVariant.withValues(alpha: 0.3),
+            color: colors.outlineVariant.withValues(alpha: 0.34),
           ),
         ),
-        child: Text(
-          book.shortName ?? '',
-          style: context.textTheme.labelMedium?.copyWith(
-            fontWeight: FontWeight.w600,
+        child: FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            book.shortName ?? '',
+            maxLines: 1,
+            style: context.textTheme.labelMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -1804,35 +1882,20 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
     final count = _selectedBook?.chapterCount ?? 0;
     return GridView.builder(
       controller: scrollController,
-      padding: const EdgeInsets.all(12),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 6,
-        mainAxisSpacing: 6,
-        crossAxisSpacing: 6,
-        childAspectRatio: 1.2,
+      padding: const EdgeInsets.all(16),
+      gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+        maxCrossAxisExtent: 72,
+        mainAxisExtent: 48,
+        mainAxisSpacing: 8,
+        crossAxisSpacing: 8,
       ),
       itemCount: count,
       itemBuilder: (context, index) {
         final chapterNum = index + 1;
-        return InkWell(
-          borderRadius: context.appRadius(8),
+        return _numberCell(
+          colors: colors,
+          label: '$chapterNum',
           onTap: () => _pickChapter(chapterNum),
-          child: Container(
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              borderRadius: context.appRadius(8),
-              color: colors.surfaceContainerLow,
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.3),
-              ),
-            ),
-            child: Text(
-              '$chapterNum',
-              style: context.textTheme.bodyMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
         );
       },
     );
@@ -1851,39 +1914,51 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
         final verses = snapshot.data!;
         return GridView.builder(
           controller: scrollController,
-          padding: const EdgeInsets.all(12),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 6,
-            mainAxisSpacing: 6,
-            crossAxisSpacing: 6,
-            childAspectRatio: 1.2,
+          padding: const EdgeInsets.all(16),
+          gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+            maxCrossAxisExtent: 72,
+            mainAxisExtent: 48,
+            mainAxisSpacing: 8,
+            crossAxisSpacing: 8,
           ),
           itemCount: verses.length,
           itemBuilder: (context, index) {
             final verse = verses[index];
-            return InkWell(
-              borderRadius: context.appRadius(8),
+            return _numberCell(
+              colors: colors,
+              label: '${verse.verseId}',
               onTap: () => widget.onSelected(verse),
-              child: Container(
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  borderRadius: context.appRadius(8),
-                  color: colors.surfaceContainerLow,
-                  border: Border.all(
-                    color: colors.outlineVariant.withValues(alpha: 0.3),
-                  ),
-                ),
-                child: Text(
-                  '${verse.verseId}',
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
             );
           },
         );
       },
+    );
+  }
+
+  Widget _numberCell({
+    required ColorScheme colors,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      borderRadius: context.appRadius(10),
+      onTap: onTap,
+      child: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: context.appRadius(10),
+          color: colors.surfaceContainerLow,
+          border: Border.all(
+            color: colors.outlineVariant.withValues(alpha: 0.34),
+          ),
+        ),
+        child: Text(
+          label,
+          style: context.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -2177,8 +2252,6 @@ class _BibleFontSettingsSheetState extends State<_BibleFontSettingsSheet> {
   }
 }
 
-/// Compact 2-row action grid for the Bible "more" menu so the header
-/// controls stay short instead of a long vertical item list.
 class _BibleMenuGrid extends StatelessWidget {
   final bool isAudioOn;
   final ValueChanged<String> onAction;

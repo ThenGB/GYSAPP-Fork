@@ -9,24 +9,29 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
+import '../../../data/services/chord_service.dart';
+import '../../../data/utilities/extensions/context_ext.dart';
+import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
+import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 import '../../song/widgets/draggable_midi_controls.dart';
+import '../../song/widgets/refined_song_text_reader.dart';
 import '../widgets/dashboard_drawer.dart';
 
 class DashboardNavigationDestination {
-  final IconData icon;
-  final IconData? selectedIcon;
-  final String label;
-  final PageRouteInfo<dynamic> page;
-
   const DashboardNavigationDestination({
     required this.icon,
     this.selectedIcon,
     required this.label,
     required this.page,
   });
+
+  final IconData icon;
+  final IconData? selectedIcon;
+  final String label;
+  final PageRouteInfo<dynamic> page;
 }
 
 const dashboardNavigationDestinations = [
@@ -108,6 +113,8 @@ const double kDashboardRegularNavLabelFontSize = 10.5;
 const double kDashboardRegularNavIconLabelGap = 3;
 const double kDashboardNavMaxWidth = 700;
 const double kDashboardNavMinInteractiveExtent = 48;
+const double kDashboardNavHorizontalInset = 12;
+const double kDashboardNavBottomGap = 8;
 
 double dashboardMiniPlayerBottomOffset({
   required bool isExpanded,
@@ -177,6 +184,7 @@ class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
   final _appLinks = AppLinks();
   TabsRouter? tabRouter;
+  bool _midiExpanded = false;
 
   @override
   void initState() {
@@ -208,8 +216,55 @@ class _DashboardViewState extends State<DashboardView>
         router.push(WebpageRoute(url: uri.toString()));
       });
     } on PlatformException {
-      // Deep links are optional; a platform failure must not block startup.
+      // Deep links are optional and must not prevent startup.
     }
+  }
+
+  void _setMidiExpanded(bool expanded) {
+    if (!mounted || expanded == _midiExpanded) return;
+    setState(() => _midiExpanded = expanded);
+  }
+
+  void _openSongSelector() {
+    final cubit = context.read<SongCubit>();
+    router.push(
+      SongListRoute(
+        books: () => cubit.state.songBook,
+        currentBook: () =>
+            cubit.state.currentSong ??
+            SongBook(code: cubit.state.bookCode, songs: const []),
+        initialSearchText: cubit.state.searchTerms,
+        onSearchTermsChanged: cubit.onSearchTermsChanged,
+        onChangeBookCode: cubit.changeBookcode,
+        onTapPageNumber: (pageNumber) async {
+          Song? target;
+          for (final song in cubit.state.songs) {
+            if (song.number == pageNumber) {
+              target = song;
+              break;
+            }
+          }
+          await router.maybePop();
+          if (target != null) await cubit.openSongFromLibrary(target);
+        },
+        onOpenSong: (song) async {
+          await router.maybePop();
+          final active = cubit.activePlaylist;
+          final inActivePlaylist =
+              active?.songs.any((item) => item.matches(song)) ?? false;
+          if (active != null && inActivePlaylist) {
+            await cubit.openSongFromPlaylist(
+              song,
+              active.id,
+              autoplay: cubit.state.isPlaylistLoopModeActive,
+            );
+          } else {
+            await cubit.openSongFromLibrary(song);
+          }
+        },
+        onBack: () => router.maybePop(),
+      ),
+    );
   }
 
   @override
@@ -252,7 +307,7 @@ class _DashboardViewState extends State<DashboardView>
               return true;
             },
             child: AutoTabsRouter(
-              routes: pages.map((e) => e.page).toList(),
+              routes: pages.map((destination) => destination.page).toList(),
               transitionBuilder: (context, child, animation) => FadeTransition(
                 opacity: CurvedAnimation(
                   parent: animation,
@@ -263,13 +318,7 @@ class _DashboardViewState extends State<DashboardView>
               builder: (context, child) {
                 final tabsRouter = AutoTabsRouter.of(context);
                 tabRouter = tabsRouter;
-                final isLandscape =
-                    MediaQuery.orientationOf(context) == Orientation.landscape;
                 final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-                final navHeight = isLandscape
-                    ? kDashboardLandscapeBottomNavHeight
-                    : kDashboardPortraitBottomNavHeight;
-                final bodyBottomPadding = navHeight + 12 + bottomInset;
                 final selectedIndex = tabsRouter.activeIndex < bottomPages.length
                     ? tabsRouter.activeIndex
                     : -1;
@@ -277,19 +326,70 @@ class _DashboardViewState extends State<DashboardView>
                 return Scaffold(
                   key: dashboardScaffoldKey,
                   backgroundColor: context.colorScheme.surface,
-                  extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
+                  extendBody: true,
                   drawer: const DashboardDrawer(),
                   body: Stack(
+                    fit: StackFit.expand,
+                    clipBehavior: Clip.none,
                     children: [
-                      const SizedBox.expand(),
                       Positioned.fill(
-                        child: AnimatedPadding(
-                          duration: const Duration(milliseconds: 220),
-                          curve: Curves.easeOutCubic,
-                          padding: EdgeInsets.only(bottom: bodyBottomPadding),
-                          child: child,
-                        ),
+                        child: tabsRouter.activeIndex == 2
+                            ? BlocBuilder<SongCubit, SongState>(
+                                buildWhen: (previous, current) =>
+                                    previous.isImageMode != current.isImageMode ||
+                                    previous.pageIndex != current.pageIndex ||
+                                    previous.bookCode != current.bookCode ||
+                                    previous.currentPdfPath !=
+                                        current.currentPdfPath ||
+                                    previous.currentChords !=
+                                        current.currentChords ||
+                                    previous.showChord != current.showChord ||
+                                    previous.transposeStep !=
+                                        current.transposeStep ||
+                                    previous.chordAccidentalMode !=
+                                        current.chordAccidentalMode ||
+                                    previous.defaultTextScale !=
+                                        current.defaultTextScale ||
+                                    previous.defaultTextHeight !=
+                                        current.defaultTextHeight ||
+                                    previous.lyricsTextAlign !=
+                                        current.lyricsTextAlign ||
+                                    previous.lyricsVerticalAlign !=
+                                        current.lyricsVerticalAlign,
+                                builder: (context, songState) =>
+                                    songState.isImageMode
+                                    ? RefinedSongTextReader(
+                                        onOpenMenu: _openSongSelector,
+                                      )
+                                    : child,
+                              )
+                            : child,
                       ),
+                      if (tabsRouter.activeIndex == 2)
+                        BlocBuilder<SongCubit, SongState>(
+                          buildWhen: (previous, current) =>
+                              previous.isImageMode != current.isImageMode ||
+                              previous.bookCode != current.bookCode ||
+                              previous.chordAccidentalMode !=
+                                  current.chordAccidentalMode,
+                          builder: (context, songState) {
+                            if (songState.isImageMode ||
+                                songState.bookCode == 'HYMNE') {
+                              return const SizedBox.shrink();
+                            }
+                            return Positioned(
+                              top: MediaQuery.viewPaddingOf(context).top + 78,
+                              right: 12,
+                              child: _ChordNotationChip(
+                                mode: songState.chordAccidentalMode,
+                                tooltipPrefix: 'Notasi Chord',
+                                onPressed: context
+                                    .read<SongCubit>()
+                                    .toggleAccidentalMode,
+                              ),
+                            );
+                          },
+                        ),
                       BlocBuilder<SongCubit, SongState>(
                         buildWhen: (prev, curr) =>
                             prev.showAudio != curr.showAudio ||
@@ -329,8 +429,8 @@ class _DashboardViewState extends State<DashboardView>
                             onMidiInstrument: songCubit.setMidiInstrument,
                             onPlayPause: songCubit.togglePlayPause,
                             onLoopModeCycle: songCubit.cycleLoopMode,
-                            onSeek: (v) => songCubit.seek(
-                              Duration(milliseconds: (v * 1000).round()),
+                            onSeek: (value) => songCubit.seek(
+                              Duration(milliseconds: (value * 1000).round()),
                             ),
                             onTranspose: songCubit.setTranspose,
                             onKeySelected: songCubit.setTransposeKey,
@@ -342,24 +442,127 @@ class _DashboardViewState extends State<DashboardView>
                             onToggleChord: songCubit.toggleChord,
                             chordAccidentalMode: midiState.chordAccidentalMode,
                             onToggleAccidental: songCubit.toggleAccidentalMode,
+                            onExpandedChanged: _setMidiExpanded,
                           );
                         },
                       ),
+                      if (_midiExpanded)
+                        BlocBuilder<SongCubit, SongState>(
+                          buildWhen: (previous, current) =>
+                              previous.showAudio != current.showAudio ||
+                              previous.bookCode != current.bookCode ||
+                              previous.chordAccidentalMode !=
+                                  current.chordAccidentalMode,
+                          builder: (context, midiState) {
+                            if (!midiState.showAudio ||
+                                midiState.bookCode == 'HYMNE') {
+                              return const SizedBox.shrink();
+                            }
+                            return Positioned(
+                              right: 18,
+                              bottom:
+                                  kMidiNavBarReserve +
+                                  kMidiExpandedTotalHeight -
+                                  17,
+                              child: _ChordNotationChip(
+                                mode: midiState.chordAccidentalMode,
+                                tooltipPrefix: 'Notasi Chord MIDI',
+                                attached: true,
+                                onPressed: context
+                                    .read<SongCubit>()
+                                    .toggleAccidentalMode,
+                              ),
+                            );
+                          },
+                        ),
+                      Positioned(
+                        left: kDashboardNavHorizontalInset,
+                        right: kDashboardNavHorizontalInset,
+                        bottom: kDashboardNavBottomGap + bottomInset,
+                        child: DashboardNavigationDock(
+                          selectedIndex: selectedIndex,
+                          destinations: bottomPages,
+                          onDestinationSelected: (index) {
+                            context.read<BibleCubit>().stopSpeaking();
+                            tabsRouter.setActiveIndex(index);
+                          },
+                        ),
+                      ),
                     ],
-                  ),
-                  bottomNavigationBar: DashboardNavigationDock(
-                    selectedIndex: selectedIndex,
-                    destinations: bottomPages,
-                    onDestinationSelected: (index) {
-                      context.read<BibleCubit>().stopSpeaking();
-                      tabsRouter.setActiveIndex(index);
-                    },
                   ),
                 );
               },
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+class _ChordNotationChip extends StatelessWidget {
+  const _ChordNotationChip({
+    required this.mode,
+    required this.onPressed,
+    required this.tooltipPrefix,
+    this.attached = false,
+  });
+
+  final String mode;
+  final VoidCallback onPressed;
+  final String tooltipPrefix;
+  final bool attached;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    final isFlat = mode == ChordService.accidentalFlat;
+    return Tooltip(
+      message: '$tooltipPrefix: ${isFlat ? 'Flat (♭)' : 'Sharp (♯)'}',
+      child: Material(
+        elevation: attached ? 7 : 4,
+        shadowColor: colors.shadow.withValues(alpha: 0.24),
+        color: attached
+            ? colors.primaryContainer
+            : colors.surfaceContainerHigh.withValues(alpha: 0.96),
+        shape: StadiumBorder(
+          side: BorderSide(color: colors.primary.withValues(alpha: 0.28)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: attached ? 10 : 11,
+              vertical: attached ? 6 : 7,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  isFlat ? '♭' : '♯',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    color: attached
+                        ? colors.onPrimaryContainer
+                        : colors.primary,
+                    fontWeight: FontWeight.w900,
+                    height: 1,
+                  ),
+                ),
+                if (!attached) ...[
+                  const SizedBox(width: 5),
+                  Text(
+                    isFlat ? 'Flat' : 'Sharp',
+                    style: context.textTheme.labelSmall?.copyWith(
+                      color: colors.onSurfaceVariant,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -377,43 +580,20 @@ class _DashboardLoadingView extends StatelessWidget {
       body: SafeArea(
         child: Center(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
+            padding: const EdgeInsets.symmetric(horizontal: 30),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 380),
+              constraints: const BoxConstraints(maxWidth: 390),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  TweenAnimationBuilder<double>(
-                    tween: Tween(begin: 0.97, end: 1),
-                    duration: const Duration(milliseconds: 360),
-                    curve: Curves.easeOutCubic,
-                    builder: (_, value, child) =>
-                        Transform.scale(scale: value, child: child),
-                    child: Image.asset(
-                      isDark
-                          ? Assets.assetsImagesLogoIndonesiaWhite
-                          : Assets.assetsImagesLogoIndonesiaColor,
-                      width: 220,
-                      fit: BoxFit.contain,
-                    ),
+                  Image.asset(
+                    isDark
+                        ? Assets.assetsImagesLogoIndonesiaWhite
+                        : Assets.assetsImagesLogoIndonesiaColor,
+                    width: 260,
+                    fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 26),
-                  Text(
-                    'Preparing dashboard',
-                    textAlign: TextAlign.center,
-                    style: context.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    'Alkitab • Kidung • Iman • Pelayanan',
-                    textAlign: TextAlign.center,
-                    style: context.textTheme.bodySmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 34),
                   ClipRRect(
                     borderRadius: context.appRadius(999),
                     child: LinearProgressIndicator(
@@ -446,96 +626,87 @@ class DashboardNavigationDock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
-
-    return ColoredBox(
-      color: Colors.transparent,
-      child: Padding(
-        padding: EdgeInsets.fromLTRB(12, 0, 12, 8 + bottomInset),
-        child: Center(
-          heightFactor: 1,
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: kDashboardNavMaxWidth),
-            child: Material(
-              elevation: 0,
-              color: Color.alphaBlend(
-                colors.primary.withValues(alpha: 0.045),
-                colors.surfaceContainerHigh,
-              ),
-              shape: RoundedRectangleBorder(
-                borderRadius: context.appRadius(22),
-                side: BorderSide(
-                  color: colors.primary.withValues(alpha: 0.12),
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: SizedBox(
-                height: kDashboardPortraitBottomNavHeight,
-                child: Row(
-                  children: List.generate(destinations.length, (index) {
-                    final destination = destinations[index];
-                    final selected = index == selectedIndex;
-                    return Expanded(
-                      child: Semantics(
-                        selected: selected,
-                        button: true,
-                        label: destination.label.tr(),
-                        child: InkWell(
-                          onTap: () => onDestinationSelected(index),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 4,
-                              vertical: 8,
-                            ),
-                            child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 180),
-                              curve: Curves.easeOutCubic,
-                              decoration: BoxDecoration(
+    return Center(
+      heightFactor: 1,
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: kDashboardNavMaxWidth),
+        child: Material(
+          elevation: 5,
+          shadowColor: colors.shadow.withValues(alpha: 0.22),
+          color: Color.alphaBlend(
+            colors.primary.withValues(alpha: 0.045),
+            colors.surfaceContainerHigh.withValues(alpha: 0.98),
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: context.appRadius(22),
+            side: BorderSide(
+              color: colors.primary.withValues(alpha: 0.14),
+            ),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: SizedBox(
+            height: kDashboardPortraitBottomNavHeight,
+            child: Row(
+              children: List.generate(destinations.length, (index) {
+                final destination = destinations[index];
+                final selected = index == selectedIndex;
+                return Expanded(
+                  child: Semantics(
+                    selected: selected,
+                    button: true,
+                    label: destination.label.tr(),
+                    child: InkWell(
+                      onTap: () => onDestinationSelected(index),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 8,
+                        ),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          curve: Curves.easeOutCubic,
+                          decoration: BoxDecoration(
+                            color: selected
+                                ? colors.primaryContainer.withValues(alpha: 0.80)
+                                : Colors.transparent,
+                            borderRadius: context.appRadius(16),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                selected
+                                    ? destination.selectedIcon ??
+                                          destination.icon
+                                    : destination.icon,
+                                size: selected ? 22 : 21,
                                 color: selected
-                                    ? colors.primaryContainer.withValues(
-                                        alpha: 0.80,
-                                      )
-                                    : Colors.transparent,
-                                borderRadius: context.appRadius(16),
+                                    ? colors.onPrimaryContainer
+                                    : colors.onSurfaceVariant,
                               ),
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    selected
-                                        ? destination.selectedIcon ??
-                                              destination.icon
-                                        : destination.icon,
-                                    size: selected ? 22 : 21,
-                                    color: selected
-                                        ? colors.onPrimaryContainer
-                                        : colors.onSurfaceVariant,
-                                  ),
-                                  const SizedBox(height: 3),
-                                  Text(
-                                    destination.label.tr(),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.labelSmall?.copyWith(
-                                      fontSize: context.appFontSize(10),
-                                      color: selected
-                                          ? colors.onPrimaryContainer
-                                          : colors.onSurfaceVariant,
-                                      fontWeight: selected
-                                          ? FontWeight.w800
-                                          : FontWeight.w600,
-                                    ),
-                                  ),
-                                ],
+                              const SizedBox(height: 3),
+                              Text(
+                                destination.label.tr(),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: context.textTheme.labelSmall?.copyWith(
+                                  fontSize: context.appFontSize(10),
+                                  color: selected
+                                      ? colors.onPrimaryContainer
+                                      : colors.onSurfaceVariant,
+                                  fontWeight: selected
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                       ),
-                    );
-                  }),
-                ),
-              ),
+                    ),
+                  ),
+                );
+              }),
             ),
           ),
         ),

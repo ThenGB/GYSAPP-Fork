@@ -17,10 +17,6 @@ class InitialView extends StatefulWidget {
   State<InitialView> createState() => _InitialViewState();
 }
 
-bool shouldShowStartupPreparationDialog(InitialState state) {
-  return !state.isLoaded && state.message == startupKrPreparationMessage;
-}
-
 class _InitialViewState extends State<InitialView> {
   @override
   void initState() {
@@ -47,7 +43,7 @@ class _InitialViewState extends State<InitialView> {
 
     return BlocConsumer<InitialCubit, InitialState>(
       listenWhen: (previous, current) =>
-          previous.isLoaded != current.isLoaded && current.isLoaded,
+          !previous.isLoaded && current.isLoaded,
       listener: (context, state) {
         router.popUntilRoot();
         router.replace(const DashboardRoute());
@@ -57,147 +53,39 @@ class _InitialViewState extends State<InitialView> {
         final isDark = Theme.of(context).brightness == Brightness.dark;
         return Scaffold(
           backgroundColor: colors.surface,
-          body: Stack(
-            fit: StackFit.expand,
-            children: [
-              SafeArea(
-                child: Center(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(horizontal: 28),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 420),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          TweenAnimationBuilder<double>(
-                            tween: Tween(begin: 0.94, end: 1),
-                            duration: const Duration(milliseconds: 520),
-                            curve: Curves.easeOutCubic,
-                            builder: (context, value, child) => Opacity(
-                              opacity: ((value - 0.94) / 0.06).clamp(0, 1),
-                              child: Transform.scale(scale: value, child: child),
-                            ),
-                            child: Semantics(
-                              label: 'Gereja Yesus Sejati',
-                              image: true,
-                              child: Image.asset(
-                                isDark
-                                    ? Assets.assetsImagesLogoIndonesiaWhite
-                                    : Assets.assetsImagesLogoIndonesiaColor,
-                                width: 250,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 34),
-                          Text(
-                            'GYS APP',
-                            style: context.textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.4,
-                            ),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            'Alkitab • Kidung • Iman • Pelayanan',
-                            textAlign: TextAlign.center,
-                            style: context.textTheme.bodySmall?.copyWith(
-                              color: colors.onSurfaceVariant,
-                              letterSpacing: 0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 30),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(999),
-                            child: LinearProgressIndicator(
-                              minHeight: 5,
-                              backgroundColor: colors.surfaceContainerHighest,
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 220),
-                            switchInCurve: Curves.easeOut,
-                            switchOutCurve: Curves.easeIn,
-                            child: Text(
-                              state.message.isEmpty
-                                  ? 'Menyiapkan aplikasi…'
-                                  : state.message,
-                              key: ValueKey(state.message),
-                              textAlign: TextAlign.center,
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: state.isFailed
-                                    ? colors.error
-                                    : colors.onSurfaceVariant,
-                              ),
-                            ),
-                          ),
-                          if (state.isFailed) ...[
-                            const SizedBox(height: 18),
-                            OutlinedButton.icon(
-                              onPressed: context.read<InitialCubit>().initState,
-                              icon: const Icon(Icons.refresh_rounded, size: 18),
-                              label: const Text('Coba lagi'),
-                            ),
-                          ],
-                        ],
+          body: SafeArea(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 390),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Semantics(
+                        label: 'Gereja Yesus Sejati',
+                        image: true,
+                        child: Image.asset(
+                          isDark
+                              ? Assets.assetsImagesLogoIndonesiaWhite
+                              : Assets.assetsImagesLogoIndonesiaColor,
+                          width: 260,
+                          fit: BoxFit.contain,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 34),
+                      ClipRRect(
+                        borderRadius: context.appRadius(999),
+                        child: LinearProgressIndicator(
+                          minHeight: 4,
+                          backgroundColor: colors.surfaceContainerHighest,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-              if (shouldShowStartupPreparationDialog(state))
-                ColoredBox(
-                  color: colors.scrim.withValues(alpha: 0.34),
-                  child: Center(
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 380),
-                      child: Card(
-                        margin: const EdgeInsets.all(24),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 22),
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Container(
-                                width: 48,
-                                height: 48,
-                                decoration: BoxDecoration(
-                                  color: colors.primaryContainer,
-                                  borderRadius: context.appRadius(16),
-                                ),
-                                child: Icon(
-                                  Icons.library_music_outlined,
-                                  color: colors.onPrimaryContainer,
-                                ),
-                              ),
-                              const SizedBox(height: 18),
-                              Text(
-                                'Preparing Kidung Rohani',
-                                textAlign: TextAlign.center,
-                                style: context.textTheme.titleMedium,
-                              ),
-                              const SizedBox(height: 8),
-                              Text(
-                                'This first-time setup prepares KR for faster offline access later.',
-                                textAlign: TextAlign.center,
-                                style: context.textTheme.bodySmall?.copyWith(
-                                  color: colors.onSurfaceVariant,
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(999),
-                                child: const LinearProgressIndicator(minHeight: 4),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
+            ),
           ),
         );
       },

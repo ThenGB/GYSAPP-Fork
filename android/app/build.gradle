@@ -80,7 +80,12 @@ android {
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig = hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
+            // Never substitute the debug key for a release build. If the
+            // official release keystore is unavailable, Gradle emits a genuine
+            // unsigned release APK; CI labels that artifact explicitly.
+            if (hasReleaseKeystore) {
+                signingConfig = signingConfigs.release
+            }
         }
     }
 
