@@ -1428,31 +1428,12 @@ class _SongTextPageState extends State<_SongTextPage>
                               constraints: BoxConstraints(
                                 maxWidth: cardMaxWidth,
                               ),
-                              child: Container(
+                              child: Padding(
                                 padding: EdgeInsets.fromLTRB(
                                   compact ? 14 : 18,
                                   compact ? 12 : 14,
                                   compact ? 14 : 18,
                                   compact ? 14 : 18,
-                                ),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      theme.colorScheme.surfaceContainerHighest
-                                          .withValues(alpha: 0.58),
-                                      theme.colorScheme.surfaceContainerLow
-                                          .withValues(alpha: 0.82),
-                                    ],
-                                  ),
-                                  borderRadius: context.appRadius(
-                                    compact ? 14 : 18,
-                                  ),
-                                  border: Border.all(
-                                    color: theme.colorScheme.outlineVariant
-                                        .withValues(alpha: 0.5),
-                                  ),
                                 ),
                                 child: hasVerses
                                     ? AnimatedSize(
@@ -1469,22 +1450,6 @@ class _SongTextPageState extends State<_SongTextPage>
                                               crossAxisAlignment:
                                                   CrossAxisAlignment.stretch,
                                               children: [
-                                                Text(
-                                                  'Bait ${safeIndex + 1} dari ${verses.length}',
-                                                  textAlign: _resolveTextAlign(),
-                                                  style: theme.textTheme.bodySmall
-                                                      ?.copyWith(
-                                                        color: theme
-                                                            .colorScheme
-                                                            .primary
-                                                            .withValues(
-                                                              alpha: 0.6,
-                                                            ),
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                ),
-                                                const SizedBox(height: 16),
                                                 ..._buildVerseLines(
                                                   context,
                                                   currentVerse!,
@@ -1527,9 +1492,9 @@ class _SongTextPageState extends State<_SongTextPage>
                       label: Text('Atas'.tr()),
                     ),
                     Text(
-                      '${safeIndex + 1}/${verses.length}',
+                      'Bait ${safeIndex + 1} dari ${verses.length}',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
+                        color: theme.colorScheme.primary.withValues(alpha: 0.7),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
