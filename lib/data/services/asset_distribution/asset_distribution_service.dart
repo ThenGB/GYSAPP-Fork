@@ -99,9 +99,9 @@ class AssetDistributionService {
     AssetDefinition definition, {
     ProgressCallback? onProgress,
     CancelToken? cancelToken,
+    void Function()? onDownloadComplete,
   }) async {
-    String? installedRelativePath;
-    File? nativeDestinationFile;
+    var downloadFinished = false;
     try {
       final manifest = await _safeManifest(definition.releaseTrack);
       _throwIfCancelled(cancelToken, definition.code);
@@ -113,7 +113,6 @@ class AssetDistributionService {
       }
 
       final installName = _safeInstallName(package.installFileName);
-      installedRelativePath = '${_kindDirectory(definition.kind)}/$installName';
 
       if (kIsWeb) {
         final packageBytes = await _client.downloadPackageBytes(
@@ -122,14 +121,17 @@ class AssetDistributionService {
           cancelToken: cancelToken,
         );
         _throwIfCancelled(cancelToken, definition.code);
+        downloadFinished = true;
+        onDownloadComplete?.call();
+
         await _verifyChecksumBytes(packageBytes, package.checksumSha256);
-        _throwIfCancelled(cancelToken, definition.code);
         final installedBytes = await _packageService.installPackageBytes(
           packageBytes,
         );
-        _throwIfCancelled(cancelToken, definition.code);
-        await _store.writeFile(installedRelativePath, installedBytes);
-        _throwIfCancelled(cancelToken, definition.code);
+        await _store.writeFile(
+          '${_kindDirectory(definition.kind)}/$installName',
+          installedBytes,
+        );
       } else {
         final tempDir = await Directory.systemTemp.createTemp('gys_asset_');
         try {
@@ -145,10 +147,12 @@ class AssetDistributionService {
             cancelToken: cancelToken,
           );
           _throwIfCancelled(cancelToken, definition.code);
-          await _verifyChecksumFile(packageFile, package.checksumSha256);
-          _throwIfCancelled(cancelToken, definition.code);
+          downloadFinished = true;
+          onDownloadComplete?.call();
 
-          nativeDestinationFile = switch (definition.kind) {
+          await _verifyChecksumFile(packageFile, package.checksumSha256);
+
+          final destinationFile = switch (definition.kind) {
             DistributedAssetKind.bible => File(
               p.join(_registry.bibleInstallDirectory.path, installName),
             ),
@@ -161,9 +165,8 @@ class AssetDistributionService {
           };
           await _packageService.installPackage(
             packageFile: packageFile,
-            destinationFile: nativeDestinationFile,
+            destinationFile: destinationFile,
           );
-          _throwIfCancelled(cancelToken, definition.code);
         } finally {
           if (await tempDir.exists()) {
             await tempDir.delete(recursive: true);
@@ -195,16 +198,11 @@ class AssetDistributionService {
         }
       }
     } catch (error) {
-      if (cancelToken?.isCancelled == true) {
-        if (kIsWeb && installedRelativePath != null) {
-          await _store.deleteFile(installedRelativePath);
-        } else if (!kIsWeb && nativeDestinationFile != null) {
-          try {
-            if (await nativeDestinationFile.exists()) {
-              await nativeDestinationFile.delete();
-            }
-          } catch (_) {}
-        }
+      // Cancellation is intentionally limited to the network stage. Once the
+      // complete package has been received, checksum/decrypt/install finish as
+      // one transaction so an update cannot leave the previous install half
+      // replaced.
+      if (!downloadFinished && cancelToken?.isCancelled == true) {
         throw AssetDownloadCancelled(definition.code);
       }
       rethrow;
