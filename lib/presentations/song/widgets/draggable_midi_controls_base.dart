@@ -691,7 +691,9 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
         ? -halfWidth + peek
         : x >= 0.97
         ? _screenWidth - halfWidth - peek
-        : sliderLeft.clamp(peek, _screenWidth - kMidiSidebarWidth - peek);
+        : sliderLeft
+            .clamp(peek, _screenWidth - kMidiSidebarWidth - peek)
+            .toDouble();
 
     final maxBottom = _screenHeight * 0.75;
     final minBottom = kMidiCircleMargin + _bottomInset + kMidiNavBarReserve;
@@ -975,7 +977,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           onSubmitted: (value) {
             final tempo = double.tryParse(value);
             if (tempo != null) {
-              widget.onTempo(tempo.clamp(30, 300));
+              widget.onTempo(tempo.clamp(30, 300).toDouble());
             }
             Navigator.pop(context);
           },
@@ -989,7 +991,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
             onPressed: () {
               final tempo = double.tryParse(controller.text);
               if (tempo != null) {
-                widget.onTempo(tempo.clamp(30, 300));
+                widget.onTempo(tempo.clamp(30, 300).toDouble());
               }
               Navigator.pop(context);
             },
@@ -1193,8 +1195,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
     // Without negation, dragging up moves the circle down (inverted).
     final dy = -delta.dy / (_screenHeight * 0.75 - kMidiCircleMargin);
 
-    _sidebarX.value = (_sidebarX.value + dx).clamp(0.0, 1.0);
-    _sidebarY.value = (_sidebarY.value + dy).clamp(0.0, 1.0);
+    _sidebarX.value = (_sidebarX.value + dx).clamp(0.0, 1.0).toDouble();
+    _sidebarY.value = (_sidebarY.value + dy).clamp(0.0, 1.0).toDouble();
   }
 
   void _handleSnapStatus(AnimationStatus status) {
@@ -1554,7 +1556,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       colors: colors,
       children: [
         _AnimatedIconButton(
-          onPressed: () => _adjustTempo((widget.tempoBpm - 1).clamp(30, 300)),
+          onPressed: () =>
+              _adjustTempo((widget.tempoBpm - 1).clamp(30, 300).toDouble()),
           icon: Icons.remove_rounded,
         ),
         Expanded(
@@ -1573,7 +1576,8 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
           ),
         ),
         _AnimatedIconButton(
-          onPressed: () => _adjustTempo((widget.tempoBpm + 1).clamp(30, 300)),
+          onPressed: () =>
+              _adjustTempo((widget.tempoBpm + 1).clamp(30, 300).toDouble()),
           icon: Icons.add_rounded,
         ),
       ],
@@ -2049,7 +2053,9 @@ class _MidiSeekSliderState extends State<_MidiSeekSlider>
 
   Widget _buildSlider(BuildContext context, double position, double duration) {
     final value = _dragSeekValue ?? _pendingSeekValue ?? position;
-    final sliderValue = duration > 0 ? value.clamp(0.0, duration) : 0.0;
+    final sliderValue = duration > 0
+        ? value.clamp(0.0, duration).toDouble()
+        : 0.0;
 
     final slider = Slider(
       value: sliderValue,
