@@ -24,6 +24,11 @@ jobs:
     name: Android release APK
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -40,6 +45,19 @@ jobs:
 
       - name: Resolve dependencies
         run: flutter pub get
+
+      - name: Configure Android release signing
+        if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' && env.ANDROID_STORE_PASSWORD != ''
+        shell: bash
+        run: |
+          set -euo pipefail
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          cat > android/key.properties <<EOF
+          storeFile=release.keystore
+          storePassword=$ANDROID_STORE_PASSWORD
+          keyAlias=$ANDROID_KEY_ALIAS
+          keyPassword=$ANDROID_KEY_PASSWORD
+          EOF
 
       - name: Build Android release
         run: flutter build apk --release --no-pub --target-platform android-arm64
@@ -56,47 +74,6 @@ jobs:
         with:
           name: gys-android-release-${{ github.sha }}
           path: dist/android/GYS-App-android-arm64-release.apk
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
-
-  android-debug:
-    name: Android debug APK
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Setup Gradle cache
-        uses: gradle/actions/setup-gradle@v6
-        with:
-          cache-read-only: true
-
-      - name: Resolve dependencies
-        run: flutter pub get
-
-      - name: Build Android debug
-        run: flutter build apk --debug --no-pub --target-platform android-arm64
-
-      - name: Collect Android debug
-        run: |
-          mkdir -p dist/android
-          cp build/app/outputs/flutter-apk/app-debug.apk dist/android/GYS-App-android-arm64-debug.apk
-
-      - name: Upload Android debug
-        uses: actions/upload-artifact@v7
-        with:
-          name: gys-android-debug-${{ github.sha }}
-          path: dist/android/GYS-App-android-arm64-debug.apk
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
@@ -162,52 +139,12 @@ jobs:
           compression-level: 0
           retention-days: 7
 
-  windows-debug:
-    name: Windows debug
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: windows-latest
-    timeout-minutes: 40
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v6
-
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - name: Resolve dependencies
-        run: flutter pub get
-
-      - name: Build Windows debug
-        run: flutter build windows --debug --no-pub
-
-      - name: Collect Windows debug
-        shell: pwsh
-        run: |
-          New-Item -ItemType Directory -Force -Path dist/windows | Out-Null
-          Copy-Item build/windows/x64/runner/Debug/church.exe dist/windows/GYS-App-windows-debug.exe
-          Compress-Archive -Path build/windows/x64/runner/Debug/* -DestinationPath dist/windows/GYS-App-windows-debug.zip -CompressionLevel Fastest -Force
-
-      - name: Upload Windows debug
-        uses: actions/upload-artifact@v7
-        with:
-          name: gys-windows-debug-${{ github.sha }}
-          path: dist/windows/*
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
-
   publish-main-release:
     name: Publish main build to Releases
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs:
       - android-release
-      - android-debug
       - windows-release
-      - windows-debug
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -232,7 +169,7 @@ jobs:
           short_sha="${GITHUB_SHA::7}"
           tag="main-build-${GITHUB_RUN_NUMBER}"
           title="GYS App Main Build #${GITHUB_RUN_NUMBER} (${short_sha})"
-          notes="Automated debug and release packages from main at ${GITHUB_SHA}. Windows ZIP files are the complete runnable bundles; EXE files are attached as requested. SHA256SUMS.txt can be used to verify downloaded artifacts."
+          notes="Automated release packages from main at ${GITHUB_SHA}. Windows ZIP files are the complete runnable bundles. SHA256SUMS.txt can be used to verify downloaded artifacts. Debug packages are generated only from the dedicated manual Debug Builds workflow."
 
           if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release edit "$tag" \
