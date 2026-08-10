@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../components/components.dart';
 import '../../../data/services/chord_service.dart';
 import '../../../data/services/chord_text_layout.dart';
 import '../../../data/services/pdf_note_service.dart';
@@ -12,12 +11,13 @@ import '../../../data/utilities/extensions/context_ext.dart';
 import '../../../domain/entity/song/song_entity.dart';
 import '../cubit/song_cubit.dart';
 
-/// Dedicated text-only reading surface.
+/// Refined text-only hymn reader.
 ///
-/// Native platforms first use the same PDF note/lyric alignment pipeline as
-/// gyschordweb: noteIdx -> PDF note row -> lyric line -> 0..1 horizontal
-/// position. The proportional fallback is retained only when PDF extraction is
-/// unavailable (and on Web, where PdfNoteService's disk cache is not used).
+/// Chord placement follows the same idea used by gyschordweb: resolve the
+/// chord to a PDF-note/lyric anchor first, map that anchor to a character in
+/// the lyric, then keep the chord attached to that character when the lyric
+/// wraps onto multiple visual rows. Proportional noteIdx placement is only the
+/// fallback when PDF text/note extraction is unavailable.
 class RefinedSongTextReader extends StatefulWidget {
   const RefinedSongTextReader({super.key, required this.onOpenMenu});
 
@@ -30,44 +30,40 @@ class RefinedSongTextReader extends StatefulWidget {
 class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
   int _verseIndex = 0;
   String? _songIdentity;
-  String? _chordLayoutKey;
-  Future<List<ChordedTextLine>>? _chordLayoutFuture;
+  String? _layoutKey;
+  Future<List<ChordedTextLine>>? _layoutFuture;
 
   Song? _currentSong(SongState state) {
     if (state.songs.isEmpty) return null;
-    final index = state.pageIndex.clamp(0, state.songs.length - 1);
-    return state.songs[index];
+    return state.songs[state.pageIndex.clamp(0, state.songs.length - 1)];
   }
 
   void _syncSong(Song? song) {
     final identity = song == null ? null : '${song.code}:${song.number}';
-    if (identity == _songIdentity) return;
+    if (_songIdentity == identity) return;
     _songIdentity = identity;
     _verseIndex = 0;
-    _chordLayoutKey = null;
-    _chordLayoutFuture = null;
+    _layoutKey = null;
+    _layoutFuture = null;
   }
 
-  Future<List<ChordedTextLine>> _alignedChordLayout(SongState state) {
-    final pdfPath = state.currentPdfPath;
-    if (kIsWeb || pdfPath == null || state.currentChords.isEmpty) {
+  Future<List<ChordedTextLine>> _alignedLayout(SongState state) {
+    final path = state.currentPdfPath;
+    if (kIsWeb || path == null || state.currentChords.isEmpty) {
       return Future.value(const <ChordedTextLine>[]);
     }
+    final key = '$path#${state.currentChords.hashCode}';
+    if (_layoutKey == key && _layoutFuture != null) return _layoutFuture!;
 
-    final key = '$pdfPath#${state.currentChords.hashCode}';
-    if (_chordLayoutKey == key && _chordLayoutFuture != null) {
-      return _chordLayoutFuture!;
-    }
-
-    _chordLayoutKey = key;
-    final request = PdfDocumentRequest.parse(pdfPath);
-    _chordLayoutFuture = PdfNoteService().loadChordedLines(
+    final request = PdfDocumentRequest.parse(path);
+    _layoutKey = key;
+    _layoutFuture = PdfNoteService().loadChordedLines(
       pdfPath: request.assetPath,
       startPage: request.startPage,
       pageCount: request.pageCount,
       chords: state.currentChords,
     );
-    return _chordLayoutFuture!;
+    return _layoutFuture!;
   }
 
   @override
@@ -77,14 +73,17 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
         final song = _currentSong(state);
         _syncSong(song);
         if (song == null) {
-          return _EmptyTextReader(onOpenMenu: widget.onOpenMenu);
+          return _EmptyReader(onOpenMenu: widget.onOpenMenu);
         }
 
         final verses = song.verses.isEmpty ? const [''] : song.verses;
         final verseIndex = _verseIndex.clamp(0, verses.length - 1);
-        final lines = verses[verseIndex]
+        final verseText = verses[verseIndex];
+        final rawLines = verseText
             .split('\n')
             .map((line) => line.trimRight())
+            .toList(growable: false);
+        final nonEmptyLines = rawLines
             .where((line) => line.trim().isNotEmpty)
             .toList(growable: false);
 
@@ -97,7 +96,7 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
             : const <ChordData>[];
         final fallbackByLine = distributeChordsToLines(
           verseChords,
-          lines.length,
+          nonEmptyLines.length,
         );
 
         return Material(
@@ -106,7 +105,7 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
             bottom: false,
             child: Column(
               children: [
-                _TextReaderHeader(
+                _ReaderHeader(
                   song: song,
                   state: state,
                   onOpenMenu: widget.onOpenMenu,
@@ -114,7 +113,7 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
                 Expanded(
                   child: FutureBuilder<List<ChordedTextLine>>(
                     future: state.showChord
-                        ? _alignedChordLayout(state)
+                        ? _alignedLayout(state)
                         : Future.value(const <ChordedTextLine>[]),
                     initialData: const <ChordedTextLine>[],
                     builder: (context, snapshot) => _ReadingViewport(
@@ -122,10 +121,11 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
                       song: song,
                       verseIndex: verseIndex,
                       verseCount: verses.length,
-                      lines: lines,
+                      verseText: verseText,
+                      rawLines: rawLines,
                       alignedLines:
                           snapshot.data ?? const <ChordedTextLine>[],
-                      fallbackChordsByLine: fallbackByLine,
+                      fallbackByLine: fallbackByLine,
                       onPreviousVerse: verseIndex > 0
                           ? () => setState(() => _verseIndex = verseIndex - 1)
                           : null,
@@ -144,8 +144,8 @@ class _RefinedSongTextReaderState extends State<RefinedSongTextReader> {
   }
 }
 
-class _TextReaderHeader extends StatelessWidget {
-  const _TextReaderHeader({
+class _ReaderHeader extends StatelessWidget {
+  const _ReaderHeader({
     required this.song,
     required this.state,
     required this.onOpenMenu,
@@ -166,7 +166,7 @@ class _TextReaderHeader extends StatelessWidget {
         color: colors.surface.withValues(alpha: 0.98),
         border: Border(
           bottom: BorderSide(
-            color: colors.outlineVariant.withValues(alpha: 0.42),
+            color: colors.outlineVariant.withValues(alpha: 0.34),
           ),
         ),
       ),
@@ -214,15 +214,15 @@ class _TextReaderHeader extends StatelessWidget {
             onPressed: cubit.goToNextSong,
             icon: const Icon(Icons.chevron_right_rounded),
           ),
-          _TextReaderMenu(state: state),
+          _ReaderMenu(state: state),
         ],
       ),
     );
   }
 }
 
-class _TextReaderMenu extends StatelessWidget {
-  const _TextReaderMenu({required this.state});
+class _ReaderMenu extends StatelessWidget {
+  const _ReaderMenu({required this.state});
 
   final SongState state;
 
@@ -231,7 +231,6 @@ class _TextReaderMenu extends StatelessWidget {
     final cubit = context.read<SongCubit>();
     final chordEnabled = state.bookCode != 'HYMNE';
     final isFlat = state.chordAccidentalMode == ChordService.accidentalFlat;
-
     return PopupMenuButton<String>(
       tooltip: _label(context, 'Pilihan Tampilan', 'Viewer Options'),
       icon: const Icon(Icons.tune_rounded),
@@ -279,7 +278,7 @@ class _TextReaderMenu extends StatelessWidget {
           child: _MenuRow(
             leadingText: isFlat ? '♭' : '♯',
             label: isFlat ? 'Flat (♭)' : 'Sharp (♯)',
-            emphasized: chordEnabled,
+            emphasized: true,
           ),
         ),
         PopupMenuItem(
@@ -311,7 +310,7 @@ class _TextReaderMenu extends StatelessWidget {
       useSafeArea: true,
       builder: (_) => BlocProvider.value(
         value: cubit,
-        child: const _TextAppearanceSheet(),
+        child: const _AppearanceSheet(),
       ),
     );
   }
@@ -371,9 +370,10 @@ class _ReadingViewport extends StatelessWidget {
     required this.song,
     required this.verseIndex,
     required this.verseCount,
-    required this.lines,
+    required this.verseText,
+    required this.rawLines,
     required this.alignedLines,
-    required this.fallbackChordsByLine,
+    required this.fallbackByLine,
     required this.onPreviousVerse,
     required this.onNextVerse,
   });
@@ -382,9 +382,10 @@ class _ReadingViewport extends StatelessWidget {
   final Song song;
   final int verseIndex;
   final int verseCount;
-  final List<String> lines;
+  final String verseText;
+  final List<String> rawLines;
   final List<ChordedTextLine> alignedLines;
-  final List<List<ChordData>> fallbackChordsByLine;
+  final List<List<ChordData>> fallbackByLine;
   final VoidCallback? onPreviousVerse;
   final VoidCallback? onNextVerse;
 
@@ -392,94 +393,154 @@ class _ReadingViewport extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
     final textTheme = state.getTextThemeByFontName(state.defaultFont);
-    final baseStyle = textTheme.bodyLarge?.copyWith(
+    final lyricStyle = textTheme.bodyLarge?.copyWith(
       color: colors.onSurface,
       fontSize: context.appFontSize(18) * state.defaultTextScale,
       height: state.defaultTextHeight,
-      fontWeight: FontWeight.w500,
+      fontWeight: state.fontBold ? FontWeight.w700 : FontWeight.w500,
     );
-    final byIndexFallback = buildVerseChordFallback(
-      song.verses,
-      alignedLines,
-    );
+
+    // Scope the fallback to the current verse only. The previous implementation
+    // passed every verse and could reuse line-index matches from a different
+    // stanza when two verses had different line structures.
+    final byIndexFallback = buildVerseChordFallback([verseText], alignedLines);
+    var nonEmptyIndex = 0;
+
+    final lyricWidgets = <Widget>[];
+    for (final line in rawLines) {
+      if (line.trim().isEmpty) {
+        lyricWidgets.add(SizedBox(height: 12 * state.defaultTextHeight));
+        continue;
+      }
+      final lineIndex = nonEmptyIndex++;
+      final aligned = resolveChordedLineForVerseLine(
+        line,
+        lineIndex,
+        alignedLines,
+        byIndexFallback,
+      );
+      final placements = !state.showChord
+          ? const <TextChordPlacement>[]
+          : (aligned != null && aligned.chords.isNotEmpty)
+          ? aligned.chords
+          : (lineIndex < fallbackByLine.length
+                ? fallbackPlacementsForLine(fallbackByLine[lineIndex])
+                : const <TextChordPlacement>[]);
+      lyricWidgets.add(
+        _AdaptiveLyricLine(
+          lyric: line,
+          placements: placements,
+          transposeStep: state.transposeStep,
+          baseTransposeOffset: state.baseTransposeOffset,
+          accidentalMode: state.chordAccidentalMode,
+          lyricStyle: lyricStyle,
+          textAlign: _textAlign(state.lyricsTextAlign),
+        ),
+      );
+      lyricWidgets.add(SizedBox(height: 9 * state.defaultTextHeight));
+    }
 
     return Stack(
       children: [
         Positioned.fill(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 110),
-            child: Align(
-              alignment: _verticalAlignment(state.lyricsVerticalAlign),
-              child: SingleChildScrollView(
-                physics: const BouncingScrollPhysics(),
-                child: Center(
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 104),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
                   child: ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 880),
-                    child: AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 180),
-                      switchInCurve: Curves.easeOutCubic,
-                      child: Column(
-                        key: ValueKey('${song.code}-${song.number}-$verseIndex'),
-                        crossAxisAlignment: _horizontalAlignment(
-                          state.lyricsTextAlign,
-                        ),
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (verseCount > 1) ...[
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 5,
+                    constraints: BoxConstraints(
+                      minHeight: math.max(0, constraints.maxHeight),
+                    ),
+                    child: Align(
+                      alignment: _verticalAlignment(state.lyricsVerticalAlign),
+                      child: Center(
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 900),
+                          child: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 190),
+                            switchInCurve: Curves.easeOutCubic,
+                            child: Container(
+                              key: ValueKey(
+                                '${song.code}-${song.number}-$verseIndex',
+                              ),
+                              width: double.infinity,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: constraints.maxWidth < 430 ? 18 : 28,
+                                vertical: constraints.maxWidth < 430 ? 22 : 30,
                               ),
                               decoration: BoxDecoration(
-                                color: colors.primaryContainer.withValues(
-                                  alpha: 0.65,
+                                color: colors.surfaceContainerLow.withValues(
+                                  alpha: 0.86,
                                 ),
-                                borderRadius: context.appRadius(999),
+                                borderRadius: context.appRadius(24),
+                                border: Border.all(
+                                  color: colors.outlineVariant.withValues(
+                                    alpha: 0.42,
+                                  ),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: colors.shadow.withValues(alpha: 0.06),
+                                    blurRadius: 18,
+                                    offset: const Offset(0, 6),
+                                  ),
+                                ],
                               ),
-                              child: Text(
-                                _label(
-                                  context,
-                                  'Bait ${verseIndex + 1} dari $verseCount',
-                                  'Verse ${verseIndex + 1} of $verseCount',
-                                ),
-                                style: context.textTheme.labelMedium?.copyWith(
-                                  color: colors.onPrimaryContainer,
-                                  fontWeight: FontWeight.w800,
+                              child: SelectionArea(
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: _horizontalAlignment(
+                                    state.lyricsTextAlign,
+                                  ),
+                                  children: [
+                                    if (verseCount > 1) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: colors.primaryContainer
+                                              .withValues(alpha: 0.72),
+                                          borderRadius: context.appRadius(999),
+                                        ),
+                                        child: Text(
+                                          _label(
+                                            context,
+                                            'Bait ${verseIndex + 1} dari $verseCount',
+                                            'Verse ${verseIndex + 1} of $verseCount',
+                                          ),
+                                          style: context.textTheme.labelMedium
+                                              ?.copyWith(
+                                                color:
+                                                    colors.onPrimaryContainer,
+                                                fontWeight: FontWeight.w800,
+                                              ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 20),
+                                    ],
+                                    ...lyricWidgets,
+                                  ],
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 18),
-                          ],
-                          for (var index = 0; index < lines.length; index++) ...[
-                            _AnchoredLyricLine(
-                              lyric: lines[index],
-                              placements: _placementsForLine(
-                                index,
-                                lines[index],
-                                byIndexFallback,
-                              ),
-                              transposeStep: state.transposeStep,
-                              baseTransposeOffset: state.baseTransposeOffset,
-                              accidentalMode: state.chordAccidentalMode,
-                              lyricStyle: baseStyle,
-                              textAlign: _textAlign(state.lyricsTextAlign),
-                            ),
-                            SizedBox(height: 12 * state.defaultTextHeight),
-                          ],
-                        ],
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
           ),
         ),
         Positioned(
-          left: 16,
-          right: 16,
-          bottom: 92,
+          left: 14,
+          right: 14,
+          bottom: 88,
           child: Row(
             children: [
               IconButton.filledTonal(
@@ -488,24 +549,29 @@ class _ReadingViewport extends StatelessWidget {
                 icon: const Icon(Icons.keyboard_arrow_up_rounded),
               ),
               const Spacer(),
-              if (state.showChord)
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: colors.surfaceContainerHigh.withValues(alpha: 0.92),
-                    borderRadius: context.appRadius(999),
-                    border: Border.all(
-                      color: colors.primary.withValues(alpha: 0.15),
+              if (state.showChord && state.bookCode != 'HYMNE')
+                Material(
+                  color: colors.surfaceContainerHigh.withValues(alpha: 0.96),
+                  shape: StadiumBorder(
+                    side: BorderSide(
+                      color: colors.primary.withValues(alpha: 0.18),
                     ),
                   ),
-                  child: Text(
-                    '${state.chordAccidentalMode == ChordService.accidentalFlat ? '♭' : '♯'} · ${state.activeKeyLabel.trim().isEmpty ? '—' : state.activeKeyLabel}',
-                    style: context.textTheme.labelMedium?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w800,
+                  clipBehavior: Clip.antiAlias,
+                  child: InkWell(
+                    onTap: context.read<SongCubit>().toggleAccidentalMode,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
+                      child: Text(
+                        '${state.chordAccidentalMode == ChordService.accidentalFlat ? '♭' : '♯'} · ${state.activeKeyLabel.trim().isEmpty ? '—' : state.activeKeyLabel}',
+                        style: context.textTheme.labelMedium?.copyWith(
+                          color: colors.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -521,29 +587,10 @@ class _ReadingViewport extends StatelessWidget {
       ],
     );
   }
-
-  List<TextChordPlacement> _placementsForLine(
-    int index,
-    String lyric,
-    List<ChordedTextLine?> byIndexFallback,
-  ) {
-    if (!state.showChord) return const [];
-    final aligned = resolveChordedLineForVerseLine(
-      lyric,
-      index,
-      alignedLines,
-      byIndexFallback,
-    );
-    if (aligned != null && aligned.chords.isNotEmpty) {
-      return aligned.chords;
-    }
-    if (index >= fallbackChordsByLine.length) return const [];
-    return fallbackPlacementsForLine(fallbackChordsByLine[index]);
-  }
 }
 
-class _AnchoredLyricLine extends StatelessWidget {
-  const _AnchoredLyricLine({
+class _AdaptiveLyricLine extends StatelessWidget {
+  const _AdaptiveLyricLine({
     required this.lyric,
     required this.placements,
     required this.transposeStep,
@@ -561,97 +608,238 @@ class _AnchoredLyricLine extends StatelessWidget {
   final TextStyle? lyricStyle;
   final TextAlign textAlign;
 
+  double _measure(String value, TextStyle style, TextDirection direction) {
+    if (value.isEmpty) return 0;
+    final painter = TextPainter(
+      text: TextSpan(text: value, style: style),
+      textDirection: direction,
+      maxLines: 1,
+    )..layout();
+    return painter.width;
+  }
+
+  List<_VisualRow> _wrapRows(
+    double maxWidth,
+    TextStyle style,
+    TextDirection direction,
+  ) {
+    final tokens = RegExp(r'\S+\s*').allMatches(lyric).toList();
+    if (tokens.isEmpty) {
+      return [_VisualRow(text: lyric, start: 0, end: lyric.length)];
+    }
+
+    final rows = <_VisualRow>[];
+    var buffer = '';
+    var start = tokens.first.start;
+    for (final token in tokens) {
+      final value = token.group(0) ?? '';
+      final candidate = '$buffer$value';
+      if (buffer.isNotEmpty &&
+          _measure(candidate.trimRight(), style, direction) > maxWidth) {
+        final visible = buffer.trimRight();
+        rows.add(
+          _VisualRow(text: visible, start: start, end: start + visible.length),
+        );
+        start = token.start;
+        buffer = value;
+      } else {
+        if (buffer.isEmpty) start = token.start;
+        buffer = candidate;
+      }
+    }
+    final visible = buffer.trimRight();
+    if (visible.isNotEmpty) {
+      rows.add(
+        _VisualRow(text: visible, start: start, end: start + visible.length),
+      );
+    }
+    return rows.isEmpty
+        ? [_VisualRow(text: lyric, start: 0, end: lyric.length)]
+        : rows;
+  }
+
+  int _characterOffsetFor(
+    double position,
+    TextStyle style,
+    TextDirection direction,
+  ) {
+    if (lyric.isEmpty) return 0;
+    final painter = TextPainter(
+      text: TextSpan(text: lyric, style: style.copyWith(height: 1)),
+      textDirection: direction,
+      maxLines: 1,
+    )..layout();
+    if (painter.width <= 0) return 0;
+    return painter
+        .getPositionForOffset(
+          Offset(position.clamp(0.0, 1.0) * painter.width, 0),
+        )
+        .offset
+        .clamp(0, lyric.length);
+  }
+
   @override
   Widget build(BuildContext context) {
     final direction = Directionality.of(context);
+    final baseStyle = lyricStyle ?? context.textTheme.bodyLarge!;
+    final chordStyle = context.textTheme.labelLarge?.copyWith(
+      color: context.colorScheme.primary,
+      fontWeight: FontWeight.w900,
+      height: 1,
+    );
+    final resolved = placements
+        .map(
+          (placement) => _ResolvedPlacement(
+            label: ChordService.transposeChord(
+              placement.chord,
+              transposeStep,
+              baseTransposeOffset: baseTransposeOffset,
+              accidentalMode: accidentalMode,
+            ),
+            characterOffset: _characterOffsetFor(
+              placement.safePosition,
+              baseStyle,
+              direction,
+            ),
+          ),
+        )
+        .toList(growable: false);
+
+    final alignment = switch (textAlign) {
+      TextAlign.right || TextAlign.end => Alignment.centerRight,
+      TextAlign.center => Alignment.center,
+      _ => Alignment.centerLeft,
+    };
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final maxWidth = math.max(40.0, constraints.maxWidth);
-        final base = lyricStyle ?? context.textTheme.bodyLarge!;
-        final naturalPainter = TextPainter(
-          text: TextSpan(text: lyric, style: base.copyWith(height: 1)),
-          textDirection: direction,
-          maxLines: 1,
-        )..layout();
-        final naturalWidth = math.max(1.0, naturalPainter.width);
-        final widthScale = math.min(1.0, maxWidth / naturalWidth);
-        final fittedFontSize = (base.fontSize ?? 18) * widthScale.clamp(0.55, 1);
-        final fittedStyle = base.copyWith(fontSize: fittedFontSize);
-        final fittedPainter = TextPainter(
-          text: TextSpan(text: lyric, style: fittedStyle.copyWith(height: 1)),
-          textDirection: direction,
-          maxLines: 1,
-        )..layout();
-        final textWidth = math.min(maxWidth, fittedPainter.width);
-        final origin = switch (textAlign) {
-          TextAlign.right || TextAlign.end => maxWidth - textWidth,
-          TextAlign.center => (maxWidth - textWidth) / 2,
-          _ => 0.0,
-        };
-        final chordStyle = context.textTheme.labelLarge?.copyWith(
-          color: context.colorScheme.primary,
-          fontWeight: FontWeight.w900,
-          height: 1,
-        );
+        final rows = _wrapRows(maxWidth, baseStyle, direction);
+        return Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            for (final row in rows)
+              Align(
+                alignment: alignment,
+                child: Builder(
+                  builder: (context) {
+                    final rowWidth = _measure(
+                      row.text,
+                      baseStyle.copyWith(height: 1),
+                      direction,
+                    ).clamp(1.0, maxWidth);
+                    final rowPlacements = resolved
+                        .where(
+                          (placement) =>
+                              placement.characterOffset >= row.start &&
+                              placement.characterOffset <= row.end,
+                        )
+                        .toList(growable: false);
+                    final positioned = <({String label, double left, double width})>[];
+                    var previousRight = -double.infinity;
+                    for (final placement in rowPlacements) {
+                      final localOffset =
+                          (placement.characterOffset - row.start).clamp(
+                            0,
+                            row.text.length,
+                          );
+                      final prefix = row.text.substring(0, localOffset);
+                      final anchor = _measure(
+                        prefix,
+                        baseStyle.copyWith(height: 1),
+                        direction,
+                      );
+                      final labelWidth = _measure(
+                            placement.label,
+                            chordStyle ?? const TextStyle(),
+                            direction,
+                          ) +
+                          4;
+                      var left = anchor - labelWidth / 2;
+                      left = left.clamp(
+                        0.0,
+                        math.max(0.0, rowWidth - labelWidth),
+                      );
+                      if (left < previousRight + 5) {
+                        left = math.min(
+                          math.max(0.0, rowWidth - labelWidth),
+                          previousRight + 5,
+                        );
+                      }
+                      previousRight = left + labelWidth;
+                      positioned.add((
+                        label: placement.label,
+                        left: left,
+                        width: labelWidth,
+                      ));
+                    }
 
-        final chordWidgets = <Widget>[];
-        var previousRight = -double.infinity;
-        for (final placement in placements) {
-          final label = ChordService.transposeChord(
-            placement.chord,
-            transposeStep,
-            baseTransposeOffset: baseTransposeOffset,
-            accidentalMode: accidentalMode,
-          );
-          final chordPainter = TextPainter(
-            text: TextSpan(text: label, style: chordStyle),
-            textDirection: direction,
-            maxLines: 1,
-          )..layout();
-          var left = origin + placement.safePosition * textWidth;
-          left = math.max(left, previousRight + 5);
-          left = left.clamp(
-            0.0,
-            math.max(0.0, maxWidth - chordPainter.width),
-          );
-          previousRight = left + chordPainter.width;
-          chordWidgets.add(
-            Positioned(
-              left: left,
-              top: 0,
-              child: Text(label, style: chordStyle),
-            ),
-          );
-        }
-
-        return SizedBox(
-          width: maxWidth,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              if (placements.isNotEmpty)
-                SizedBox(
-                  height: 20,
-                  child: Stack(clipBehavior: Clip.none, children: chordWidgets),
+                    return SizedBox(
+                      width: rowWidth,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          if (positioned.isNotEmpty)
+                            SizedBox(
+                              height: 21,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  for (final chord in positioned)
+                                    Positioned(
+                                      left: chord.left,
+                                      top: 0,
+                                      child: Text(
+                                        chord.label,
+                                        style: chordStyle,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
+                          Text(
+                            row.text,
+                            textAlign: textAlign,
+                            softWrap: false,
+                            maxLines: 1,
+                            overflow: TextOverflow.visible,
+                            style: baseStyle,
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 ),
-              Text(
-                lyric,
-                maxLines: 1,
-                softWrap: false,
-                overflow: TextOverflow.visible,
-                textAlign: textAlign,
-                style: fittedStyle,
               ),
-            ],
-          ),
+          ],
         );
       },
     );
   }
 }
 
-class _TextAppearanceSheet extends StatelessWidget {
-  const _TextAppearanceSheet();
+class _VisualRow {
+  const _VisualRow({required this.text, required this.start, required this.end});
+
+  final String text;
+  final int start;
+  final int end;
+}
+
+class _ResolvedPlacement {
+  const _ResolvedPlacement({
+    required this.label,
+    required this.characterOffset,
+  });
+
+  final String label;
+  final int characterOffset;
+}
+
+class _AppearanceSheet extends StatelessWidget {
+  const _AppearanceSheet();
 
   @override
   Widget build(BuildContext context) {
@@ -660,7 +848,7 @@ class _TextAppearanceSheet extends StatelessWidget {
         final cubit = context.read<SongCubit>();
         return SafeArea(
           top: false,
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 22),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -673,6 +861,22 @@ class _TextAppearanceSheet extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  initialValue: state.availableFonts.contains(state.defaultFont)
+                      ? state.defaultFont
+                      : state.availableFonts.first,
+                  decoration: InputDecoration(
+                    labelText: _label(context, 'Jenis Huruf', 'Font'),
+                  ),
+                  items: [
+                    for (final font in state.availableFonts)
+                      DropdownMenuItem(value: font, child: Text(font)),
+                  ],
+                  onChanged: (font) {
+                    if (font != null) cubit.changeFont(font);
+                  },
+                ),
+                const SizedBox(height: 14),
                 SegmentedButton<String>(
                   segments: [
                     ButtonSegment(
@@ -692,8 +896,8 @@ class _TextAppearanceSheet extends StatelessWidget {
                     ),
                   ],
                   selected: {state.lyricsTextAlign},
-                  onSelectionChanged: (selection) =>
-                      cubit.changeLyricsTextAlign(selection.first),
+                  onSelectionChanged: (value) =>
+                      cubit.changeLyricsTextAlign(value.first),
                 ),
                 const SizedBox(height: 12),
                 SegmentedButton<String>(
@@ -715,30 +919,22 @@ class _TextAppearanceSheet extends StatelessWidget {
                     ),
                   ],
                   selected: {state.lyricsVerticalAlign},
-                  onSelectionChanged: (selection) =>
-                      cubit.changeLyricsVerticalAlign(selection.first),
+                  onSelectionChanged: (value) =>
+                      cubit.changeLyricsVerticalAlign(value.first),
                 ),
                 const SizedBox(height: 14),
-                Text(
-                  _label(context, 'Ukuran Teks', 'Text Size'),
-                  style: context.textTheme.labelLarge,
-                ),
-                Slider(
+                _SliderSetting(
+                  label: _label(context, 'Ukuran Teks', 'Text Size'),
                   value: state.defaultTextScale.clamp(0.8, 1.8),
                   min: 0.8,
                   max: 1.8,
-                  divisions: 20,
                   onChanged: cubit.changeTextScale,
                 ),
-                Text(
-                  _label(context, 'Jarak Baris', 'Line Height'),
-                  style: context.textTheme.labelLarge,
-                ),
-                Slider(
+                _SliderSetting(
+                  label: _label(context, 'Jarak Baris', 'Line Height'),
                   value: state.defaultTextHeight.clamp(1.1, 2.0),
                   min: 1.1,
                   max: 2.0,
-                  divisions: 18,
                   onChanged: cubit.changeTextHeight,
                 ),
               ],
@@ -750,8 +946,35 @@ class _TextAppearanceSheet extends StatelessWidget {
   }
 }
 
-class _EmptyTextReader extends StatelessWidget {
-  const _EmptyTextReader({required this.onOpenMenu});
+class _SliderSetting extends StatelessWidget {
+  const _SliderSetting({
+    required this.label,
+    required this.value,
+    required this.min,
+    required this.max,
+    required this.onChanged,
+  });
+
+  final String label;
+  final double value;
+  final double min;
+  final double max;
+  final ValueChanged<double> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(label, style: context.textTheme.labelLarge),
+        Slider(value: value, min: min, max: max, onChanged: onChanged),
+      ],
+    );
+  }
+}
+
+class _EmptyReader extends StatelessWidget {
+  const _EmptyReader({required this.onOpenMenu});
 
   final VoidCallback onOpenMenu;
 
@@ -772,9 +995,8 @@ class _EmptyTextReader extends StatelessWidget {
   }
 }
 
-String _label(BuildContext context, String id, String en) {
-  return Localizations.localeOf(context).languageCode == 'id' ? id : en;
-}
+String _label(BuildContext context, String id, String en) =>
+    Localizations.localeOf(context).languageCode.toLowerCase() == 'id' ? id : en;
 
 CrossAxisAlignment _horizontalAlignment(String value) => switch (value) {
   'left' => CrossAxisAlignment.start,
