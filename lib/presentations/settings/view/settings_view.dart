@@ -52,6 +52,7 @@ class SettingsView extends StatelessWidget {
               ),
               child: const Column(
                 children: [
+                  _FontSizeSettingsSection(),
                   _VerseSettingsSection(),
                   _SongSettingsSection(),
                   _ThemeSettingsSection(),
@@ -63,6 +64,93 @@ class SettingsView extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Reading comfort comes first for elderly users: font size at the very top
+/// of Settings, with a live preview and quick A−/A+ steps.
+class _FontSizeSettingsSection extends StatelessWidget {
+  const _FontSizeSettingsSection();
+
+  static const double _minScale = 0.7;
+  static const double _maxScale = 1.7;
+  static const double _step = 0.1;
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<InitialCubit, InitialState>(
+      builder: (context, state) {
+        final colors = context.colorScheme;
+        final scale = state.defaultTextScale;
+        return Section(
+          label: 'Ukuran Huruf'.tr(),
+          child: (gap) => Padding(
+            padding: EdgeInsets.symmetric(horizontal: gap),
+            child: _SettingsCard(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '“Segala tulisan yang diilhamkan Allah memang bermanfaat...”',
+                      style: context.textTheme.bodyMedium?.copyWith(
+                        color: colors.onSurface,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 14),
+                    Row(
+                      children: [
+                        IconButton.filledTonal(
+                          tooltip: 'Kecilkan huruf',
+                          onPressed: scale > _minScale
+                              ? () => context
+                                    .read<InitialCubit>()
+                                    .changeTextScale(scale - _step)
+                              : null,
+                          icon: const Icon(Icons.text_decrease_rounded),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            '${(scale * 100).round()}%',
+                            textAlign: TextAlign.center,
+                            style: context.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        IconButton.filledTonal(
+                          tooltip: 'Perbesar huruf',
+                          onPressed: scale < _maxScale
+                              ? () => context
+                                    .read<InitialCubit>()
+                                    .changeTextScale(scale + _step)
+                              : null,
+                          icon: const Icon(Icons.text_increase_rounded),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 6),
+                    const _SettingsDivider(),
+                    _SettingsTile(
+                      icon: Icons.text_fields_rounded,
+                      title: 'Font Settings'.tr(),
+                      description: 'font_desc'.tr(),
+                      onTap: () {
+                        router.push(FontSettingRoute());
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }
