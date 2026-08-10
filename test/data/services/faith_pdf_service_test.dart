@@ -85,14 +85,16 @@ void main() {
     addTearDown(service.dispose);
 
     final document = await service.documentFor(1);
-    expect(document, isNotNull);
+    expect(calls, 2, reason: 'manifest and release API should both be queried');
+    expect(document, isNotNull, reason: 'resolver completed after $calls calls');
     expect(document!.name, '01-Yesus.Kristus.pdf');
     expect(document.uri.path, endsWith('/01-Yesus.Kristus.pdf'));
-    expect(calls, 2);
   });
 
   test('legacy first PDF remains usable when release API is unavailable', () async {
+    var calls = 0;
     final client = MockClient((request) async {
+      calls++;
       if (request.url.host == 'raw.githubusercontent.com') {
         return http.Response(jsonEncode(legacyManifest()), 200);
       }
@@ -102,7 +104,8 @@ void main() {
     addTearDown(service.dispose);
 
     final document = await service.documentFor(1);
-    expect(document, isNotNull);
+    expect(calls, 2, reason: 'manifest and release API should both be queried');
+    expect(document, isNotNull, reason: 'fallback completed after $calls calls');
     expect(document!.name, '01-Yesus.Kristus.pdf');
     expect(document.uri.path, endsWith('/01-Yesus.Kristus.pdf'));
   });
