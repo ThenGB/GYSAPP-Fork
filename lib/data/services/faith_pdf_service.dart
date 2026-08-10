@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:http/http.dart' as http;
 
@@ -103,7 +104,13 @@ class FaithPdfService {
         _catalogFetchedAt = DateTime.now();
       }
       return resolved.isNotEmpty ? resolved : (cached ?? const {});
-    } catch (_) {
+    } catch (error, stackTrace) {
+      developer.log(
+        'Unable to load the faith PDF catalog',
+        name: 'FaithPdfService',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return cached ?? const {};
     }
   }
@@ -151,7 +158,13 @@ class FaithPdfService {
         );
       }
       return resolved;
-    } catch (_) {
+    } catch (error, stackTrace) {
+      developer.log(
+        'Unable to resolve faith PDF release assets',
+        name: 'FaithPdfService',
+        error: error,
+        stackTrace: stackTrace,
+      );
       return fallback;
     }
   }
