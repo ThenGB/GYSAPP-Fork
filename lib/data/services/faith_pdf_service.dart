@@ -169,11 +169,11 @@ class FaithPdfService {
 
   Uri _normalizeLegacyReleaseUri(Uri uri, bool isLegacy) {
     if (!isLegacy) return uri;
-    return uri.replace(
-      pathSegments: [
-        for (final segment in uri.pathSegments) segment.replaceAll(' ', '.'),
-      ],
-    );
+    final normalized = uri
+        .toString()
+        .replaceAll(RegExp('%20', caseSensitive: false), '.')
+        .replaceAll(' ', '.');
+    return Uri.parse(normalized);
   }
 
   void dispose() => _client.close();
