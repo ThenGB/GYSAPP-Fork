@@ -7,7 +7,7 @@ import 'package:church/data/services/asset_distribution/models.dart';
 import 'package:church/presentations/bible/cubit/bible_cubit.dart';
 import 'package:church/presentations/settings/cubit/asset_management_cubit.dart';
 import 'package:church/presentations/song/cubit/song_cubit.dart';
-import 'package:dio/dio.dart';
+import 'package:dio/dio.dart' hide ProgressCallback;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 
