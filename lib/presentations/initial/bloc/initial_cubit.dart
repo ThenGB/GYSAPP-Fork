@@ -262,9 +262,13 @@ class InitialCubit extends HydratedCubit<InitialState> {
   }
 
   Future<void> resetToDefaults() async {
+    // The Settings screen reroutes immediately after requesting a reset and
+    // does not await this Future. Apply the visible/default state first so the
+    // new splash cannot momentarily inherit the old appearance while platform
+    // preference keys are being removed asynchronously.
+    emit(const InitialState(isLoaded: true, isFreshInstall: false));
     final themeRepo = di<ThemePreferencesRepository>();
     await themeRepo.reset();
-    emit(const InitialState(isLoaded: true, isFreshInstall: false));
   }
 
   @override
