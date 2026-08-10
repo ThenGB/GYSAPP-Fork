@@ -1430,7 +1430,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
       child: Row(
         children: [
           Flexible(
-            flex: 3,
+            flex: 4,
             child: _buildTransposeControl(context, colors, boxHeight),
           ),
           const SizedBox(width: 4),
@@ -1500,7 +1500,7 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls>
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
                 curve: Curves.easeOutCubic,
-                width: 28,
+                width: 24,
                 margin: const EdgeInsets.symmetric(vertical: 3),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(

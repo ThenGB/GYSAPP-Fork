@@ -73,13 +73,11 @@ class FaithPdfService {
 
         final wasLegacyName =
             rawName.contains(' ') || rawDownloadUrl.contains('%20');
+        final sourceUri = Uri.tryParse(rawDownloadUrl);
+        final uri = sourceUri == null
+            ? null
+            : _normalizeLegacyReleaseUri(sourceUri, wasLegacyName);
         final name = wasLegacyName ? rawName.replaceAll(' ', '.') : rawName;
-        final downloadUrl = wasLegacyName
-            ? rawDownloadUrl
-                .replaceAll('%20', '.')
-                .replaceAll(' ', '.')
-            : rawDownloadUrl;
-        final uri = Uri.tryParse(downloadUrl);
         if (uri == null || !_isAllowedReleaseUri(uri)) continue;
 
         manifestNeedsReleaseResolution |= wasLegacyName;
@@ -157,9 +155,23 @@ class FaithPdfService {
   }
 
   bool _isAllowedReleaseUri(Uri uri) {
-    return uri.scheme == 'https' &&
-        uri.host == _allowedDownloadHost &&
-        uri.path.startsWith('/ThenGB/GYSApp-Data/releases/download/');
+    final path = uri.pathSegments;
+    return uri.scheme.toLowerCase() == 'https' &&
+        uri.host.toLowerCase() == _allowedDownloadHost &&
+        path.length >= 5 &&
+        path[0].toLowerCase() == 'thengb' &&
+        path[1].toLowerCase() == 'gysapp-data' &&
+        path[2].toLowerCase() == 'releases' &&
+        path[3].toLowerCase() == 'download';
+  }
+
+  Uri _normalizeLegacyReleaseUri(Uri uri, bool isLegacy) {
+    if (!isLegacy) return uri;
+    return uri.replace(
+      pathSegments: [
+        for (final segment in uri.pathSegments) segment.replaceAll(' ', '.'),
+      ],
+    );
   }
 
   void dispose() => _client.close();

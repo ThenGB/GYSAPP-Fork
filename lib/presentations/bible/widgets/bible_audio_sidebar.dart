@@ -784,6 +784,7 @@ class _SidebarPanel extends StatelessWidget {
             children: [
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-chapter-end'),
                   label: isIndonesian ? 'Akhir Pasal' : 'Chapter End',
                   selected: isChapterEnd,
                   onTap: onChapterEnd,
@@ -792,6 +793,7 @@ class _SidebarPanel extends StatelessWidget {
               const SizedBox(width: 5),
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-continue'),
                   label: isIndonesian ? 'Lanjut' : 'Continue',
                   selected: isContinueOn,
                   onTap: onContinueOn,
@@ -800,6 +802,7 @@ class _SidebarPanel extends StatelessWidget {
               const SizedBox(width: 5),
               Expanded(
                 child: _RangeModeButton(
+                  key: const ValueKey('bible-range-verse'),
                   label: isIndonesian ? 'Ayat' : 'Verse',
                   selected: hasEnd,
                   onTap: () {
@@ -950,6 +953,7 @@ class _SidebarPanel extends StatelessWidget {
 
 class _RangeModeButton extends StatelessWidget {
   const _RangeModeButton({
+    super.key,
     required this.label,
     required this.selected,
     required this.onTap,
