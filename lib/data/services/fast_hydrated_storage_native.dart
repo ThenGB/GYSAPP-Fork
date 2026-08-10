@@ -20,6 +20,10 @@ class FastFileStorage implements Storage {
   final Directory? _cacheDirOverride;
   Directory? _cacheDir;
   final Map<String, String> _memoryCache = {};
+  /// Last value actually flushed to disk per key. Consecutive writes of the
+  /// same content (e.g. TTS word progress after transient fields are
+  /// stripped) skip the synchronous disk flush entirely.
+  final Map<String, String> _flushedCache = {};
   bool _initialized = false;
 
   void _debugLog(String message) {
@@ -64,6 +68,7 @@ class FastFileStorage implements Storage {
             .replaceFirst(_blocStatePrefix, '')
             .replaceAll('.json', '');
         _memoryCache[key] = content;
+        _flushedCache[key] = content;
       } catch (error) {
         _debugLog('unable to preload ${entity.path}: $error');
       }
@@ -76,6 +81,7 @@ class FastFileStorage implements Storage {
   @override
   Future<void> clear() async {
     _memoryCache.clear();
+    _flushedCache.clear();
     final cacheDir = _cacheDir;
     if (!_initialized || cacheDir == null || !await cacheDir.exists()) return;
 
@@ -96,6 +102,7 @@ class FastFileStorage implements Storage {
   @override
   Future<void> delete(String key) async {
     _memoryCache.remove(key);
+    _flushedCache.remove(key);
     if (!_initialized) await init();
     final file = _file(key);
     if (!await file.exists()) return;
@@ -122,6 +129,12 @@ class FastFileStorage implements Storage {
     final encoded = value is String ? value : jsonEncode(value);
     _memoryCache[key] = encoded;
 
+    // High-frequency emits (TTS word progress, audio position) can produce
+    // many identical snapshots per second. Reads are already served from the
+    // memory cache, so skipping the disk flush for unchanged content removes
+    // the synchronous write storm from the UI thread entirely.
+    if (_flushedCache[key] == encoded) return;
+
     // These files are deliberately tiny preference/state snapshots. A
     // synchronous flushed write is preferable here: HydratedBloc may invoke
     // Storage.write without awaiting the returned Future, and an immediate
@@ -129,5 +142,6 @@ class FastFileStorage implements Storage {
     // Completing the disk write before this method yields makes settings much
     // more resilient to that exact lifecycle edge case.
     _file(key).writeAsStringSync(encoded, flush: true);
+    _flushedCache[key] = encoded;
   }
 }
