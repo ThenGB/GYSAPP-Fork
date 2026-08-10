@@ -164,4 +164,3 @@ class FaithPdfService {
 
   void dispose() => _client.close();
 }
-
