@@ -87,11 +87,13 @@ class GitHubReleaseAssetClient {
     RemoteAssetPackage package,
     String destinationPath, {
     ProgressCallback? onProgress,
+    CancelToken? cancelToken,
   }) async {
     await _dio.download(
       package.downloadUrl,
       destinationPath,
       onReceiveProgress: onProgress,
+      cancelToken: cancelToken,
     );
   }
 
@@ -104,11 +106,13 @@ class GitHubReleaseAssetClient {
   Future<Uint8List> downloadPackageBytes(
     RemoteAssetPackage package, {
     ProgressCallback? onProgress,
+    CancelToken? cancelToken,
   }) async {
     final response = await _dio.get<List<int>>(
       package.downloadUrl,
       options: Options(responseType: ResponseType.bytes),
       onReceiveProgress: onProgress,
+      cancelToken: cancelToken,
     );
     return Uint8List.fromList(response.data ?? const []);
   }

@@ -91,66 +91,81 @@ class _FaithViewState extends State<FaithView> {
 
         return ColoredBox(
           color: colors.surface,
-          child: Column(
+          child: Stack(
+            fit: StackFit.expand,
             children: [
-              _FaithHeader(state: state),
-              Expanded(
-                child: _loading
-                    ? const Center(child: CircularProgressIndicator())
-                    : RefreshIndicator(
-                        onRefresh: _loadFaithData,
-                        child: ListView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          padding: EdgeInsets.fromLTRB(
-                            16,
-                            18,
-                            16,
-                            96 + MediaQuery.viewPaddingOf(context).bottom,
-                          ),
-                          children: [
-                            Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: _faithMaxContentWidth,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                                  children: [
-                                    _FaithIntro(title: title),
-                                    const SizedBox(height: 14),
-                                    if (content.isEmpty)
-                                      _FaithEmptyState(onRetry: _loadFaithData)
-                                    else
-                                      ...List.generate(content.length, (index) {
-                                        final raw = content[index];
-                                        if (raw is! Map) {
-                                          return const SizedBox.shrink();
-                                        }
-                                        return Padding(
-                                          padding: const EdgeInsets.only(
-                                            bottom: 10,
-                                          ),
-                                          child: _FaithBeliefCard(
-                                            item: raw,
-                                            index: index,
-                                            state: state,
-                                            pdfService: _pdfService,
-                                          ),
-                                        );
-                                      }),
-                                  ],
-                                ),
+              Column(
+                children: [
+                  _FaithHeader(state: state),
+                  Expanded(
+                    child: _loading
+                        ? const Center(child: CircularProgressIndicator())
+                        : RefreshIndicator(
+                            onRefresh: _loadFaithData,
+                            child: ListView(
+                              physics: const AlwaysScrollableScrollPhysics(),
+                              padding: EdgeInsets.fromLTRB(
+                                16,
+                                18,
+                                16,
+                                104 + MediaQuery.viewPaddingOf(context).bottom,
                               ),
+                              children: [
+                                Center(
+                                  child: ConstrainedBox(
+                                    constraints: const BoxConstraints(
+                                      maxWidth: _faithMaxContentWidth,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        _FaithIntro(title: title),
+                                        const SizedBox(height: 14),
+                                        if (content.isEmpty)
+                                          _FaithEmptyState(
+                                            onRetry: _loadFaithData,
+                                          )
+                                        else
+                                          ...List.generate(content.length, (
+                                            index,
+                                          ) {
+                                            final raw = content[index];
+                                            if (raw is! Map) {
+                                              return const SizedBox.shrink();
+                                            }
+                                            return Padding(
+                                              padding: const EdgeInsets.only(
+                                                bottom: 10,
+                                              ),
+                                              child: _FaithBeliefCard(
+                                                item: raw,
+                                                index: index,
+                                                state: state,
+                                                pdfService: _pdfService,
+                                              ),
+                                            );
+                                          }),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                  ),
+                ],
               ),
               if (state.selectedFaith.isNotEmpty)
-                _FaithSelectionBar(
-                  indexes: state.selectedFaith,
-                  currentData: content,
-                  title: title,
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  child: _FaithSelectionBar(
+                    indexes: state.selectedFaith,
+                    currentData: content,
+                    title: title,
+                  ),
                 ),
             ],
           ),
@@ -539,80 +554,96 @@ class _FaithSelectionBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final bottom = MediaQuery.viewPaddingOf(context).bottom;
     final sorted = [...indexes]..sort();
 
-    return Material(
-      color: colors.surfaceContainerHigh,
-      elevation: 0,
-      child: SafeArea(
-        top: false,
-        child: Container(
-          padding: EdgeInsets.fromLTRB(14, 10, 8, 10 + bottom * 0.08),
-          decoration: BoxDecoration(
-            border: Border(
-              top: BorderSide(color: colors.primary.withValues(alpha: 0.18)),
+    return SafeArea(
+      top: false,
+      minimum: const EdgeInsets.fromLTRB(10, 0, 10, 86),
+      child: Center(
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: _faithMaxContentWidth),
+          child: Material(
+            elevation: 8,
+            shadowColor: colors.shadow.withValues(alpha: 0.22),
+            color: colors.surfaceContainerHigh,
+            shape: RoundedRectangleBorder(
+              borderRadius: context.appRadius(18),
+              side: BorderSide(
+                color: colors.primary.withValues(alpha: 0.16),
+              ),
             ),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: colors.primaryContainer,
-                  borderRadius: context.appRadius(999),
-                ),
-                child: Text(
-                  '${sorted.length}',
-                  style: context.textTheme.labelLarge?.copyWith(
-                    color: colors.onPrimaryContainer,
-                    fontWeight: FontWeight.w900,
+            clipBehavior: Clip.antiAlias,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 8, 6, 8),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: colors.primaryContainer,
+                      borderRadius: context.appRadius(999),
+                    ),
+                    child: Text(
+                      '${sorted.length}',
+                      style: context.textTheme.labelLarge?.copyWith(
+                        color: colors.onPrimaryContainer,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  _selectedLabel(context),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.labelLarge?.copyWith(
-                    fontWeight: FontWeight.w700,
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      _selectedLabel(context),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: context.textTheme.labelLarge?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
+                  if (sorted.length == 1)
+                    IconButton(
+                      tooltip: 'Note'.tr(),
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _openNote(context, sorted.first),
+                      icon: const Icon(Icons.note_add_outlined),
+                    ),
+                  IconButton(
+                    tooltip: 'Share'.tr(),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _shareSelection(
+                      context,
+                      sorted,
+                      currentData,
+                      title,
+                    ),
+                    icon: const Icon(Icons.share_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'Copy'.tr(),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () => _copySelection(
+                      context,
+                      sorted,
+                      currentData,
+                      title,
+                    ),
+                    icon: const Icon(Icons.copy_outlined),
+                  ),
+                  IconButton(
+                    tooltip: 'Close'.tr(),
+                    visualDensity: VisualDensity.compact,
+                    onPressed: context.read<FaithCubit>().removeSelection,
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
               ),
-              if (sorted.length == 1)
-                IconButton(
-                  tooltip: 'Note'.tr(),
-                  onPressed: () => _openNote(context, sorted.first),
-                  icon: const Icon(Icons.note_add_outlined),
-                ),
-              IconButton(
-                tooltip: 'Share'.tr(),
-                onPressed: () => _shareSelection(
-                  context,
-                  sorted,
-                  currentData,
-                  title,
-                ),
-                icon: const Icon(Icons.share_outlined),
-              ),
-              IconButton(
-                tooltip: 'Copy'.tr(),
-                onPressed: () => _copySelection(
-                  context,
-                  sorted,
-                  currentData,
-                  title,
-                ),
-                icon: const Icon(Icons.copy_outlined),
-              ),
-              IconButton(
-                tooltip: 'Close'.tr(),
-                onPressed: context.read<FaithCubit>().removeSelection,
-                icon: const Icon(Icons.close_rounded),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -721,7 +752,9 @@ class _FaithReadingSettingsSheet extends StatelessWidget {
                       DropdownMenuItem(value: font, child: Text(font)),
                   ],
                   onChanged: (value) {
-                    if (value != null) context.read<FaithCubit>().changeFont(value);
+                    if (value != null) {
+                      context.read<FaithCubit>().changeFont(value);
+                    }
                   },
                 ),
                 const SizedBox(height: 18),
@@ -810,6 +843,7 @@ Future<String> _selectionText(
   List<dynamic> currentData,
   String title,
 ) async {
+  final languageCode = Localizations.localeOf(context).languageCode;
   final buffer = StringBuffer(title);
   for (final index in indexes) {
     if (index < 0 || index >= currentData.length) continue;
@@ -819,7 +853,7 @@ Future<String> _selectionText(
   }
   try {
     final json = await AppConfigStore.jsonConfig('footer_copied_text');
-    final footer = json[Localizations.localeOf(context).languageCode];
+    final footer = json[languageCode];
     if (footer != null && footer.toString().trim().isNotEmpty) {
       buffer.write('\n\n$footer');
     }
@@ -912,39 +946,47 @@ String _pdfUnavailable(BuildContext context) =>
 
 String _selectedLabel(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'dasar kepercayaan dipilih',
+      'id' => 'Dasar Kepercayaan Dipilih',
       'zh' => '项信条已选择',
-      _ => 'belief(s) selected',
+      _ => 'Belief(s) Selected',
     };
 
 String _readingSettingsLabel(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Tampilan bacaan',
+      'id' => 'Tampilan Bacaan',
       'zh' => '阅读显示',
-      _ => 'Reading appearance',
+      _ => 'Reading Appearance',
     };
 
 String _languageLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id' ? 'Bahasa' : 'Language';
 
 String _fontLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Font bacaan' : 'Reading font';
+    Localizations.localeOf(context).languageCode == 'id'
+    ? 'Font Bacaan'
+    : 'Reading Font';
 
 String _textSizeLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Ukuran teks' : 'Text size';
+    Localizations.localeOf(context).languageCode == 'id'
+    ? 'Ukuran Teks'
+    : 'Text Size';
 
 String _lineHeightLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Jarak baris' : 'Line height';
+    Localizations.localeOf(context).languageCode == 'id'
+    ? 'Jarak Baris'
+    : 'Line Height';
 
 String _settingsHint(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id'
-        ? 'Pengaturan ini disimpan dan dipakai kembali saat Anda membuka bagian Iman.'
-        : 'These reading preferences are saved for your next visit.';
+    ? 'Pengaturan ini disimpan dan dipakai kembali saat Anda membuka bagian Iman.'
+    : 'These reading preferences are saved for your next visit.';
 
 String _emptyLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id'
-        ? 'Data dasar kepercayaan belum dapat dimuat.'
-        : 'Belief content could not be loaded.';
+    ? 'Data dasar kepercayaan belum dapat dimuat.'
+    : 'Belief content could not be loaded.';
 
 String _retryLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Coba lagi' : 'Retry';
+    Localizations.localeOf(context).languageCode == 'id'
+    ? 'Coba Lagi'
+    : 'Retry';

@@ -6,14 +6,16 @@ import 'package:flutter/material.dart';
 /// derive radii, font sizes and spacing from the user's Display Density /
 /// Corner Radius / Typography Scale settings instead of hardcoding values.
 class AppThemeExtras extends ThemeExtension<AppThemeExtras> {
-  /// Multiplier for corner radii (soft 1.0 / medium 0.6 / sharp 0.25).
+  /// Effective multiplier for corner radii. The global church visual system
+  /// currently uses soft 1.15 / medium 0.62 / sharp 0.16.
   final double radiusScale;
 
-  /// Multiplier for font sizes (compact 0.9 / normal 1.0 / comfortable 1.1).
+  /// Effective multiplier for font sizes. The global church visual system
+  /// currently uses compact 0.86 / normal 1.0 / comfortable 1.16.
   final double typographyScale;
 
-  /// Multiplier for padding/spacing (compact 0.92 / standard 1.0 /
-  /// comfortable 1.08).
+  /// Effective multiplier for padding/spacing. The global church visual
+  /// system currently uses compact 0.84 / standard 1.0 / comfortable 1.18.
   final double densityFactor;
 
   const AppThemeExtras({
@@ -48,7 +50,8 @@ class AppThemeExtras extends ThemeExtension<AppThemeExtras> {
 
 extension AppThemeExtrasX on BuildContext {
   AppThemeExtras get appThemeExtras =>
-      Theme.of(this).extension<AppThemeExtras>() ?? const AppThemeExtras(
+      Theme.of(this).extension<AppThemeExtras>() ??
+      const AppThemeExtras(
         radiusScale: 1,
         typographyScale: 1,
         densityFactor: 1,
@@ -56,8 +59,8 @@ extension AppThemeExtrasX on BuildContext {
 
   /// Corner radius scaled by the user's Corner Radius preference.
   BorderRadius appRadius(double base) => BorderRadius.circular(
-        (base * appThemeExtras.radiusScale).roundToDouble(),
-      );
+    (base * appThemeExtras.radiusScale).roundToDouble(),
+  );
 
   /// Font size scaled by the user's Typography Scale preference.
   double appFontSize(double base) => base * appThemeExtras.typographyScale;

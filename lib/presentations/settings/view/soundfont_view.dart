@@ -23,16 +23,23 @@ class SoundFontView extends StatefulWidget {
 
 class _SoundFontViewState extends State<SoundFontView> {
   late final AssetManagementCubit _assetCubit = di<AssetManagementCubit>();
-  // Bundled + installed font files not tracked by the release manifest
-  // (e.g. TimGM6mb.sf2).  Only the bundled set matters — manifest-managed
-  // fonts are filtered out by code.
   late Future<List<String>> _installedFonts;
 
   @override
   void initState() {
     super.initState();
     _assetCubit.refresh();
-    _installedFonts = di<SongCubit>().midiEngine.getAvailableSoundFonts();
+    _installedFonts = _loadInstalledFonts();
+  }
+
+  Future<List<String>> _loadInstalledFonts() =>
+      di<SongCubit>().midiEngine.getAvailableSoundFonts();
+
+  Future<void> _refreshInstalledFonts() async {
+    if (!mounted) return;
+    setState(() {
+      _installedFonts = _loadInstalledFonts();
+    });
   }
 
   Future<void> _select(String fileName) async {
@@ -100,6 +107,14 @@ class _SoundFontViewState extends State<SoundFontView> {
                       cubit: _assetCubit,
                       isActive: isActive,
                       onSelect: () => _select('${status.definition.code}.sf2'),
+                      onDownload: () => _assetCubit.downloadAsset(
+                        status.definition,
+                        onInstalled: _refreshInstalledFonts,
+                      ),
+                      onDelete: () => _assetCubit.deleteAsset(
+                        status.definition,
+                        onDeleted: _refreshInstalledFonts,
+                      ),
                     );
                   }
                   final fileName = extraFonts[index - soundfonts.length];

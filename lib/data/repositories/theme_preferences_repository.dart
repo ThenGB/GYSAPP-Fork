@@ -1,76 +1,104 @@
-import 'package:hive_flutter/hive_flutter.dart';
+import 'dart:convert';
+
+import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/theme_preferences.dart';
 
+/// Durable store for user-facing appearance preferences.
+///
+/// Theme settings previously used a Hive box without initializing Hive on app
+/// startup. That made writes silently unavailable on some launches and the
+/// background preference reload could then replace the user's live selection
+/// with defaults. SharedPreferences is already initialized by its platform
+/// plugin, is cross-platform, and is sufficient for this small JSON payload.
 class ThemePreferencesRepository {
-  static const String _boxName = 'theme_preferences';
-  static const String _key = 'preferences';
-  static const String _themeModeKey = 'themeMode';
+  static const String _key = 'theme_preferences_v2';
+  static const String _themeModeKey = 'theme_mode_v2';
 
-  Box? _box;
+  SharedPreferences? _preferences;
+  ThemePreferences _cachedPreferences = const ThemePreferences();
+  String _cachedThemeMode = 'light';
 
   Future<void> init() async {
-    if (!Hive.isBoxOpen(_boxName)) {
-      _box = await Hive.openBox(_boxName);
-    } else {
-      _box = Hive.box(_boxName);
+    if (_preferences != null) return;
+    final preferences = await SharedPreferences.getInstance();
+    _preferences = preferences;
+
+    final encoded = preferences.getString(_key);
+    if (encoded != null && encoded.trim().isNotEmpty) {
+      try {
+        final decoded = jsonDecode(encoded);
+        if (decoded is Map) {
+          _cachedPreferences = ThemePreferences.fromJson(
+            Map<String, dynamic>.from(decoded),
+          );
+        }
+      } catch (_) {
+        // Keep defaults when a previous value is malformed. Do not make a bad
+        // preference payload capable of blocking application startup.
+      }
     }
+    _cachedThemeMode = preferences.getString(_themeModeKey) ?? 'light';
   }
 
-  ThemePreferences get preferences {
-    if (_box == null) {
-      return const ThemePreferences();
-    }
-    final data = _box!.get(_key);
-    if (data == null) return const ThemePreferences();
-    return ThemePreferences.fromJson(Map<String, dynamic>.from(data));
-  }
+  ThemePreferences get preferences => _cachedPreferences;
 
-  String get themeMode {
-    if (_box == null) return 'light';
-    return _box!.get(_themeModeKey, defaultValue: 'light') as String;
-  }
+  String get themeMode => _cachedThemeMode;
 
   Future<void> savePreferences(ThemePreferences prefs) async {
-    if (_box == null) return;
-    await _box!.put(_key, prefs.toJson());
+    await init();
+    _cachedPreferences = prefs;
+    await _preferences!.setString(_key, jsonEncode(prefs.toJson()));
   }
 
   Future<void> saveThemeMode(String mode) async {
-    if (_box == null) return;
-    await _box!.put(_themeModeKey, mode);
+    await init();
+    _cachedThemeMode = mode;
+    await _preferences!.setString(_themeModeKey, mode);
   }
 
   Future<void> updateAccentKey(String key) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(accentKey: key));
+    await savePreferences(_cachedPreferences.copyWith(accentKey: key));
   }
 
   Future<void> updateDensity(DisplayDensity density) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(density: density));
+    await savePreferences(_cachedPreferences.copyWith(density: density));
   }
 
   Future<void> updateTypographyScale(TypographyScale scale) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(typographyScale: scale));
+    await savePreferences(_cachedPreferences.copyWith(typographyScale: scale));
   }
 
   Future<void> updateCornerRadius(CornerRadiusStyle style) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(cornerRadius: style));
+    await savePreferences(_cachedPreferences.copyWith(cornerRadius: style));
   }
 
   Future<void> updateSurfaceTone(SurfaceTone tone) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(surfaceTone: tone));
+    await savePreferences(_cachedPreferences.copyWith(surfaceTone: tone));
   }
 
   Future<void> updateCompactMode(bool compact) async {
-    final current = preferences;
-    await savePreferences(current.copyWith(compactMode: compact));
+    await savePreferences(_cachedPreferences.copyWith(compactMode: compact));
   }
 
   Future<void> reset() async {
-    await savePreferences(const ThemePreferences());
+    // Update the shared in-memory view first so a freshly-routed splash cannot
+    // observe stale appearance values while the platform store is still
+    // removing the previous keys.
+    _cachedPreferences = const ThemePreferences();
+    _cachedThemeMode = 'light';
+
+    if (_preferences == null) {
+      await init();
+      // init() may have loaded old persisted values; reset the cache again
+      // before removing those values from disk.
+      _cachedPreferences = const ThemePreferences();
+      _cachedThemeMode = 'light';
+    }
+
+    await Future.wait([
+      _preferences!.remove(_key),
+      _preferences!.remove(_themeModeKey),
+    ]);
   }
 }

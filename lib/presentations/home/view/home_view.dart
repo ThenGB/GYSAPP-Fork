@@ -1095,13 +1095,16 @@ class SuaraSejati extends StatelessWidget {
     return Section(
       label: 'Suara Sejati'.tr(),
       child: (gap) => SizedBox(
-        height: 186,
+        height: 198,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           physics: const BouncingScrollPhysics(),
           itemCount: trueVoices.length,
           itemBuilder: (context, index) {
             final item = trueVoices[index];
+            final description = item.description.trim().isNotEmpty
+                ? item.description.trim()
+                : item.creator.trim();
             return Padding(
               padding: EdgeInsets.only(left: index == 0 ? gap : 4, right: 6),
               child: SizedBox(
@@ -1144,17 +1147,22 @@ class SuaraSejati extends StatelessWidget {
                                     style: context.textTheme.titleSmall
                                         ?.copyWith(fontWeight: FontWeight.w800),
                                   ),
-                                  if (item.creator.trim().isNotEmpty) ...[
+                                  if (description.isNotEmpty) ...[
                                     const SizedBox(height: 3),
-                                    Text(
-                                      item.creator.trim(),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: context.textTheme.bodySmall
-                                          ?.copyWith(
-                                            color: colors.onSurfaceVariant,
-                                            height: 1.2,
-                                          ),
+                                    Expanded(
+                                      child: AutoSizeText(
+                                        description,
+                                        maxLines: 2,
+                                        minFontSize: 7,
+                                        maxFontSize: 12,
+                                        stepGranularity: 0.5,
+                                        overflow: TextOverflow.visible,
+                                        style: context.textTheme.bodySmall
+                                            ?.copyWith(
+                                              color: colors.onSurfaceVariant,
+                                              height: 1.15,
+                                            ),
+                                      ),
                                     ),
                                   ],
                                 ],
