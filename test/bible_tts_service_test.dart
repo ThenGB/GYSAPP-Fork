@@ -56,6 +56,43 @@ void main() {
     });
   });
 
+  group('BibleTtsService native voice resolution', () {
+    const voices = [
+      {'name': 'Bahasa Legacy', 'locale': 'in_ID'},
+      {'name': 'English US', 'locale': 'en_US'},
+      {'name': 'English GB', 'locale': 'en-GB'},
+      {'name': 'Mandarin', 'locale': 'zh_Hans_CN'},
+    ];
+
+    test('normalizes platform locale variants and legacy language codes', () {
+      expect(BibleTtsService.normalizeNativeLocale('id_ID'), 'id-id');
+      expect(BibleTtsService.normalizeNativeLocale('in-ID'), 'id-id');
+      expect(BibleTtsService.normalizeNativeLocale('zh_Hans_CN'), 'zh-cn');
+    });
+
+    test('matches exact locale before falling back to the same language', () {
+      expect(
+        BibleTtsService.nativeVoicesForLocale(voices, 'id-ID').single['name'],
+        'Bahasa Legacy',
+      );
+      expect(
+        BibleTtsService.nativeVoicesForLocale(voices, 'en-AU')
+            .map((voice) => voice['name'])
+            .toList(),
+        ['English US', 'English GB'],
+      );
+    });
+
+    test('keeps a saved installed voice instead of overwriting it', () {
+      final resolved = BibleTtsService.resolveNativeVoice(
+        voices: voices,
+        locale: 'en-AU',
+        savedVoice: const {'name': 'English GB', 'locale': 'en-GB'},
+      );
+      expect(resolved?['name'], 'English GB');
+    });
+  });
+
   group('BibleTtsService preload queue', () {
     test('preload synthesizes the requested text through the engine', () async {
       final tts = _FakeTts()..engine = BibleTtsEngine.edge;

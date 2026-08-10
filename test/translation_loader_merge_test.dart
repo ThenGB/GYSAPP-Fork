@@ -54,7 +54,7 @@ void main() {
       expect(map['bible_playback_title'], 'Pemutaran Alkitab (lama)');
       // …while keys missing from the cache are filled from the bundle, so
       // headings like "bible_book" never render as raw keys after an update.
-      expect(map['bible_range_title'], 'Rentang pemutaran');
+      expect(map['bible_range_title'], 'Rentang Pemutaran');
       expect(map['bible_book'], 'Kitab');
       expect(map['bible_range_chapter_end'], 'Sampai akhir pasal');
       expect(map.containsKey('bible_range_summary'), isTrue);

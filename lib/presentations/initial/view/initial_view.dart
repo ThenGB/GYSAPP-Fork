@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-import '../../../components/components.dart';
-import '../../../data/data.dart';
 import '../../../router/router.dart';
 import '../bloc/initial_cubit.dart';
+import '../widgets/church_startup_splash.dart';
 
 @RoutePage()
 class InitialView extends StatefulWidget {
@@ -48,47 +47,7 @@ class _InitialViewState extends State<InitialView> {
         router.popUntilRoot();
         router.replace(const DashboardRoute());
       },
-      builder: (context, state) {
-        final colors = context.colorScheme;
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        return Scaffold(
-          backgroundColor: colors.surface,
-          body: SafeArea(
-            child: Center(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 390),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Semantics(
-                        label: 'Gereja Yesus Sejati',
-                        image: true,
-                        child: Image.asset(
-                          isDark
-                              ? Assets.assetsImagesLogoIndonesiaWhite
-                              : Assets.assetsImagesLogoIndonesiaColor,
-                          width: 260,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      const SizedBox(height: 34),
-                      ClipRRect(
-                        borderRadius: context.appRadius(999),
-                        child: LinearProgressIndicator(
-                          minHeight: 4,
-                          backgroundColor: colors.surfaceContainerHighest,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        );
-      },
+      builder: (context, state) => const ChurchStartupSplash(),
     );
   }
 }

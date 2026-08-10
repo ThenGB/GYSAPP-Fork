@@ -91,6 +91,7 @@ void main() {
     // Since the rewrite to pdfrx, assets are loaded natively (no JS loadPdfUrl).
     expect(source, contains('pdfrx'));
     expect(source, isNot(contains('InAppWebView')));
+    expect(source, isNot(contains('PopupMenuButton<String>')));
   });
 
   test('obsolete pdf webview assets are not bundled', () {
@@ -268,7 +269,7 @@ void main() {
 
   test('song pdf viewer exposes fit page and native chord fallback', () {
     final viewerSource = File(
-      'lib/presentations/song/widgets/song_pdf_viewer.dart',
+      'lib/presentations/song/widgets/song_pdf_viewer_base.dart',
     ).readAsStringSync();
     final songViewSource = File(
       'lib/presentations/song/view/song_view.dart',
@@ -328,16 +329,16 @@ void main() {
     expect(songCubitSource, isNot(contains('playOnlyFavorite')));
   });
 
-  test('dashboard mini player overlays without reserving background space', () {
+  test('dashboard navigation reserves space outside reader content', () {
     final source = File(
       'lib/presentations/dashboard/view/dashboard_view.dart',
     ).readAsStringSync();
 
     expect(
       source,
-      contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = true'),
+      contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = false'),
     );
-    expect(source, isNot(contains('72 + playerHeight')));
+    expect(source, contains('bottomNavigationBar: SafeArea('));
   });
 
   test('bundled asset manifest keeps only KR song PDFs and TB bible data', () {

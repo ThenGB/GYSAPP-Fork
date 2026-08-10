@@ -79,6 +79,127 @@ class BibleTtsService {
   /// Edge TTS works on every platform (incl. web) via `edge_tts`.
   static bool get isEdgeAvailable => true;
 
+  /// Loads device voices without assuming the platform channel's collection
+  /// or map key/value types. Android and desktop engines commonly return
+  /// locale variants such as `id_ID`, `in-ID`, or `zh_Hans_CN`.
+  static Future<List<Map<String, String>>> fetchNativeVoices({
+    FlutterTts? tts,
+  }) async {
+    if (tts == null && !isTextToSpeechConfiguredForCurrentPlatform) {
+      return const [];
+    }
+    final rawVoices = await (tts ?? FlutterTts()).getVoices;
+    if (rawVoices is! Iterable) return const [];
+
+    final voices = <Map<String, String>>[];
+    for (final rawVoice in rawVoices) {
+      if (rawVoice is! Map) continue;
+      final voice = rawVoice.map(
+        (key, value) => MapEntry(
+          key.toString(),
+          value?.toString() ?? '',
+        ),
+      );
+      if (voice.isNotEmpty) voices.add(voice);
+    }
+    voices.sort((a, b) {
+      final localeCompare = normalizeNativeLocale(
+        a['locale'] ?? a['language'],
+      ).compareTo(normalizeNativeLocale(b['locale'] ?? b['language']));
+      if (localeCompare != 0) return localeCompare;
+      return nativeVoiceLabel(a).compareTo(nativeVoiceLabel(b));
+    });
+    return voices;
+  }
+
+  /// Canonicalizes the locale formats returned by native TTS providers.
+  /// Script subtags are ignored for matching while a two-letter region is
+  /// retained, so `zh_Hans_CN` matches the app's `zh-CN` Bible locale.
+  static String normalizeNativeLocale(Object? rawLocale) {
+    final parts = (rawLocale?.toString() ?? '')
+        .trim()
+        .replaceAll('_', '-')
+        .toLowerCase()
+        .split('-')
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return '';
+
+    final language = switch (parts.first) {
+      'in' => 'id',
+      'iw' => 'he',
+      'ji' => 'yi',
+      final value => value,
+    };
+    String? region;
+    for (final part in parts.skip(1)) {
+      if (RegExp(r'^[a-z]{2}$').hasMatch(part) ||
+          RegExp(r'^\d{3}$').hasMatch(part)) {
+        region = part;
+        break;
+      }
+    }
+    return region == null ? language : '$language-$region';
+  }
+
+  /// Returns exact locale matches first and gracefully falls back to the same
+  /// language when the device exposes only a different regional voice.
+  static List<Map<String, String>> nativeVoicesForLocale(
+    Iterable<Map<String, String>> voices,
+    String requestedLocale,
+  ) {
+    final requested = normalizeNativeLocale(requestedLocale);
+    if (requested.isEmpty) return voices.toList(growable: false);
+    final language = requested.split('-').first;
+    final exact = voices
+        .where(
+          (voice) =>
+              normalizeNativeLocale(voice['locale'] ?? voice['language']) ==
+              requested,
+        )
+        .toList(growable: false);
+    if (exact.isNotEmpty) return exact;
+    return voices
+        .where(
+          (voice) =>
+              normalizeNativeLocale(
+                voice['locale'] ?? voice['language'],
+              ).split('-').first ==
+              language,
+        )
+        .toList(growable: false);
+  }
+
+  /// Resolves a persisted native voice against the voices currently installed
+  /// on the device. A removed voice safely falls back to the first locale match.
+  static Map<String, String>? resolveNativeVoice({
+    required Iterable<Map<String, String>> voices,
+    required String locale,
+    Map? savedVoice,
+  }) {
+    final candidates = nativeVoicesForLocale(voices, locale);
+    if (candidates.isEmpty) return null;
+    if (savedVoice == null || savedVoice.isEmpty) return candidates.first;
+
+    final savedName = savedVoice['name']?.toString();
+    final savedIdentifier = savedVoice['identifier']?.toString();
+    for (final voice in candidates) {
+      final sameName = savedName != null && voice['name'] == savedName;
+      final sameIdentifier =
+          savedIdentifier != null && voice['identifier'] == savedIdentifier;
+      if (sameName || sameIdentifier) return voice;
+    }
+    return candidates.first;
+  }
+
+  static String nativeVoiceLabel(Map voice) {
+    for (final key in const ['name', 'identifier', 'voice']) {
+      final value = voice[key]?.toString().trim() ?? '';
+      if (value.isNotEmpty) return value;
+    }
+    return 'Device voice';
+  }
+
   /// Configures the native fallback with the saved voice/pitch/speed.
   Future<void> configureNative({
     Map<String, String>? voice,
