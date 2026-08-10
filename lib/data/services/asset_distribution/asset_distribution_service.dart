@@ -21,8 +21,6 @@ class AssetDownloadCancelled implements Exception {
   final String code;
 }
 
-/// Collects the final [Digest] from a chunked hash conversion so large
-/// packages can be verified without loading the whole payload into memory.
 class _DigestAccumulator implements Sink<Digest> {
   Digest? _digest;
 
@@ -36,9 +34,7 @@ class _DigestAccumulator implements Sink<Digest> {
 
   Digest get value {
     final digest = _digest;
-    if (digest == null) {
-      throw StateError('Digest not produced.');
-    }
+    if (digest == null) throw StateError('Digest not produced.');
     return digest;
   }
 }
@@ -115,11 +111,16 @@ class AssetDistributionService {
       final installName = _safeInstallName(package.installFileName);
 
       if (kIsWeb) {
-        final packageBytes = await _client.downloadPackageBytes(
-          package,
-          onProgress: onProgress,
-          cancelToken: cancelToken,
-        );
+        final packageBytes = cancelToken == null
+            ? await _client.downloadPackageBytes(
+                package,
+                onProgress: onProgress,
+              )
+            : await _client.downloadPackageBytes(
+                package,
+                onProgress: onProgress,
+                cancelToken: cancelToken,
+              );
         _throwIfCancelled(cancelToken, definition.code);
         downloadFinished = true;
         onDownloadComplete?.call();
@@ -140,12 +141,20 @@ class AssetDistributionService {
           if (!p.isWithin(tempDir.path, p.normalize(packageFile.path))) {
             throw StateError('Package file escapes temp dir: $fileName');
           }
-          await _client.downloadPackage(
-            package,
-            packageFile.path,
-            onProgress: onProgress,
-            cancelToken: cancelToken,
-          );
+          if (cancelToken == null) {
+            await _client.downloadPackage(
+              package,
+              packageFile.path,
+              onProgress: onProgress,
+            );
+          } else {
+            await _client.downloadPackage(
+              package,
+              packageFile.path,
+              onProgress: onProgress,
+              cancelToken: cancelToken,
+            );
+          }
           _throwIfCancelled(cancelToken, definition.code);
           downloadFinished = true;
           onDownloadComplete?.call();
@@ -168,9 +177,7 @@ class AssetDistributionService {
             destinationFile: destinationFile,
           );
         } finally {
-          if (await tempDir.exists()) {
-            await tempDir.delete(recursive: true);
-          }
+          if (await tempDir.exists()) await tempDir.delete(recursive: true);
         }
       }
 
@@ -198,10 +205,6 @@ class AssetDistributionService {
         }
       }
     } catch (error) {
-      // Cancellation is intentionally limited to the network stage. Once the
-      // complete package has been received, checksum/decrypt/install finish as
-      // one transaction so an update cannot leave the previous install half
-      // replaced.
       if (!downloadFinished && cancelToken?.isCancelled == true) {
         throw AssetDownloadCancelled(definition.code);
       }
@@ -210,9 +213,7 @@ class AssetDistributionService {
   }
 
   void _throwIfCancelled(CancelToken? token, String code) {
-    if (token?.isCancelled == true) {
-      throw AssetDownloadCancelled(code);
-    }
+    if (token?.isCancelled == true) throw AssetDownloadCancelled(code);
   }
 
   static String _kindDirectory(DistributedAssetKind kind) =>
@@ -233,9 +234,7 @@ class AssetDistributionService {
   }
 
   Future<RemoteAssetManifest?> _safeManifest(AssetReleaseTrack track) async {
-    if (_manifestCache.containsKey(track)) {
-      return _manifestCache[track];
-    }
+    if (_manifestCache.containsKey(track)) return _manifestCache[track];
     try {
       final manifest = await _client.fetchLatestManifest(track);
       _manifestCache[track] = manifest;
@@ -247,9 +246,7 @@ class AssetDistributionService {
   }
 
   static String _safeInstallName(String name) {
-    if (name.contains('/') ||
-        name.contains('\\') ||
-        name.contains('\u0000')) {
+    if (name.contains('/') || name.contains('\\') || name.contains('\u0000')) {
       throw StateError('Invalid install file name: $name');
     }
     final basename = p.basename(name);
