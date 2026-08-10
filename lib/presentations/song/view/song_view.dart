@@ -1,3 +1,4 @@
+import 'dart:collection';
 import 'dart:ui' as ui show TextDirection;
 
 import '../../../components/components.dart';
@@ -178,7 +179,7 @@ class _SongViewState extends State<SongView> {
               surfaceTintColor: Colors.transparent,
               scrolledUnderElevation: 0,
               shadowColor: Colors.transparent,
-              toolbarHeight: 68,
+              toolbarHeight: 60,
               leadingWidth: 40,
               leading: IconButton(
                 visualDensity: VisualDensity.compact,
@@ -374,6 +375,8 @@ class _SongViewState extends State<SongView> {
                         prev.currentChords != curr.currentChords ||
                         prev.transposeStep != curr.transposeStep ||
                         prev.baseTransposeOffset != curr.baseTransposeOffset ||
+                        prev.chordAccidentalMode !=
+                            curr.chordAccidentalMode ||
                         prev.pdfTwoPageMode != curr.pdfTwoPageMode ||
                         prev.pdfVerticalScrolling !=
                             curr.pdfVerticalScrolling ||
@@ -387,10 +390,9 @@ class _SongViewState extends State<SongView> {
                       if (state.currentPdfPath == null) {
                         return const SizedBox.shrink();
                       }
-                      // The dashboard body is already padded above the
-                      // 72px dock (bodyBottomPadding), so no extra bottom
-                      // padding is needed here â€” adding some created a
-                      // visible dark strip between the PDF and the dock.
+                      // The dashboard owns a dedicated bottom-navigation
+                      // region, so the viewer can fill the remaining body
+                      // without content being covered by the dock.
                       return SizedBox.expand(
                         child: RepaintBoundary(
                           child: SongPdfViewer(
@@ -1090,9 +1092,11 @@ class _SongTextPageState extends State<_SongTextPage>
   late final Animation<double> _verseFadeAnim;
   late final Animation<Offset> _verseSlideAnim;
 
-  /// Cached note-aligned chord layouts, keyed by the PDF source id (which
-  /// uniquely identifies the song's page range in the master document).
-  static final Map<String, Future<List<ChordedTextLine>>> _layoutCache = {};
+  /// Bounded note-aligned layout cache. The chord data identity is part of
+  /// the key so edits never reuse a stale gyschordweb-style projection.
+  static final LinkedHashMap<String, Future<List<ChordedTextLine>>>
+  _layoutCache = LinkedHashMap();
+  static const int _layoutCacheLimit = 24;
 
   /// Source id the currently-displayed layout was computed for.
   String? _layoutSourceId;
@@ -1158,22 +1162,26 @@ class _SongTextPageState extends State<_SongTextPage>
       _layoutLoading = false;
       return;
     }
-    if (_layoutSourceId == sourceId && _layoutLines != null) return;
-    if (!_layoutCache.containsKey(sourceId)) {
+    final layoutKey = '$sourceId#${widget.chords.hashCode}';
+    if (_layoutSourceId == layoutKey && _layoutLines != null) return;
+    if (!_layoutCache.containsKey(layoutKey)) {
       final path = widget.pdfPath!;
       final request = PdfDocumentRequest.parse(path);
-      _layoutCache[sourceId] = PdfNoteService().loadChordedLines(
-        pdfPath: path,
+      if (_layoutCache.length >= _layoutCacheLimit) {
+        _layoutCache.remove(_layoutCache.keys.first);
+      }
+      _layoutCache[layoutKey] = PdfNoteService().loadChordedLines(
+        pdfPath: request.assetPath,
         startPage: request.startPage,
         pageCount: request.pageCount,
         chords: widget.chords,
       );
     }
-    _layoutSourceId = sourceId;
+    _layoutSourceId = layoutKey;
     _layoutLoading = true;
     _layoutLines = null;
-    _layoutCache[sourceId]!.then((lines) {
-      if (!mounted || _layoutSourceId != sourceId) return;
+    _layoutCache[layoutKey]!.then((lines) {
+      if (!mounted || _layoutSourceId != layoutKey) return;
       setState(() {
         _layoutLines = lines;
         _layoutLoading = false;
@@ -1211,7 +1219,7 @@ class _SongTextPageState extends State<_SongTextPage>
     // Preserve blank lines (stanza breaks) so chord mode doesn't collapse
     // the verse structure; blank lines simply get no chord row.
     final lines = verseText.split('\n');
-    var nonEmpty = lines.where((l) => l.isNotEmpty).toList();
+    var nonEmpty = lines.where((line) => line.trim().isNotEmpty).toList();
     if (nonEmpty.isEmpty) {
       lines
         ..clear()
@@ -1238,6 +1246,9 @@ class _SongTextPageState extends State<_SongTextPage>
     // to its chorded line (text match, then per-line-index fallback).
     final layoutLines = _layoutLines;
     if (layoutLines != null && layoutLines.isNotEmpty) {
+      // GYSChordWeb reuses the first successfully matched melody line for
+      // the same line index across every verse. Build this fallback from all
+      // verses so later stanzas receive the same accurate chord map.
       final byIndexFallback = buildVerseChordFallback(
         widget.song.verses,
         layoutLines,
@@ -1245,7 +1256,7 @@ class _SongTextPageState extends State<_SongTextPage>
       final result = <Widget>[];
       var nonEmptyCursor = 0;
       for (var i = 0; i < lines.length; i++) {
-        if (lines[i].isEmpty) {
+        if (lines[i].trim().isEmpty) {
           result.add(Text(lines[i], textAlign: textAlign, style: lyricsStyle));
           continue;
         }
@@ -1297,7 +1308,7 @@ class _SongTextPageState extends State<_SongTextPage>
 
     final result = <Widget>[];
     for (var i = 0; i < lines.length; i++) {
-      final lineChords = lines[i].isEmpty
+      final lineChords = lines[i].trim().isEmpty
           ? const <ChordData>[]
           : chordsByNonEmptyLine[nonEmptyCursor++];
       if (lineChords.isNotEmpty) {
@@ -1416,37 +1427,44 @@ class _SongTextPageState extends State<_SongTextPage>
                                   ),
                                 ),
                                 child: hasVerses
-                                    ? FadeTransition(
-                                        opacity: _verseFadeAnim,
-                                        child: SlideTransition(
-                                          position: _verseSlideAnim,
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.stretch,
-                                            children: [
-                                              Text(
-                                                'Bait ${safeIndex + 1} dari ${verses.length}',
-                                                textAlign: _resolveTextAlign(),
-                                                style: theme.textTheme.bodySmall
-                                                    ?.copyWith(
-                                                      color: theme
-                                                          .colorScheme
-                                                          .primary
-                                                          .withValues(
-                                                            alpha: 0.6,
-                                                          ),
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                              ),
-                                              const SizedBox(height: 16),
-                                              ..._buildVerseLines(
-                                                context,
-                                                currentVerse!,
-                                                safeIndex,
-                                                verses.length,
-                                              ),
-                                            ],
+                                    ? AnimatedSize(
+                                        duration: const Duration(
+                                          milliseconds: 260,
+                                        ),
+                                        curve: Curves.easeOutCubic,
+                                        alignment: Alignment.topCenter,
+                                        child: FadeTransition(
+                                          opacity: _verseFadeAnim,
+                                          child: SlideTransition(
+                                            position: _verseSlideAnim,
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.stretch,
+                                              children: [
+                                                Text(
+                                                  'Bait ${safeIndex + 1} dari ${verses.length}',
+                                                  textAlign: _resolveTextAlign(),
+                                                  style: theme.textTheme.bodySmall
+                                                      ?.copyWith(
+                                                        color: theme
+                                                            .colorScheme
+                                                            .primary
+                                                            .withValues(
+                                                              alpha: 0.6,
+                                                            ),
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                ..._buildVerseLines(
+                                                  context,
+                                                  currentVerse!,
+                                                  safeIndex,
+                                                  verses.length,
+                                                ),
+                                              ],
+                                            ),
                                           ),
                                         ),
                                       )
@@ -1468,7 +1486,7 @@ class _SongTextPageState extends State<_SongTextPage>
             if (hasVerses && verses.length > 1)
               Container(
                 padding: EdgeInsets.only(
-                  bottom: 12 + MediaQuery.paddingOf(context).bottom,
+                  bottom: 8,
                   left: 20,
                   right: 20,
                 ),
@@ -1997,22 +2015,40 @@ class _ChordSheetLine extends StatelessWidget {
     required this.textScale,
   });
 
+  double _measure(String value, TextStyle style) {
+    final painter = TextPainter(
+      text: TextSpan(text: value, style: style),
+      textDirection: ui.TextDirection.ltr,
+      maxLines: 1,
+    )..layout();
+    return painter.width;
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final chordFontSize = (12 * textScale).clamp(9.0, 20.0);
     final chordHeight = chordFontSize + 6;
 
-    final labels = chords
+    final placements = fallbackPlacementsForLine(chords)
         .map(
-          (c) => ChordService.transposeChord(
-            c.chord,
-            transposeStep,
-            baseTransposeOffset: baseTransposeOffset,
-            accidentalMode: chordAccidentalMode,
+          (placement) => (
+            label: ChordService.transposeChord(
+              placement.chord,
+              transposeStep,
+              baseTransposeOffset: baseTransposeOffset,
+              accidentalMode: chordAccidentalMode,
+            ),
+            position: placement.safePosition,
           ),
         )
         .toList();
+    final chordStyle = TextStyle(
+      fontFamily: DesignSystem.fontHeading,
+      fontSize: chordFontSize,
+      fontWeight: FontWeight.w800,
+      color: theme.colorScheme.onPrimaryContainer,
+    );
 
     return SizedBox(
       height: chordHeight + 4,
@@ -2020,14 +2056,28 @@ class _ChordSheetLine extends StatelessWidget {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final width = constraints.maxWidth;
+          var previousRight = double.negativeInfinity;
+          final resolvedLefts = <double>[];
+          for (final placement in placements) {
+            final labelWidth = _measure(placement.label, chordStyle) + 8;
+            var left = placement.position * width - (labelWidth / 2);
+            left = left
+                .clamp(0.0, (width - labelWidth).clamp(0.0, width))
+                .toDouble();
+            if (left < previousRight + 4) {
+              left = (previousRight + 4)
+                  .clamp(0.0, (width - labelWidth).clamp(0.0, width))
+                  .toDouble();
+            }
+            previousRight = left + labelWidth;
+            resolvedLefts.add(left);
+          }
           return Stack(
             clipBehavior: Clip.none,
             children: [
-              for (var i = 0; i < labels.length; i++)
+              for (var i = 0; i < placements.length; i++)
                 Positioned(
-                  left: (chordFractionInLine(i, labels.length) * width)
-                      .clamp(0.0, (width - 40).clamp(0.0, width))
-                      .toDouble(),
+                  left: resolvedLefts[i],
                   top: 0,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
@@ -2041,13 +2091,8 @@ class _ChordSheetLine extends StatelessWidget {
                       borderRadius: BorderRadius.circular(5),
                     ),
                     child: Text(
-                      labels[i],
-                      style: TextStyle(
-                        fontFamily: DesignSystem.fontHeading,
-                        fontSize: chordFontSize,
-                        fontWeight: FontWeight.w800,
-                        color: theme.colorScheme.onPrimaryContainer,
-                      ),
+                      placements[i].label,
+                      style: chordStyle,
                     ),
                   ),
                 ),
@@ -2208,6 +2253,7 @@ class _NoteAlignedChordLine extends StatelessWidget {
                 alignment: alignment,
                 child: Builder(
                   builder: (context) {
+                    final isLastRow = identical(row, rows.last);
                     final rowWidth = _measure(
                       row.text,
                       lyricsStyle,
@@ -2216,7 +2262,9 @@ class _NoteAlignedChordLine extends StatelessWidget {
                         .where(
                           (placement) =>
                               placement.characterOffset >= row.start &&
-                              placement.characterOffset <= row.end,
+                              (placement.characterOffset < row.end ||
+                                  (isLastRow &&
+                                      placement.characterOffset == row.end)),
                         )
                         .map((placement) {
                           final localEnd =

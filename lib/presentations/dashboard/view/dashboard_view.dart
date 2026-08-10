@@ -9,15 +9,12 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../components/components.dart';
-import '../../../data/services/chord_service.dart';
 import '../../../data/utilities/extensions/context_ext.dart';
-import '../../../data/utilities/variables/assets.dart';
 import '../../../di/injection.dart';
-import '../../../domain/entity/song/song_entity.dart';
 import '../../../router/router.dart';
+import '../../initial/widgets/church_startup_splash.dart';
 import '../../presentations.dart';
 import '../../song/widgets/draggable_midi_controls.dart';
-import '../../song/widgets/refined_song_text_reader.dart';
 import '../widgets/dashboard_drawer.dart';
 
 class DashboardNavigationDestination {
@@ -96,77 +93,12 @@ const dashboardBottomNavigationDestinations = [
 
 final dashboardScaffoldKey = GlobalKey<ScaffoldState>();
 
-const bool kDashboardExtendsBodyForMiniPlayerOverlay = true;
-const double kDashboardMiniPlayerNavGap = 8;
-const double kDashboardExpandedMiniPlayerHeight = 168;
-const double kDashboardPortraitBottomNavHeight = 72;
-const double kDashboardLandscapeBottomNavHeight = 72;
-const double kDashboardCompactNavOuterVerticalPadding = 4;
-const double kDashboardCompactNavInnerVerticalPadding = 5;
-const double kDashboardCompactNavIconSize = 19;
-const double kDashboardCompactNavLabelFontSize = 9.5;
-const double kDashboardCompactNavIconLabelGap = 1;
-const double kDashboardRegularNavOuterVerticalPadding = 7;
-const double kDashboardRegularNavInnerVerticalPadding = 7;
-const double kDashboardRegularNavIconSize = 21;
-const double kDashboardRegularNavLabelFontSize = 10.5;
-const double kDashboardRegularNavIconLabelGap = 3;
+const bool kDashboardExtendsBodyForMiniPlayerOverlay = false;
+const double kDashboardPortraitBottomNavHeight = 64;
+const double kDashboardLandscapeBottomNavHeight = 60;
 const double kDashboardNavMaxWidth = 700;
 const double kDashboardNavMinInteractiveExtent = 48;
 const double kDashboardNavHorizontalInset = 12;
-const double kDashboardNavBottomGap = 8;
-
-double dashboardMiniPlayerBottomOffset({
-  required bool isExpanded,
-  double navHeight = kDashboardPortraitBottomNavHeight,
-}) {
-  return navHeight + kDashboardMiniPlayerNavGap;
-}
-
-double dashboardMiniPlayerHeight({required bool isExpanded}) {
-  return isExpanded
-      ? kDashboardExpandedMiniPlayerHeight
-      : kMidiCollapsedBarHeight;
-}
-
-double dashboardMiniPlayerHitTestHeight({
-  required bool isVisible,
-  required bool isExpanded,
-  required double navHeight,
-}) {
-  if (!isVisible) return navHeight;
-  return dashboardMiniPlayerBottomOffset(
-        isExpanded: isExpanded,
-        navHeight: navHeight,
-      ) +
-      dashboardMiniPlayerHeight(isExpanded: isExpanded);
-}
-
-double dashboardBottomNavContentHeight({
-  required double navHeight,
-  required double bottomInset,
-}) {
-  final availableHeight = navHeight - bottomInset;
-  return availableHeight < 0 ? 0 : availableHeight;
-}
-
-double dashboardBottomNavItemHeight({
-  required double outerVerticalPadding,
-  required double innerVerticalPadding,
-  required double iconSize,
-  required double labelFontSize,
-  required double iconLabelGap,
-}) {
-  final rawHeight =
-      (outerVerticalPadding * 2) +
-      (innerVerticalPadding * 2) +
-      iconSize +
-      iconLabelGap +
-      labelFontSize;
-  return rawHeight < kDashboardNavMinInteractiveExtent
-      ? kDashboardNavMinInteractiveExtent
-      : rawHeight;
-}
 
 void openDashboardDrawer() {
   dashboardScaffoldKey.currentState?.openDrawer();
@@ -184,7 +116,6 @@ class _DashboardViewState extends State<DashboardView>
     with WidgetsBindingObserver {
   final _appLinks = AppLinks();
   TabsRouter? tabRouter;
-  bool _midiExpanded = false;
 
   @override
   void initState() {
@@ -218,53 +149,6 @@ class _DashboardViewState extends State<DashboardView>
     } on PlatformException {
       // Deep links are optional and must not prevent startup.
     }
-  }
-
-  void _setMidiExpanded(bool expanded) {
-    if (!mounted || expanded == _midiExpanded) return;
-    setState(() => _midiExpanded = expanded);
-  }
-
-  void _openSongSelector() {
-    final cubit = context.read<SongCubit>();
-    router.push(
-      SongListRoute(
-        books: () => cubit.state.songBook,
-        currentBook: () =>
-            cubit.state.currentSong ??
-            SongBook(code: cubit.state.bookCode, songs: const []),
-        initialSearchText: cubit.state.searchTerms,
-        onSearchTermsChanged: cubit.onSearchTermsChanged,
-        onChangeBookCode: cubit.changeBookcode,
-        onTapPageNumber: (pageNumber) async {
-          Song? target;
-          for (final song in cubit.state.songs) {
-            if (song.number == pageNumber) {
-              target = song;
-              break;
-            }
-          }
-          await router.maybePop();
-          if (target != null) await cubit.openSongFromLibrary(target);
-        },
-        onOpenSong: (song) async {
-          await router.maybePop();
-          final active = cubit.activePlaylist;
-          final inActivePlaylist =
-              active?.songs.any((item) => item.matches(song)) ?? false;
-          if (active != null && inActivePlaylist) {
-            await cubit.openSongFromPlaylist(
-              song,
-              active.id,
-              autoplay: cubit.state.isPlaylistLoopModeActive,
-            );
-          } else {
-            await cubit.openSongFromLibrary(song);
-          }
-        },
-        onBack: () => router.maybePop(),
-      ),
-    );
   }
 
   @override
@@ -318,78 +202,24 @@ class _DashboardViewState extends State<DashboardView>
               builder: (context, child) {
                 final tabsRouter = AutoTabsRouter.of(context);
                 tabRouter = tabsRouter;
-                final bottomInset = MediaQuery.viewPaddingOf(context).bottom;
                 final selectedIndex = tabsRouter.activeIndex < bottomPages.length
                     ? tabsRouter.activeIndex
                     : -1;
+                final navHeight =
+                    MediaQuery.orientationOf(context) == Orientation.landscape
+                    ? kDashboardLandscapeBottomNavHeight
+                    : kDashboardPortraitBottomNavHeight;
 
                 return Scaffold(
                   key: dashboardScaffoldKey,
                   backgroundColor: context.colorScheme.surface,
-                  extendBody: true,
+                  extendBody: kDashboardExtendsBodyForMiniPlayerOverlay,
                   drawer: const DashboardDrawer(),
                   body: Stack(
                     fit: StackFit.expand,
                     clipBehavior: Clip.none,
                     children: [
-                      Positioned.fill(
-                        child: tabsRouter.activeIndex == 2
-                            ? BlocBuilder<SongCubit, SongState>(
-                                buildWhen: (previous, current) =>
-                                    previous.isImageMode != current.isImageMode ||
-                                    previous.pageIndex != current.pageIndex ||
-                                    previous.bookCode != current.bookCode ||
-                                    previous.currentPdfPath !=
-                                        current.currentPdfPath ||
-                                    previous.currentChords !=
-                                        current.currentChords ||
-                                    previous.showChord != current.showChord ||
-                                    previous.transposeStep !=
-                                        current.transposeStep ||
-                                    previous.chordAccidentalMode !=
-                                        current.chordAccidentalMode ||
-                                    previous.defaultTextScale !=
-                                        current.defaultTextScale ||
-                                    previous.defaultTextHeight !=
-                                        current.defaultTextHeight ||
-                                    previous.lyricsTextAlign !=
-                                        current.lyricsTextAlign ||
-                                    previous.lyricsVerticalAlign !=
-                                        current.lyricsVerticalAlign,
-                                builder: (context, songState) =>
-                                    songState.isImageMode
-                                    ? RefinedSongTextReader(
-                                        onOpenMenu: _openSongSelector,
-                                      )
-                                    : child,
-                              )
-                            : child,
-                      ),
-                      if (tabsRouter.activeIndex == 2)
-                        BlocBuilder<SongCubit, SongState>(
-                          buildWhen: (previous, current) =>
-                              previous.isImageMode != current.isImageMode ||
-                              previous.bookCode != current.bookCode ||
-                              previous.chordAccidentalMode !=
-                                  current.chordAccidentalMode,
-                          builder: (context, songState) {
-                            if (songState.isImageMode ||
-                                songState.bookCode == 'HYMNE') {
-                              return const SizedBox.shrink();
-                            }
-                            return Positioned(
-                              top: MediaQuery.viewPaddingOf(context).top + 78,
-                              right: 12,
-                              child: _ChordNotationChip(
-                                mode: songState.chordAccidentalMode,
-                                tooltipPrefix: 'Notasi Chord',
-                                onPressed: context
-                                    .read<SongCubit>()
-                                    .toggleAccidentalMode,
-                              ),
-                            );
-                          },
-                        ),
+                      Positioned.fill(child: child),
                       BlocBuilder<SongCubit, SongState>(
                         buildWhen: (prev, curr) =>
                             prev.showAudio != curr.showAudio ||
@@ -442,53 +272,34 @@ class _DashboardViewState extends State<DashboardView>
                             onToggleChord: songCubit.toggleChord,
                             chordAccidentalMode: midiState.chordAccidentalMode,
                             onToggleAccidental: songCubit.toggleAccidentalMode,
-                            onExpandedChanged: _setMidiExpanded,
                           );
                         },
                       ),
-                      if (_midiExpanded)
-                        BlocBuilder<SongCubit, SongState>(
-                          buildWhen: (previous, current) =>
-                              previous.showAudio != current.showAudio ||
-                              previous.bookCode != current.bookCode ||
-                              previous.chordAccidentalMode !=
-                                  current.chordAccidentalMode,
-                          builder: (context, midiState) {
-                            if (!midiState.showAudio ||
-                                midiState.bookCode == 'HYMNE') {
-                              return const SizedBox.shrink();
-                            }
-                            return Positioned(
-                              right: 18,
-                              bottom:
-                                  kMidiNavBarReserve +
-                                  kMidiExpandedTotalHeight -
-                                  17,
-                              child: _ChordNotationChip(
-                                mode: midiState.chordAccidentalMode,
-                                tooltipPrefix: 'Notasi Chord MIDI',
-                                attached: true,
-                                onPressed: context
-                                    .read<SongCubit>()
-                                    .toggleAccidentalMode,
-                              ),
-                            );
-                          },
-                        ),
-                      Positioned(
-                        left: kDashboardNavHorizontalInset,
-                        right: kDashboardNavHorizontalInset,
-                        bottom: kDashboardNavBottomGap + bottomInset,
-                        child: DashboardNavigationDock(
-                          selectedIndex: selectedIndex,
-                          destinations: bottomPages,
-                          onDestinationSelected: (index) {
-                            context.read<BibleCubit>().stopSpeaking();
-                            tabsRouter.setActiveIndex(index);
-                          },
-                        ),
-                      ),
                     ],
+                  ),
+                  // Visually floating, structurally reserved: the bubble keeps
+                  // its airy dock appearance while Scaffold guarantees that
+                  // reader content is never painted underneath it.
+                  bottomNavigationBar: SafeArea(
+                    top: false,
+                    minimum: const EdgeInsets.fromLTRB(
+                      kDashboardNavHorizontalInset,
+                      6,
+                      kDashboardNavHorizontalInset,
+                      8,
+                    ),
+                    child: Center(
+                      heightFactor: 1,
+                      child: DashboardNavigationDock(
+                        height: navHeight,
+                        selectedIndex: selectedIndex,
+                        destinations: bottomPages,
+                        onDestinationSelected: (index) {
+                          context.read<BibleCubit>().stopSpeaking();
+                          tabsRouter.setActiveIndex(index);
+                        },
+                      ),
+                    ),
                   ),
                 );
               },
@@ -500,125 +311,23 @@ class _DashboardViewState extends State<DashboardView>
   }
 }
 
-class _ChordNotationChip extends StatelessWidget {
-  const _ChordNotationChip({
-    required this.mode,
-    required this.onPressed,
-    required this.tooltipPrefix,
-    this.attached = false,
-  });
-
-  final String mode;
-  final VoidCallback onPressed;
-  final String tooltipPrefix;
-  final bool attached;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final isFlat = mode == ChordService.accidentalFlat;
-    return Tooltip(
-      message: '$tooltipPrefix: ${isFlat ? 'Flat (♭)' : 'Sharp (♯)'}',
-      child: Material(
-        elevation: attached ? 7 : 4,
-        shadowColor: colors.shadow.withValues(alpha: 0.24),
-        color: attached
-            ? colors.primaryContainer
-            : colors.surfaceContainerHigh.withValues(alpha: 0.96),
-        shape: StadiumBorder(
-          side: BorderSide(color: colors.primary.withValues(alpha: 0.28)),
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: attached ? 10 : 11,
-              vertical: attached ? 6 : 7,
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  isFlat ? '♭' : '♯',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    color: attached
-                        ? colors.onPrimaryContainer
-                        : colors.primary,
-                    fontWeight: FontWeight.w900,
-                    height: 1,
-                  ),
-                ),
-                if (!attached) ...[
-                  const SizedBox(width: 5),
-                  Text(
-                    isFlat ? 'Flat' : 'Sharp',
-                    style: context.textTheme.labelSmall?.copyWith(
-                      color: colors.onSurfaceVariant,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
 class _DashboardLoadingView extends StatelessWidget {
   const _DashboardLoadingView();
 
   @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: colors.surface,
-      body: SafeArea(
-        child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 30),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 390),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Image.asset(
-                    isDark
-                        ? Assets.assetsImagesLogoIndonesiaWhite
-                        : Assets.assetsImagesLogoIndonesiaColor,
-                    width: 260,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 34),
-                  ClipRRect(
-                    borderRadius: context.appRadius(999),
-                    child: LinearProgressIndicator(
-                      minHeight: 4,
-                      backgroundColor: colors.surfaceContainerHighest,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => const ChurchStartupSplash();
 }
 
 class DashboardNavigationDock extends StatelessWidget {
   const DashboardNavigationDock({
     super.key,
+    required this.height,
     required this.selectedIndex,
     required this.onDestinationSelected,
     required this.destinations,
   });
 
+  final double height;
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final List<DashboardNavigationDestination> destinations;
@@ -630,83 +339,157 @@ class DashboardNavigationDock extends StatelessWidget {
       heightFactor: 1,
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: kDashboardNavMaxWidth),
-        child: Material(
-          elevation: 5,
-          shadowColor: colors.shadow.withValues(alpha: 0.22),
-          color: Color.alphaBlend(
-            colors.primary.withValues(alpha: 0.045),
-            colors.surfaceContainerHigh.withValues(alpha: 0.98),
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: context.appRadius(22),
-            side: BorderSide(
-              color: colors.primary.withValues(alpha: 0.14),
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfaceContainerHigh.withValues(alpha: 0.97),
+            borderRadius: context.appRadius(24),
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.48),
+              width: 0.8,
             ),
+            boxShadow: [
+              BoxShadow(
+                color: colors.shadow.withValues(alpha: 0.13),
+                blurRadius: 18,
+                spreadRadius: -4,
+                offset: const Offset(0, 7),
+              ),
+              BoxShadow(
+                color: colors.primary.withValues(alpha: 0.07),
+                blurRadius: 22,
+                spreadRadius: -8,
+              ),
+            ],
           ),
-          clipBehavior: Clip.antiAlias,
-          child: SizedBox(
-            height: kDashboardPortraitBottomNavHeight,
-            child: Row(
-              children: List.generate(destinations.length, (index) {
-                final destination = destinations[index];
-                final selected = index == selectedIndex;
-                return Expanded(
-                  child: Semantics(
-                    selected: selected,
-                    button: true,
-                    label: destination.label.tr(),
-                    child: InkWell(
-                      onTap: () => onDestinationSelected(index),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 8,
-                        ),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 180),
+          child: Material(
+            color: Colors.transparent,
+            borderRadius: context.appRadius(24),
+            clipBehavior: Clip.antiAlias,
+            child: SizedBox(
+              height: height,
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final count = destinations.length;
+                  final hasSelection = selectedIndex >= 0 && selectedIndex < count;
+                  final safeIndex = hasSelection ? selectedIndex : 0;
+                  final indicatorX = count <= 1
+                      ? 0.0
+                      : -1 + (2 * safeIndex / (count - 1));
+                  return Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 180),
+                        opacity: hasSelection ? 1 : 0,
+                        child: AnimatedAlign(
+                          duration: const Duration(milliseconds: 320),
                           curve: Curves.easeOutCubic,
-                          decoration: BoxDecoration(
-                            color: selected
-                                ? colors.primaryContainer.withValues(alpha: 0.80)
-                                : Colors.transparent,
-                            borderRadius: context.appRadius(16),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                selected
-                                    ? destination.selectedIcon ??
-                                          destination.icon
-                                    : destination.icon,
-                                size: selected ? 22 : 21,
-                                color: selected
-                                    ? colors.onPrimaryContainer
-                                    : colors.onSurfaceVariant,
-                              ),
-                              const SizedBox(height: 3),
-                              Text(
-                                destination.label.tr(),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: context.textTheme.labelSmall?.copyWith(
-                                  fontSize: context.appFontSize(10),
-                                  color: selected
-                                      ? colors.onPrimaryContainer
-                                      : colors.onSurfaceVariant,
-                                  fontWeight: selected
-                                      ? FontWeight.w800
-                                      : FontWeight.w600,
+                          alignment: Alignment(indicatorX, 0),
+                          child: FractionallySizedBox(
+                            widthFactor: 1 / count,
+                            child: Padding(
+                              padding: const EdgeInsets.all(5),
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: colors.primaryContainer.withValues(
+                                    alpha: 0.82,
+                                  ),
+                                  borderRadius: context.appRadius(19),
+                                  border: Border.all(
+                                    color: colors.primary.withValues(alpha: 0.16),
+                                  ),
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
-                );
-              }),
+                      Row(
+                        children: List.generate(count, (index) {
+                          final destination = destinations[index];
+                          final selected = index == selectedIndex;
+                          final foreground = selected
+                              ? colors.onPrimaryContainer
+                              : colors.onSurfaceVariant;
+                          return Expanded(
+                            child: Semantics(
+                              selected: selected,
+                              button: true,
+                              label: destination.label.tr(),
+                              child: InkWell(
+                                borderRadius: context.appRadius(19),
+                                onTap: () => onDestinationSelected(index),
+                                child: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 3,
+                                    vertical: 5,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      AnimatedSwitcher(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        switchInCurve: Curves.easeOutBack,
+                                        switchOutCurve: Curves.easeIn,
+                                        transitionBuilder: (child, animation) =>
+                                            FadeTransition(
+                                              opacity: animation,
+                                              child: ScaleTransition(
+                                                scale: Tween<double>(
+                                                  begin: 0.78,
+                                                  end: 1,
+                                                ).animate(animation),
+                                                child: child,
+                                              ),
+                                            ),
+                                        child: Icon(
+                                          selected
+                                              ? destination.selectedIcon ??
+                                                    destination.icon
+                                              : destination.icon,
+                                          key: ValueKey('$index-$selected'),
+                                          size: selected ? 22 : 20,
+                                          color: foreground,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      AnimatedDefaultTextStyle(
+                                        duration: const Duration(
+                                          milliseconds: 180,
+                                        ),
+                                        curve: Curves.easeOut,
+                                        style:
+                                            context.textTheme.labelSmall?.copyWith(
+                                              fontSize: context.appFontSize(9.5),
+                                              color: foreground,
+                                              fontWeight: selected
+                                                  ? FontWeight.w800
+                                                  : FontWeight.w600,
+                                            ) ??
+                                            TextStyle(
+                                              fontSize: context.appFontSize(9.5),
+                                              color: foreground,
+                                            ),
+                                        child: Text(
+                                          destination.label.tr(),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      ),
+                    ],
+                  );
+                },
+              ),
             ),
           ),
         ),
