@@ -38,9 +38,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
   Future<void> _refreshLocalStatuses() async {
     try {
       final statuses = await _service.loadStatuses();
-      if (!isClosed) {
-        emit(state.copyWith(statuses: statuses));
-      }
+      if (!isClosed) emit(state.copyWith(statuses: statuses));
     } catch (e, st) {
       log('Local asset status refresh failed', error: e, stackTrace: st);
     }
@@ -61,6 +59,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
       state.copyWith(
         progressByCode: {...state.progressByCode, code: 0},
         cancellingCodes: {...state.cancellingCodes}..remove(code),
+        installingCodes: {...state.installingCodes}..remove(code),
         message: null,
       ),
     );
@@ -69,6 +68,16 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
       await _service.downloadAndInstall(
         definition,
         cancelToken: cancelToken,
+        onDownloadComplete: () {
+          if (isClosed) return;
+          emit(
+            state.copyWith(
+              progressByCode: {...state.progressByCode, code: 1},
+              cancellingCodes: {...state.cancellingCodes}..remove(code),
+              installingCodes: {...state.installingCodes, code},
+            ),
+          );
+        },
         onProgress: (received, total) {
           if (isClosed || cancelToken.isCancelled) return;
           final next = total <= 0 ? 0.0 : received / total;
@@ -81,8 +90,9 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
       );
       if (isClosed) return;
 
-      // Reflect the registry change immediately. Do not force another GitHub
-      // manifest request before the screen can show the newly installed asset.
+      // Show the new local install immediately, then notify feature cubits so
+      // their selectors/libraries update in the same frame sequence. No app
+      // restart and no second remote-manifest fetch is required.
       await _refreshLocalStatuses();
       await _refreshConsumers(
         definition,
@@ -96,6 +106,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
         state.copyWith(
           progressByCode: {...state.progressByCode}..remove(code),
           cancellingCodes: {...state.cancellingCodes}..remove(code),
+          installingCodes: {...state.installingCodes}..remove(code),
           message: '${definition.title} is ready for offline use.',
         ),
       );
@@ -105,6 +116,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
         state.copyWith(
           progressByCode: {...state.progressByCode}..remove(code),
           cancellingCodes: {...state.cancellingCodes}..remove(code),
+          installingCodes: {...state.installingCodes}..remove(code),
           message: '${definition.title} download stopped.',
         ),
       );
@@ -115,6 +127,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
         state.copyWith(
           progressByCode: {...state.progressByCode}..remove(code),
           cancellingCodes: {...state.cancellingCodes}..remove(code),
+          installingCodes: {...state.installingCodes}..remove(code),
           message: 'Failed to download ${definition.title}.',
         ),
       );
@@ -126,6 +139,7 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
   }
 
   void cancelDownload(String code) {
+    if (state.installingCodes.contains(code)) return;
     final token = _downloadTokens[code];
     if (token == null || token.isCancelled) return;
     emit(
@@ -218,8 +232,13 @@ class AssetManagementCubit extends Cubit<AssetManagementState> {
 
   @override
   Future<void> close() {
-    for (final token in _downloadTokens.values) {
-      if (!token.isCancelled) token.cancel('Asset manager closed.');
+    // Only network-stage downloads are cancellable. Installing transactions
+    // are allowed to finish so an app navigation event cannot corrupt an
+    // update that already has the complete package.
+    for (final entry in _downloadTokens.entries) {
+      if (!state.installingCodes.contains(entry.key) && !entry.value.isCancelled) {
+        entry.value.cancel('Asset manager closed.');
+      }
     }
     _downloadTokens.clear();
     return super.close();
