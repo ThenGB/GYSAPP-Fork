@@ -7,6 +7,7 @@ class AssetManagementState {
     this.isResettingApp = false,
     this.statuses = const [],
     this.progressByCode = const {},
+    this.cancellingCodes = const {},
     this.message,
   });
 
@@ -15,6 +16,7 @@ class AssetManagementState {
   final bool isResettingApp;
   final List<ManagedAssetStatus> statuses;
   final Map<String, double> progressByCode;
+  final Set<String> cancellingCodes;
   final String? message;
 
   AssetManagementState copyWith({
@@ -23,6 +25,7 @@ class AssetManagementState {
     bool? isResettingApp,
     List<ManagedAssetStatus>? statuses,
     Map<String, double>? progressByCode,
+    Set<String>? cancellingCodes,
     String? message,
   }) {
     return AssetManagementState(
@@ -31,9 +34,14 @@ class AssetManagementState {
       isResettingApp: isResettingApp ?? this.isResettingApp,
       statuses: statuses ?? this.statuses,
       progressByCode: progressByCode ?? this.progressByCode,
+      cancellingCodes: cancellingCodes ?? this.cancellingCodes,
       message: message,
     );
   }
+
+  bool isDownloading(String code) => progressByCode.containsKey(code);
+
+  bool isCancelling(String code) => cancellingCodes.contains(code);
 
   List<ManagedAssetStatus> get bibleStatuses => statuses
       .where((status) => status.definition.kind == DistributedAssetKind.bible)
