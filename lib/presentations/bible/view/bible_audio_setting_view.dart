@@ -571,7 +571,7 @@ class _UnitSlider extends StatelessWidget {
           ],
         ),
         Slider.adaptive(
-          value: value.clamp(min, max),
+          value: value.clamp(min, max).toDouble(),
           min: min,
           max: max,
           onChanged: onChanged,
