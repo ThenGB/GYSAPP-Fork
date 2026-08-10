@@ -1,0 +1,134 @@
+name: Windows Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'windows/**'
+      - 'third_party/**'
+      - 'vendor/flutter_inappwebview_windows/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.metadata'
+      - '.github/workflows/windows_release.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'lib/**'
+      - 'assets/**'
+      - 'windows/**'
+      - 'third_party/**'
+      - 'vendor/flutter_inappwebview_windows/**'
+      - 'pubspec.yaml'
+      - 'pubspec.lock'
+      - '.metadata'
+      - '.github/workflows/windows_release.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-release-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: '3.44.9'
+
+jobs:
+  build-windows:
+    name: Build Windows release
+    runs-on: windows-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Build Windows release
+        run: flutter build windows --release --no-pub
+
+      - name: Collect Windows release
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist/windows | Out-Null
+          Copy-Item build/windows/x64/runner/Release/church.exe dist/windows/GYS-App-windows-release.exe
+          Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath dist/windows/GYS-App-windows-release.zip -CompressionLevel Fastest -Force
+
+      - name: Upload Windows release artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gys-windows-release-${{ github.sha }}
+          path: dist/windows/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+
+  publish-windows:
+    name: Publish Windows main release
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs:
+      - build-windows
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Windows release artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: gys-windows-release-${{ github.sha }}
+          path: dist
+
+      - name: Create Windows checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd dist
+          sha256sum * > SHA256SUMS-windows.txt
+
+      - name: Publish Windows prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          short_sha="${GITHUB_SHA::7}"
+          tag="main-windows-${GITHUB_RUN_NUMBER}"
+          title="GYS App Windows Main #${GITHUB_RUN_NUMBER} (${short_sha})"
+          notes="Automated Windows package from main at ${GITHUB_SHA}. The ZIP is the complete runnable bundle; the EXE is included separately for convenience. SHA256SUMS-windows.txt can be used to verify the downloads."
+
+          if gh release view "$tag" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$title" \
+              --notes "$notes" \
+              --prerelease
+            gh release upload "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --clobber \
+              dist/*
+          else
+            gh release create "$tag" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "$title" \
+              --notes "$notes" \
+              --prerelease \
+              dist/*
+          fi
