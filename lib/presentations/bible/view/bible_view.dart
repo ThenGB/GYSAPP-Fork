@@ -79,9 +79,6 @@ class _BibleViewState extends State<BibleView> {
 
   @override
   void initState() {
-    // Verse visibility is sampled at 20 Hz. Split synchronization below
-    // coalesces samples so there is never more than one follower animation in
-    // flight and only the latest pending semantic verse anchor is retained.
     VisibilityDetectorController.instance.updateInterval = const Duration(
       milliseconds: 50,
     );
@@ -190,7 +187,6 @@ class _BibleViewState extends State<BibleView> {
       });
 
   GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
-
   final PageStorageBucket _bucket = PageStorageBucket();
 
   Map<int, double> topVisibleIndexes = {};
@@ -226,7 +222,6 @@ class _BibleViewState extends State<BibleView> {
     if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(bottomVisibleIndexes, index, visiblePercentage);
-
     final firstIdx = _firstVisibleIndex(bottomVisibleIndexes);
     if (firstIdx == null) return;
     final firstFrac = bottomVisibleIndexes[firstIdx]!;
@@ -262,7 +257,6 @@ class _BibleViewState extends State<BibleView> {
     if (context.read<BibleCubit>().state.isSplitContentLoading) return;
 
     _updateVisibility(topVisibleIndexes, index, visiblePercentage);
-
     final firstIdx = _firstVisibleIndex(topVisibleIndexes);
     if (firstIdx == null) return;
     final firstFrac = topVisibleIndexes[firstIdx]!;
@@ -308,8 +302,6 @@ class _BibleViewState extends State<BibleView> {
         : scrollController;
     if (!sourceController.hasClients || !targetController.hasClients) return;
 
-    // Synchronize by semantic verse id, not by list index or raw pixel offset.
-    // This survives translations with slightly different verse collections.
     final sourceVerses = sourcePane == _BibleSplitPane.top
         ? bibleState.verses
         : bibleState.versesSplit;
@@ -334,7 +326,6 @@ class _BibleViewState extends State<BibleView> {
         ? cubit.verseKeys2
         : cubit.verseKeys;
     if (targetIndex >= targetVerseKeys.length) return;
-
     final targetKey = targetVerseKeys[targetIndex];
     if (targetKey.currentContext == null) return;
 
@@ -362,8 +353,6 @@ class _BibleViewState extends State<BibleView> {
     _pendingSyncPane = null;
     _pendingVisibleFraction = null;
     try {
-      // One short follower animation at a time. Source callbacks arriving
-      // during these 48 ms are coalesced into a single latest pending anchor.
       await targetController.animateTo(
         clamped,
         duration: const Duration(milliseconds: 48),
@@ -373,8 +362,7 @@ class _BibleViewState extends State<BibleView> {
       _lastSyncedIndex = sourceIndex;
       _lastSyncedFraction = visibleFraction;
     } catch (_) {
-      // The pane can disappear while an animation is in flight (e.g. split is
-      // closed). Nothing needs to be recovered in that case.
+      // Pane may disappear while an animation is in flight.
     } finally {
       _isSyncingSplitScroll = false;
     }
@@ -423,8 +411,6 @@ class _BibleViewState extends State<BibleView> {
     final currentIndex = books.indexWhere((book) => book.id == current.bookId);
     if (currentIndex < 0) return;
 
-    // Project a little velocity into the drag distance. A normal swipe moves
-    // one or two books; a deliberate long/fast swipe can scrub up to 12 books.
     final velocity = details.primaryVelocity ?? 0.0;
     final projected = _bookHeaderDragDx + velocity * 0.10;
     _bookHeaderDragDx = 0;
@@ -597,7 +583,7 @@ class _BibleViewState extends State<BibleView> {
               ),
             ),
           ),
-        );
+        ),
       },
     );
   }
@@ -1881,7 +1867,7 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
             book.shortName ?? '',
             maxLines: 1,
             style: context.textTheme.labelMedium?.copyWith(
-              fontWeight: FontWeight.w650,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
@@ -1969,7 +1955,7 @@ class _VersePickerSheetState extends State<_VersePickerSheet> {
         child: Text(
           label,
           style: context.textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w650,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),
