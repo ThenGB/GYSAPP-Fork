@@ -360,7 +360,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     _viewerReadyWatchdog?.cancel();
     _totalPageCount =
         request.pageCount ??
-        (document.pages.length - request.startPage + 1).clamp(1, 1 << 30);
+        (document.pages.length - request.startPage + 1)
+            .clamp(1, 1 << 30)
+            .toInt();
     _currentPageIndex = 0;
     _primeDetectedMetadataFromFirstPage(document, request);
     _waitForValidSizeAndFit(ctrl, generation);
@@ -374,10 +376,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     if (_metadataPrimedSourceId == sourceId) return;
     _metadataPrimedSourceId = sourceId;
     if (document.pages.isEmpty) return;
-    final pageIndex = (request.startPage - 1).clamp(
-      0,
-      document.pages.length - 1,
-    );
+    final pageIndex = (request.startPage - 1)
+        .clamp(0, document.pages.length - 1)
+        .toInt();
     unawaited(_loadNotePositionsAndInfos(document.pages[pageIndex]));
   }
 
@@ -497,10 +498,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     final layout = _pdfCtrl.layout;
     final request = _pdfRequest;
     if (request == null || layout.pageLayouts.isEmpty) return null;
-    final index = (request.startPage - 1).clamp(
-      0,
-      layout.pageLayouts.length - 1,
-    );
+    final index = (request.startPage - 1)
+        .clamp(0, layout.pageLayouts.length - 1)
+        .toInt();
     return layout.pageLayouts[index];
   }
 
@@ -648,10 +648,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
             }
             final layout = controller.layout;
             if (layout.pageLayouts.isEmpty) return null;
-            final pageIndex = (request.startPage - 1).clamp(
-              0,
-              layout.pageLayouts.length - 1,
-            );
+            final pageIndex = (request.startPage - 1)
+                .clamp(0, layout.pageLayouts.length - 1)
+                .toInt();
             final page = layout.pageLayouts[pageIndex];
             if (page.width <= 0 || page.height <= 0) return null;
             return _fitZoomForSize(viewSize, Size(page.width, page.height));
@@ -750,7 +749,7 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     final maxIndex = widget.twoPageMode
         ? ((_totalPageCount - 1) ~/ 2) * 2
         : _totalPageCount - 1;
-    final clamped = newIndex.clamp(0, maxIndex);
+    final clamped = newIndex.clamp(0, maxIndex).toInt();
     if (clamped == _currentPageIndex) return;
 
     final generation = _fitGeneration;
@@ -847,7 +846,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
     }
 
     final margin = params.margin;
-    final currentIndex = _currentPageIndex.clamp(0, visiblePages.length - 1);
+    final currentIndex = _currentPageIndex
+        .clamp(0, visiblePages.length - 1)
+        .toInt();
     final current = visiblePages[currentIndex];
     final next = currentIndex + 1 < visiblePages.length
         ? visiblePages[currentIndex + 1]
@@ -1270,20 +1271,20 @@ class _ChordOverlayState extends State<_ChordOverlay> {
             final firstPos = positions[sortedKeys.first]!;
             final lastPos = positions[sortedKeys.last]!;
             effectivePositions[_noteIdxBefore] = (
-              xPct: (firstPos.xPct - 2.5).clamp(1.0, 99.0),
+              xPct: (firstPos.xPct - 2.5).clamp(1.0, 99.0).toDouble(),
               yPct: firstPos.yPct,
             );
             effectivePositions[_noteIdxAfter] = (
-              xPct: (lastPos.xPct + 2.5).clamp(1.0, 99.0),
+              xPct: (lastPos.xPct + 2.5).clamp(1.0, 99.0).toDouble(),
               yPct: lastPos.yPct,
             );
             for (final row in _extractRowsCached(infos)) {
               effectivePositions[_noteIdxForRowStart(row.rowIndex)] = (
-                xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0),
+                xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0).toDouble(),
                 yPct: row.first.yPct,
               );
               effectivePositions[_noteIdxForRowEnd(row.rowIndex)] = (
-                xPct: (row.last.xPct + 2.5).clamp(1.0, 99.0),
+                xPct: (row.last.xPct + 2.5).clamp(1.0, 99.0).toDouble(),
                 yPct: row.last.yPct,
               );
             }
@@ -1322,7 +1323,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     targets.add(
       _buildNoteTarget(
         noteIdx: _noteIdxBefore,
-        xPct: (first.xPct - 2.5).clamp(1.0, 99.0),
+        xPct: (first.xPct - 2.5).clamp(1.0, 99.0).toDouble(),
         yPct: first.yPct,
         label: '▷',
         title: 'Intro / sebelum lagu',
@@ -1352,7 +1353,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
       targets.add(
         _buildNoteTarget(
           noteIdx: _noteIdxForRowStart(row.rowIndex),
-          xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0),
+          xPct: (row.first.xPct - 2.5).clamp(1.0, 99.0).toDouble(),
           yPct: row.first.yPct,
           label: '▷',
           title: 'Row ${row.rowIndex + 1} start',
@@ -1362,7 +1363,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
       targets.add(
         _buildNoteTarget(
           noteIdx: _noteIdxForRowEnd(row.rowIndex),
-          xPct: (row.last.xPct + 2.5).clamp(1.0, 99.0),
+          xPct: (row.last.xPct + 2.5).clamp(1.0, 99.0).toDouble(),
           yPct: row.last.yPct,
           label: '◁',
           title: 'Row ${row.rowIndex + 1} end',
@@ -1375,7 +1376,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     targets.add(
       _buildNoteTarget(
         noteIdx: _noteIdxAfter,
-        xPct: (last.xPct + 2.5).clamp(1.0, 99.0),
+        xPct: (last.xPct + 2.5).clamp(1.0, 99.0).toDouble(),
         yPct: last.yPct,
         label: '◁',
         title: 'Outro / setelah lagu',
@@ -1425,7 +1426,7 @@ class _ChordOverlayState extends State<_ChordOverlay> {
     if (chord.noteIdx >= sortedKeys.length) {
       final lastPos = positions[sortedKeys.last]!;
       return (
-        xPct: (lastPos.xPct + 2.5).clamp(1.0, 99.0),
+        xPct: (lastPos.xPct + 2.5).clamp(1.0, 99.0).toDouble(),
         yPct: lastPos.yPct,
       );
     }
