@@ -80,12 +80,10 @@ android {
             minifyEnabled = true
             shrinkResources = true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            // Never substitute the debug key for a release build. If the
-            // official release keystore is unavailable, Gradle emits a genuine
-            // unsigned release APK; CI labels that artifact explicitly.
-            if (hasReleaseKeystore) {
-                signingConfig = signingConfigs.release
-            }
+            // Release APKs must always be installable. Use the official release
+            // keystore when key.properties is present; otherwise fall back to
+            // Android's debug signing key rather than emitting an unsigned APK.
+            signingConfig = hasReleaseKeystore ? signingConfigs.release : signingConfigs.debug
         }
     }
 
