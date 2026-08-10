@@ -338,7 +338,10 @@ void main() {
       source,
       contains('const bool kDashboardExtendsBodyForMiniPlayerOverlay = false'),
     );
-    expect(source, contains('bottomNavigationBar: SafeArea('));
+    // Compact mode places the dock in Scaffold's bottomNavigationBar slot so
+    // reader content is never painted underneath it.
+    expect(source, contains('bottomNavigationBar: useRail'));
+    expect(source, contains('NavigationRail'));
   });
 
   test('bundled asset manifest keeps only KR song PDFs and TB bible data', () {

@@ -8,6 +8,35 @@ import 'package:flutter/material.dart';
 class DesignSystem {
   DesignSystem._();
 
+  // ---------------------------------------------------------------------------
+  // "Ruang Ibadah Tenang" semantic palette.
+  // Single source of truth for the warm/quiet surfaces and the GYS accent.
+  // Themes and platform surfaces (e.g. flutter_native_splash.yaml) reference
+  // these values so the identity stays consistent everywhere.
+  // ---------------------------------------------------------------------------
+
+  /// Warm sanctuary surface used as the light scaffold background.
+  static const Color colorWarmSurface = Color(0xFFFAF9F7);
+
+  /// Deep quiet surface used as the dark scaffold background.
+  static const Color colorDarkSurface = Color(0xFF171513);
+
+  /// GYS Blue — the primary accent for actions, selection and identity.
+  static const Color colorGysBlue = Color(0xFF3B82F6);
+
+  // Accessibility-first touch targets (WCAG 2.5.5 guidance for seniors).
+  /// Minimum tappable target for any interactive control.
+  static const double touchTargetMin = 48;
+  /// Primary actions (CTA) get an extra-generous hit area.
+  static const double touchTargetPrimary = 56;
+
+  // Reader comfort: default text sizes and the ideal measure for long-form
+  // scripture/lyric reading. Users can still scale beyond these via the
+  // system text scaler (never capped).
+  static const double readerFontSizeMin = 19;
+  static const double readerFontSizeDefault = 20;
+  static const int readerLineLengthChars = 70; // 55–75 char editorial measure
+
   // 4px spacing rhythm.
   static const double spacing4 = 4;
   static const double spacing8 = 8;

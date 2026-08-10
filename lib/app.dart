@@ -153,9 +153,9 @@ Future<void> initApplication() async {
   FlutterError.onError = FlutterError.presentError;
   AppConfigStore.useFallbackConfig();
 
-  if (preserveNativeSplash || kIsWeb) {
-    FlutterNativeSplash.remove();
-  }
+  // The native splash stays preserved. It is removed from main() after the
+  // first Flutter frame so there is never a blank gap between the native
+  // surface and the Flutter wordmark splash.
   initLog('done');
 }
 
@@ -218,6 +218,15 @@ class App extends StatelessWidget {
         BlocProvider<InitialCubit>(create: (context) => di()),
         BlocProvider<BackupCubit>(create: (context) => di()),
         BlocProvider<SongCubit>(create: (context) => di()),
+        // Feature controllers live at the root so pushed routes (e.g.
+        // Settings and its sub-pages opened from the "Lainnya" hub) can read
+        // them even though they stack above the app shell.
+        BlocProvider<DashboardCubit>(create: (context) => di(), lazy: false),
+        BlocProvider<BibleCubit>(create: (context) => di(), lazy: false),
+        BlocProvider<HomeCubit>(create: (context) => di()),
+        BlocProvider<FaithCubit>(create: (context) => di()),
+        BlocProvider<SettingsCubit>(create: (context) => di()),
+        BlocProvider<AssetManagementCubit>(create: (context) => di()),
       ],
       child: BlocBuilder<InitialCubit, InitialState>(
         buildWhen: (prev, curr) =>

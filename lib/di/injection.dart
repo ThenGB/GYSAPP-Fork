@@ -106,7 +106,11 @@ void _services() {
     ),
   );
   di.registerLazySingleton(
-    () => ChordSyncService(di<AppDirectory>(), http.Client()),
+    () => ChordSyncService(
+      di<AppDirectory>(),
+      http.Client(),
+      installedAssetStore: di<InstalledAssetStore>(),
+    ),
   );
   di.registerLazySingleton(
     () =>

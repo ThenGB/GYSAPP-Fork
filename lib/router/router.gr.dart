@@ -11,6 +11,22 @@
 part of 'router.dart';
 
 /// generated route for
+/// [AdaptiveAppShellView]
+class AdaptiveAppShellRoute extends PageRouteInfo<void> {
+  const AdaptiveAppShellRoute({List<PageRouteInfo>? children})
+    : super(AdaptiveAppShellRoute.name, initialChildren: children);
+
+  static const String name = 'AdaptiveAppShellRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const AdaptiveAppShellView();
+    },
+  );
+}
+
+/// generated route for
 /// [BackupView]
 class BackupRoute extends PageRouteInfo<BackupRouteArgs> {
   BackupRoute({
@@ -572,22 +588,6 @@ class BibleRoute extends PageRouteInfo<void> {
 }
 
 /// generated route for
-/// [DashboardView]
-class DashboardRoute extends PageRouteInfo<void> {
-  const DashboardRoute({List<PageRouteInfo>? children})
-    : super(DashboardRoute.name, initialChildren: children);
-
-  static const String name = 'DashboardRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      return const DashboardView();
-    },
-  );
-}
-
-/// generated route for
 /// [FaithNoteListView]
 class FaithNoteListRoute extends PageRouteInfo<FaithNoteListRouteArgs> {
   FaithNoteListRoute({
@@ -1013,6 +1013,22 @@ class LoginRouteArgs {
 
   @override
   int get hashCode => key.hashCode;
+}
+
+/// generated route for
+/// [MoreView]
+class MoreRoute extends PageRouteInfo<void> {
+  const MoreRoute({List<PageRouteInfo>? children})
+    : super(MoreRoute.name, initialChildren: children);
+
+  static const String name = 'MoreRoute';
+
+  static PageInfo page = PageInfo(
+    name,
+    builder: (data) {
+      return const MoreView();
+    },
+  );
 }
 
 /// generated route for
