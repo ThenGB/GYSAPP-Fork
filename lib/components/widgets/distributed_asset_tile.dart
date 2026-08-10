@@ -83,7 +83,9 @@ class DistributedAssetTile extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   LinearProgressIndicator(
-                    value: installing ? null : progress.clamp(0.0, 1.0),
+                    value: installing
+                        ? null
+                        : progress.clamp(0.0, 1.0).toDouble(),
                   ),
                   const SizedBox(height: 4),
                   Text(
