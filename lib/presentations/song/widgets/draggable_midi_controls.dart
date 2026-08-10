@@ -11,9 +11,9 @@ export 'draggable_midi_controls_base.dart' hide DraggableMidiControls;
 
 /// Compatibility wrapper around the mature drag/morph MIDI player.
 ///
-/// The base implementation is intentionally kept byte-for-byte intact so its
-/// animation/drag behaviour stays stable. This wrapper only adds the missing
-/// accidental notation control (♯/♭) directly inside the expanded player.
+/// The base implementation retains the mature animation/drag behaviour. This
+/// wrapper only adds the accidental notation control (♯/♭) directly inside the
+/// expanded player while preserving the base widget's public API.
 class DraggableMidiControls extends StatefulWidget {
   final bool isPlaying;
   final bool isLoading;
@@ -170,7 +170,10 @@ class _DraggableMidiControlsState extends State<DraggableMidiControls> {
           base.kMidiExpandedMaxWidth,
           availableWidth * base.kMidiExpandedWidthRatio,
         );
-        final playerRight = math.max(0, (availableWidth - playerWidth) / 2);
+        final playerRight = math.max(
+          0.0,
+          (availableWidth - playerWidth) / 2,
+        );
         final isFlat =
             widget.chordAccidentalMode == ChordService.accidentalFlat;
         final colors = Theme.of(context).colorScheme;
