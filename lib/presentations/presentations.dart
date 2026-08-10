@@ -9,6 +9,7 @@ export 'initial/initial.dart';
 export 'literature/literature.dart';
 export 'more/more.dart';
 export 'report/report.dart';
+export 'search/search.dart';
 export 'settings/settings.dart';
 export 'song/song.dart';
 export 'web/web.dart';

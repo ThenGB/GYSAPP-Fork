@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:auto_route/auto_route.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -357,7 +356,11 @@ class _HomeQuickActions extends StatelessWidget {
               title: 'Cari Pujian',
               subtitle: 'Cari lagu berdasarkan nomor',
               color: colors.tertiary,
-              onTap: () => _openSongSearch(context),
+              onTap: () => router.push(
+                GlobalSearchRoute(
+                  initialSection: GlobalSearchSection.song,
+                ),
+              ),
             ),
           ];
           if (twoColumns) {
@@ -378,37 +381,6 @@ class _HomeQuickActions extends StatelessWidget {
             ],
           );
         },
-      ),
-    );
-  }
-
-  void _openSongSearch(BuildContext context) {
-    final cubit = context.read<SongCubit>();
-    router.push(
-      SongListRoute(
-        books: () => cubit.state.songBook,
-        currentBook: () =>
-            cubit.state.currentSong ??
-            SongBook(code: cubit.state.bookCode, songs: const []),
-        initialSearchText: cubit.state.searchTerms,
-        onSearchTermsChanged: cubit.onSearchTermsChanged,
-        onChangeBookCode: cubit.changeBookcode,
-        onTapPageNumber: (pageNumber) {
-          final song = cubit.state.songs.firstWhereOrNull(
-            (s) => s.number == pageNumber,
-          );
-          router.maybePop();
-          if (song != null) {
-            dashboardTabsRouter?.setActiveIndex(2);
-            unawaited(cubit.openSong(song));
-          }
-        },
-        onOpenSong: (song) {
-          router.maybePop();
-          dashboardTabsRouter?.setActiveIndex(2);
-          unawaited(cubit.openSong(song));
-        },
-        onBack: () => router.maybePop(),
       ),
     );
   }
