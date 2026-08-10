@@ -46,6 +46,17 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
+      - name: Require official signing for published main builds
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$ANDROID_KEYSTORE_BASE64" || -z "$ANDROID_KEY_ALIAS" || -z "$ANDROID_KEY_PASSWORD" || -z "$ANDROID_STORE_PASSWORD" ]]; then
+            echo 'Android release signing secrets are required before a main build can be published.' >&2
+            echo 'Configure ANDROID_KEYSTORE_BASE64, ANDROID_KEY_ALIAS, ANDROID_KEY_PASSWORD, and ANDROID_STORE_PASSWORD.' >&2
+            exit 1
+          fi
+
       - name: Configure Android release signing
         if: env.ANDROID_KEYSTORE_BASE64 != '' && env.ANDROID_KEY_ALIAS != '' && env.ANDROID_KEY_PASSWORD != '' && env.ANDROID_STORE_PASSWORD != ''
         shell: bash
@@ -61,6 +72,13 @@ jobs:
 
       - name: Build Android release
         run: flutter build apk --release --no-pub --target-platform android-arm64
+
+      - name: Print APK signing certificate
+        shell: bash
+        run: |
+          set -euo pipefail
+          build_tools="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$build_tools/apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk
 
       - name: Collect Android release
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
