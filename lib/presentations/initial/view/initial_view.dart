@@ -45,7 +45,7 @@ class _InitialViewState extends State<InitialView> {
           !previous.isLoaded && current.isLoaded,
       listener: (context, state) {
         router.popUntilRoot();
-        router.replace(const DashboardRoute());
+        router.replace(const AdaptiveAppShellRoute());
       },
       builder: (context, state) => const ChurchStartupSplash(),
     );

@@ -7,6 +7,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as paths;
 
@@ -42,6 +43,15 @@ void main() {
           child: const App(),
         ),
       );
+
+      // Hand the preserved native splash off only after the first Flutter
+      // frame renders, so the Flutter wordmark splash is already on screen
+      // when the native surface is removed (no blank flash between them).
+      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          FlutterNativeSplash.remove();
+        });
+      }
     },
     (error, stack) {
       log('Uncaught zoned error', error: error, stackTrace: stack);

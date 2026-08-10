@@ -99,6 +99,22 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   double _swipeStartY = 0;
   DateTime _swipeStartTime = DateTime.now();
 
+  /// Raw pointer bookkeeping so pinch/zoom gestures never masquerade as a
+  /// navigation swipe: once a second pointer joins, navigation is refused for
+  /// the whole gesture session, and it resets only when every finger lifts.
+  int _activePointers = 0;
+  bool _multiPointerSeen = false;
+
+  // Navigation swipe contract (deliberately conservative for elderly users):
+  // a swipe must cover at least ~110dp within 500ms, move faster than
+  // 600dp/s, and be at least 1.8x dominant on one axis. Zooming, pinching,
+  // and chord editing always refuse to navigate.
+  static const double _swipeMinDistance = 110;
+  static const double _swipeMinVelocity = 600;
+  static const Duration _swipeMaxElapsed = Duration(milliseconds: 500);
+  static const double _swipeAxisRatio = 1.8;
+  static const double _swipeZoomBlockThreshold = 1.05;
+
   pdfrx.PdfViewerParams? _cachedParams;
 
   @override
@@ -708,7 +724,9 @@ class _SongPdfViewerState extends State<SongPdfViewer>
                   children: [
                     Listener(
                       onPointerDown: _onSwipeStart,
+                      onPointerMove: _onSwipeMove,
                       onPointerUp: _onSwipeEnd,
+                      onPointerCancel: _onSwipeCancel,
                       child: pdfWidget,
                     ),
                     if (widget.twoPageMode &&
@@ -772,32 +790,104 @@ class _SongPdfViewerState extends State<SongPdfViewer>
   }
 
   void _onSwipeStart(PointerDownEvent event) {
-    _swipeStartX = event.position.dx;
-    _swipeStartY = event.position.dy;
-    _swipeStartTime = DateTime.now();
+    _activePointers++;
+    if (_activePointers > 1) {
+      // A second finger means pinch/zoom intent: never navigate this session.
+      _multiPointerSeen = true;
+    }
+    if (_activePointers == 1) {
+      _multiPointerSeen = false;
+      _swipeStartX = event.position.dx;
+      _swipeStartY = event.position.dy;
+      _swipeStartTime = DateTime.now();
+    }
+  }
+
+  void _onSwipeMove(PointerMoveEvent event) {
+    // no-op: the reference point stays the DOWN position, so a slow drag
+    // followed by a fast fling still counts as one gesture.
+  }
+
+  void _onSwipeCancel(PointerCancelEvent event) {
+    _activePointers = max(_activePointers - 1, 0);
+    if (_activePointers == 0) _multiPointerSeen = false;
+  }
+
+  /// Whether the viewer is zoomed in beyond ~5% over the fitted page.
+  /// While zoomed, a drag must pan the page instead of navigating.
+  bool _isZoomedBeyondFit() {
+    try {
+      if (!_pdfCtrl.isReady) return false;
+      final fitZoom = _fitZoomReference();
+      if (fitZoom == null || fitZoom <= 0) return false;
+      return _pdfCtrl.currentZoom > fitZoom * _swipeZoomBlockThreshold;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// The zoom scale that fits the current layout into the viewport:
+  /// document fit for two-page mode, current page fit otherwise.
+  double? _fitZoomReference() {
+    try {
+      if (!_pdfCtrl.isReady) return null;
+      final viewSize = _pdfCtrl.viewSize;
+      if (viewSize.width <= 0 || viewSize.height <= 0) return null;
+      if (widget.twoPageMode) {
+        final document = _pdfCtrl.documentSize;
+        if (document.width <= 0 || document.height <= 0) return null;
+        return _fitZoomForSize(viewSize, document);
+      }
+      final page = _currentPageRect();
+      if (page == null || page.width <= 0 || page.height <= 0) return null;
+      return _fitZoomForSize(viewSize, Size(page.width, page.height));
+    } catch (_) {
+      return null;
+    }
+  }
+
+  Rect? _currentPageRect() {
+    final layout = _pdfCtrl.layout;
+    if (layout.pageLayouts.isEmpty) return null;
+    final pageNumber = _pdfCtrl.pageNumber ?? _pdfRequest?.startPage ?? 1;
+    final index = (pageNumber - 1).clamp(0, layout.pageLayouts.length - 1);
+    return layout.pageLayouts[index];
   }
 
   void _onSwipeEnd(PointerUpEvent event) {
-    final dx = event.position.dx - _swipeStartX;
-    final dy = event.position.dy - _swipeStartY;
-    final elapsed = DateTime.now().difference(_swipeStartTime).inMilliseconds;
-    if (elapsed == 0 || elapsed > 600) return;
-    final vx = dx / elapsed * 1000;
-    final vy = dy / elapsed * 1000;
-    const minVelocity = 400.0;
-    const minDistance = 80.0;
+    _activePointers = max(_activePointers - 1, 0);
+    final pointerWasLifted = _activePointers == 0;
+    if (pointerWasLifted) {
+      final wasMultiPointer = _multiPointerSeen;
+      _multiPointerSeen = false;
+      _evaluateSwipe(event.position, wasMultiPointer);
+    }
+  }
 
-    if (vx.abs() > minVelocity &&
-        dx.abs() > minDistance &&
-        vx.abs() > vy.abs()) {
+  void _evaluateSwipe(Offset position, bool wasMultiPointer) {
+    // Never navigate while editing chords, after a pinch/zoom gesture, or
+    // when the page is zoomed beyond fit (a drag there must pan).
+    if (widget.isEditMode || wasMultiPointer || _isZoomedBeyondFit()) return;
+
+    final dx = position.dx - _swipeStartX;
+    final dy = position.dy - _swipeStartY;
+    final elapsed = DateTime.now().difference(_swipeStartTime);
+    if (elapsed <= Duration.zero || elapsed > _swipeMaxElapsed) return;
+    final seconds = elapsed.inMilliseconds / 1000;
+    final vx = dx / seconds;
+    final vy = dy / seconds;
+
+    if (vx.abs() > _swipeMinVelocity &&
+        dx.abs() > _swipeMinDistance &&
+        vx.abs() > vy.abs() * _swipeAxisRatio) {
       if (vx > 0) {
         widget.onNextSong?.call();
       } else {
         widget.onPreviousSong?.call();
       }
-    } else if (vy.abs() > minVelocity &&
-        dy.abs() > minDistance &&
-        vy.abs() > vx.abs()) {
+    } else if (vy.abs() > _swipeMinVelocity &&
+        dy.abs() > _swipeMinDistance &&
+        vy.abs() > vx.abs() * _swipeAxisRatio) {
       final step = widget.twoPageMode ? 2 : 1;
       if (dy < 0) {
         unawaited(_goToPage(_currentPageIndex + step));

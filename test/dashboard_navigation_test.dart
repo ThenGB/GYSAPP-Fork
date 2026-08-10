@@ -7,13 +7,15 @@ void main() {
       dashboardNavigationDestinations
           .map((destination) => destination.label)
           .toList(),
-      ['Dashboard', 'Bible', 'Hymnal', 'Beliefs', 'Settings'],
+      ['Dashboard', 'Bible', 'Hymnal', 'Beliefs', 'More'],
     );
+    // The bottom dock shows every destination — including "Lainnya" — so no
+    // feature hides behind a drawer.
     expect(
       dashboardBottomNavigationDestinations
           .map((destination) => destination.label)
           .toList(),
-      ['Dashboard', 'Bible', 'Hymnal', 'Beliefs'],
+      ['Dashboard', 'Bible', 'Hymnal', 'Beliefs', 'More'],
     );
   });
 

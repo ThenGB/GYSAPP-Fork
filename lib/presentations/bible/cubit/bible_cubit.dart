@@ -45,6 +45,12 @@ class BibleCubit extends HydratedCubit<BibleState> {
 
   bool get isSelectingBible => state.selectedVerse.isNotEmpty;
 
+  /// Bumped on every chapter request. A response whose generation no longer
+  /// matches is stale and must never emit — rapid chapter switches can no
+  /// longer be overwritten by an older, slower response.
+  int _contentGeneration = 0;
+  int _splitGeneration = 0;
+
   BibleRepository bibleRepository = di();
   LocalBibleAssetService bibleAssetService = di();
 
@@ -1025,46 +1031,40 @@ class BibleCubit extends HydratedCubit<BibleState> {
     final shouldSyncBottom = [VerseMode.both, VerseMode.bottomOnly].contains(
       mode,
     );
-    if (shouldSyncBottom) {
-      emit(state.copyWith(isSplitContentLoading: true));
-    }
-    if (shouldSyncBottom) {
-      await getContent2(bible);
-    }
     if (mode == VerseMode.bottomOnly) {
-      if (shouldSyncBottom) {
-        emit(state.copyWith(isSplitContentLoading: false));
-      }
+      // Only the split pane changes; the main pane stays untouched.
+      emit(state.copyWith(isSplitContentLoading: true));
+      await getContent2(bible);
+      emit(state.copyWith(isSplitContentLoading: false));
       return;
     }
+
+    final generation = ++_contentGeneration;
     emit(state.copyWith(selectedVerse: []));
-    if (bible == null) {
-      emit(
-        state.copyWith(
-          prevBible: state.currentBible,
-          currentBible: const Verse(
-            id: 1001001,
-            bookId: 1,
-            chapterId: 1,
-            verseId: 1,
-          ),
-        ),
-      );
+    if (shouldSyncBottom) {
+      emit(state.copyWith(isSplitContentLoading: true));
+      // Load both panes in parallel. Each loader captured its target before
+      // awaiting, so a concurrent chapter switch can never interleave a
+      // half-written state into the other pane.
+      await Future.wait([
+        _loadMainContent(bible, generation),
+        getContent2(bible),
+      ]);
+      emit(state.copyWith(isSplitContentLoading: false));
     } else {
-      emit(state.copyWith(prevBible: state.currentBible, currentBible: bible));
+      await _loadMainContent(bible, generation);
     }
-    int bibleId = state.currentBible!.id;
-    // int verseId = state.currentBible!.verseId;
+  }
+
+  Future<void> _loadMainContent(Verse? bible, int generation) async {
+    final target =
+        bible ??
+        const Verse(id: 1001001, bookId: 1, chapterId: 1, verseId: 1);
+    emit(state.copyWith(prevBible: state.currentBible, currentBible: target));
+    int bibleId = target.id;
     Bcvbc bcvbc = Bcvbc.fromBibleId(bibleId);
-    int bookId = state.currentBible!.bookId;
-    int chapterId = state.currentBible!.chapterId;
-    // String? title = await convertIDtoNameAlkitab(
-    //   bibleId,
-    //   null,
-    //   bibleDb: bibleDb!,
-    //   isLong: true,
-    //   withVerse: false,
-    // );
+    int bookId = target.bookId;
+    int chapterId = target.chapterId;
 
     // Parallelize all data fetches for better performance
     late List<Verse> bibleContent;
@@ -1128,6 +1128,10 @@ class BibleCubit extends HydratedCubit<BibleState> {
       pericopeParalels = <PericopeParalel>[];
       references = <BibleRef>[];
     }
+
+    // A newer request superseded this one: never publish stale content.
+    if (generation != _contentGeneration) return;
+
     var book = bookContent.firstWhereOrNull((element) => element.id == bookId);
     verseKeys = List.generate(
       bibleContent.length,
@@ -1145,94 +1149,85 @@ class BibleCubit extends HydratedCubit<BibleState> {
         lastOpenBible: DateTime.now(),
       ),
     );
-    if (shouldSyncBottom) {
-      emit(state.copyWith(isSplitContentLoading: false));
-    }
   }
 
   Future getContent2(Verse? bible) async {
+    final generation = ++_splitGeneration;
     try {
       emit(state.copyWith(selectedVerse: []));
-      if (bible == null) {
-        emit(
-          state.copyWith(
-            prevBibleSplit: state.currentBibleSplit,
-            currentBibleSplit: const Verse(
-              id: 1001001,
-              bookId: 1,
-              chapterId: 1,
-              verseId: 1,
-            ),
-          ),
-        );
-      } else {
-        emit(
-          state.copyWith(
-            prevBibleSplit: state.currentBibleSplit,
-            currentBibleSplit: bible,
-          ),
-        );
-      }
-      int bibleId = state.currentBibleSplit!.id;
-      // int verseId = state.currentBible!.verseId;
+      final target =
+          bible ??
+          const Verse(id: 1001001, bookId: 1, chapterId: 1, verseId: 1);
+      emit(
+        state.copyWith(
+          prevBibleSplit: state.currentBibleSplit,
+          currentBibleSplit: target,
+        ),
+      );
+      int bibleId = target.id;
       Bcvbc bcvbc = Bcvbc.fromBibleId(bibleId);
-      int bookId = state.currentBibleSplit!.bookId;
-      int chapterId = state.currentBibleSplit!.chapterId;
-      // String? title = await convertIDtoNameAlkitab(
-      //   bibleId,
-      //   null,
-      //   bibleDb: bibleDb!,
-      //   isLong: true,
-      //   withVerse: false,
-      // );
+      int bookId = target.bookId;
+      int chapterId = target.chapterId;
 
-      final bibleContent = _usesSplitAssetBible
-          ? await bibleAssetService.getVerses(
-              state.splitBibleCode,
-              bookId: bookId,
-              chapterId: chapterId,
-            )
-          : splitBibleDb != null
-          ? await bibleRepository.getVerses(
-              splitBibleDb!,
-              bookId: bookId,
-              chapterId: chapterId,
-            )
-          : <Verse>[];
-      final bookContent = _usesSplitAssetBible
-          ? await bibleAssetService.getBooks(state.splitBibleCode)
-          : splitBibleDb != null
-          ? await bibleRepository.getBooks(splitBibleDb!)
-          : <BibleBook>[];
-      final pericopes = _usesSplitAssetBible
-          ? await bibleAssetService.getPericopes(
-              state.splitBibleCode,
-              bookId: bookId,
-              chapterId: chapterId,
-            )
-          : splitBibleDb != null
-          ? await bibleRepository.getPericope(
-              splitBibleDb!,
-              bookId: bookId,
-              chapterId: chapterId,
-            )
-          : <Pericope>[];
-      final pericopeParalels = _usesSplitAssetBible
-          ? await bibleAssetService.getPericopeParalels(
-              state.splitBibleCode,
-              bc: bcvbc.bc!,
-            )
-          : splitBibleDb != null
-          ? await bibleRepository.getPericopeParalel(
-              splitBibleDb!,
-              bc: bcvbc.bc!,
-            )
-          : <PericopeParalel>[];
-      final references = _usesSplitAssetBible
-          ? await bibleAssetService.getRefs(state.splitBibleCode, bc: bcvbc.bc!)
-          : splitBibleDb != null
-          ? await bibleRepository.getRef(splitBibleDb!, bc: bcvbc.bc!)
-          : <BibleRef>[];
+      // Parallelize all split-pane fetches, then publish atomically.
+      final List<dynamic> results;
+      if (_usesSplitAssetBible) {
+        results = await Future.wait([
+          bibleAssetService.getVerses(
+            state.splitBibleCode,
+            bookId: bookId,
+            chapterId: chapterId,
+          ),
+          bibleAssetService.getBooks(state.splitBibleCode),
+          bibleAssetService.getPericopes(
+            state.splitBibleCode,
+            bookId: bookId,
+            chapterId: chapterId,
+          ),
+          bibleAssetService.getPericopeParalels(
+            state.splitBibleCode,
+            bc: bcvbc.bc!,
+          ),
+          bibleAssetService.getRefs(state.splitBibleCode, bc: bcvbc.bc!),
+        ]);
+      } else if (splitBibleDb != null) {
+        results = await Future.wait([
+          bibleRepository.getVerses(
+            splitBibleDb!,
+            bookId: bookId,
+            chapterId: chapterId,
+          ),
+          bibleRepository.getBooks(splitBibleDb!),
+          bibleRepository.getPericope(
+            splitBibleDb!,
+            bookId: bookId,
+            chapterId: chapterId,
+          ),
+          bibleRepository.getPericopeParalel(
+            splitBibleDb!,
+            bc: bcvbc.bc!,
+          ),
+          bibleRepository.getRef(splitBibleDb!, bc: bcvbc.bc!),
+        ]);
+      } else {
+        results = [
+          <Verse>[],
+          <BibleBook>[],
+          <Pericope>[],
+          <PericopeParalel>[],
+          <BibleRef>[],
+        ];
+      }
+
+      // A newer split request superseded this one: never publish stale
+      // content or its GlobalKeys.
+      if (generation != _splitGeneration) return;
+
+      final bibleContent = results[0] as List<Verse>;
+      final bookContent = results[1] as List<BibleBook>;
+      final pericopes = results[2] as List<Pericope>;
+      final pericopeParalels = results[3] as List<PericopeParalel>;
+      final references = results[4] as List<BibleRef>;
 
       var book = bookContent.firstWhereOrNull(
         (element) => element.id == bookId,
@@ -1256,7 +1251,7 @@ class BibleCubit extends HydratedCubit<BibleState> {
       );
     } catch (e, stackTrace) {
       log(
-        'Error in getContent: $e',
+        'Error in getContent2: $e',
         name: 'BibleCubit',
         stackTrace: stackTrace,
       );

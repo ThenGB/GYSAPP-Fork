@@ -7,6 +7,7 @@ export 'font_setting/font_setting.dart';
 export 'home/home.dart';
 export 'initial/initial.dart';
 export 'literature/literature.dart';
+export 'more/more.dart';
 export 'report/report.dart';
 export 'settings/settings.dart';
 export 'song/song.dart';

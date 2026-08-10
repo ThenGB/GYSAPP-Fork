@@ -138,11 +138,15 @@ class LocalAssetService {
     // numbering/title mappings can differ per book.
     if (song['hasChord'] == true) {
       final chordFile = song['chordFile'] as String?;
-      // 1. Chord synced from gyschordweb wins over everything.
+      // 1. Manifest-synced chord (keyed by book + number) wins.
       final synced = await di<ChordSyncService>()
-          .resolveInstalledChordPath(chordFile);
+          .resolveInstalledChordPathForSong(bookCode, number);
       if (synced != null) return synced;
-      // 2. Bundled fallback (kept only until the first sync replaces it).
+      // 2. Legacy pre-manifest sync (name-based) — kept until migration.
+      final legacy = await di<ChordSyncService>()
+          .resolveInstalledChordPath(chordFile);
+      if (legacy != null) return legacy;
+      // 3. Bundled fallback (kept only until the first sync replaces it).
       final nativePath = await _resolveAssetPath(chordFile);
       if (nativePath != null) return nativePath;
     }

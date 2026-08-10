@@ -1338,6 +1338,42 @@ class _SongTextPageState extends State<_SongTextPage>
     }
   }
 
+  // Verse navigation by swipe must be unmistakable: it takes a fast flick
+  // (>=450px/s) covering >=80px within 400ms. Plain scrolling of the verse
+  // text — even a fling — never advances a verse on its own.
+  static const double _verseSwipeMinVelocity = 450;
+  static const double _verseSwipeMinDistance = 80;
+  static const Duration _verseSwipeMaxElapsed = Duration(milliseconds: 400);
+
+  DateTime _verseDragStartTime = DateTime.now();
+  Offset _verseDragAccumulated = Offset.zero;
+
+  void _onVerseDragStart(DragStartDetails details) {
+    _verseDragStartTime = DateTime.now();
+    _verseDragAccumulated = Offset.zero;
+  }
+
+  void _onVerseDragUpdate(DragUpdateDetails details) {
+    _verseDragAccumulated += details.delta;
+  }
+
+  void _onVerseDragEnd(DragEndDetails details, {required bool horizontal}) {
+    final velocity = details.primaryVelocity ?? 0;
+    final distance =
+        horizontal ? _verseDragAccumulated.dx : _verseDragAccumulated.dy;
+    final elapsed = DateTime.now().difference(_verseDragStartTime);
+    if (distance.abs() < _verseSwipeMinDistance ||
+        velocity.abs() < _verseSwipeMinVelocity ||
+        elapsed > _verseSwipeMaxElapsed) {
+      return;
+    }
+    if (velocity < 0) {
+      widget.onNextVerse?.call();
+    } else {
+      widget.onPreviousVerse?.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -1350,22 +1386,14 @@ class _SongTextPageState extends State<_SongTextPage>
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onHorizontalDragEnd: (details) {
-        final velocity = details.primaryVelocity ?? 0;
-        if (velocity < -160) {
-          widget.onNextVerse?.call();
-        } else if (velocity > 160) {
-          widget.onPreviousVerse?.call();
-        }
-      },
-      onVerticalDragEnd: (details) {
-        final velocity = details.primaryVelocity ?? 0;
-        if (velocity < -160) {
-          widget.onNextVerse?.call();
-        } else if (velocity > 160) {
-          widget.onPreviousVerse?.call();
-        }
-      },
+      onHorizontalDragStart: _onVerseDragStart,
+      onHorizontalDragUpdate: _onVerseDragUpdate,
+      onHorizontalDragEnd: (details) =>
+          _onVerseDragEnd(details, horizontal: true),
+      onVerticalDragStart: _onVerseDragStart,
+      onVerticalDragUpdate: _onVerseDragUpdate,
+      onVerticalDragEnd: (details) =>
+          _onVerseDragEnd(details, horizontal: false),
       child: SelectionArea(
         child: Column(
           children: [

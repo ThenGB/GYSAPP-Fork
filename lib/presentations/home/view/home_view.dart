@@ -1,23 +1,16 @@
-import 'dart:convert';
-import 'dart:io';
+import 'dart:async';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:collection/collection.dart';
 import 'package:easy_localization/easy_localization.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:http/http.dart' as http;
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../components/components.dart';
 import '../../../data/data.dart';
-import '../../../domain/entity/banner/banner.dart';
-import '../../../domain/entity/menulink/menulink_entity.dart';
-import '../../../domain/entity/sauh/sauh_entity.dart';
-import '../../../domain/entity/truevoice/truevoice_entity.dart';
+import '../../../domain/domain.dart';
 import '../../../router/router.dart';
 import '../../presentations.dart';
 
@@ -60,36 +53,12 @@ Widget _safeNetworkImage(
   );
 }
 
-bool _isYouTubeUrl(String url) {
-  final uri = Uri.tryParse(url);
-  if (uri == null) return false;
-  final host = uri.host.toLowerCase();
-  return host.contains('youtube.com') || host.contains('youtu.be');
-}
-
-bool _isSpotifyUrl(String url) {
-  final uri = Uri.tryParse(url);
-  if (uri == null) return false;
-  return uri.host.toLowerCase().contains('spotify.com');
-}
-
-String? _extractYouTubeVideoId(Uri uri) {
-  final host = uri.host.toLowerCase();
-  if (host.contains('youtu.be')) {
-    return uri.pathSegments.isNotEmpty ? uri.pathSegments.first : null;
-  }
-  if (!host.contains('youtube.com')) return null;
-  final fromQuery = uri.queryParameters['v'];
-  if (fromQuery != null && fromQuery.isNotEmpty) return fromQuery;
-  if (uri.pathSegments.length >= 2) {
-    final type = uri.pathSegments.first;
-    if (type == 'shorts' || type == 'embed' || type == 'live') {
-      return uri.pathSegments[1];
-    }
-  }
-  return null;
-}
-
+/// Beranda — the quiet landing page for everyday reading.
+///
+/// Structure is deliberately minimal and predictable: wordmark, two large
+/// primary actions (Buka Alkitab / Cari Pujian), continue-reading shortcuts,
+/// today's verse, and one announcements area. The old link grids and media
+/// feeds moved to the "Lainnya" hub.
 @RoutePage()
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -126,18 +95,15 @@ class HomeView extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             const _HomeWelcomeSection(),
+                            const _HomeQuickActions(),
+                            const _ContinueReadingSection(),
                             const _DailyVerseCard(),
                             _HomeBannerCarousel(
                               stream: context
                                   .read<HomeCubit>()
                                   .bannerObservable,
                             ),
-                            if (state.sauhs.isNotEmpty && state.isSauhEnabled)
-                              SauhBagiJiwa(item: state.sauhs.first),
-                            if (state.isSuaraSejatiEnabled)
-                              SuaraSejati(trueVoices: state.trueVoices),
-                            LinkLainnya(menuLinks: state.menuLinks),
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 24),
                           ],
                         ),
                       ),
@@ -366,6 +332,416 @@ class _HomeWelcomeSection extends StatelessWidget {
   }
 }
 
+/// The two primary actions, sized for a senior thumb and always labelled.
+class _HomeQuickActions extends StatelessWidget {
+  const _HomeQuickActions();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final twoColumns = constraints.maxWidth >= 560;
+          final actions = [
+            _QuickAction(
+              icon: Icons.menu_book_rounded,
+              title: 'Buka Alkitab',
+              subtitle: 'Bacaan dan renungan harian',
+              color: colors.primary,
+              onTap: () => dashboardTabsRouter?.setActiveIndex(1),
+            ),
+            _QuickAction(
+              icon: Icons.music_note_rounded,
+              title: 'Cari Pujian',
+              subtitle: 'Cari lagu berdasarkan nomor',
+              color: colors.tertiary,
+              onTap: () => _openSongSearch(context),
+            ),
+          ];
+          if (twoColumns) {
+            return Row(
+              children: [
+                Expanded(child: actions[0]),
+                const SizedBox(width: 12),
+                Expanded(child: actions[1]),
+              ],
+            );
+          }
+          return Column(
+            children: [
+              for (final action in actions) ...[
+                action,
+                const SizedBox(height: 12),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  void _openSongSearch(BuildContext context) {
+    final cubit = context.read<SongCubit>();
+    router.push(
+      SongListRoute(
+        books: () => cubit.state.songBook,
+        currentBook: () =>
+            cubit.state.currentSong ??
+            SongBook(code: cubit.state.bookCode, songs: const []),
+        initialSearchText: cubit.state.searchTerms,
+        onSearchTermsChanged: cubit.onSearchTermsChanged,
+        onChangeBookCode: cubit.changeBookcode,
+        onTapPageNumber: (pageNumber) {
+          final song = cubit.state.songs.firstWhereOrNull(
+            (s) => s.number == pageNumber,
+          );
+          router.maybePop();
+          if (song != null) {
+            dashboardTabsRouter?.setActiveIndex(2);
+            unawaited(cubit.openSong(song));
+          }
+        },
+        onOpenSong: (song) {
+          router.maybePop();
+          dashboardTabsRouter?.setActiveIndex(2);
+          unawaited(cubit.openSong(song));
+        },
+        onBack: () => router.maybePop(),
+      ),
+    );
+  }
+}
+
+class _QuickAction extends StatelessWidget {
+  const _QuickAction({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: context.appRadius(22),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: color.withValues(alpha: 0.28),
+            ),
+            borderRadius: context.appRadius(22),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Row(
+              children: [
+                Container(
+                  width: 56,
+                  height: 56,
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.14),
+                    borderRadius: context.appRadius(17),
+                  ),
+                  child: Icon(icon, size: 30, color: color),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: context.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        subtitle,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 26,
+                  color: colors.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Continue-reading shortcuts: the last opened hymn and the last Bible
+/// chapter, so one tap resumes either one.
+class _ContinueReadingSection extends StatelessWidget {
+  const _ContinueReadingSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<SongCubit, SongState>(
+      buildWhen: (previous, current) =>
+          previous.lastOpenedSong != current.lastOpenedSong,
+      builder: (context, songState) {
+        final lastSong = songState.lastOpenedSong;
+        return BlocBuilder<BibleCubit, BibleState>(
+          buildWhen: (previous, current) =>
+              previous.currentBible != current.currentBible ||
+              previous.lastOpenBible != current.lastOpenBible,
+          builder: (context, bibleState) {
+            final lastBible = bibleState.currentBible;
+            final hasSong = lastSong != null;
+            final hasBible = lastBible != null && bibleState.lastOpenBible != null;
+            if (!hasSong && !hasBible) return const SizedBox.shrink();
+
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 4, bottom: 8),
+                    child: Text(
+                      'LANJUTKAN MEMBACA',
+                      style: context.textTheme.labelMedium?.copyWith(
+                        color: context.colorScheme.primary,
+                        letterSpacing: 1.1,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                  ),
+                  if (hasSong)
+                    _ContinueTile(
+                      icon: Icons.music_note_rounded,
+                      title:
+                          '${lastSong.code ?? ''} ${lastSong.number ?? ''} — ${lastSong.title ?? ''}',
+                      subtitle: 'Pujian terakhir',
+                      onTap: () {
+                        dashboardTabsRouter?.setActiveIndex(2);
+                        unawaited(context.read<SongCubit>().openSong(lastSong));
+                      },
+                    ),
+                  if (hasSong && hasBible) const SizedBox(height: 8),
+                  if (hasBible)
+                    _ContinueBibleTile(
+                      cubit: context.read<BibleCubit>(),
+                      verse: lastBible,
+                    ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class _ContinueTile extends StatelessWidget {
+  const _ContinueTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return Material(
+      color: colors.surfaceContainerLow,
+      borderRadius: context.appRadius(18),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Ink(
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: colors.outlineVariant.withValues(alpha: 0.28),
+            ),
+            borderRadius: context.appRadius(18),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer.withValues(alpha: 0.66),
+                    borderRadius: context.appRadius(13),
+                  ),
+                  child: Icon(icon, size: 22, color: colors.onPrimaryContainer),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        subtitle,
+                        style: context.textTheme.bodySmall?.copyWith(
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: colors.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _ContinueBibleTile extends StatefulWidget {
+  const _ContinueBibleTile({required this.cubit, required this.verse});
+
+  final BibleCubit cubit;
+  final Verse verse;
+
+  @override
+  State<_ContinueBibleTile> createState() => _ContinueBibleTileState();
+}
+
+class _ContinueBibleTileState extends State<_ContinueBibleTile> {
+  Verse? _titleFor;
+  Future<String?>? _titleFuture;
+
+  Future<String?> _titleFutureFor() {
+    if (identical(_titleFor, widget.verse) && _titleFuture != null) {
+      return _titleFuture!;
+    }
+    _titleFor = widget.verse;
+    _titleFuture = widget.cubit.getBibleTitle([widget.verse]);
+    return _titleFuture!;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return FutureBuilder<String?>(
+      future: _titleFutureFor(),
+      builder: (context, snapshot) {
+        final title = snapshot.data?.trim().isNotEmpty == true
+            ? snapshot.data!.trim()
+            : 'Bacaan terakhir';
+        return Material(
+          color: colors.surfaceContainerLow,
+          borderRadius: context.appRadius(18),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () {
+              dashboardTabsRouter?.setActiveIndex(1);
+              unawaited(widget.cubit.getContent(widget.verse));
+            },
+            child: Ink(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: colors.outlineVariant.withValues(alpha: 0.28),
+                ),
+                borderRadius: context.appRadius(18),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 14,
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 44,
+                      height: 44,
+                      decoration: BoxDecoration(
+                        color: colors.primaryContainer.withValues(alpha: 0.66),
+                        borderRadius: context.appRadius(13),
+                      ),
+                      child: Icon(
+                        Icons.menu_book_rounded,
+                        size: 22,
+                        color: colors.onPrimaryContainer,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: context.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            'Bacaan terakhir',
+                            style: context.textTheme.bodySmall?.copyWith(
+                              color: colors.onSurfaceVariant,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: colors.onSurfaceVariant,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
 class _DailyVerseCard extends StatelessWidget {
   const _DailyVerseCard();
 
@@ -381,7 +757,7 @@ class _DailyVerseCard extends StatelessWidget {
         final colors = context.colorScheme;
         final homeCubit = context.read<HomeCubit>();
         return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
           child: Container(
             padding: EdgeInsets.all(context.appSpace(18)),
             decoration: BoxDecoration(
@@ -552,6 +928,7 @@ class _HomeBannerCarousel extends StatelessWidget {
         if (banners.isEmpty) return const SizedBox.shrink();
 
         return Section(
+          label: 'Pengumuman',
           child: (gap) => CarouselSlider.builder(
             itemCount: banners.length,
             itemBuilder: (context, index, realIndex) {
@@ -568,10 +945,7 @@ class _HomeBannerCarousel extends StatelessWidget {
                         : () {
                             final link = banner.linkUrl!;
                             if (link.startsWith('http')) {
-                              launchUrl(
-                                Uri.parse(link),
-                                mode: LaunchMode.externalApplication,
-                              );
+                              router.push(WebpageRoute(url: link));
                             } else {
                               router.pushPath(link);
                             }
@@ -613,572 +987,6 @@ class _HomeBannerCarousel extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class LinkLainnya extends StatelessWidget {
-  const LinkLainnya({super.key, required this.menuLinks});
-
-  final List<Menulink> menuLinks;
-
-  @override
-  Widget build(BuildContext context) {
-    final spotifyLinks = <Menulink>[];
-    final youtubeLinks = <Menulink>[];
-    final otherLinks = <Menulink>[];
-    for (final link in menuLinks) {
-      final url = link.url.toLowerCase();
-      if (url.contains('spotify')) {
-        spotifyLinks.add(link);
-      } else if (url.contains('youtube') || url.contains('youtu.be')) {
-        youtubeLinks.add(link);
-      } else {
-        otherLinks.add(link);
-      }
-    }
-
-    return Column(
-      children: [
-        if (spotifyLinks.isNotEmpty)
-          _LinkGroup(
-            title: 'Spotify GYS',
-            menuLinks: spotifyLinks,
-            icon: Icons.music_note_rounded,
-          ),
-        if (youtubeLinks.isNotEmpty)
-          _LinkGroup(
-            title: 'YouTube GYS',
-            menuLinks: youtubeLinks,
-            icon: Icons.smart_display_rounded,
-          ),
-        if (otherLinks.isNotEmpty)
-          _LinkGroup(
-            title: 'Link lainnya'.tr(),
-            menuLinks: otherLinks,
-            icon: Icons.link_rounded,
-          ),
-      ],
-    );
-  }
-}
-
-class _LinkGroup extends StatelessWidget {
-  const _LinkGroup({
-    required this.title,
-    required this.menuLinks,
-    required this.icon,
-  });
-
-  final String title;
-  final List<Menulink> menuLinks;
-  final IconData icon;
-
-  Future<void> _handleTap(BuildContext context, Menulink link) async {
-    if (!link.enabled) {
-      context.showSnackBar('Fitur ini tidak tersedia');
-      return;
-    }
-    if (link.url.startsWith('app://') && !kIsWeb && Platform.isAndroid) {
-      context.showSnackBar('Aplikasi tidak ditemukan');
-      return;
-    }
-    if (link.url.startsWith('http')) {
-      await launchUrl(
-        Uri.parse(link.url),
-        mode: LaunchMode.externalApplication,
-      );
-      return;
-    }
-    if (link.url == 'khotbah') {
-      if (!context.mounted) return;
-      showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        elevation: 0,
-        backgroundColor: Colors.transparent,
-        builder: (context) => const IbadahPopup(),
-      );
-      return;
-    }
-    router.pushPath(link.url);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Section(
-      label: title,
-      child: (gap) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: gap),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            const spacing = 10.0;
-            final columns = constraints.maxWidth >= 760 ? 4 : 2;
-            final width =
-                ((constraints.maxWidth - spacing * (columns - 1)) / columns)
-                    .clamp(0.0, double.infinity);
-            return Wrap(
-              spacing: spacing,
-              runSpacing: spacing,
-              children: menuLinks
-                  .take(4)
-                  .map(
-                    (link) => SizedBox(
-                      width: width,
-                      child: Material(
-                        color: colors.surfaceContainerLow,
-                        borderRadius: context.appRadius(16),
-                        clipBehavior: Clip.antiAlias,
-                        child: InkWell(
-                          onTap: () => _handleTap(context, link),
-                          child: Ink(
-                            decoration: BoxDecoration(
-                              border: Border.all(
-                                color: colors.outlineVariant.withValues(
-                                  alpha: 0.28,
-                                ),
-                              ),
-                              borderRadius: context.appRadius(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Row(
-                                children: [
-                                  ClipRRect(
-                                    borderRadius: context.appRadius(11),
-                                    child: Container(
-                                      width: 42,
-                                      height: 42,
-                                      color: colors.surfaceContainerHighest,
-                                      child: _LinkThumbnail(
-                                        link: link,
-                                        fallbackIcon: icon,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 11),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          link.label,
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: context.textTheme.titleSmall
-                                              ?.copyWith(
-                                                fontWeight: FontWeight.w800,
-                                              ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          _linkSubtitle(link.url),
-                                          maxLines: 1,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: context.textTheme.bodySmall
-                                              ?.copyWith(
-                                                color: colors.onSurfaceVariant,
-                                              ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Icon(
-                                    Icons.chevron_right_rounded,
-                                    size: 18,
-                                    color: colors.onSurfaceVariant,
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  )
-                  .toList(growable: false),
-            );
-          },
-        ),
-      ),
-    );
-  }
-
-  String _linkSubtitle(String url) {
-    final host = Uri.tryParse(url)?.host ?? '';
-    return host.isEmpty ? 'Gereja Yesus Sejati' : host;
-  }
-}
-
-class _LinkThumbnail extends StatefulWidget {
-  const _LinkThumbnail({required this.link, required this.fallbackIcon});
-
-  final Menulink link;
-  final IconData fallbackIcon;
-
-  @override
-  State<_LinkThumbnail> createState() => _LinkThumbnailState();
-}
-
-class _LinkThumbnailState extends State<_LinkThumbnail> {
-  static final Map<String, String?> _thumbnailCache = {};
-  late Future<String?> _thumbnailFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _thumbnailFuture = _resolveThumbnail(widget.link.url);
-  }
-
-  @override
-  void didUpdateWidget(covariant _LinkThumbnail oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.link.url != widget.link.url) {
-      _thumbnailFuture = _resolveThumbnail(widget.link.url);
-    }
-  }
-
-  Future<String?> _resolveThumbnail(String url) async {
-    if (_thumbnailCache.containsKey(url)) return _thumbnailCache[url];
-    final uri = Uri.tryParse(url);
-    if (uri == null) return _thumbnailCache[url] = null;
-
-    if (_isYouTubeUrl(url)) {
-      final videoId = _extractYouTubeVideoId(uri);
-      final thumbnail = videoId == null || videoId.isEmpty
-          ? null
-          : 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
-      _thumbnailCache[url] = thumbnail;
-      return thumbnail;
-    }
-
-    if (_isSpotifyUrl(url)) {
-      final oembedUri = Uri.https('open.spotify.com', '/oembed', {'url': url});
-      try {
-        final response = await http
-            .get(oembedUri)
-            .timeout(const Duration(seconds: 4));
-        if (response.statusCode == 200) {
-          final body = jsonDecode(response.body);
-          if (body is Map<String, dynamic>) {
-            final thumbnail = body['thumbnail_url'];
-            if (thumbnail is String && _isHttpImageUrl(thumbnail)) {
-              _thumbnailCache[url] = thumbnail;
-              return thumbnail;
-            }
-          }
-        }
-      } catch (_) {}
-    }
-
-    _thumbnailCache[url] = null;
-    return null;
-  }
-
-  Widget _fallbackTile(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(6),
-      child: Image(
-        image: widget.link.iconImageProvider,
-        fit: BoxFit.contain,
-        errorBuilder: (context, error, stack) =>
-            Icon(widget.fallbackIcon, color: context.colorScheme.primary),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final canResolve =
-        _isYouTubeUrl(widget.link.url) || _isSpotifyUrl(widget.link.url);
-    if (!canResolve) return _fallbackTile(context);
-
-    return FutureBuilder<String?>(
-      future: _thumbnailFuture,
-      builder: (context, snapshot) {
-        final thumbnail = snapshot.data;
-        if (thumbnail == null || thumbnail.isEmpty) {
-          return _fallbackTile(context);
-        }
-        return _safeNetworkImage(
-          thumbnail,
-          fit: BoxFit.cover,
-          height: 42,
-          width: 42,
-          fallback: _fallbackTile(context),
-        );
-      },
-    );
-  }
-}
-
-class IbadahPopup extends StatefulWidget {
-  const IbadahPopup({super.key});
-
-  @override
-  State<IbadahPopup> createState() => _IbadahPopupState();
-}
-
-class _IbadahPopupState extends State<IbadahPopup> {
-  final ValueNotifier<double> childHeight = ValueNotifier(0.001);
-  final GlobalKey widgetKey = GlobalKey();
-  final GlobalKey handlerKey = GlobalKey();
-
-  @override
-  void didChangeDependencies() {
-    measureWidgetSize(
-      context,
-      keys: [widgetKey, handlerKey],
-      callback: (result) => childHeight.value = result,
-    );
-    super.didChangeDependencies();
-  }
-
-  @override
-  void dispose() {
-    childHeight.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return ValueListenableBuilder<double>(
-      valueListenable: childHeight,
-      builder: (context, height, child) => DraggableScrollableSheet(
-        expand: false,
-        maxChildSize: height,
-        initialChildSize: height,
-        minChildSize: (height - .2).clamp(0.001, 1),
-        snap: true,
-        builder: (context, scrollController) => Container(
-          padding: context.mediaQuery.viewInsets,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            color: context.colorScheme.surface,
-            borderRadius: context
-                .appRadius(20)
-                .copyWith(bottomLeft: Radius.zero, bottomRight: Radius.zero),
-          ),
-          child: Column(
-            children: [
-              DragHandler(key: handlerKey),
-              Expanded(
-                child: SingleChildScrollView(
-                  controller: scrollController,
-                  child: Section(
-                    key: widgetKey,
-                    label: 'Ibadah'.tr(),
-                    child: (gap) => Material(
-                      color: Colors.transparent,
-                      child: Column(
-                        children: [
-                          ListTile(
-                            onTap: () => router.popAndPush(
-                              WebpageRoute(url: 'https://tjc.org/id/sabat/'),
-                            ),
-                            leading: const Icon(Icons.church_outlined),
-                            title: Text('Ibadah online'.tr()),
-                          ),
-                          ListTile(
-                            onTap: () => router.popAndPush(
-                              WebpageRoute(
-                                url: 'https://tjc.org/id/audio-khotbah/',
-                              ),
-                            ),
-                            leading: const Icon(Icons.headphones_outlined),
-                            title: Text('Audio Khotbah'.tr()),
-                          ),
-                          ListTile(
-                            onTap: () => router.popAndPush(
-                              WebpageRoute(
-                                url: 'https://tjc.org/id/video-khotbah/',
-                              ),
-                            ),
-                            leading: const Icon(Icons.videocam_outlined),
-                            title: Text('Video Khotbah'.tr()),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SauhBagiJiwa extends StatelessWidget {
-  const SauhBagiJiwa({super.key, required this.item});
-
-  final Sauh item;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Section(
-      label: 'Sauh Bagi Jiwa'.tr(),
-      child: (gap) => Padding(
-        padding: EdgeInsets.symmetric(horizontal: gap),
-        child: Material(
-          color: colors.surfaceContainerLow,
-          borderRadius: context.appRadius(20),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: () => router.push(WebpageRoute(url: item.url)),
-            child: Ink(
-              decoration: BoxDecoration(
-                border: Border.all(
-                  color: colors.outlineVariant.withValues(alpha: 0.28),
-                ),
-                borderRadius: context.appRadius(20),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _safeNetworkImage(
-                    item.imageUrl,
-                    height: 160,
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          item.title,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.titleLarge?.copyWith(
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          item.description,
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: context.textTheme.bodyMedium?.copyWith(
-                            color: colors.onSurfaceVariant,
-                            height: 1.45,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class SuaraSejati extends StatelessWidget {
-  const SuaraSejati({super.key, required this.trueVoices});
-
-  final List<TrueVoice> trueVoices;
-
-  @override
-  Widget build(BuildContext context) {
-    if (trueVoices.isEmpty) return const SizedBox.shrink();
-    final colors = context.colorScheme;
-    return Section(
-      label: 'Suara Sejati'.tr(),
-      child: (gap) => SizedBox(
-        height: 198,
-        child: ListView.builder(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          itemCount: trueVoices.length,
-          itemBuilder: (context, index) {
-            final item = trueVoices[index];
-            final description = item.description.trim().isNotEmpty
-                ? item.description.trim()
-                : item.creator.trim();
-            return Padding(
-              padding: EdgeInsets.only(left: index == 0 ? gap : 4, right: 6),
-              child: SizedBox(
-                width: 166,
-                child: Material(
-                  color: colors.surfaceContainerLow,
-                  borderRadius: context.appRadius(16),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () => router.push(WebpageRoute(url: item.url)),
-                    child: Ink(
-                      decoration: BoxDecoration(
-                        border: Border.all(
-                          color: colors.outlineVariant.withValues(alpha: 0.28),
-                        ),
-                        borderRadius: context.appRadius(16),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            width: 166,
-                            height: 112,
-                            child: _safeNetworkImage(
-                              item.imageUrl,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.fromLTRB(10, 8, 10, 9),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  AutoSizeText(
-                                    item.title,
-                                    maxLines: 1,
-                                    minFontSize: 8,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: context.textTheme.titleSmall
-                                        ?.copyWith(fontWeight: FontWeight.w800),
-                                  ),
-                                  if (description.isNotEmpty) ...[
-                                    const SizedBox(height: 3),
-                                    Expanded(
-                                      child: AutoSizeText(
-                                        description,
-                                        maxLines: 2,
-                                        minFontSize: 7,
-                                        maxFontSize: 12,
-                                        stepGranularity: 0.5,
-                                        overflow: TextOverflow.visible,
-                                        style: context.textTheme.bodySmall
-                                            ?.copyWith(
-                                              color: colors.onSurfaceVariant,
-                                              height: 1.15,
-                                            ),
-                                      ),
-                                    ),
-                                  ],
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-      ),
     );
   }
 }

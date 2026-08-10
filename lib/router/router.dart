@@ -44,14 +44,16 @@ class AppRouter extends RootStackRouter {
     CupertinoRoute(page: BibleVersionRoute.page),
     CupertinoRoute(page: HymnalManagementRoute.page),
     CupertinoRoute(page: SoundFontRoute.page),
+    // Settings is no longer a tab: it is pushed from the "Lainnya" hub.
+    CupertinoRoute(page: SettingsRoute.page),
     CupertinoRoute(
-      page: DashboardRoute.page,
+      page: AdaptiveAppShellRoute.page,
       children: [
         CupertinoRoute(page: HomeRoute.page, path: 'home-route'),
         CupertinoRoute(page: BibleRoute.page, path: 'bible-route'),
         CupertinoRoute(page: SongRoute.page, path: 'song-route'),
         CupertinoRoute(page: FaithRoute.page, path: 'faith-route'),
-        CupertinoRoute(page: SettingsRoute.page, path: 'settings-route'),
+        CupertinoRoute(page: MoreRoute.page, path: 'more-route'),
       ],
     ),
   ];

@@ -35,11 +35,13 @@ class FileSystemInstalledAssetStore implements InstalledAssetStore {
     final dir = Directory(_resolve(directory));
     if (!await dir.exists()) return const [];
     final names = <String>[];
-    await for (final entity in dir.list()) {
+    await for (final entity in dir.list(recursive: true)) {
       if (entity is File) {
-        // Normalize to '/' separators to match the web (IndexedDB) store.
+        // Normalize to '/' separators to match the web (IndexedDB) store,
+        // which reports every key under the directory prefix recursively.
+        final relative = p.relative(entity.path, from: dir.path);
         names.add(
-          p.joinAll([directory, p.basename(entity.path)]).replaceAll('\\', '/'),
+          p.joinAll([directory, relative]).replaceAll('\\', '/'),
         );
       }
     }
@@ -57,7 +59,16 @@ class FileSystemInstalledAssetStore implements InstalledAssetStore {
   Future<void> writeFile(String relativePath, Uint8List bytes) async {
     final file = File(_resolve(relativePath));
     await file.parent.create(recursive: true);
-    await file.writeAsBytes(bytes, flush: true);
+    // Atomic write: a crash or concurrent reader can never observe a
+    // partially-written asset.
+    final tmp = File('${file.path}.${DateTime.now().microsecondsSinceEpoch}.tmp');
+    try {
+      await tmp.writeAsBytes(bytes, flush: true);
+      await tmp.rename(file.path);
+    } catch (_) {
+      if (!await file.exists()) rethrow;
+      await tmp.delete().catchError((_) => tmp);
+    }
   }
 
   @override

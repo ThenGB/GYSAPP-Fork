@@ -232,11 +232,16 @@ class SongCubit extends HydratedCubit<SongState> {
   Future<void> _syncChordsFromGithub() async {
     try {
       final service = di<ChordSyncService>();
-      final result = await service.sync();
+      final currentIdx = state.songs.isNotEmpty
+          ? state.pageIndex.clamp(0, state.songs.length - 1).toInt()
+          : -1;
+      final currentSong = currentIdx >= 0 ? state.songs[currentIdx] : null;
+      final result = await service.sync(
+        priorityBookCode: currentSong?.code,
+        prioritySongNumber: currentSong?.number,
+      );
       log('Chord sync finished: $result', name: 'SongCubit');
-      if (result.changed && !isClosed && state.songs.isNotEmpty) {
-        final currentIdx = state.pageIndex.clamp(0, state.songs.length - 1).toInt();
-        final currentSong = state.songs[currentIdx];
+      if (result.changed && !isClosed && currentSong != null) {
         final hasChord = await _assetService.hasChord(
           currentSong.code ?? '',
           currentSong.number ?? '',
@@ -248,6 +253,50 @@ class SongCubit extends HydratedCubit<SongState> {
       }
     } catch (e, st) {
       log('Chord sync failed: $e', name: 'SongCubit', error: e, stackTrace: st);
+    }
+  }
+
+  /// Lightweight foreground re-check: skips when the last successful sync is
+  /// recent enough (6h), but refreshes promptly when the song has no chord
+  /// cached (5 min) so a freshly pushed chord appears without waiting.
+  Future<bool> _shouldRefreshChordsForSong(Song song) async {
+    final service = di<ChordSyncService>();
+    final since = await service.timeSinceLastSync();
+    if (since == null) return true;
+    final hasChord = await _assetService.hasChord(
+      song.code ?? '',
+      song.number ?? '',
+    );
+    final threshold = hasChord
+        ? const Duration(hours: 6)
+        : const Duration(minutes: 5);
+    return since > threshold;
+  }
+
+  bool _onDemandRefreshRunning = false;
+
+  Future<void> _onDemandChordRefresh(Song song) async {
+    if (_onDemandRefreshRunning) return;
+    _onDemandRefreshRunning = true;
+    try {
+      if (!await _shouldRefreshChordsForSong(song)) return;
+      final result = await di<ChordSyncService>().sync(
+        priorityBookCode: song.code,
+        prioritySongNumber: song.number,
+      );
+      if (result.changed && !isClosed && _isCurrentSong(song)) {
+        unawaited(_loadChordDataInternal(song));
+        unawaited(_resolveChordBaselineForCurrentSong(song));
+      }
+    } catch (e, st) {
+      log(
+        'On-demand chord refresh failed: $e',
+        name: 'SongCubit',
+        error: e,
+        stackTrace: st,
+      );
+    } finally {
+      _onDemandRefreshRunning = false;
     }
   }
 
@@ -769,6 +818,9 @@ class SongCubit extends HydratedCubit<SongState> {
           baseTransposeOffset: 0,
         ),
       );
+      // No cached chord: give the user's freshly-pushed chord a prompt
+      // (throttled) chance to arrive without a full background sync.
+      unawaited(_onDemandChordRefresh(song));
       return;
     }
 

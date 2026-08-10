@@ -351,8 +351,13 @@ class _BibleViewState extends State<BibleView> {
         : bibleState.verses;
     if (sourceIndex < 0 || sourceIndex >= sourceVerses.length) return;
     final sourceVerse = sourceVerses[sourceIndex];
+    // Anchor by (book, chapter, verse): verseId alone repeats across
+    // chapters and would glue unrelated chapters together.
     final targetIndex = targetVerses.indexWhere(
-      (verse) => verse.verseId == sourceVerse.verseId,
+      (verse) =>
+          verse.bookId == sourceVerse.bookId &&
+          verse.chapterId == sourceVerse.chapterId &&
+          verse.verseId == sourceVerse.verseId,
     );
     if (targetIndex < 0) return;
 

@@ -20,17 +20,19 @@ void main() {
     expect(reader, contains('_controller.goToPage'));
   });
 
-  test('drawer keeps account actions at top and app exit beside version', () {
-    final drawer = File(
+  test('drawer removed; account actions live in the More hub', () {
+    final drawerFile = File(
       'lib/presentations/dashboard/widgets/dashboard_drawer.dart',
+    );
+    final moreView = File(
+      'lib/presentations/more/view/more_view.dart',
     ).readAsStringSync();
 
-    expect(drawer, contains('_AccountPanel'));
-    expect(drawer, contains("label: Text('logout'.tr())"));
-    expect(drawer, contains('LoginRoute('));
-    expect(drawer, contains('_DrawerFooter'));
-    expect(drawer, contains("'GYS App · v\$version'"));
-    expect(drawer, contains('Icons.power_settings_new_rounded'));
+    expect(drawerFile.existsSync(), isFalse);
+    expect(moreView, contains('LoginRoute('));
+    expect(moreView, contains("'logout'.tr()"));
+    expect(moreView, contains('_MoreAccountPanel'));
+    expect(moreView, contains('SettingsRoute('));
   });
 
   test('dashboard navigation no longer uses custom painted notch chrome', () {
