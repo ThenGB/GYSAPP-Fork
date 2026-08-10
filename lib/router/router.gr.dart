@@ -1329,22 +1329,6 @@ class SongNotesListRouteArgs {
 }
 
 /// generated route for
-/// [SongSyncView]
-class SongSyncRoute extends PageRouteInfo<void> {
-  const SongSyncRoute({List<PageRouteInfo>? children})
-    : super(SongSyncRoute.name, initialChildren: children);
-
-  static const String name = 'SongSyncRoute';
-
-  static PageInfo page = PageInfo(
-    name,
-    builder: (data) {
-      return const SongSyncView();
-    },
-  );
-}
-
-/// generated route for
 /// [SongView]
 class SongRoute extends PageRouteInfo<void> {
   const SongRoute({List<PageRouteInfo>? children})
