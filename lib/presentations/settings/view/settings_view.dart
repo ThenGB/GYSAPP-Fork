@@ -24,13 +24,12 @@ class SettingsView extends StatelessWidget {
     return Scaffold(
       backgroundColor: context.colorScheme.surface,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         backgroundColor: context.colorScheme.surface.withValues(alpha: 0.88),
         toolbarHeight: 64,
         leading: IconButton(
-          tooltip: 'Menu',
-          onPressed: openDashboardDrawer,
-          icon: const Icon(Icons.menu_outlined),
+          tooltip: 'Back'.tr(),
+          onPressed: () => router.maybePop(),
+          icon: const Icon(Icons.arrow_back_rounded),
         ),
         title: Text('workspace_settings'.tr()),
         centerTitle: true,
