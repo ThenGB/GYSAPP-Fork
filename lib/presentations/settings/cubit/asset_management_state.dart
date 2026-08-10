@@ -8,6 +8,7 @@ class AssetManagementState {
     this.statuses = const [],
     this.progressByCode = const {},
     this.cancellingCodes = const {},
+    this.installingCodes = const {},
     this.message,
   });
 
@@ -17,6 +18,7 @@ class AssetManagementState {
   final List<ManagedAssetStatus> statuses;
   final Map<String, double> progressByCode;
   final Set<String> cancellingCodes;
+  final Set<String> installingCodes;
   final String? message;
 
   AssetManagementState copyWith({
@@ -26,6 +28,7 @@ class AssetManagementState {
     List<ManagedAssetStatus>? statuses,
     Map<String, double>? progressByCode,
     Set<String>? cancellingCodes,
+    Set<String>? installingCodes,
     String? message,
   }) {
     return AssetManagementState(
@@ -35,6 +38,7 @@ class AssetManagementState {
       statuses: statuses ?? this.statuses,
       progressByCode: progressByCode ?? this.progressByCode,
       cancellingCodes: cancellingCodes ?? this.cancellingCodes,
+      installingCodes: installingCodes ?? this.installingCodes,
       message: message,
     );
   }
@@ -42,6 +46,8 @@ class AssetManagementState {
   bool isDownloading(String code) => progressByCode.containsKey(code);
 
   bool isCancelling(String code) => cancellingCodes.contains(code);
+
+  bool isInstalling(String code) => installingCodes.contains(code);
 
   List<ManagedAssetStatus> get bibleStatuses => statuses
       .where((status) => status.definition.kind == DistributedAssetKind.bible)
