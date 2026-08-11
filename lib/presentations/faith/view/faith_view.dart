@@ -311,7 +311,14 @@ class _FaithHeader extends StatelessWidget {
               IconButton(
                 tooltip: _readingSettingsLabel(context),
                 onPressed: () => _showReadingSettings(context, state),
-                icon: const Icon(Icons.tune_rounded),
+                icon: Text(
+                  'Aa',
+                  style: context.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontStyle: FontStyle.italic,
+                    color: colors.onSurfaceVariant,
+                  ),
+                ),
               ),
               IconButton(
                 tooltip: 'Notes'.tr(),
@@ -444,27 +451,16 @@ class _FaithBeliefCard extends StatelessWidget {
               const SizedBox(height: 12),
               Row(
                 children: [
-                  Icon(
-                    selected
-                        ? Icons.check_circle_rounded
-                        : Icons.touch_app_outlined,
-                    size: 15,
-                    color: selected ? colors.primary : colors.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: 6),
-                  Expanded(
-                    child: Text(
-                      _selectHint(context, selected),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: selected
-                            ? colors.primary
-                            : colors.onSurfaceVariant,
-                        fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  if (selected)
+                    Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: Icon(
+                        Icons.check_circle_rounded,
+                        size: 15,
+                        color: colors.primary,
                       ),
                     ),
-                  ),
+                  const Spacer(),
                   _FaithPdfButton(
                     beliefNumber: index + 1,
                     pdfService: pdfService,
@@ -907,21 +903,6 @@ String _introTitle(BuildContext context) =>
       'zh' => '基本信条',
       _ => 'Basic Beliefs',
     };
-
-String _selectHint(BuildContext context, bool selected) {
-  if (selected) {
-    return switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Dipilih untuk tindakan',
-      'zh' => '已选择',
-      _ => 'Selected for actions',
-    };
-  }
-  return switch (Localizations.localeOf(context).languageCode) {
-    'id' => 'Ketuk untuk memilih',
-    'zh' => '点按以选择',
-    _ => 'Tap to select',
-  };
-}
 
 String _pdfButtonLabel(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
