@@ -91,17 +91,6 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
     );
   }
 
-  Future<void> _goToAdjacentPage(int delta) async {
-    if (!_controller.isReady || _pageCount <= 0) return;
-    final target = (_currentPage + delta).clamp(1, _pageCount).toInt();
-    if (target == _currentPage) return;
-    await _controller.goToPage(
-      pageNumber: target,
-      anchor: pdfrx.PdfPageAnchor.top,
-      duration: const Duration(milliseconds: 220),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
@@ -109,52 +98,6 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
 
     return Scaffold(
       backgroundColor: colors.surface,
-      appBar: AppBar(
-        leading: IconButton(
-          tooltip: _backLabel(context),
-          onPressed: () => Navigator.of(context).maybePop(),
-          icon: const Icon(Icons.arrow_back_rounded),
-        ),
-        titleSpacing: 4,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              _viewerTitle(context, widget.document.beliefNumber),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: context.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            Text(
-              widget.document.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: context.textTheme.labelSmall?.copyWith(
-                color: colors.onSurfaceVariant,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: _previousPageLabel(context),
-            onPressed: _currentPage > 1 ? () => _goToAdjacentPage(-1) : null,
-            icon: const Icon(Icons.keyboard_arrow_up_rounded),
-          ),
-          IconButton(
-            tooltip: _nextPageLabel(context),
-            onPressed: _pageCount > 0 && _currentPage < _pageCount
-                ? () => _goToAdjacentPage(1)
-                : null,
-            icon: const Icon(Icons.keyboard_arrow_down_rounded),
-          ),
-          const SizedBox(width: 4),
-        ],
-      ),
       body: Stack(
         children: [
           Positioned.fill(
@@ -333,13 +276,6 @@ class _ResumeReadingCard extends StatelessWidget {
   }
 }
 
-String _viewerTitle(BuildContext context, int number) =>
-    switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Dasar Kepercayaan $number',
-      'zh' => '第 $number 项信条',
-      _ => 'Belief $number',
-    };
-
 String _resumeTitle(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
       'id' => 'Kembali ke halaman terakhir dibuka?',
@@ -367,19 +303,6 @@ String _pageLabel(BuildContext context, int current, int total) =>
       'zh' => '第 $current / $total 页',
       _ => 'Page $current / $total',
     };
-
-String _backLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id' ? 'Kembali' : 'Back';
-
-String _previousPageLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Halaman Sebelumnya'
-        : 'Previous Page';
-
-String _nextPageLabel(BuildContext context) =>
-    Localizations.localeOf(context).languageCode == 'id'
-        ? 'Halaman Berikutnya'
-        : 'Next Page';
 
 String _dismissLabel(BuildContext context) =>
     Localizations.localeOf(context).languageCode == 'id' ? 'Tutup' : 'Dismiss';
