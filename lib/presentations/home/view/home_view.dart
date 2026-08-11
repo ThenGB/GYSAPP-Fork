@@ -93,10 +93,9 @@ class HomeView extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const _HomeWelcomeSection(),
+                            const _WelcomeVersePanel(),
                             const _HomeQuickActions(),
                             const _ContinueReadingSection(),
-                            const _DailyVerseCard(),
                             _HomeBannerCarousel(
                               stream: context
                                   .read<HomeCubit>()
@@ -161,8 +160,69 @@ class HomeHeader extends StatelessWidget {
   }
 }
 
-class _HomeWelcomeSection extends StatelessWidget {
-  const _HomeWelcomeSection();
+/// Selamat datang + Ayat Hari Ini in one compact panel. Wide layouts put the
+/// two sections side by side; narrow phones stack them inside the same box.
+class _WelcomeVersePanel extends StatelessWidget {
+  const _WelcomeVersePanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colorScheme;
+    return BlocBuilder<HomeCubit, HomeState>(
+      buildWhen: (previous, current) =>
+          previous.todayVerse != current.todayVerse,
+      builder: (context, state) {
+        final hasVerse = state.hasTodayVerse;
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+            decoration: BoxDecoration(
+              color: colors.surfaceContainerLow,
+              borderRadius: context.appRadius(24),
+              border: Border.all(
+                color: colors.outlineVariant.withValues(alpha: 0.28),
+              ),
+            ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (!hasVerse) return const _WelcomeContent();
+                if (constraints.maxWidth >= 560) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Expanded(child: _WelcomeContent()),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 14),
+                        child: Container(
+                          width: 1,
+                          color: colors.outlineVariant.withValues(alpha: 0.5),
+                        ),
+                      ),
+                      const Expanded(child: _VerseContent()),
+                    ],
+                  );
+                }
+                return const Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _WelcomeContent(),
+                    Divider(height: 24),
+                    _VerseContent(),
+                  ],
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WelcomeContent extends StatelessWidget {
+  const _WelcomeContent();
 
   @override
   Widget build(BuildContext context) {
@@ -174,99 +234,85 @@ class _HomeWelcomeSection extends StatelessWidget {
         final colors = context.colorScheme;
         final isLoggedIn = state.isLoggedIn;
         final displayName = state.account?.name?.trim();
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 18, 16, 8),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow,
-              borderRadius: context.appRadius(24),
-              border: Border.all(
-                color: colors.outlineVariant.withValues(alpha: 0.28),
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: colors.primary,
+                borderRadius: context.appRadius(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: 0.18),
+                    blurRadius: 16,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.wb_sunny_outlined,
+                color: colors.onPrimary,
+                size: 24,
               ),
             ),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: context.appRadius(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colors.primary.withValues(alpha: 0.18),
-                        blurRadius: 16,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Shalom',
+                    style: context.textTheme.labelLarge?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 0.4,
+                    ),
                   ),
-                  child: Icon(
-                    Icons.wb_sunny_outlined,
-                    color: colors.onPrimary,
-                    size: 24,
+                  const SizedBox(height: 2),
+                  Text(
+                    isLoggedIn
+                        ? (displayName?.isNotEmpty == true
+                              ? displayName!
+                              : 'Jemaat Terkasih')
+                        : 'Selamat datang',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: context.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      height: 1.15,
+                    ),
                   ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  const SizedBox(height: 5),
+                  Row(
                     children: [
-                      Text(
-                        'Shalom',
-                        style: context.textTheme.labelLarge?.copyWith(
-                          color: colors.primary,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 0.4,
-                        ),
+                      Icon(
+                        Icons.calendar_today_outlined,
+                        size: 13,
+                        color: colors.onSurfaceVariant,
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        isLoggedIn
-                            ? (displayName?.isNotEmpty == true
-                                  ? displayName!
-                                  : 'Jemaat Terkasih')
-                            : 'Selamat datang',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: context.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          height: 1.15,
-                        ),
-                      ),
-                      const SizedBox(height: 5),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 13,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          DateFormat(
+                            'EEEE, d MMMM yyyy',
+                            context.locale.languageCode,
+                          ).format(DateTime.now()),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: context.textTheme.bodySmall?.copyWith(
                             color: colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
                           ),
-                          const SizedBox(width: 6),
-                          Flexible(
-                            child: Text(
-                              DateFormat(
-                                'EEEE, d MMMM yyyy',
-                                context.locale.languageCode,
-                              ).format(DateTime.now()),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: context.textTheme.bodySmall?.copyWith(
-                                color: colors.onSurfaceVariant,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ],
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+          ],
         );
       },
     );
@@ -656,8 +702,8 @@ class _ContinueBibleTileState extends State<_ContinueBibleTile> {
   }
 }
 
-class _DailyVerseCard extends StatelessWidget {
-  const _DailyVerseCard();
+class _VerseContent extends StatelessWidget {
+  const _VerseContent();
 
   @override
   Widget build(BuildContext context) {
@@ -670,95 +716,71 @@ class _DailyVerseCard extends StatelessWidget {
         final verse = state.todayVerse!;
         final colors = context.colorScheme;
         final homeCubit = context.read<HomeCubit>();
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-          child: Container(
-            padding: EdgeInsets.all(context.appSpace(18)),
-            decoration: BoxDecoration(
-              color: colors.surfaceContainerLow,
-              borderRadius: context.appRadius(22),
-              border: Border.all(color: colors.primary.withValues(alpha: 0.18)),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.shadow.withValues(alpha: 0.06),
-                  blurRadius: 18,
-                  offset: const Offset(0, 7),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 34,
-                      height: 34,
-                      decoration: BoxDecoration(
-                        color: colors.primaryContainer,
-                        borderRadius: context.appRadius(11),
-                      ),
-                      child: Icon(
-                        Icons.auto_stories_rounded,
-                        color: colors.onPrimaryContainer,
-                        size: 18,
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'AYAT HARI INI',
-                        style: context.textTheme.labelMedium?.copyWith(
-                          color: colors.primary,
-                          letterSpacing: 1.2,
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                    ),
-                    Icon(
-                      Icons.format_quote_rounded,
-                      color: colors.primary.withValues(alpha: 0.45),
-                      size: 26,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Text(
-                  '“${verse.text}”',
-                  style: context.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    height: 1.55,
-                    color: colors.onSurface,
+                Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    color: colors.primaryContainer,
+                    borderRadius: context.appRadius(10),
+                  ),
+                  child: Icon(
+                    Icons.auto_stories_rounded,
+                    color: colors.onPrimaryContainer,
+                    size: 16,
                   ),
                 ),
-                const SizedBox(height: 16),
-                Wrap(
-                  spacing: 7,
-                  runSpacing: 7,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  children: [
-                    _VerseChip(
-                      label: verse.reference,
-                      color: colors.primaryContainer,
-                      foreground: colors.onPrimaryContainer,
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    'AYAT HARI INI',
+                    style: context.textTheme.labelMedium?.copyWith(
+                      color: colors.primary,
+                      letterSpacing: 1.0,
+                      fontWeight: FontWeight.w800,
                     ),
-                    if (verse.bibleCodeName != null)
-                      InkWell(
-                        borderRadius: context.appRadius(999),
-                        onTap: () =>
-                            _showBibleVersionPicker(context, homeCubit),
-                        child: _VerseChip(
-                          label: verse.bibleCodeName!,
-                          color: colors.tertiaryContainer,
-                          foreground: colors.onTertiaryContainer,
-                          trailing: Icons.keyboard_arrow_down_rounded,
-                        ),
-                      ),
-                  ],
+                  ),
                 ),
               ],
             ),
-          ),
+            const SizedBox(height: 10),
+            Text(
+              '“${verse.text}”',
+              style: context.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                height: 1.5,
+                color: colors.onSurface,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 7,
+              runSpacing: 7,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _VerseChip(
+                  label: verse.reference,
+                  color: colors.primaryContainer,
+                  foreground: colors.onPrimaryContainer,
+                ),
+                if (verse.bibleCodeName != null)
+                  InkWell(
+                    borderRadius: context.appRadius(999),
+                    onTap: () => _showBibleVersionPicker(context, homeCubit),
+                    child: _VerseChip(
+                      label: verse.bibleCodeName!,
+                      color: colors.tertiaryContainer,
+                      foreground: colors.onTertiaryContainer,
+                      trailing: Icons.keyboard_arrow_down_rounded,
+                    ),
+                  ),
+              ],
+            ),
+          ],
         );
       },
     );
