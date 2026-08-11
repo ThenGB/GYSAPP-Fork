@@ -190,19 +190,23 @@ class _WelcomeVersePanel extends StatelessWidget {
             ),
             child: !hasSauh
                 ? const _WelcomeContent()
-                : Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Expanded(child: _WelcomeContent()),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 14),
-                        child: Container(
-                          width: 1,
-                          color: colors.outlineVariant.withValues(alpha: 0.5),
+                : IntrinsicHeight(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Expanded(child: _WelcomeContent()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 14),
+                          child: Container(
+                            width: 1,
+                            height: double.infinity,
+                            color: colors.outlineVariant
+                                .withValues(alpha: 0.5),
+                          ),
                         ),
-                      ),
-                      const Expanded(child: _SauhContent()),
-                    ],
+                        const Expanded(child: _SauhContent()),
+                      ],
+                    ),
                   ),
           ),
         );
@@ -323,9 +327,10 @@ class _HomeQuickNav extends StatelessWidget {
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-      // Always ONE row of four, even on portrait phones.
+      // Always ONE row of four, even on portrait phones. Note: NOT
+      // stretch — this Row lives inside the dashboard's unbounded-height
+      // scroll view, and stretch would force infinite child heights.
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           for (var i = 0; i < items.length; i++) ...[
             if (i > 0) const SizedBox(width: 10),
