@@ -108,7 +108,7 @@ class _FaithViewState extends State<FaithView> {
                               physics: const AlwaysScrollableScrollPhysics(),
                               padding: EdgeInsets.fromLTRB(
                                 16,
-                                18,
+                                6,
                                 16,
                                 104 + MediaQuery.viewPaddingOf(context).bottom,
                               ),
