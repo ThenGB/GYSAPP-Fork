@@ -82,27 +82,29 @@ class HomeView extends StatelessWidget {
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: context.read<HomeCubit>().refresh,
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Align(
-                      alignment: Alignment.topCenter,
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(
-                          maxWidth: _homeMaxContentWidth,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const _WelcomeVersePanel(),
-                            const _HomeQuickActions(),
-                            const _ContinueReadingSection(),
-                            _HomeBannerCarousel(
-                              stream: context
-                                  .read<HomeCubit>()
-                                  .bannerObservable,
-                            ),
-                            const SizedBox(height: 24),
-                          ],
+                  child: _AutoHideNavScroll(
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Align(
+                        alignment: Alignment.topCenter,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(
+                            maxWidth: _homeMaxContentWidth,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const _WelcomeVersePanel(),
+                              const _HomeQuickNav(),
+                              const _ContinueReadingSection(),
+                              _HomeBannerCarousel(
+                                stream: context
+                                    .read<HomeCubit>()
+                                    .bannerObservable,
+                              ),
+                              const SizedBox(height: 24),
+                            ],
+                          ),
                         ),
                       ),
                     ),
@@ -319,54 +321,53 @@ class _WelcomeContent extends StatelessWidget {
   }
 }
 
-/// The two primary actions, sized for a senior thumb and always labelled.
-class _HomeQuickActions extends StatelessWidget {
-  const _HomeQuickActions();
+/// Four large, elderly-friendly navigation icons into the app's main areas:
+/// Kidung, Alkitab, Dasar Kepercayaan, and Lainnya.
+class _HomeQuickNav extends StatelessWidget {
+  const _HomeQuickNav();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final items = [
+      _QuickNavItem(
+        icon: Icons.music_note_rounded,
+        label: 'Kidung',
+        color: colors.tertiary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(2),
+      ),
+      _QuickNavItem(
+        icon: Icons.menu_book_rounded,
+        label: 'Alkitab',
+        color: colors.primary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(1),
+      ),
+      _QuickNavItem(
+        icon: Icons.auto_stories_rounded,
+        label: 'Dasar Kepercayaan',
+        color: colors.secondary,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(3),
+      ),
+      _QuickNavItem(
+        icon: Icons.more_horiz_rounded,
+        label: 'Lainnya',
+        color: colors.tertiaryContainer,
+        onTap: () => dashboardTabsRouter?.setActiveIndex(4),
+      ),
+    ];
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final twoColumns = constraints.maxWidth >= 560;
-          final actions = [
-            _QuickAction(
-              icon: Icons.menu_book_rounded,
-              title: 'Buka Alkitab',
-              subtitle: 'Bacaan dan renungan harian',
-              color: colors.primary,
-              onTap: () => dashboardTabsRouter?.setActiveIndex(1),
-            ),
-            _QuickAction(
-              icon: Icons.music_note_rounded,
-              title: 'Cari Pujian',
-              subtitle: 'Cari lagu berdasarkan nomor',
-              color: colors.tertiary,
-              onTap: () => router.push(
-                GlobalSearchRoute(
-                  initialSection: GlobalSearchSection.song,
-                ),
-              ),
-            ),
-          ];
-          if (twoColumns) {
-            return Row(
-              children: [
-                Expanded(child: actions[0]),
-                const SizedBox(width: 12),
-                Expanded(child: actions[1]),
-              ],
-            );
-          }
-          return Column(
-            children: [
-              for (final action in actions) ...[
-                action,
-                const SizedBox(height: 12),
-              ],
-            ],
+          final columns = constraints.maxWidth >= 560 ? 4 : 2;
+          return GridView.count(
+            crossAxisCount: columns,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            mainAxisSpacing: 12,
+            crossAxisSpacing: 12,
+            childAspectRatio: columns == 4 ? 1.1 : 1.25,
+            children: items,
           );
         },
       ),
@@ -374,18 +375,16 @@ class _HomeQuickActions extends StatelessWidget {
   }
 }
 
-class _QuickAction extends StatelessWidget {
-  const _QuickAction({
+class _QuickNavItem extends StatelessWidget {
+  const _QuickNavItem({
     required this.icon,
-    required this.title,
-    required this.subtitle,
+    required this.label,
     required this.color,
     required this.onTap,
   });
 
   final IconData icon;
-  final String title;
-  final String subtitle;
+  final String label;
   final Color color;
   final VoidCallback onTap;
 
@@ -406,49 +405,73 @@ class _QuickAction extends StatelessWidget {
             borderRadius: context.appRadius(22),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(18),
-            child: Row(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  width: 56,
-                  height: 56,
+                  width: 64,
+                  height: 64,
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.14),
-                    borderRadius: context.appRadius(17),
+                    color: color.withValues(alpha: 0.16),
+                    borderRadius: context.appRadius(20),
                   ),
-                  child: Icon(icon, size: 30, color: color),
+                  child: Icon(icon, size: 34, color: color),
                 ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: context.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(
-                        subtitle,
-                        style: context.textTheme.bodySmall?.copyWith(
-                          color: colors.onSurfaceVariant,
-                        ),
-                      ),
-                    ],
+                const SizedBox(height: 10),
+                Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: context.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
                   ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 26,
-                  color: colors.onSurfaceVariant,
                 ),
               ],
             ),
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Reports the Beranda scroll direction so the shell can auto-hide the
+/// bottom dock: scrolling down hides it, scrolling up (or reaching the top)
+/// reveals it again.
+class _AutoHideNavScroll extends StatefulWidget {
+  const _AutoHideNavScroll({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_AutoHideNavScroll> createState() => _AutoHideNavScrollState();
+}
+
+class _AutoHideNavScrollState extends State<_AutoHideNavScroll> {
+  double _lastOffset = 0;
+
+  bool _onScroll(ScrollNotification notification) {
+    if (notification is! ScrollUpdateNotification) return false;
+    final pixels = notification.metrics.pixels;
+    final delta = pixels - _lastOffset;
+    _lastOffset = pixels;
+    if (pixels <= 8) {
+      dashboardNavBarVisible.value = true;
+    } else if (delta < -1) {
+      dashboardNavBarVisible.value = true;
+    } else if (delta > 1 && pixels > 48) {
+      dashboardNavBarVisible.value = false;
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: widget.child,
     );
   }
 }
