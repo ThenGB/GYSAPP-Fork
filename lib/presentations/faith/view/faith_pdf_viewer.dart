@@ -100,6 +100,30 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
       backgroundColor: colors.surface,
       body: Stack(
         children: [
+          // Small floating back affordance (top-left) since the document
+          // opens without a header.
+          Positioned(
+            top: 10 + MediaQuery.paddingOf(context).top,
+            left: 10,
+            child: SafeArea(
+              child: Material(
+                color: colors.surface.withValues(alpha: 0.88),
+                elevation: 0,
+                shape: CircleBorder(
+                  side: BorderSide(
+                    color: colors.outlineVariant.withValues(alpha: 0.6),
+                  ),
+                ),
+                clipBehavior: Clip.antiAlias,
+                child: IconButton(
+                  tooltip: 'Kembali',
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => Navigator.of(context).maybePop(),
+                  icon: const Icon(Icons.arrow_back_rounded, size: 22),
+                ),
+              ),
+            ),
+          ),
           Positioned.fill(
             child: ColoredBox(
               color: Color.alphaBlend(
