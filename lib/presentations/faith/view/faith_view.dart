@@ -122,7 +122,7 @@ class _FaithViewState extends State<FaithView> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        _FaithIntro(title: title),
+                                        const _FaithIntro(),
                                         const SizedBox(height: 14),
                                         if (content.isNotEmpty) ...[
                                           const SizedBox(height: 14),
@@ -264,7 +264,6 @@ class _FaithHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: colors.surface.withValues(alpha: 0.98),
       child: SafeArea(
@@ -292,17 +291,6 @@ class _FaithHeader extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      _sectionLabel(context),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.labelSmall?.copyWith(
-                        color: colors.primary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.25,
-                      ),
-                    ),
-                    const SizedBox(height: 1),
                     Text(
                       _introTitle(context),
                       maxLines: 1,
@@ -354,16 +342,6 @@ class _FaithHeader extends StatelessWidget {
                 ],
               ),
               const SizedBox(width: 4),
-              Tooltip(
-                message: 'Gereja Yesus Sejati',
-                child: Image.asset(
-                  isDark
-                      ? Assets.assetsImagesLogoIndonesiaWhite
-                      : Assets.assetsImagesLogoIndonesiaColor,
-                  width: 78,
-                  fit: BoxFit.contain,
-                ),
-              ),
             ],
           ),
         ),
@@ -373,13 +351,12 @@ class _FaithHeader extends StatelessWidget {
 }
 
 class _FaithIntro extends StatelessWidget {
-  const _FaithIntro({required this.title});
-
-  final String title;
+  const _FaithIntro();
 
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 19, 20, 18),
       decoration: BoxDecoration(
@@ -393,17 +370,14 @@ class _FaithIntro extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: colors.primary,
-              borderRadius: context.appRadius(16),
-            ),
-            child: Icon(
-              Icons.menu_book_rounded,
-              color: colors.onPrimary,
-              size: 24,
+          SizedBox(
+            width: 110,
+            height: 34,
+            child: Image.asset(
+              isDark
+                  ? Assets.assetsImagesLogoIndonesiaWhite
+                  : Assets.assetsImagesLogoIndonesiaColor,
+              fit: BoxFit.contain,
             ),
           ),
           const SizedBox(width: 15),
@@ -411,14 +385,6 @@ class _FaithIntro extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: context.textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    height: 1.15,
-                  ),
-                ),
-                const SizedBox(height: 7),
                 Text(
                   _introBody(context),
                   style: context.textTheme.bodyMedium?.copyWith(
@@ -972,13 +938,6 @@ String _localeLabel(Locale locale) => switch (locale.languageCode) {
   'zh' => '中文',
   _ => locale.languageCode,
 };
-
-String _sectionLabel(BuildContext context) =>
-    switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'IMAN & DOKTRIN',
-      'zh' => '信仰与教义',
-      _ => 'FAITH & DOCTRINE',
-    };
 
 String _introTitle(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
