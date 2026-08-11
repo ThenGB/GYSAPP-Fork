@@ -162,8 +162,8 @@ class HomeHeader extends StatelessWidget {
   }
 }
 
-/// Selamat datang + Ayat Hari Ini in one compact panel. Wide layouts put the
-/// two sections side by side; narrow phones stack them inside the same box.
+/// Selamat datang + Ayat Hari Ini joined in ONE box, always side by side
+/// horizontally — on every layout, including portrait phones.
 class _WelcomeVersePanel extends StatelessWidget {
   const _WelcomeVersePanel();
 
@@ -187,11 +187,9 @@ class _WelcomeVersePanel extends StatelessWidget {
                 color: colors.outlineVariant.withValues(alpha: 0.28),
               ),
             ),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                if (!hasVerse) return const _WelcomeContent();
-                if (constraints.maxWidth >= 560) {
-                  return Row(
+            child: !hasVerse
+                ? const _WelcomeContent()
+                : Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Expanded(child: _WelcomeContent()),
@@ -204,18 +202,7 @@ class _WelcomeVersePanel extends StatelessWidget {
                       ),
                       const Expanded(child: _VerseContent()),
                     ],
-                  );
-                }
-                return const Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _WelcomeContent(),
-                    Divider(height: 24),
-                    _VerseContent(),
-                  ],
-                );
-              },
-            ),
+                  ),
           ),
         );
       },
@@ -773,6 +760,8 @@ class _VerseContent extends StatelessWidget {
             const SizedBox(height: 10),
             Text(
               '“${verse.text}”',
+              maxLines: 6,
+              overflow: TextOverflow.ellipsis,
               style: context.textTheme.titleSmall?.copyWith(
                 fontWeight: FontWeight.w600,
                 height: 1.5,
