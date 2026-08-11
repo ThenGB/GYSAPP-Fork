@@ -122,7 +122,6 @@ class _FaithViewState extends State<FaithView> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        const _FaithIntro(),
                                         const SizedBox(height: 14),
                                         if (content.isNotEmpty) ...[
                                           const SizedBox(height: 14),
@@ -362,33 +361,6 @@ class _FaithHeader extends StatelessWidget {
   }
 }
 
-class _FaithIntro extends StatelessWidget {
-  const _FaithIntro();
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colorScheme;
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 19, 20, 18),
-      decoration: BoxDecoration(
-        color: Color.alphaBlend(
-          colors.primary.withValues(alpha: 0.055),
-          colors.surfaceContainerLow,
-        ),
-        borderRadius: context.appRadius(24),
-        border: Border.all(color: colors.primary.withValues(alpha: 0.15)),
-      ),
-      child: Text(
-        _introBody(context),
-        style: context.textTheme.bodyMedium?.copyWith(
-          color: colors.onSurfaceVariant,
-          height: 1.48,
-        ),
-      ),
-    );
-  }
-}
-
 class _FaithBeliefCard extends StatelessWidget {
   const _FaithBeliefCard({
     required this.item,
@@ -558,19 +530,26 @@ class _FaithPdfButtonState extends State<_FaithPdfButton> {
 
   @override
   Widget build(BuildContext context) {
-    return FilledButton.tonalIcon(
+    return TextButton(
       onPressed: _loading ? null : _openPdf,
-      style: FilledButton.styleFrom(
+      style: TextButton.styleFrom(
         visualDensity: VisualDensity.compact,
-        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+        foregroundColor: context.colorScheme.primary,
       ),
-      icon: _loading
+      child: _loading
           ? const SizedBox.square(
               dimension: 15,
               child: CircularProgressIndicator(strokeWidth: 2),
             )
-          : const Icon(Icons.picture_as_pdf_rounded, size: 17),
-      label: Text(_pdfButtonLabel(context)),
+          : Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(_pdfButtonLabel(context)),
+                const SizedBox(width: 2),
+                const Icon(Icons.chevron_right_rounded, size: 18),
+              ],
+            ),
     );
   }
 }
@@ -934,15 +913,6 @@ String _introTitle(BuildContext context) =>
       _ => 'Ten Basic Beliefs',
     };
 
-String _introBody(BuildContext context) =>
-    switch (Localizations.localeOf(context).languageCode) {
-      'id' =>
-        'Baca dasar kepercayaan dengan fokus. Ketuk kartu untuk memilihnya, dan buka penjelasan PDF langsung di dalam aplikasi tanpa berpindah ke browser.',
-      'zh' => '专注阅读每一项信条。点按卡片即可选择，并可直接在应用内阅读 PDF 说明。',
-      _ =>
-        'Read each belief with focus. Tap a card to select it and open its PDF explanation directly inside the app.',
-    };
-
 String _selectHint(BuildContext context, bool selected) {
   if (selected) {
     return switch (Localizations.localeOf(context).languageCode) {
@@ -960,9 +930,9 @@ String _selectHint(BuildContext context, bool selected) {
 
 String _pdfButtonLabel(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Baca PDF',
-      'zh' => '阅读 PDF',
-      _ => 'Read PDF',
+      'id' => 'Baca Lebih Lanjut',
+      'zh' => '了解更多',
+      _ => 'Read More',
     };
 
 String _pdfUnavailable(BuildContext context) =>

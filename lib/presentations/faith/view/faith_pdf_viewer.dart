@@ -185,6 +185,14 @@ class _FaithPdfViewerPageState extends State<FaithPdfViewerPage> {
               ),
             ),
           ),
+          // Centered loading progress while the PDF document is still
+          // downloading/parsing (before onViewerReady sets _pageCount).
+          if (_pageCount == 0)
+            const Positioned.fill(
+              child: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
           if (_pageCount > 0)
             Positioned(
               left: 0,
