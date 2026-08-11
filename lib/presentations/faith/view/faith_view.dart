@@ -122,9 +122,8 @@ class _FaithViewState extends State<FaithView> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.stretch,
                                       children: [
-                                        const SizedBox(height: 14),
                                         if (content.isNotEmpty) ...[
-                                          const SizedBox(height: 14),
+                                          const SizedBox(height: 10),
                                           _FaithSearchField(
                                             controller: _searchController,
                                           ),
