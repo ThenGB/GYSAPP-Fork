@@ -264,13 +264,14 @@ class _FaithHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Material(
       color: colors.surface.withValues(alpha: 0.98),
       child: SafeArea(
         bottom: false,
         child: Container(
-          height: 68,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          height: 74,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
@@ -295,8 +296,19 @@ class _FaithHeader extends StatelessWidget {
                       _introTitle(context),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: context.textTheme.titleMedium?.copyWith(
+                      style: context.textTheme.titleSmall?.copyWith(
+                        fontSize: context.appFontSize(15),
                         fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    SizedBox(
+                      height: 19,
+                      child: Image.asset(
+                        isDark
+                            ? Assets.assetsImagesLogoIndonesiaWhite
+                            : Assets.assetsImagesLogoIndonesiaColor,
+                        fit: BoxFit.contain,
                       ),
                     ),
                   ],
@@ -356,7 +368,6 @@ class _FaithIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.fromLTRB(20, 19, 20, 18),
       decoration: BoxDecoration(
@@ -367,35 +378,12 @@ class _FaithIntro extends StatelessWidget {
         borderRadius: context.appRadius(24),
         border: Border.all(color: colors.primary.withValues(alpha: 0.15)),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            height: 34,
-            child: Image.asset(
-              isDark
-                  ? Assets.assetsImagesLogoIndonesiaWhite
-                  : Assets.assetsImagesLogoIndonesiaColor,
-              fit: BoxFit.contain,
-            ),
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  _introBody(context),
-                  style: context.textTheme.bodyMedium?.copyWith(
-                    color: colors.onSurfaceVariant,
-                    height: 1.48,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+      child: Text(
+        _introBody(context),
+        style: context.textTheme.bodyMedium?.copyWith(
+          color: colors.onSurfaceVariant,
+          height: 1.48,
+        ),
       ),
     );
   }
