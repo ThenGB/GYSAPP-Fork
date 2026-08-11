@@ -280,12 +280,7 @@ class _FaithHeader extends StatelessWidget {
           ),
           child: Row(
             children: [
-              IconButton.filledTonal(
-                tooltip: 'Menu',
-                onPressed: openDashboardDrawer,
-                icon: const Icon(Icons.menu_rounded),
-              ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 8),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -300,7 +295,7 @@ class _FaithHeader extends StatelessWidget {
                         fontWeight: FontWeight.w800,
                       ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 6),
                     SizedBox(
                       height: 19,
                       child: Image.asset(
@@ -908,9 +903,9 @@ String _localeLabel(Locale locale) => switch (locale.languageCode) {
 
 String _introTitle(BuildContext context) =>
     switch (Localizations.localeOf(context).languageCode) {
-      'id' => 'Sepuluh Dasar Kepercayaan',
-      'zh' => '十大信条',
-      _ => 'Ten Basic Beliefs',
+      'id' => 'Dasar Kepercayaan',
+      'zh' => '基本信条',
+      _ => 'Basic Beliefs',
     };
 
 String _selectHint(BuildContext context, bool selected) {
