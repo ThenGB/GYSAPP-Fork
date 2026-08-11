@@ -212,7 +212,9 @@ class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
                     body: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (useRail)
+                        // On Beranda the rail is hidden too: the four big
+                        // navigation icons replace it.
+                        if (useRail && selectedIndex != 0)
                           _DashboardRail(
                             selectedIndex: selectedIndex,
                             extended: width >= Breakpoints.expanded,
@@ -298,41 +300,47 @@ class _AdaptiveAppShellViewState extends State<AdaptiveAppShellView>
                         ? null
                         : ValueListenableBuilder<bool>(
                             valueListenable: dashboardNavBarVisible,
-                            builder: (context, visible, _) => AnimatedSize(
-                              duration: const Duration(milliseconds: 220),
-                              curve: Curves.easeInOut,
-                              alignment: Alignment.bottomCenter,
-                              child: visible
-                                  ? SafeArea(
-                                      top: false,
-                                      minimum: const EdgeInsets.fromLTRB(
-                                        kDashboardNavHorizontalInset,
-                                        6,
-                                        kDashboardNavHorizontalInset,
-                                        8,
-                                      ),
-                                      child: Center(
-                                        heightFactor: 1,
-                                        child: DashboardNavigationDock(
-                                          height:
-                                              MediaQuery.orientationOf(context) ==
-                                                  Orientation.landscape
-                                              ? kDashboardLandscapeBottomNavHeight
-                                              : kDashboardPortraitBottomNavHeight,
-                                          selectedIndex: selectedIndex,
-                                          destinations:
-                                              dashboardBottomNavigationDestinations,
-                                          onDestinationSelected: (index) {
-                                            context
-                                                .read<BibleCubit>()
-                                                .stopSpeaking();
-                                            tabsRouter.setActiveIndex(index);
-                                          },
+                            builder: (context, visible, _) {
+                              // On Beranda the dock is never shown: the four
+                              // big navigation icons replace it entirely.
+                              final show = visible && selectedIndex != 0;
+                              return AnimatedSize(
+                                duration: const Duration(milliseconds: 220),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.bottomCenter,
+                                child: show
+                                    ? SafeArea(
+                                        top: false,
+                                        minimum: const EdgeInsets.fromLTRB(
+                                          kDashboardNavHorizontalInset,
+                                          6,
+                                          kDashboardNavHorizontalInset,
+                                          8,
                                         ),
-                                      ),
-                                    )
-                                  : const SizedBox.shrink(),
-                            ),
+                                        child: Center(
+                                          heightFactor: 1,
+                                          child: DashboardNavigationDock(
+                                            height: MediaQuery.orientationOf(
+                                                      context,
+                                                    ) ==
+                                                    Orientation.landscape
+                                                ? kDashboardLandscapeBottomNavHeight
+                                                : kDashboardPortraitBottomNavHeight,
+                                            selectedIndex: selectedIndex,
+                                            destinations:
+                                                dashboardBottomNavigationDestinations,
+                                            onDestinationSelected: (index) {
+                                              context
+                                                  .read<BibleCubit>()
+                                                  .stopSpeaking();
+                                              tabsRouter.setActiveIndex(index);
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                    : const SizedBox.shrink(),
+                              );
+                            },
                           ),
                   );
                 },

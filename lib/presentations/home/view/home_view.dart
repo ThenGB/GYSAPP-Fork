@@ -344,19 +344,15 @@ class _HomeQuickNav extends StatelessWidget {
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 4),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final columns = constraints.maxWidth >= 560 ? 4 : 2;
-          return GridView.count(
-            crossAxisCount: columns,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 12,
-            crossAxisSpacing: 12,
-            childAspectRatio: columns == 4 ? 1.1 : 1.25,
-            children: items,
-          );
-        },
+      // Always ONE row of four, even on portrait phones.
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < items.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            Expanded(child: items[i]),
+          ],
+        ],
       ),
     );
   }
@@ -378,48 +374,57 @@ class _QuickNavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = context.colorScheme;
-    return Material(
-      color: colors.surfaceContainerLow,
-      borderRadius: context.appRadius(22),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: onTap,
-        child: Ink(
-          decoration: BoxDecoration(
-            border: Border.all(
-              color: color.withValues(alpha: 0.28),
-            ),
-            borderRadius: context.appRadius(22),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.16),
-                    borderRadius: context.appRadius(20),
-                  ),
-                  child: Icon(icon, size: 34, color: color),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The icon scales with the tile so all four fit on a narrow phone.
+        final iconSide = (constraints.maxWidth - 14).clamp(42.0, 64.0);
+        return Material(
+          color: colors.surfaceContainerLow,
+          borderRadius: context.appRadius(22),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Ink(
+              decoration: BoxDecoration(
+                border: Border.all(
+                  color: color.withValues(alpha: 0.28),
                 ),
-                const SizedBox(height: 10),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: context.textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                  ),
+                borderRadius: context.appRadius(22),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: iconSide,
+                      height: iconSide,
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.16),
+                        borderRadius: context.appRadius(18),
+                      ),
+                      child: Icon(icon, size: iconSide * 0.55, color: color),
+                    ),
+                    const SizedBox(height: 8),
+                    FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: context.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }
